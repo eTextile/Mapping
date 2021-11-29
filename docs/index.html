@@ -13,8 +13,31 @@
   <button id="connect-button" onclick="onConnectButtonClick()">E256_CONNECT</button>
 
 <script>
+// Setup Web Serial using serial.js
+  const serial = new Serial();
+  serial.on(SerialEvents.CONNECTION_OPENED, onSerialConnectionOpened);
+  serial.on(SerialEvents.CONNECTION_CLOSED, onSerialConnectionClosed);
+  serial.on(SerialEvents.DATA_RECEIVED, onSerialDataReceived);
+  serial.on(SerialEvents.ERROR_OCCURRED, onSerialErrorOccurred);
+
+  function onSerialErrorOccurred(eventSender, error) {
+      console.log("onSerialErrorOccurred", error);
+  }
+
+  function onSerialConnectionOpened(eventSender) {
+      console.log("onSerialConnectionOpened", eventSender);
+  }
+
+  function onSerialConnectionClosed(eventSender) {
+      console.log("onSerialConnectionClosed", eventSender);
+  }
+
+  function onSerialDataReceived(eventSender, newData) {
+      console.log("onSerialDataReceived", newData);
+  }
+
   async function onConnectButtonClick() {
-    console.log("Connect button clicked!")
+      console.log("Connect button clicked!");
   }
 </script>
 
