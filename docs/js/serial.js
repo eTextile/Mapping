@@ -1,5 +1,5 @@
-async function onConnectButtonClick() {
 
+async function onConnectButtonClick() {
     if ('serial' in navigator) {
         try {
         const port = await navigator.serial.requestPort();
@@ -15,7 +15,7 @@ async function onConnectButtonClick() {
         console.error('The Web serial API doesn\'t seem to be enabled in your browser.');
     }
 }
-  
+/*
 // Read the port data
 port.on("open", () => {
     console.log('serial port open');
@@ -24,3 +24,4 @@ port.on("open", () => {
 parser.on('data', data =>{
     console.log('got word from arduino:', data);
 });
+*/
