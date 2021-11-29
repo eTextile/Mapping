@@ -6,11 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>e256_mapping</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/serial.js"></script>
 </head>
 <body>
 
-<button id="connect-button" onclick="onConnectButtonClick()">E256_CONNECT</button>
-<script src="js/serial.js"></script>
+  <button id="connect-button" onclick="onConnectButtonClick()">E256_CONNECT</button>
+
+<script>
+  async function onConnectButtonClick() {
+    console.log("Connect button clicked!")
+  }
+</script>
 
 </body>
 </html>
