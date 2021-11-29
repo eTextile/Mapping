@@ -6,13 +6,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>e256_mapping</title>
   <link rel="stylesheet" href="css/style.css">
-  <script src="js/serial.js"></script>
 </head>
 <body>
+  <script src="js/serial.js"></script>
 
   <button id="connect-button" onclick="onConnectButtonClick()">E256_CONNECT</button>
 
 <script>
+ 
+ async function onConnectButtonClick() {
+  console.log("Connect button clicked!");
+
+  if (navigator.serial) {
+    if (!serial.isOpen()) {
+      await serial.connectAndOpen();
+    } else {
+      console.log("The serial connection appears already open");
+    }
+
+  } else {
+    alert('The Web Serial API does not appear supported on this web browser.');
+  }
+}
+
 // Setup Web Serial using serial.js
   const serial = new Serial();
   serial.on(SerialEvents.CONNECTION_OPENED, onSerialConnectionOpened);
