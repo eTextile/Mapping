@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<button id="myBtn">E256_CONNECT</button>
+
+<script>
+if ("serial" in navigator) {
+  // The Web Serial API is supported.
+}
+
+document.querySelector('myBtn').addEventListener('click', async () => {
+  // Prompt user to select any serial port.
+  const port = await navigator.serial.requestPort();
+});
+
+// Wait for the serial port to open.
+await port.open({ baudRate: 230400 });
+</script>
+
+</body>
+</html>
+
