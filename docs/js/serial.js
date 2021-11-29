@@ -8,7 +8,7 @@ async function onConnectButtonClick() {
         this.writer = port.writable.getWriter();
         }
         catch (err) {
-            onsole.error('There was an error opening the serial port:', err);
+            console.error('There was an error opening the serial port:', err);
         }
     }
     else {
