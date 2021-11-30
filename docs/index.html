@@ -6,53 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>e256_mapping</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.js"></script>
 </head>
 <body>
-  
-  <script src="js/serial.js"></script>
-
+  <div id="serialControls">
+    <button id="connectButton">Connect</button><span id="statusBar">Disconnected</span><br />
+    <input id="sendText" type="text" /><input id="sendButton" type="button" value="send" /><br />
+    <textarea readonly id="receiveText" ></textarea>
+    </div>
   <button id="connect-button" onclick="onConnectButtonClick()">E256_CONNECT</button>
-
-<script>
-
-// Setup Web Serial using js/serial.js
-  const serial = new Serial();
-  serial.on(SerialEvents.CONNECTION_OPENED, onSerialConnectionOpened);
-  serial.on(SerialEvents.CONNECTION_CLOSED, onSerialConnectionClosed);
-  serial.on(SerialEvents.DATA_RECEIVED, onSerialDataReceived);
-  serial.on(SerialEvents.ERROR_OCCURRED, onSerialErrorOccurred);
-
-  function onSerialErrorOccurred(eventSender, error) {
-      console.log("onSerialErrorOccurred", error);
-  }
-
-  function onSerialConnectionOpened(eventSender) {
-      console.log("onSerialConnectionOpened", eventSender);
-  }
-
-  function onSerialConnectionClosed(eventSender) {
-      console.log("onSerialConnectionClosed", eventSender);
-  }
-
-  function onSerialDataReceived(eventSender, newData) {
-      console.log("onSerialDataReceived", newData);
-  }
-
-  async function onConnectButtonClick() {
-  console.log("Connect button clicked!");
-  //if (navigator.serial) {
-  if ("serial" in navigator) {
-    if (!serial.isOpen()) {
-      await serial.connectAndOpen();
-    } else {
-      console.log("The serial connection appears already open");
-    }
-  } else {
-    alert('The Web Serial API does not appear supported on this web browser.');
-  }
-}
-
-</script>
-
+  <script src="js/sketch.js"></script>
 </body>
 </html>
