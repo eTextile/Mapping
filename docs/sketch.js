@@ -5,7 +5,9 @@ This is simple code to control and read from the Arduino in P5
 function setup() {
   createCanvas(400, 400);
 }
+
 var i = 0;
+
 function draw() {
   i++;
   background(100*ledStatus);
@@ -14,6 +16,7 @@ function draw() {
   textSize(30);
   text(val1, 60, 60)
 }
+
 var ledStatus = false;
 
 function mouseClicked() {
