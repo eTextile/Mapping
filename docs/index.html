@@ -119,8 +119,7 @@
         }
         statusBar.innerText = "Disconnected";
         connectButton.innerText = "Connect";
-        //await port.close();
-        await port.releaseLock();
+        await port.close();
         port = null;
       }
 
