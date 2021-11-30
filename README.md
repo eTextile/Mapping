@@ -1,8 +1,7 @@
-# eTextile-Synthesizer 
-### Exploring music through textile
-
+# Mapping
 ## eTextile-Synthesizer MAPPING TOOLKIT
-This web application is a tool for creating the mapping layout between textiles graphic patterns shapes and the audio-synthesizer.
+This web application is a tool for creating the mapping layouts between the textile graphic patterns and the audio-synthesizer.
+The idea is to start from an already made textile design and use e256 textile sensor to mapp digital fonctionnalites to it.
 
     https://mapping.etextile.org/
 
