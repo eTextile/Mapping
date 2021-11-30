@@ -44,7 +44,8 @@
 
       // Define outputstream, inputstream and port so they can be used throughout the sketch
       var outputStream, inputStream, port, serialReader;
-
+      
+      /*
       navigator.serial.addEventListener('connect', e => {
         statusBar.innerText = 'Connected to: + ${e.port}';
         connectButton.innerText = "Disconnect";
@@ -54,6 +55,7 @@
         statusBar.innerText = "Disconnected";
         connectButton.innerText = "Connect";
       });
+      */
 
       // Connect to the Arduino
       async function connect() {
@@ -65,7 +67,6 @@
         // Try to connect to the Serial port
         try {
           port = await navigator.serial.requestPort(/*{ filters: [filter] }*/);
-          // Continue connecting to |port|
           // Wait for the port to open
           await port.open({ baudRate: 9600 });
           statusBar.innerText = "Connected";
