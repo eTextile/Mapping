@@ -48,7 +48,7 @@
       var port;
       var serialReader;
       navigator.serial.addEventListener('connect', e => {
-        statusBar.innerText = `Connected to $ {e.port}`;
+        statusBar.innerText = `Connected to $ {e.port}`
         connectButton.innerText = "Disconnect"
       });
 
@@ -69,7 +69,7 @@
           port = await navigator.serial.requestPort({ filters: [filter] });
           // Continue connecting to |port|
           // Wait for the port to open
-          await port.open({ baudrate: 115200 });
+          await port.open({ baudrate: 9600 });
           statusBar.innerText = "Connected";
           connectButton.innerText = "Disconnect";
           let decoder = new TextDecoderStream();
