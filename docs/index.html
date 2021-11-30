@@ -71,7 +71,7 @@
           // Wait for the port to open
           await port.open({ baudrate: 115200 });
           statusBar.innerText = "Connected";
-          connectButton.innerText = "Disconnect"
+          connectButton.innerText = "Disconnect";
           let decoder = new TextDecoderStream();
           inputDone = port.readable.pipeTo(decoder.writable);
           inputStream = decoder.readable;
