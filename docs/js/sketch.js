@@ -12,17 +12,17 @@ function draw() {
   rect(val1/2, val2/2, 10, 10);
   fill(255, 255, 255);
   textSize(30);
-  text(val1, 60, 60)
+  text(val1, 60, 60);
 }
 
 var ledStatus = false;
 
 function mouseClicked() {
   if (ledStatus === true) {
-    writeToStream('B.')
+    writeToStream('B.');
     ledStatus = false;
   } else {
-    writeToStream('A.')
+    writeToStream('A.');
     ledStatus = true;
   }
 }
