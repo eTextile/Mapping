@@ -123,7 +123,7 @@ function clickSend() {
 async function readLoop() {
   while (true) {
     const { value, done } = await serialReader.read();
-    if (done == true) {
+    if (done === true) {
       break;
     }
     //When recieved something add it to the big textarea
