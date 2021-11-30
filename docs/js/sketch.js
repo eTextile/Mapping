@@ -28,5 +28,5 @@ function mouseClicked() {
 }
 
 function keyPressed() {
-  select('#serialControls').hide();
+  //select('#serialControls').hide();
 }
