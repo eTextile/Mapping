@@ -48,13 +48,13 @@
       var port;
       var serialReader;
       navigator.serial.addEventListener("connect", e => {
-        statusBar.innerText = `Connected to ${e.port}`;
-        connectButton.innerText = "Disconnect"
+        statusBar.innerText = "Connected to " + ${e.port};
+        connectButton.innerText = "Disconnect";
       });
 
       navigator.serial.addEventListener("disconnect", e => {
-        statusBar.innerText = `Disconnected`;
-        connectButton.innerText = "Connect"
+        statusBar.innerText = "Disconnected";
+        connectButton.innerText = "Connect";
       });
 
       // Connect to the Arduino
