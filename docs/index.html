@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>e256_mapping</title>
   <link rel="stylesheet" href="./css/style.css">
-  <script src="./js/p5.min.js"></script>
+  <script src="https://cdnjs.com/libraries/p5.js"></script>
 </head>
 
 <body>
@@ -43,10 +43,8 @@
       }
 
       // Define outputstream, inputstream and port so they can be used throughout the sketch
-      var outputStream;
-      var inputStream;
-      var port;
-      var serialReader;
+      var outputStream, inputStream, port, serialReader;
+
       navigator.serial.addEventListener('connect', e => {
         statusBar.innerText = 'Connected to: + ${e.port}';
         connectButton.innerText = "Disconnect";
