@@ -6,8 +6,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>e256_mapping</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="js/p5.min.js"></script>
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/p5.min.js"></script>
 </head>
 
 <body>
@@ -43,19 +43,18 @@
       }
 
       //Define outputstream, inputstream and port so they can be used throughout the sketch
-      //var outputStream;
-      //var inputStream;
-      //var port;
-      //var serialReader;
-      var outputStream, inputStream, port, serialReader;
+      var outputStream;
+      var inputStream;
+      var port;
+      var serialReader;
       navigator.serial.addEventListener('connect', e => {
         statusBar.innerText = `Connected to $ {e.port}`;
-        connectButton.innerText = "Disconnect"
+        connectButton.innerText = "Disconnect";
       });
 
       navigator.serial.addEventListener('disconnect', e => {
         statusBar.innerText = `Disconnected`;
-        connectButton.innerText = "Connect"
+        connectButton.innerText = "Connect";
       });
 
       //Connect to the Arduino
@@ -144,7 +143,7 @@
           receiveText.value += value;
           serialString = receiveText.value;
           //Scroll to the bottom of the text field
-          var patt = new RegExp(/([0-9]{1,6}),([0-9]{1,6})\n/m);
+          var patt = new RegExp(/([0-9]{1,6}), ([0-9]{1,6})\n/m);
           var res = patt.exec(serialString);
           if (res != null) {
             serialString = serialString.replace(patt, ""); //"["+res[1]+", "+res[2]+"]");
@@ -156,7 +155,7 @@
         }
       }
     </script>      
-    <script src="js/sketch.js"></script>
+    <script src="./js/sketch.js"></script>
   
   </body>
 
