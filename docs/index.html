@@ -48,7 +48,7 @@
       var port;
       var serialReader;
       navigator.serial.addEventListener("connect", e => {
-        statusBar.innerText = "Connected to " + String(e.port);
+        statusBar.innerText = "Connected to: " + toString(e.port);
         connectButton.innerText = "Disconnect";
       });
 
