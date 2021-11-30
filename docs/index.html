@@ -47,12 +47,12 @@
       var inputStream;
       var port;
       var serialReader;
-      navigator.serial.addEventListener("connect", e => {
+      navigator.serial.addEventListener('connect', e => {
         statusBar.innerText = 'Connected to: + ${e.port}';
         connectButton.innerText = "Disconnect";
       });
 
-      navigator.serial.addEventListener("disconnect", e => {
+      navigator.serial.addEventListener('disconnect', e => {
         statusBar.innerText = "Disconnected";
         connectButton.innerText = "Connect";
       });
