@@ -1,4 +1,5 @@
-#
+# eTextile-Synthesizer 
+### Exploring music through textile
 
 http://mapping.etextile.org/
 
@@ -9,4 +10,6 @@ https://codelabs.developers.google.com/codelabs/web-serial/#0
  
 Using webSerial and Teensy 4.0
 
-
+    chrome://flags/
+        Experimental Web Platform features
+            -> set [enable]
