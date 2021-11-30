@@ -1,15 +1,21 @@
 # eTextile-Synthesizer 
 ### Exploring music through textile
 
-http://mapping.etextile.org/
+## eTextile-Synthesizer MAPPING TOOLKIT
+This web application is a tool for creating the mapping layout between textiles graphic patterns shapes and the audio-synthesizer.
 
-https://editor.p5js.org/lemio/sketches/fOBD_hn-4
+    https://mapping.etextile.org/
 
-This code is highly based on the webSerial tutorial by Google:
-https://codelabs.developers.google.com/codelabs/web-serial/#0
- 
-Using webSerial and Teensy 4.0
-
+## Prerequisite
     chrome://flags/
         Experimental Web Platform features
             -> set [enable]
+
+## Technicals specifications
+Using webSerial with Teensy 4.0
+This code is highly based on the webSerial tutorial by Google:
+https://codelabs.developers.google.com/codelabs/web-serial/#0
+
+## TODO
+- Adding OSC layer
+- Load config.json files
