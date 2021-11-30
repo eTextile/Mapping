@@ -12,8 +12,8 @@
 
 <body>
   <div id="serialControls">
-    <button id="connectButton">E256_CONNECT</button><span id="statusBar">Disconnected</span><br />
-    <input id="sendText" type="text" /><input id="sendButton" type="button" value="send" /><br />
+    <button id="connectButton">E256_CONNECT</button><span id="statusBar">Disconnected</span><br/>
+    <input id="sendText" type="text"/><input id="sendButton" type="button" value="send"/><br/>
     <textarea readonly id="receiveText" ></textarea>
     </div>
   
@@ -66,7 +66,7 @@
         };
         // Try to connect to the Serial port
         try {
-          port = await navigator.serial.requestPort({ filters: [filter] });
+          port = await navigator.serial.requestPort(/*{ filters: [filter] }*/);
           // Continue connecting to |port|
           // Wait for the port to open
           await port.open({ baudrate: 9600 });
