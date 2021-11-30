@@ -69,7 +69,7 @@
           port = await navigator.serial.requestPort({ filters: [filter] });
           // Continue connecting to |port|
           // Wait for the port to open
-          await port.open({ baudrate: 230400 });
+          await port.open({ baudrate: 115200 });
           statusBar.innerText = "Connected";
           connectButton.innerText = "Disconnect"
           let decoder = new TextDecoderStream();
