@@ -11,147 +11,136 @@
   </head>
 
   <body>
-    <div id="serialControls">
-      <button id="connectButton">E256_CONNECT</button><span id="statusBar">Disconnected</span><br/>
-      <input id="sendText" type="text"/><input id="sendButton" type="button" value="send"/><br/>
+    <div id="e256_controls">
+      <button id="connectButton">E256_CONNECT</button><span id="connectStatus">E256_DISCONNECTED</span><br/>
+      <input type="file" id="loadConfigButton" accept=".json"><br/>
+      <button id="sendConfigButton">SEND_CONFIG</button><br/>
       <textarea readonly id="receiveText" ></textarea>
     </div>
   
     <script type="text/javascript">
-      var val1 = 0;
-      var val2 = 0;
-      // Define the elements
-      let sendText = document.getElementById("sendText");
-      let sendButton = document.getElementById("sendButton");
-      let receiveText = document.getElementById("receiveText");
-      let connectButton = document.getElementById("connectButton");
-      let statusBar = document.getElementById("statusBar");
-
-      // Couple the elements to the Events
-      connectButton.addEventListener("click", clickConnect);
-      sendButton.addEventListener("click", clickSend);
-
-      // When the connectButton is pressed
-      async function clickConnect() {
-        if (port) {
-          // If already connected, disconnect
-          disconnect();
-          } else {
-          // Otherwise connect
-          await connect();
-        }
-      }
-
-      // Define outputstream, inputstream and port so they can be used throughout the sketch
-      var outputStream, inputStream, port, serialReader;
+      //var val1 = 0;
+      //var val2 = 0;
       
-      /*
-      navigator.serial.addEventListener('connect', e => {
-        statusBar.innerText = 'Connected to: + ${e.port}';
-        connectButton.innerText = "Disconnect";
-      });
+      var configFile = "";
 
-      navigator.serial.addEventListener('disconnect', e => {
-        statusBar.innerText = "Disconnected";
-        connectButton.innerText = "Connect";
-      });
-      */
+      // Define the elements
+      let connectButton = document.getElementById("connectButton");
+      let connectStatus = document.getElementById("connectStatus");
+      let loadConfigButton = document.getElementById("loadConfigButton");
+      let sendConfigButton = document.getElementById("sendConfigButton");
+      let receiveText = document.getElementById("receiveText");
+      
+      // Couple the elements to the Events
+      connectButton.addEventListener('click', MIDIConnect);
+      loadConfigButton.addEventListener('change', loadConfig);
+      sendConfigButton.addEventListener('click', sendConfig);
+      
+      var midi, data;
 
-      // Connect to the Arduino
-      async function connect() {
-        disconnect();
-        // Optional filter to only see relevant boards
-        const filter = {
-          usbVendorId: 0x16c0 // Teensy 4.0 USB_MIDI_SERIAL
-        };
-        // Try to connect to the Serial port
-        try {
-          port = await navigator.serial.requestPort(/*{ filters: [filter] }*/);
-          // Wait for the port to open
-          await port.open({ baudRate: 9600 });
-          statusBar.innerText = "Connected";
-          connectButton.innerText = "Disconnect";
-          let decoder = new TextDecoderStream();
-          inputDone = port.readable.pipeTo(decoder.writable);
-          inputStream = decoder.readable;
-          const encoder = new TextEncoderStream();
-          outputDone = encoder.readable.pipeTo(port.writable);
-          outputStream = encoder.writable;
-          serialReader = inputStream.getReader();
-          readLoop();
-          } catch (e) {
-          // If the pipeTo error appears; clarify the problem by giving suggestions
-          if (e == "TypeError: Cannot read property 'pipeTo' of undefined") {
-            e += "\n Use Google Chrome and enable-experimental-web-platform-features"
-          }
-          if (e == "TypeError: Failed to execute 'requestPort' on 'Serial': 1 argument required, but only 0 present.") {
-            e += "\n Use Google Chrome and enable-experimental-web-platform-features"
-          }
-          if (e == "NetworkError: Failed to open serial port.") {
-            e += "Try unplugging the Arduino and connect again"
-          }
-          disconnect();
-          connectButton.innerText = "Connect";
-          statusBar.innerText = e;
+      async function MIDIConnect() {
+        // request MIDI access
+        if (navigator.requestMIDIAccess) {
+          navigator.requestMIDIAccess({sysex: true}).then(onMIDISuccess, onMIDIFailure);
+        } else {
+          alert("No MIDI support in your browser.");
         }
       }
 
-      // Write to the Serial port
-      async function writeToStream(line) {
-        const writer = outputStream.getWriter();
-        writer.write(line);
-        writer.releaseLock();
+      function onMIDISuccess(midiAccess) {
+        // when we get a succesful response, run this code
+        midi = midiAccess; // this is our raw MIDI data, inputs, outputs, and sysex status
+        var inputs = midi.inputs.values();
+        // loop over all available inputs and listen for any MIDI input
+        for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+          // each time there is a midi message call the onMIDIMessage function
+          input.value.onmidimessage = onMIDIMessage;
+        }
       }
 
-      // Disconnect from the Serial port
-      async function disconnect() {
-        if (serialReader) {
-          await serialReader.cancel();
-          await inputDone.catch(() => { });
-          serialReader = null;
-          inputDone = null;
+      function onMIDIFailure(error) {
+        // when we get a failed response, run this code
+        console.log("No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + error);
+      }
+
+      function onMIDIMessage(midiMsg) {
+        data = midiMsg.data; // this gives us our [command/channel, note, velocity] data.
+        console.log('MIDI data', data); // MIDI data [144, 63, 73]
+      }
+
+      const NOTE_ON = 0x90;
+      const NOTE_OFF = 0x80;
+      const CONTROL_CHANGE = 0xb0;
+      const PROGRAM_CHANGE = 0xc0;
+      const SYSTEM_EXCLUSIVE = 0xf0;
+      
+      function onMIDIMessage(midiMsg) {
+        var status = midiMsg.data[0] >> 4;
+
+        switch (status) {
+          case NOTE_ON:
+            //noteOn(midiMsg.data[1], midiMsg.data[2]);
+            console.log("NOTE_ON " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            break;
+          case NOTE_OFF:
+            //noteOff(midiMsg.data[1], midiMsg.data[2]);
+            console.log("NOTE_OFF " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            break;
+          case CONTROL_CHANGE:
+            var channel = midiMsg.data[0] & 0xF;
+            //controlChange(midiMsg.data[1], midiMsg.data[2]);
+            console.log("CHANNEL " + channel + "\tCONTROL_CHANGE " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            break;
+          case PROGRAM_CHANGE:
+            console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
+            break;
+          case SYSTEM_EXCLUSIVE:
+            console.log("SYSTEM_EXCLUSIVE " + midiMsg.data[1]);
+            break;
         }
-        if (outputStream) {
-          await outputStream.getWriter().close();
-          await outputDone;
-          outputStream = null;
-          outputDone = null;
-        }
-        statusBar.innerText = "Disconnected";
-        connectButton.innerText = "Connect";
-        await port.close();
-        port = null;
+      }
+
+      function noteOn (channel, note, volume) {
+        if (output === undefined) return
+        console.log('noteOn')
+        output.send([NOTE_ON + channel, note, volume])
+      }
+
+      function noteOff (channel, note, volume) {
+        if (output === undefined) return
+        console.log('noteOff');
+        output.send([NOTE_OFF + channel, note, volume]);
+      }
+
+      function controlChange (value, channel) {
+        if (output === undefined) return
+        console.log('controlChange');
+        output.send([CONTROL_CHANGE + channel, value]);
+      }
+
+      function programChange (idx, channel) {
+        if (output === undefined) return
+        console.log('programChange');
+        output.send([PROGRAM_CHANGE + channel, idx]);
+      }
+      
+      function sysex (output, data) {
+        if (output === undefined) return
+        console.log('sysex');
+        output.send(data)
+      }
+
+      async function loadConfig(event) {
+        configFile = event.target.files[0];
+        console.log(configFile);
       }
 
       // When the send button is pressed
-      function clickSend() {
-        // Send the message
-        writeToStream(sendText.value);
-        // And clear the input field, so it's clear it has been sent
-        sendText.value = "";
-      }
+      function sendConfig() {
+        // Send the midiMsg
 
-      // Read the incoming data
-      async function readLoop() {
-        while (true) {
-          const { value, done } = await serialReader.read();
-          if (done === true) {
-            break;
-          }
-          // When recieved something add it to the big textarea
-          receiveText.value += value;
-          serialString = receiveText.value;
-          // Scroll to the bottom of the text field
-          var patt = new RegExp(/([0-9]{1,6}), ([0-9]{1,6})\n/m);
-          var res = patt.exec(serialString);
-          if (res != null) {
-            serialString = serialString.replace(patt, ""); //"["+res[1]+", "+res[2]+"]");
-            val1 = res[1];
-            val2 = res[2];
-          }
-          receiveText.value = serialString;
-          receiveText.scrollTop = receiveText.scrollHeight;
-        }
+        // And clear the input field, so it's clear it has been sent
+        configFile.value = "";
       }
     </script>      
     <script src="./js/sketch.js"></script>

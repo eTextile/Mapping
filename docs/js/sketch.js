@@ -8,25 +8,21 @@ function setup() {
 }
 
 function draw() {
-  background(100 * ledStatus);
-  rect(val1/2, val2/2, 10, 10);
-  fill(255, 255, 255);
-  textSize(30);
-  text(val1, 60, 60);
+  background(255);
+  circle(width/2, height/2, 350);
+
+  //size(400, 400);
+  triangle(120, 300, 232, 80, 344, 300);
+  //rect(val1/2, val2/2, 10, 10)
+  //fill(255, 255, 255);
+  //textSize(30);
+  //text(val1, 60, 60);
 }
 
-var ledStatus = false;
-
 function mouseClicked() {
-  if (ledStatus === true) {
-    writeToStream('B.');
-    ledStatus = false;
-  } else {
-    writeToStream('A.');
-    ledStatus = true;
-  }
+  //
 }
 
 function keyPressed() {
-  //select('#serialControls').hide();
+  //
 }
