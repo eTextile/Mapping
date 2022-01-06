@@ -49,12 +49,12 @@
 
       function onMIDISuccess(midiAccess) {
         // when we get a succesful response, run this code
-        midi = midiAccess; // this is our raw MIDI data, inputs, outputs, and sysex status
-        var inputs = midi.inputs.values();
+        var inputs = midiAccess.inputs;
+        var outputs = midiAccess.outputs;
         // loop over all available inputs and listen for any MIDI input
-        for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+        for (var input of midiAccess.inputs.values()) {
           // each time there is a midi message call the onMIDIMessage function
-          input.value.onmidimessage = onMIDIMessage;
+          input.onmidimessage = onMIDIMessage;
         }
       }
 
@@ -63,12 +63,13 @@
         console.log("No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + error);
       }
 
+      /*
       function onMIDIMessage(midiMsg) {
         data = midiMsg.data; // this gives us our [command/channel, note, velocity] data.
         console.log('MIDI data', data); // MIDI data [144, 63, 73]
       }
-
-      /*
+      */
+     
       const NOTE_ON = 0x90;
       const NOTE_OFF = 0x80;
       const CONTROL_CHANGE = 0xb0;
@@ -76,7 +77,8 @@
       const SYSTEM_EXCLUSIVE = 0xf0;
       
       function onMIDIMessage(midiMsg) {
-        var status = midiMsg.data[0] >> 4;
+        var status = midiMsg.data[0];
+        var channel = midiMsg.data[0] & 0xF;
 
         switch (status) {
           case NOTE_ON:
@@ -88,7 +90,7 @@
             console.log("NOTE_OFF " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
             break;
           case CONTROL_CHANGE:
-            var channel = midiMsg.data[0] & 0xF;
+            //var channel = midiMsg.data[0] & 0xF;
             //controlChange(midiMsg.data[1], midiMsg.data[2]);
             console.log("CHANNEL " + channel + "\tCONTROL_CHANGE " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
             break;
@@ -100,7 +102,6 @@
             break;
         }
       }
-      */
 
       function noteOn(channel, note, volume) {
         if (output === undefined) return
