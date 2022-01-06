@@ -68,6 +68,7 @@
         console.log('MIDI data', data); // MIDI data [144, 63, 73]
       }
 
+      /*
       const NOTE_ON = 0x90;
       const NOTE_OFF = 0x80;
       const CONTROL_CHANGE = 0xb0;
@@ -99,32 +100,33 @@
             break;
         }
       }
+      */
 
-      function noteOn (channel, note, volume) {
+      function noteOn(channel, note, volume) {
         if (output === undefined) return
         console.log('noteOn')
         output.send([NOTE_ON + channel, note, volume])
       }
 
-      function noteOff (channel, note, volume) {
+      function noteOff(channel, note, volume) {
         if (output === undefined) return
         console.log('noteOff');
         output.send([NOTE_OFF + channel, note, volume]);
       }
 
-      function controlChange (value, channel) {
+      function controlChange(value, channel) {
         if (output === undefined) return
         console.log('controlChange');
         output.send([CONTROL_CHANGE + channel, value]);
       }
 
-      function programChange (idx, channel) {
+      function programChange(idx, channel) {
         if (output === undefined) return
         console.log('programChange');
         output.send([PROGRAM_CHANGE + channel, idx]);
       }
       
-      function sysex (output, data) {
+      function sysex(output, data) {
         if (output === undefined) return
         console.log('sysex');
         output.send(data)
