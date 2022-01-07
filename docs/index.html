@@ -12,33 +12,52 @@
 
   <body>
     <div id="e256_controls">
-      <button id="connectButton">E256_CONNECT</button><span id="connectStatus">E256_DISCONNECTED</span><br/>
+      <button id="connectButton">E256_CONNECT</button><br/>
+      <button id="calibrateButton">CALIBRATE</button><br/>
+      <button id="getBlobsButton">GET_BLOBS</button><br/>
+      <button id="getRawButton">GET_RAW_MATRIX</button><br/>
       <input type="file" id="loadConfigButton" accept=".json"><br/>
       <button id="sendConfigButton">SEND_CONFIG</button><br/>
       <textarea readonly id="receiveText" ></textarea>
     </div>
   
     <script type="text/javascript">
-      //var val1 = 0;
-      //var val2 = 0;
-      
+
       var configFile = "";
 
       // Define the elements
       let connectButton = document.getElementById("connectButton");
-      let connectStatus = document.getElementById("connectStatus");
+      let calibrateButton = document.getElementById("calibrateButton");
+      let getBlobsButton = document.getElementById("getBlobsButton");
+      let getRawButton = document.getElementById("getRawButton");
       let loadConfigButton = document.getElementById("loadConfigButton");
       let sendConfigButton = document.getElementById("sendConfigButton");
       let receiveText = document.getElementById("receiveText");
       
       // Couple the elements to the Events
-      connectButton.addEventListener('click', MIDIConnect);
+      connectButton.addEventListener('click', e256_MIDIConnect);
+      calibrateButton.addEventListener('click', e256_calibrate);
+      getBlobsButton.addEventListener('click', e256_getBlobs);
+      getRawButton.addEventListener('click', e256_getRawMatriw);
       loadConfigButton.addEventListener('change', loadConfig);
       sendConfigButton.addEventListener('click', sendConfig);
-      
-      var midi, data;
 
-      async function MIDIConnect() {
+      const MIDI_CHANNEL = 1;
+
+      const NOTE_ON = 9;
+      const NOTE_OFF = 8;
+      const CONTROL_CHANGE = 11;
+      const PROGRAM_CHANGE = 12;
+      const SYSTEM_EXCLUSIVE = 15
+      
+      const CALIBRATE = 2;      //  
+      const BLOBS_PLAY = 3;     // Send all blobs values over USB using MIDI format
+      const BLOBS_LEARN = 4;    // Send blobs values separatly over USB using MIDI format
+      const MAPPING_LIB = 5;    // 
+      const RAW_MATRIX = 6;     // 
+      const INTERP_MATRIX = 7;  //
+
+      async function e256_MIDIConnect() {
         // request MIDI access
         if (navigator.requestMIDIAccess) {
           navigator.requestMIDIAccess({sysex: true}).then(onMIDISuccess, onMIDIFailure);
@@ -47,14 +66,38 @@
         }
       }
 
+      var output;
+
       function onMIDISuccess(midiAccess) {
-        // when we get a succesful response, run this code
-        var inputs = midiAccess.inputs;
-        var outputs = midiAccess.outputs;
-        // loop over all available inputs and listen for any MIDI input
-        for (var input of midiAccess.inputs.values()) {
-          // each time there is a midi message call the onMIDIMessage function
-          input.onmidimessage = onMIDIMessage;
+        listInputsAndOutputs(midiAccess);
+        for (var entry of midiAccess.inputs.values()) {
+          if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
+            input = entry;
+            console.log('INPUT_OK');
+            input.onmidimessage = (onMIDIMessage);
+          }
+        }
+        for (var entry of midiAccess.outputs.values()) {
+          if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
+            output = entry;
+            console.log('OUTPUT_OK');
+          }
+        }
+        connectButton.innerHTML = 'E256_CONNECTED';
+      }
+
+      function listInputsAndOutputs(midiAccess) {
+        for (var entry of midiAccess.inputs) {
+          var input = entry[1];
+          console.log( "Input port [type:'" + input.type + "'] id:'" + input.id +
+          "' manufacturer:'" + input.manufacturer + "' name:'" + input.name +
+          "' version:'" + input.version + "'" );
+        }
+        for (var entry of midiAccess.outputs) {
+          var output = entry[1];
+          console.log( "Output port [type:'" + output.type + "'] id:'" + output.id +
+          "' manufacturer:'" + output.manufacturer + "' name:'" + output.name +
+          "' version:'" + output.version + "'" );
         }
       }
 
@@ -63,36 +106,18 @@
         console.log("No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + error);
       }
 
-      /*
       function onMIDIMessage(midiMsg) {
-        data = midiMsg.data; // this gives us our [command/channel, note, velocity] data.
-        console.log('MIDI data', data); // MIDI data [144, 63, 73]
-      }
-      */
-     
-      const NOTE_ON = 0x90;
-      const NOTE_OFF = 0x80;
-      const CONTROL_CHANGE = 0xb0;
-      const PROGRAM_CHANGE = 0xc0;
-      const SYSTEM_EXCLUSIVE = 0xf0;
-      
-      function onMIDIMessage(midiMsg) {
-        var status = midiMsg.data[0];
+        var status = midiMsg.data[0] >> 4;
         var channel = midiMsg.data[0] & 0xF;
-
         switch (status) {
           case NOTE_ON:
-            //noteOn(midiMsg.data[1], midiMsg.data[2]);
             console.log("NOTE_ON " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
             break;
           case NOTE_OFF:
-            //noteOff(midiMsg.data[1], midiMsg.data[2]);
             console.log("NOTE_OFF " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
             break;
           case CONTROL_CHANGE:
-            //var channel = midiMsg.data[0] & 0xF;
-            //controlChange(midiMsg.data[1], midiMsg.data[2]);
-            console.log("CHANNEL " + channel + "\tCONTROL_CHANGE " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            //console.log("CHANNEL " + channel + "\tCONTROL_CHANGE " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
             break;
           case PROGRAM_CHANGE:
             console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
@@ -104,33 +129,39 @@
       }
 
       function noteOn(channel, note, volume) {
-        if (output === undefined) return
-        console.log('noteOn')
-        output.send([NOTE_ON + channel, note, volume])
+        var cmd = NOTE_ON << 4;
+        output.send([cmd, note, volume])
       }
 
       function noteOff(channel, note, volume) {
-        if (output === undefined) return
-        console.log('noteOff');
-        output.send([NOTE_OFF + channel, note, volume]);
+        var cmd = NOTE_OFF << 4;
+        output.send([cmd, note, volume]);
       }
 
       function controlChange(value, channel) {
-        if (output === undefined) return
-        console.log('controlChange');
-        output.send([CONTROL_CHANGE + channel, value]);
+        var cmd = CONTROL_CHANGE << 4;
+        output.send([cmd, value]);
       }
 
-      function programChange(idx, channel) {
-        if (output === undefined) return
-        console.log('programChange');
-        output.send([PROGRAM_CHANGE + channel, idx]);
+      function programChange(value, channel) {
+        var cmd = PROGRAM_CHANGE << 4;
+        output.send([cmd, value]);
       }
       
-      function sysex(output, data) {
-        if (output === undefined) return
-        console.log('sysex');
-        output.send(data)
+      function sysex(data) {
+        output.send(data);
+      }
+
+      function e256_calibrate(){
+        programChange(CALIBRATE, MIDI_CHANNEL);
+      }
+
+      function e256_getRawMatriw(){
+        programChange(RAW_MATRIX, MIDI_CHANNEL);
+      }
+
+      function e256_getBlobs(){
+        programChange(BLOBS_PLAY, MIDI_CHANNEL);
       }
 
       async function loadConfig(event) {
@@ -138,13 +169,11 @@
         console.log(configFile);
       }
 
-      // When the send button is pressed
       function sendConfig() {
-        // Send the midiMsg
-
-        // And clear the input field, so it's clear it has been sent
-        configFile.value = "";
+        sysex(configFile.value);
+        //configFile.value = "";
       }
+
     </script>      
     <script src="./js/sketch.js"></script>
   
