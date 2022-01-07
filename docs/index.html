@@ -180,7 +180,7 @@
         }
       }
 
-      let e256_matri = new blobs();
+      let e256_matrix = new blobs();
 
       function onMIDIMessage(midiMsg) {
         var status = midiMsg.data[0] >> 4;
@@ -188,15 +188,15 @@
         switch (status) {
           case NOTE_ON:
             //console.log("NOTE_ON " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
-            e256_matri.addBlob(midiMsg.data[1]);
+            e256_matrix.addBlob(midiMsg.data[1]);
             break;
           case NOTE_OFF:
             //console.log("NOTE_OFF " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
-            e256_matri.removeBlob(midiMsg.data[1]);
+            e256_matrix.removeBlob(midiMsg.data[1]);
             break;
           case CONTROL_CHANGE:
             //console.log("CHANNEL " + channel + "\tCONTROL_CHANGE " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
-            e256_matri.updateBlob(channel, midiMsg.data[1], midiMsg.data[2]);
+            e256_matrix.updateBlob(channel, midiMsg.data[1], midiMsg.data[2]);
             break;
           case PROGRAM_CHANGE:
             console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
