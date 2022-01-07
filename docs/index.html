@@ -39,8 +39,9 @@
       calibrateButton.addEventListener('click', e256_calibrate);
       getBlobsButton.addEventListener('click', e256_getBlobs);
       getRawButton.addEventListener('click', e256_getRawMatriw);
+      
       loadConfigButton.addEventListener('change', loadConfig);
-      sendConfigButton.addEventListener('click', sendConfig);
+      sendConfigButton.addEventListener('click', e256_sendConfig);
 
       const MIDI_CHANNEL = 1;
 
@@ -57,6 +58,15 @@
       const RAW_MATRIX = 6;     // 
       const INTERP_MATRIX = 7;  //
 
+      const BI = 0; // [0] Blob UIDconst
+      const BS = 1; // [1] Blob State
+      const BL = 2; // [2] Blob Last State
+      const BX = 3; // [3] Blob X centroid position
+      const BY = 4; // [4] Blob Y centroid position
+      const BZ = 5; // [5] Blob Depth
+      const BW = 6; // [6] Blob width
+      const BH = 7; // [7] Blob Height
+
       async function e256_MIDIConnect() {
         // request MIDI access
         if (navigator.requestMIDIAccess) {
@@ -69,18 +79,18 @@
       var output;
 
       function onMIDISuccess(midiAccess) {
-        listInputsAndOutputs(midiAccess);
+        //listInputsAndOutputs(midiAccess);
         for (var entry of midiAccess.inputs.values()) {
           if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
             input = entry;
-            console.log('INPUT_OK');
+            //console.log('INPUT_OK');
             input.onmidimessage = (onMIDIMessage);
           }
         }
         for (var entry of midiAccess.outputs.values()) {
           if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
             output = entry;
-            console.log('OUTPUT_OK');
+            //console.log('OUTPUT_OK');
           }
         }
         connectButton.innerHTML = 'E256_CONNECTED';
@@ -106,18 +116,87 @@
         console.log("No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + error);
       }
 
+      class blob {
+        constructor(uid, x, y, z, w, h) {
+          this.uid = uid;
+          this.x = x;
+          this.y = y;
+          this.z = z;
+          this.w = w;
+          this.h = h;  
+        }
+      }
+
+      class blobs {
+        constructor() {
+          this.blobs = [];
+        }
+
+        addBlob(id){
+          let newBlob = new blob(id);
+          this.blobs.push(newBlob);
+          console.log("ADD_BLOB " + id);
+        }
+
+        removeBlob(id){
+          for(var i = 0; i < this.blobs.length; i++) {
+            if(this.blobs[i].uid === id) {
+              this.blobs.splice(i, 1);
+              console.log("REMOVED_BLOB " + id);
+              break;
+            }
+          }
+        }
+
+        updateBlob(id, param, val){
+          for(var i = 0; i < this.blobs.length; i++) {
+            if(this.blobs[i].uid === id) {
+              switch (param) {
+                case BX:
+                  this.blobs[i].x = val;
+                  //console.log("UPDATED_X " + val);
+                  break;
+                case BY:
+                  this.blobs[i].y = val;
+                  //console.log("UPDATED_Y " + val);
+                  break;
+                case BZ:
+                  this.blobs[i].z = val;
+                  //console.log("UPDATED_Z " + val);
+                  break;
+                case BW:
+                  this.blobs[i].w = val;
+                  //console.log("UPDATED_W " + val);
+                  break;
+                case BH:
+                  this.blobs[i].h = val;
+                  //console.log("UPDATED_H " + val);
+                break;
+              }
+              break;
+            }
+          }
+
+        }
+      }
+
+      let e256_matri = new blobs();
+
       function onMIDIMessage(midiMsg) {
         var status = midiMsg.data[0] >> 4;
         var channel = midiMsg.data[0] & 0xF;
         switch (status) {
           case NOTE_ON:
-            console.log("NOTE_ON " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            //console.log("NOTE_ON " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            e256_matri.addBlob(midiMsg.data[1]);
             break;
           case NOTE_OFF:
-            console.log("NOTE_OFF " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            //console.log("NOTE_OFF " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            e256_matri.removeBlob(midiMsg.data[1]);
             break;
           case CONTROL_CHANGE:
             //console.log("CHANNEL " + channel + "\tCONTROL_CHANGE " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
+            e256_matri.updateBlob(channel, midiMsg.data[1], midiMsg.data[2]);
             break;
           case PROGRAM_CHANGE:
             console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
@@ -138,12 +217,12 @@
         output.send([cmd, note, volume]);
       }
 
-      function controlChange(value, channel) {
+      function controlChange(value) {
         var cmd = CONTROL_CHANGE << 4;
         output.send([cmd, value]);
       }
 
-      function programChange(value, channel) {
+      function programChange(value) {
         var cmd = PROGRAM_CHANGE << 4;
         output.send([cmd, value]);
       }
@@ -153,24 +232,24 @@
       }
 
       function e256_calibrate(){
-        programChange(CALIBRATE, MIDI_CHANNEL);
+        programChange(CALIBRATE);
       }
 
       function e256_getRawMatriw(){
-        programChange(RAW_MATRIX, MIDI_CHANNEL);
+        programChange(RAW_MATRIX);
       }
 
       function e256_getBlobs(){
-        programChange(BLOBS_PLAY, MIDI_CHANNEL);
+        programChange(BLOBS_PLAY);
+      }
+
+      function e256_sendConfig(data) {
+        sysex(data);
       }
 
       async function loadConfig(event) {
         configFile = event.target.files[0];
         console.log(configFile);
-      }
-
-      function sendConfig() {
-        sysex(configFile.value);
         //configFile.value = "";
       }
 
