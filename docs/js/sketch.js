@@ -1,6 +1,10 @@
 // https://stackoverflow.com/questions/49318245/threejs-drag-points
 
+
 var scene = new THREE.Scene();
+const bgColor = new THREE.Color('white');
+scene.background = new THREE.Color( bgColor );
+
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
 camera.position.set(0, -20, 10);
 camera.lookAt(scene.position);
@@ -31,10 +35,10 @@ function updatePlane() {
   geometry.attributes.position.needsUpdate = true;
 }
 
-render();
-
 function render() {
   updatePlane();
   requestAnimationFrame(render);
   renderer.render(scene, camera);
 }
+
+render();
