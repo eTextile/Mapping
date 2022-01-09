@@ -1,6 +1,5 @@
 // https://stackoverflow.com/questions/49318245/threejs-drag-points
 
-
 var scene = new THREE.Scene();
 const bgColor = new THREE.Color('white');
 scene.background = new THREE.Color( bgColor );
@@ -23,7 +22,7 @@ var plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
 scene.add(plane);
 
 var points = new THREE.Points(geometry, new THREE.PointsMaterial({
-  size: 0.1,
+  size: 0.2,
   color: "red"
 }));
 scene.add(points);

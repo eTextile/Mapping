@@ -27,10 +27,9 @@ const SYSTEM_EXCLUSIVE = 15
 
 const CALIBRATE = 2;      //
 const BLOBS_PLAY = 3;     // Send all blobs values over USB using MIDI format
-const BLOBS_LEARN = 4;    // Send blobs values separatly over USB using MIDI format
-const MAPPING_LIB = 5;    //
-const RAW_MATRIX = 6;     //
-const INTERP_MATRIX = 7;  //
+const MAPPING_LIB = 4;    //
+const RAW_MATRIX = 5;     //
+const INTERP_MATRIX = 6;  //
 
 const BI = 0; // [0] Blob UIDconst
 const BS = 1; // [1] Blob State
@@ -101,8 +100,8 @@ class matrix {
 }
 
 class blob {
-    constructor(uid, x, y, z, w, h) {
-        this.uid = uid;
+    constructor(id, x, y, z, w, h) {
+        this.id = id;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -156,6 +155,9 @@ class blobs {
             }
         }
 
+    }
+    get(id) {
+        return  this.blobs;
     }
 }
 
