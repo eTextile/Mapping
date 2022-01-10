@@ -41,41 +41,40 @@ const BH = 7; // [7] Blob Height
 const sysExHeader = '0xF0';
 const sysExFooter = '0xF7';
 const sysExConfigTag = '0x00';
-
-const jsonConfig = "";
+const soundFileTag = '0xA0';
 
 var connected = false;
+var config = "";
 
 async function e256_MIDIConnect() {
   if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess({sysex: true}).then(onMIDISuccess, onMIDIFailure);
   } else {
-    alert("No MIDI support in your browser.");
+    alert("No MIDI support in your browser!");
   }
 }
 
 var output;
 
 function onMIDISuccess(midiAccess) {
-  //listInputsAndOutputs(midiAccess);
+  listInputsAndOutputs(midiAccess);
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
       input = entry;
       input.onmidimessage = (onMIDIMessage);
-      //console.log('INPUT_OK');
+      connectButton.innerHTML = 'E256_CONNECTED';
+      connectButton.style.background = "rgb(10,180,0)";
+      connected = true;
     }
   }
   for (var entry of midiAccess.outputs.values()) {
     if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
       output = entry;
-      //console.log('OUTPUT_OK');
     }
   }
-  connectButton.innerHTML = 'E256_CONNECTED';
-  connectButton.style.background = "rgb(10,180,0)";
-  connected = true;
 }
 
+//TODO: need a drop down menu!
 function listInputsAndOutputs(midiAccess) {
   for (var entry of midiAccess.inputs) {
     var input = entry[1];
@@ -92,7 +91,7 @@ function listInputsAndOutputs(midiAccess) {
 }
 
 function onMIDIFailure(error) {
-  console.log("No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + error);
+  alert("eTextile-Synthesizer NOT CONNECTED! || No MIDI support in your browser! " + error);
 }
 
 class matrix {
@@ -182,11 +181,9 @@ function onMIDIMessage(midiMsg) {
   var channel = midiMsg.data[0] & 0xF;
   switch (status) {
     case NOTE_ON:
-      //console.log("NOTE_ON " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
       e256_blobs.add(midiMsg.data[1]);
       break;
     case NOTE_OFF:
-      //console.log("NOTE_OFF " + midiMsg.data[1] + "\tVAL " + midiMsg.data[2]);
       e256_blobs.remove(midiMsg.data[1]);
       break;
     case CONTROL_CHANGE:
@@ -194,9 +191,10 @@ function onMIDIMessage(midiMsg) {
       break;
     case PROGRAM_CHANGE:
       //console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
+      //256_mode.select(midiMsg.data[1]); //TODO 
       break;
     case SYSTEM_EXCLUSIVE:
-      //console.log("SYSTEM_EXCLUSIVE " + midiMsg.data.length);
+      //TODO: fetch the config file!?
       for (var i = 1; i < midiMsg.data.length - 1; i++) {
         e256_matrix.update(i - 1, midiMsg.data[i]);
       }
@@ -215,22 +213,28 @@ function noteOff(note) {
 }
 
 function controlChange(value) {
-  var cmd = CONTROL_CHANGE << 4;
-  output.send([cmd, value]);
+  if (connected){
+    var cmd = CONTROL_CHANGE << 4;
+    output.send([cmd, value]);
+  } else {
+    alert("e256 eTextile-Synthesizer NOT CONNECTED!");
+  }
 }
 
 function programChange(value) {
-  var cmd = PROGRAM_CHANGE << 4;
-  output.send([cmd, value]);
+  if (connected){
+    var cmd = PROGRAM_CHANGE << 4;
+    output.send([cmd, value]);
+  } else {
+    alert("e256 eTextile-Synthesizer NOT CONNECTED!");
+  }
 }
 
+// FIXME!
 function sysex(data) {
-  //let outputMsg = sysExHeader.concat(data);
-  //output.send([sysExHeader, 0xFF, 0xF0, sysExFooter]);
   var cmd = SYSTEM_EXCLUSIVE << 4;
-  output.send([cmd, 0xEF]);
-  console.log(data);
-  //configFile.value = "";
+  let midiMsg = sysExHeader.concat(data.stringify);
+  output.send([cmd, midiMsg]);
 }
 
 function e256_calibrate() {
@@ -253,7 +257,7 @@ function e256_loadFile(event) {
     reader.readAsText(event.target.files[0]);
   }
   else if (uploadedFile.type === "application/wav"){
-  //TODO
+    //TODO
   } else {
     alert("Wrong file type!"); 
   }
@@ -261,14 +265,14 @@ function e256_loadFile(event) {
 
 function onReaderLoad(event){
   console.log(event.target.result);
-  var obj = JSON.parse(event.target.result);
-  console.log("NAME:" + obj.NAME + " " + obj.PROJECT + " " + obj.VERSION);
+  config = JSON.parse(event.target.result);
+  console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
 }
 
 function e256_sendConfig() {
   if (connected){
     sysex(configFile);
   } else {
-    alert("ERROR: e256 is not connected!");
+    alert("e256 eTextile-Synthesizer NOT CONNECTED!");
   }
 }

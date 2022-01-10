@@ -8,6 +8,8 @@ body {
   flex-direction: column;
   margin: 0;
   background-color: white;
+  scrollbar-color: lightblue;
+  scrollbar-width: large;
 }
 
 #main {
@@ -20,19 +22,31 @@ body {
 }
 
 #myScene {
-    flex: 1;
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    padding: 0px;
-    overflow: hidden;
-    border: 1px solid black;
+  flex: 1;
+  margin: 0px;
+  padding: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid black;
+}
+
+/* Style the scrollbar background */
+::-webkit-scrollbar {
+  background: white;
+}
+
+/* Style the scrollbar handle */
+::-webkit-scrollbar-thumb {
+  background: lightblue;
+  border-radius: 10px;
 }
 
 #main > dashboard,
 #main > aside {
   flex: 0 0 20vw;
   background: lightgray;
+  overflow: scroll;
 }
 
 #main > dashboard {
