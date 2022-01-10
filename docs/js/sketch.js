@@ -1,43 +1,51 @@
-// https://stackoverflow.com/questions/49318245/threejs-drag-points
+let camera, scene, renderer;
+let geometry, material, plane;
+let points;
 
-var scene = new THREE.Scene();
-const bgColor = new THREE.Color('white');
-scene.background = new THREE.Color( bgColor );
+function init() {
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-camera.position.set(0, -20, 10);
-camera.lookAt(scene.position);
+  window.addEventListener('resize', onWindowResize);
 
-var renderer = new THREE.WebGLRenderer({
-  antialias: true
-});
+  const myCanvas = document.getElementById("myScene");
+  var myWidth = myCanvas.offsetWidth;
+  var myHeight = myCanvas.offsetHeight;
 
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-var geometry = new THREE.PlaneBufferGeometry(15, 15, 15, 15);
-var plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-  wireframe: true,
-  color: "blue"
-}));
-scene.add(plane);
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color('white');
 
-var points = new THREE.Points(geometry, new THREE.PointsMaterial({
-  size: 0.2,
-  color: "red"
-}));
-scene.add(points);
+  renderer = new THREE.WebGLRenderer({antialias: true, canvas: myCanvas});
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(myWidth, myHeight);
 
-function updatePlane() {
+  geometry = new THREE.PlaneBufferGeometry(15, 15, 15, 15);
+  material = new THREE.MeshBasicMaterial({wireframe: true, color: "blue"});
+  
+  plane = new THREE.Mesh(geometry, material);
+  
+  points = new THREE.Points(geometry, new THREE.PointsMaterial({size: 0.2, color: "red"}));
+  plane.add(points);
+  scene.add(plane);
+
+  camera = new THREE.PerspectiveCamera(45, myWidth / myHeight, 1, 1000);
+  camera.position.setZ(20);
+
+  renderer.setAnimationLoop(animate);
+}
+
+function onWindowResize() {
+  myWidth = myCanvas.offsetWidth;
+  myHeight = myCanvas.offsetHeight;
+  camera.aspect = myWidth / myHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(myWidth, myHeight);
+}
+
+function animate() {
   for(let i = 0; i<256; i++){
     geometry.attributes.position.setZ(i, e256_matrix.getZ(i+1));
   }
   geometry.attributes.position.needsUpdate = true;
+	renderer.render(scene, camera);
 }
 
-function render() {
-  updatePlane();
-  requestAnimationFrame(render);
-  renderer.render(scene, camera);
-}
-
-render();
+init();

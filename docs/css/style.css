@@ -1,8 +1,49 @@
-body {
-    background-color: #01bdf7;
+* {
+  box-sizing: border-box; 
 }
 
-h1 {
-    color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  margin: 0;
+  background-color: white;
+}
+
+#main {
+  display: flex;
+  flex: 1;
+}
+
+#main > container {
+  flex: 1;
+}
+
+#myScene {
+    flex: 1;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0px;
+    overflow: hidden;
+    border: 1px solid black;
+}
+
+#main > dashboard,
+#main > aside {
+  flex: 0 0 20vw;
+  background: lightgray;
+}
+
+#main > dashboard {
+  order: -1;
+}
+
+header, footer {
+  background: white;
+  height: 10vh;
+}
+
+header, footer, container, dashboard, aside {
+  padding: 1em;
 }

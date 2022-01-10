@@ -3,21 +3,35 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Mapping Toolkit for the e256 eTextile-Synthesizer">
+    <meta name="keywords" content="eTextile, e-textile, smarttextiles, intelligenttextiles, electronictextiles, opensource, open hardware"/>
+    <meta name="author" content="Maurin Donneaud">
+    <link rel="icon" href="./docs/assets/img/favicon.ico">
     <title>e256_mapping</title>
     <link rel="stylesheet" href="./css/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   </head>
+  
   <body>
-    <div id="e256_controls">
-      <button id="connectButton">E256_CONNECT</button><br/>
-      <button id="calibrateButton">CALIBRATE</button><br/>
-      <button id="getBlobsButton">GET_BLOBS</button><br/>
-      <button id="getRawButton">GET_RAW_MATRIX</button><br/>
-      <input type="file" id="loadConfigButton" accept=".json"><br/>
-      <button id="sendConfigButton">SEND_CONFIG</button><br/>
-      <textarea readonly id="receiveText" ></textarea>
+    <script src="js/three.js"></script>
+    <header>Header</header>
+    <div id="main">
+      <dashboard>
+        <button id="connectButton">E256_CONNECT</button><br/>
+        <button id="calibrateButton">CALIBRATE</button><br/>
+        <button id="getBlobsButton">GET_BLOBS</button><br/>
+        <button id="getRawButton">GET_RAW_MATRIX</button><br/>
+        <input type="file" id="loadConfigButton" accept=".json"><br/>
+        <button id="sendConfigButton">SEND_CONFIG</button><br/>
+        <textarea readonly id="receiveText" ></textarea>
+      </dashboard>
+      <container>
+        <canvas id="myScene"></canvas>
+      </container>
+      <aside>Aside</aside>
     </div>
-    <script src="./js/e256_parcer.js"></script>  
-    <script src="./js/sketch.js"></script>
+    <footer>Footer</footer>
+    <script src="./js/e256_parcer.js"></script>
+    <script src="js/sketch.js"></script>
   </body>
-</html>
+
+  </html>
