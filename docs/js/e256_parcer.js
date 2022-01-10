@@ -12,7 +12,7 @@ connectButton.addEventListener('click', e256_MIDIConnect);
 calibrateButton.addEventListener('click', e256_calibrate);
 getBlobsButton.addEventListener('click', e256_getBlobs);
 getRawButton.addEventListener('click', e256_getRawMatriw);
-loadFileButton.addEventListener('click', e256_loadConfig);
+loadFileButton.addEventListener('change', e256_loadFile);
 sendFileButton.addEventListener('click', e256_sendConfig);
 
 const MIDI_CHANNEL = 1;
@@ -42,7 +42,8 @@ const sysExHeader = '0xF0';
 const sysExFooter = '0xF7';
 const sysExConfigTag = '0x00';
 
-var configFile = "";
+const jsonConfig = "";
+
 var connected = false;
 
 async function e256_MIDIConnect() {
@@ -223,10 +224,12 @@ function programChange(value) {
   output.send([cmd, value]);
 }
 
-function sysex() {
+function sysex(data) {
   //let outputMsg = sysExHeader.concat(data);
-  output.send([sysExHeader, 0xFF, 0xF0, sysExFooter]);
-  //console.log(outputMsg);
+  //output.send([sysExHeader, 0xFF, 0xF0, sysExFooter]);
+  var cmd = SYSTEM_EXCLUSIVE << 4;
+  output.send([cmd, 0xEF]);
+  console.log(data);
   //configFile.value = "";
 }
 
@@ -242,10 +245,31 @@ function e256_getBlobs() {
   programChange(BLOBS_PLAY);
 }
 
-async function e256_loadConfig(event) {
-  configFile.value = "";
-  configFile = event.target;
-  console.log(configFile);
+function e256_loadFile(event) {
+  var uploadedFile = event.target.files[0];
+  if (uploadedFile.type === "application/json"){
+    var reader = new FileReader();
+    reader.onload = onReaderLoad;
+    reader.readAsText(event.target.files[0]);
+  }
+  else if (uploadedFile.type === "application/wav"){
+  //TODO
+  } else {
+    alert("Wrong file type == " + uploadedFile.type); 
+  }
+}
+
+function onReaderLoad(event){
+  console.log(event.target.result);
+  var obj = JSON.parse(event.target.result);
+  
+  console.log("NAME:" + obj.NAME);
+
+  alert_data(obj.name, obj.family);
+}
+
+function alert_data(name, family){
+  alert('Name : ' + name + ', Family : ' + family);
 }
 
 function e256_sendConfig() {

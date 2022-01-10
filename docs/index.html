@@ -6,11 +6,11 @@
     <meta name="description" content="Mapping Toolkit for the e256 eTextile-Synthesizer">
     <meta name="keywords" content="eTextile, e-textile, smarttextiles, intelligenttextiles, electronictextiles, opensource, open hardware"/>
     <meta name="author" content="Maurin Donneaud">
-    <link rel="icon" href="./docs/assets/img/favicon.ico">
+    <link rel="icon" href="./assets/img/favicon.ico">
     <title>e256_mapping</title>
     <link rel="stylesheet" href="./css/style.css">
   </head>
-  
+
   <body>
     <script src="js/three.js"></script>
     <header>Header</header>
@@ -20,7 +20,7 @@
         <button id="calibrateButton">CALIBRATE</button><br/>
         <button id="getBlobsButton">GET_BLOBS</button><br/>
         <button id="getRawButton">GET_RAW_MATRIX</button><br/>
-        <input type="file" id="loadFileButton" name="file" accept=".json">
+        <input type="file" id="loadFileButton" name="file" accept=".json, .wav">
         <button id="sendFileButton">SEND_CONFIG</button><br/>
         <textarea readonly id="receiveText" ></textarea>
       </dashboard>
@@ -33,17 +33,5 @@
     <script src="./js/e256_parcer.js"></script>
     <script src="js/sketch.js"></script>
   </body>
-  
-  <script>
-  function colorchange(id){
-    var background = document.getElementById(id).style.background;
-    if(background = "rgb(255,145,0)"){
-    document.getElementById(id).style.background = "rgb(26,255,0)";
-    }
-    if(background == "rgb(26,255,0)"){
-      document.getElementById(id).style.background = "rgb(255,145,0)";
-    }
-  }
-  </script>
 
   </html>
