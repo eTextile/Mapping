@@ -255,27 +255,20 @@ function e256_loadFile(event) {
   else if (uploadedFile.type === "application/wav"){
   //TODO
   } else {
-    alert("Wrong file type == " + uploadedFile.type); 
+    alert("Wrong file type!"); 
   }
 }
 
 function onReaderLoad(event){
   console.log(event.target.result);
   var obj = JSON.parse(event.target.result);
-  
-  console.log("NAME:" + obj.NAME);
-
-  alert_data(obj.name, obj.family);
-}
-
-function alert_data(name, family){
-  alert('Name : ' + name + ', Family : ' + family);
+  console.log("NAME:" + obj.NAME + " " + obj.PROJECT + " " + obj.VERSION);
 }
 
 function e256_sendConfig() {
   if (connected){
     sysex(configFile);
   } else {
-    console.log("ERROR: e256 is not connected!");
+    alert("ERROR: e256 is not connected!");
   }
 }
