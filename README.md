@@ -9,16 +9,16 @@ This **Mapping Toolkit** is made to create the mapping between the textile graph
 
 ## Functionalities
 - Create your custom textile graphic user interface.
-- Select the MIDI audio effects you want to map.
-- Upload the created UI to the e256 textile synthesizer.
-- If you are satisfied, record it to the e256 permanent memory.
+- Select the MIDI audio effects you want to mapp to your textile graphic user interface.
+- Upload your created UI and MIDI parameters to the eTextile-Synthesizer.
+- If you are satisfied, save your mapping to the eTextile-Synthesizer permanent memory.
 
 ## Repository
 
     https://github.com/eTextile/Mapping
 
 ## Technicals specifications
-The e256 eTextile-Synthesizer is connected to the MAPPING TOOLKIT is built with webMIDI API.
+The e256 eTextile-Synthesizer is connected to the MAPPING_TOOLKIT web app via the webMIDI API.
     https://www.w3.org/TR/webmidi/
 
 ## TODO
