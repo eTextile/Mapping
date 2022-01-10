@@ -3,8 +3,8 @@ let connectButton = document.getElementById("connectButton");
 let calibrateButton = document.getElementById("calibrateButton");
 let getBlobsButton = document.getElementById("getBlobsButton");
 let getRawButton = document.getElementById("getRawButton");
-let loadConfigButton = document.getElementById("loadConfigButton");
-let sendConfigButton = document.getElementById("sendConfigButton");
+let loadFileButton = document.getElementById("loadFileButton");
+let sendFileButton = document.getElementById("sendFileButton");
 let receiveText = document.getElementById("receiveText");
 
 /*Couple the elements to the Events*/
@@ -12,8 +12,8 @@ connectButton.addEventListener('click', e256_MIDIConnect);
 calibrateButton.addEventListener('click', e256_calibrate);
 getBlobsButton.addEventListener('click', e256_getBlobs);
 getRawButton.addEventListener('click', e256_getRawMatriw);
-loadConfigButton.addEventListener('change', loadConfig);
-sendConfigButton.addEventListener('click', e256_sendConfig);
+loadFileButton.addEventListener('click', e256_loadConfig);
+sendFileButton.addEventListener('click', e256_sendConfig);
 
 const MIDI_CHANNEL = 1;
 
@@ -38,7 +38,12 @@ const BZ = 5; // [5] Blob Depth
 const BW = 6; // [6] Blob width
 const BH = 7; // [7] Blob Height
 
+const sysExHeader = '0xF0';
+const sysExFooter = '0xF7';
+const sysExConfigTag = '0x00';
+
 var configFile = "";
+var connected = false;
 
 async function e256_MIDIConnect() {
   if (navigator.requestMIDIAccess) {
@@ -66,6 +71,8 @@ function onMIDISuccess(midiAccess) {
     }
   }
   connectButton.innerHTML = 'E256_CONNECTED';
+  connectButton.style.background = "rgb(10,180,0)";
+  connected = true;
 }
 
 function listInputsAndOutputs(midiAccess) {
@@ -129,7 +136,7 @@ class blobs {
 
   remove(id) {
     for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].uid === id) {
+      if (this.blobs[i].id === id) {
         this.blobs.splice(i, 1);
         //console.log("REMOVED_BLOB " + id);
         break;
@@ -139,7 +146,7 @@ class blobs {
 
   update(id, param, val) {
     for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].uid === id) {
+      if (this.blobs[i].id === id) {
         switch (param) {
           case BX:
             this.blobs[i].x = val;
@@ -162,7 +169,7 @@ class blobs {
     }
   }
   get(id) {
-    return  this.blobs;
+    return this.blobs[id];
   }
 }
 
@@ -216,12 +223,12 @@ function programChange(value) {
   output.send([cmd, value]);
 }
 
-function sysex(data) {
-  output.send([data.value]);
-  console.log(data.value);
+function sysex() {
+  //let outputMsg = sysExHeader.concat(data);
+  output.send([sysExHeader, 0xFF, 0xF0, sysExFooter]);
+  //console.log(outputMsg);
   //configFile.value = "";
 }
-
 
 function e256_calibrate() {
   programChange(CALIBRATE);
@@ -235,11 +242,16 @@ function e256_getBlobs() {
   programChange(BLOBS_PLAY);
 }
 
-function e256_sendConfig() {
-  sysex(configFile);
+async function e256_loadConfig(event) {
+  configFile.value = "";
+  configFile = event.target;
+  console.log(configFile);
 }
 
-async function loadConfig(event) {
-  configFile.value = "";
-  configFile = event.target.files[0];
+function e256_sendConfig() {
+  if (connected){
+    sysex(configFile);
+  } else {
+    console.log("ERROR: e256 is not connected!");
+  }
 }

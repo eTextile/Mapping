@@ -20,8 +20,8 @@
         <button id="calibrateButton">CALIBRATE</button><br/>
         <button id="getBlobsButton">GET_BLOBS</button><br/>
         <button id="getRawButton">GET_RAW_MATRIX</button><br/>
-        <input type="file" id="loadConfigButton" accept=".json"><br/>
-        <button id="sendConfigButton">SEND_CONFIG</button><br/>
+        <input type="file" id="loadFileButton" name="file" accept=".json">
+        <button id="sendFileButton">SEND_CONFIG</button><br/>
         <textarea readonly id="receiveText" ></textarea>
       </dashboard>
       <container>
@@ -33,5 +33,17 @@
     <script src="./js/e256_parcer.js"></script>
     <script src="js/sketch.js"></script>
   </body>
+  
+  <script>
+  function colorchange(id){
+    var background = document.getElementById(id).style.background;
+    if(background = "rgb(255,145,0)"){
+    document.getElementById(id).style.background = "rgb(26,255,0)";
+    }
+    if(background == "rgb(26,255,0)"){
+      document.getElementById(id).style.background = "rgb(255,145,0)";
+    }
+  }
+  </script>
 
   </html>
