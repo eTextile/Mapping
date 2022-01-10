@@ -17,16 +17,18 @@ sendFileButton.addEventListener('click', e256_sendConfig);
 
 const MIDI_CHANNEL = 1;
 
-const NOTE_ON = '0x90';
-const NOTE_OFF = '0x80';
-const CONTROL_CHANGE = '0xB0';
-const PROGRAM_CHANGE = '0xC0';
-// http://midi.teragonaudio.com/tech/midispec/id.htm
-const SYSEX_BEGIN = '0xF0';
-const SYSEX_END = '0xF7';
-const SYSEX_ID = '0x7D'; // Educational Use
-const SYSEX_CONF = '0x7C'; 
-const SYSEX_SOUND = '0x6';
+const NOTE_ON =          '0x90';
+const NOTE_OFF =         '0x80';
+const CONTROL_CHANGE =   '0xb0';
+const PROGRAM_CHANGE =   '0xc0';
+
+//http://midi.teragonaudio.com/tech/midispec/id.htm
+const SYSTEM_EXCLUSIVE = '0xf'
+const SYSEX_BEGIN =      '0xf0';
+const SYSEX_END =        '0xf7';
+const SYSEX_ID =         '0xfd'; // Educational Use
+const SYSEX_CONF =       '0x7c'; 
+const SYSEX_SOUND =      '0x6';
 
 //const sysExConfigTag = '0x00';
 //const soundFileTag = '0xA0';
@@ -134,14 +136,14 @@ class blobs {
   add(id) {
     let newBlob = new blob(id);
     this.blobs.push(newBlob);
-    //console.log("ADD_BLOB " + id);
+    console.log("ADD_BLOB " + id);
   }
 
   remove(id) {
     for (var i = 0; i < this.blobs.length; i++) {
       if (this.blobs[i].id === id) {
         this.blobs.splice(i, 1);
-        //console.log("REMOVED_BLOB " + id);
+        console.log("REMOVE_BLOB " + id);
         break;
       }
     }
@@ -183,20 +185,20 @@ function onMIDIMessage(midiMsg) {
   var status = midiMsg.data[0] >> 4;
   var channel = midiMsg.data[0] & 0xF;
   switch (status) {
-    case NOTE_ON:
+    case 9:
       e256_blobs.add(midiMsg.data[1]);
       break;
-    case NOTE_OFF:
+    case 8:
       e256_blobs.remove(midiMsg.data[1]);
       break;
-    case CONTROL_CHANGE:
+    case 11:
       e256_blobs.update(channel, midiMsg.data[1], midiMsg.data[2]);
       break;
-    case PROGRAM_CHANGE:
+    case 12:
       //console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
       //256_mode.select(midiMsg.data[1]); //TODO 
       break;
-    case SYSTEM_EXCLUSIVE:
+    case 15:
       //TODO: fetch the config file!?
       for (var i = 1; i < midiMsg.data.length - 1; i++) {
         e256_matrix.update(i - 1, midiMsg.data[i]);
