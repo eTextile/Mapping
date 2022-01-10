@@ -117,54 +117,53 @@ class blob {
 }
 
 class blobs {
-    constructor() {
-      this.blobs = [];
-    }
+  constructor() {
+    this.blobs = [];
+  }
 
-    add(id) {
-      let newBlob = new blob(id);
-      this.blobs.push(newBlob);
-      //console.log("ADD_BLOB " + id);
-    }
+  add(id) {
+    let newBlob = new blob(id);
+    this.blobs.push(newBlob);
+    //console.log("ADD_BLOB " + id);
+  }
 
-    remove(id) {
-      for (var i = 0; i < this.blobs.length; i++) {
-        if (this.blobs[i].uid === id) {
-          this.blobs.splice(i, 1);
-          //console.log("REMOVED_BLOB " + id);
-          break;
-        }
+  remove(id) {
+    for (var i = 0; i < this.blobs.length; i++) {
+      if (this.blobs[i].uid === id) {
+        this.blobs.splice(i, 1);
+        //console.log("REMOVED_BLOB " + id);
+        break;
       }
     }
+  }
 
-    update(id, param, val) {
-      for (var i = 0; i < this.blobs.length; i++) {
-        if (this.blobs[i].uid === id) {
-          switch (param) {
-            case BX:
-              this.blobs[i].x = val;
-              break;
-            case BY:
-              this.blobs[i].y = val;
-              break;
-            case BZ:
-              this.blobs[i].z = val;
-              break;
-            case BW:
-              this.blobs[i].w = val;
-              break;
-            case BH:
-              this.blobs[i].h = val;
-              break;
-          }
-          break;
+  update(id, param, val) {
+    for (var i = 0; i < this.blobs.length; i++) {
+      if (this.blobs[i].uid === id) {
+        switch (param) {
+          case BX:
+            this.blobs[i].x = val;
+            break;
+          case BY:
+            this.blobs[i].y = val;
+            break;
+          case BZ:
+            this.blobs[i].z = val;
+            break;
+          case BW:
+            this.blobs[i].w = val;
+            break;
+          case BH:
+            this.blobs[i].h = val;
+            break;
         }
+        break;
       }
-
     }
-    get(id) {
-      return  this.blobs;
-    }
+  }
+  get(id) {
+    return  this.blobs;
+  }
 }
 
 let e256_matrix = new matrix(256);
@@ -218,7 +217,9 @@ function programChange(value) {
 }
 
 function sysex(data) {
-  output.send(data);
+  output.send([data.value]);
+  console.log(data.value);
+  //configFile.value = "";
 }
 
 
@@ -234,12 +235,11 @@ function e256_getBlobs() {
   programChange(BLOBS_PLAY);
 }
 
-function e256_sendConfig(data) {
-  sysex(data);
+function e256_sendConfig() {
+  sysex(configFile);
 }
 
 async function loadConfig(event) {
+  configFile.value = "";
   configFile = event.target.files[0];
-  console.log(configFile);
-  //configFile.value = "";
 }
