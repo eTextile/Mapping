@@ -1,14 +1,21 @@
 let camera, scene, renderer;
 let geometry, material, plane;
 let points;
+var myWidth, myHeight;
 
 const myCanvas = document.getElementById("myScene");
 
-function init() {
-  window.addEventListener('resize', onWindowResize);
+window.addEventListener('resize', function(event){
+  myWidth = myCanvas.offsetWidth;
+  myHeight = myCanvas.offsetHeight;
+  renderer.setSize(myWidth, myHeight, false);
+  camera.aspect = myWidth / myHeight;
+  camera.updateProjectionMatrix();
+});
 
-  var myWidth = myCanvas.offsetWidth;
-  var myHeight = myCanvas.offsetHeight;
+function init() {
+  myWidth = myCanvas.offsetWidth;
+  myHeight = myCanvas.offsetHeight;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color('white');
@@ -28,14 +35,6 @@ function init() {
   camera.position.set(0, 0, 20);
 
   renderer.setAnimationLoop(animate);
-}
-
-function onWindowResize() {
-  myWidth = myCanvas.offsetWidth;
-  myHeight = myCanvas.offsetHeight;
-  camera.aspect = myWidth / myHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(myWidth, myHeight);
 }
 
 function animate() {

@@ -17,11 +17,19 @@ sendFileButton.addEventListener('click', e256_sendConfig);
 
 const MIDI_CHANNEL = 1;
 
-const NOTE_ON = 9;
-const NOTE_OFF = 8;
-const CONTROL_CHANGE = 11;
-const PROGRAM_CHANGE = 12;
-const SYSTEM_EXCLUSIVE = 15
+const NOTE_ON = '0x90';
+const NOTE_OFF = '0x80';
+const CONTROL_CHANGE = '0xB0';
+const PROGRAM_CHANGE = '0xC0';
+// http://midi.teragonaudio.com/tech/midispec/id.htm
+const SYSEX_BEGIN = '0xF0';
+const SYSEX_END = '0xF7';
+const SYSEX_ID = '0x7D'; // Educational Use
+const SYSEX_CONF = '0x7C'; 
+const SYSEX_SOUND = '0x6';
+
+//const sysExConfigTag = '0x00';
+//const soundFileTag = '0xA0';
 
 const CALIBRATE = 2;      //
 const BLOBS_PLAY = 3;     // Send all blobs values over USB using MIDI format
@@ -37,11 +45,6 @@ const BY = 4; // [4] Blob Y centroid position
 const BZ = 5; // [5] Blob Depth
 const BW = 6; // [6] Blob width
 const BH = 7; // [7] Blob Height
-
-const sysExHeader = '0xF0';
-const sysExFooter = '0xF7';
-const sysExConfigTag = '0x00';
-const soundFileTag = '0xA0';
 
 var connected = false;
 var config = "";
@@ -168,8 +171,8 @@ class blobs {
       }
     }
   }
-  get(id) {
-    return this.blobs[id];
+  get() {
+    return this.blobs;
   }
 }
 
@@ -203,38 +206,34 @@ function onMIDIMessage(midiMsg) {
 }
 
 function noteOn(note, volume) {
-  var cmd = NOTE_ON << 4;
-  output.send([cmd, note, volume])
+  output.send([NOTE_ON, note, volume])
 }
 
 function noteOff(note) {
-  var cmd = NOTE_OFF << 4;
-  output.send([cmd, note, 0]);
+  output.send([NOTE_OFF, note, 0]);
 }
 
 function controlChange(value) {
   if (connected){
-    var cmd = CONTROL_CHANGE << 4;
-    output.send([cmd, value]);
+    output.send([CONTROL_CHANGE, value]);
   } else {
-    alert("e256 eTextile-Synthesizer NOT CONNECTED!");
+    alert("eTextile-Synthesizer NOT CONNECTED!");
   }
 }
 
 function programChange(value) {
   if (connected){
-    var cmd = PROGRAM_CHANGE << 4;
-    output.send([cmd, value]);
+    output.send([PROGRAM_CHANGE, value]);
   } else {
-    alert("e256 eTextile-Synthesizer NOT CONNECTED!");
+    alert("eTextile-Synthesizer NOT CONNECTED!");
   }
 }
 
 // FIXME!
 function sysex(data) {
-  var cmd = SYSTEM_EXCLUSIVE << 4;
-  let midiMsg = sysExHeader.concat(data.stringify);
-  output.send([cmd, midiMsg]);
+  let header = [SYSEX_BEGIN, SYSEX_ID, SYSEX_CONF]; 
+  let midiMsg = header.concat(data).concat(SYSEX_END);
+  output.send(midiMsg);
 }
 
 function e256_calibrate() {
@@ -271,8 +270,8 @@ function onReaderLoad(event){
 
 function e256_sendConfig() {
   if (connected){
-    sysex(configFile);
+    sysex(config);
   } else {
-    alert("e256 eTextile-Synthesizer NOT CONNECTED!");
+    alert("eTextile-Synthesizer NOT CONNECTED!");
   }
 }
