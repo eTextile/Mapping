@@ -231,8 +231,8 @@ function programChange(value) {
 
 // FIXME!
 function sysex(data) {
-  let header = [SYSEX_BEGIN, SYSEX_ID, SYSEX_CONF]; 
-  let midiMsg = header.concat(data).concat(SYSEX_END);
+  let header = [SYSEX_BEGIN, SYSEX_ID, SYSEX_CONF];
+  let midiMsg = header.concat(data.stringify).concat(SYSEX_END);
   output.send(midiMsg);
 }
 
