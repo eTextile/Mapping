@@ -13,25 +13,21 @@ calibrateButton.addEventListener('click', e256_calibrate);
 getBlobsButton.addEventListener('click', e256_getBlobs);
 getRawButton.addEventListener('click', e256_getRawMatriw);
 loadFileButton.addEventListener('change', e256_loadFile);
-sendFileButton.addEventListener('click', e256_sendConfig);
+sendFileButton.addEventListener('click', e256_sendFile);
 
 const MIDI_CHANNEL = 1;
 
-const NOTE_ON =          '0x90';
-const NOTE_OFF =         '0x80';
-const CONTROL_CHANGE =   '0xb0';
-const PROGRAM_CHANGE =   '0xc0';
+const NOTE_ON           = 0x90; // 
+const NOTE_OFF          = 0x80; //
+const CONTROL_CHANGE    = 0xB0; //
+const PROGRAM_CHANGE    = 0xC0; //
 
-//http://midi.teragonaudio.com/tech/midispec/id.htm
-const SYSTEM_EXCLUSIVE = '0xf'
-const SYSEX_BEGIN =      '0xf0';
-const SYSEX_END =        '0xf7';
-const SYSEX_ID =         '0xfd'; // Educational Use
-const SYSEX_CONF =       '0x7c'; 
-const SYSEX_SOUND =      '0x6';
-
-//const sysExConfigTag = '0x00';
-//const soundFileTag = '0xA0';
+const SYSTEM_EXCLUSIVE  = 0xF0; // 240
+const SYSEX_BEGIN       = 0xF0; // 240
+const SYSEX_END         = 0xF7; // 247
+const SYSEX_ID          = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
+const SYSEX_CONF        = 0x7C; // 124
+const SYSEX_SOUND       = 0x6C; // 108
 
 const CALIBRATE = 2;      //
 const BLOBS_PLAY = 3;     // Send all blobs values over USB using MIDI format
@@ -49,6 +45,7 @@ const BW = 6; // [6] Blob width
 const BH = 7; // [7] Blob Height
 
 var connected = false;
+var fileType = "";
 var config = "";
 
 async function e256_MIDIConnect() {
@@ -182,23 +179,23 @@ let e256_matrix = new matrix(256);
 let e256_blobs = new blobs();
 
 function onMIDIMessage(midiMsg) {
-  var status = midiMsg.data[0] >> 4;
+  var status = midiMsg.data[0];
   var channel = midiMsg.data[0] & 0xF;
   switch (status) {
-    case 9:
+    case NOTE_ON:
       e256_blobs.add(midiMsg.data[1]);
       break;
-    case 8:
+    case NOTE_OFF:
       e256_blobs.remove(midiMsg.data[1]);
       break;
-    case 11:
+    case CONTROL_CHANGE:
       e256_blobs.update(channel, midiMsg.data[1], midiMsg.data[2]);
       break;
-    case 12:
+    case PROGRAM_CHANGE:
       //console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
       //256_mode.select(midiMsg.data[1]); //TODO 
       break;
-    case 15:
+    case SYSTEM_EXCLUSIVE:
       //TODO: fetch the config file!?
       for (var i = 1; i < midiMsg.data.length - 1; i++) {
         e256_matrix.update(i - 1, midiMsg.data[i]);
@@ -231,10 +228,10 @@ function programChange(value) {
   }
 }
 
-// FIXME!
-function sysex(data) {
-  let header = [SYSEX_BEGIN, SYSEX_ID, SYSEX_CONF];
-  let midiMsg = header.concat(data.stringify).concat(SYSEX_END);
+// FIXME: passing data to the sysEx MIDI message!
+function sysex(data, identifier) {
+  let header = [SYSEX_BEGIN, SYSEX_ID, identifier];
+  let midiMsg = header.concat(data).concat(SYSEX_END);
   output.send(midiMsg);
 }
 
@@ -253,11 +250,14 @@ function e256_getBlobs() {
 function e256_loadFile(event) {
   var uploadedFile = event.target.files[0];
   if (uploadedFile.type === "application/json"){
+    fileType = 'json';
     var reader = new FileReader();
     reader.onload = onReaderLoad;
-    reader.readAsText(event.target.files[0]);
+    //reader.readAsText(event.target.files[0]);
+    //console.log(reader.result);
   }
   else if (uploadedFile.type === "application/wav"){
+    fileType = 'wav';
     //TODO
   } else {
     alert("Wrong file type!"); 
@@ -265,14 +265,21 @@ function e256_loadFile(event) {
 }
 
 function onReaderLoad(event){
-  console.log(event.target.result);
+  //console.log(event.target.result);
   config = JSON.parse(event.target.result);
   console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
 }
 
-function e256_sendConfig() {
+function e256_sendFile() {
   if (connected){
-    sysex(config);
+    if (fileType === 'json'){
+      sysex(config, SYSEX_CONF);
+    }
+    else if (fileType === 'wav'){
+      //sysex(sound, SYSEX_SOUND);
+    } else {
+      alert("CONFIG FILE MISSING!");
+    }
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
   }
