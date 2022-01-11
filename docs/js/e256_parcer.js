@@ -229,6 +229,7 @@ function programChange(value) {
 }
 
 function sysex(data, identifier) {
+  console.log(data.size);
   let header = [SYSEX_BEGIN, SYSEX_ID, identifier];
   let midiMsg = header.concat(data).concat(SYSEX_END);
   output.send(midiMsg);
@@ -263,13 +264,17 @@ function e256_loadFile(event) {
 }
 
 function onReaderLoad(event){
-  config = JSON.parse(event.target.result);
-  console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
+  try {
+    config = JSON.parse(event.target.result);
+    console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
+  } catch(e) {
+    alert(e); // error in the above string!
+  }
 }
 
 function e256_sendFile() {
   if (connected){
-    if (fileType === 'json'){
+    if (fileType === 'json'){    
       sysex(Array.from(JSON.stringify(config)), SYSEX_CONF);
     }
     else if (fileType === 'wav'){
