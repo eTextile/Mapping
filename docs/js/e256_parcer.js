@@ -228,6 +228,8 @@ function programChange(value) {
   }
 }
 
+//Must provides the data in chunks!
+//TODO: https://github.com/PaulStoffregen/cores/pull/17
 function sysex(data, identifier) {
   console.log(data.size);
   let header = [SYSEX_BEGIN, SYSEX_ID, identifier];
