@@ -228,7 +228,6 @@ function programChange(value) {
   }
 }
 
-// FIXME: passing data to the sysEx MIDI message!
 function sysex(data, identifier) {
   let header = [SYSEX_BEGIN, SYSEX_ID, identifier];
   let midiMsg = header.concat(data).concat(SYSEX_END);
@@ -253,8 +252,7 @@ function e256_loadFile(event) {
     fileType = 'json';
     var reader = new FileReader();
     reader.onload = onReaderLoad;
-    //reader.readAsText(event.target.files[0]);
-    //console.log(reader.result);
+    reader.readAsText(event.target.files[0]);
   }
   else if (uploadedFile.type === "application/wav"){
     fileType = 'wav';
@@ -265,7 +263,6 @@ function e256_loadFile(event) {
 }
 
 function onReaderLoad(event){
-  //console.log(event.target.result);
   config = JSON.parse(event.target.result);
   console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
 }
@@ -273,7 +270,7 @@ function onReaderLoad(event){
 function e256_sendFile() {
   if (connected){
     if (fileType === 'json'){
-      sysex(config, SYSEX_CONF);
+      sysex(Array.from(JSON.stringify(config)), SYSEX_CONF);
     }
     else if (fileType === 'wav'){
       //sysex(sound, SYSEX_SOUND);
