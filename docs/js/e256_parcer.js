@@ -230,7 +230,7 @@ function programChange(value) {
 
 //Must provides the data in chunks!
 //TODO: https://github.com/PaulStoffregen/cores/pull/17
-function sysex(data, identifier) {
+function sysex(identifier, data) {
   console.log(data.size);
   let header = [SYSEX_BEGIN, SYSEX_ID, identifier];
   let midiMsg = header.concat(data).concat(SYSEX_END);
@@ -277,10 +277,10 @@ function onReaderLoad(event){
 function e256_sendFile() {
   if (connected){
     if (fileType === 'json'){    
-      sysex(Array.from(JSON.stringify(config)), SYSEX_CONF);
+      sysex(SYSEX_CONF, Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
     }
     else if (fileType === 'wav'){
-      //sysex(sound, SYSEX_SOUND);
+      //sysex(SYSEX_SOUND, sound);
     } else {
       alert("CONFIG FILE MISSING!");
     }
