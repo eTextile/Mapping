@@ -1,13 +1,9 @@
 # Mapping Toolkit web app
-### This web app is made for combining graphic & audio modules built inside the Textile-Synthesizer.
+### This web app is made for combining graphic & audio modules built inside the eTextile-Synthesizer.
 
-This to make sound with colorful simple shapes made out of textile.
+This **Mapping Toolkit** is made to create the mapping between the textile graphic patterns and the builtin audio-synthesizer or any external MIDI device. It offers a library of geometric shapes which are tactile input controls like sliders, switches, etc.
 
-
-
-
-
-This **Mapping Toolkit** is made for creating the mapping between the textile graphic patterns and the builtin audio-synthesizer or any external MIDI device. It offers a library of geometric shapes which are tactile input controls like sliders, switches, etc. Starting from the textile design surface made on top of the matrix sensor, this web application is using the sensor values to define and adjust the sensing functionalities in relation with the visual patterns.
+Starting from the textile design paterns placed on top of the matrix sensor, this application is using the sensor values to define and adjust the tactile input controls in relation with the textile graphic patterns.
 
 ## Web Application
 
