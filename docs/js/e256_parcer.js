@@ -261,6 +261,7 @@ function programChange(value) {
   };
 };
 
+<<<<<<< HEAD
 // Load config via MIDI system exclusive message
 // Must provides the data in chunks!
 // [ SYSEX_BEGIN, SYSEX_ID, MODE, CONFIG_SIZE, SYSEX_END ] 
@@ -318,15 +319,28 @@ function onReaderLoad(event){
 
 function e256_sendFile() {
   if (connected){
+<<<<<<< HEAD
     if (fileType === 'json'){
       sysex_alloc(Object.keys(config).length);
     }
     else if (fileType === 'wav'){
       //sysex_alloc(sound.length);
+=======
+    if (fileType === 'json'){    
+      sysex(SYSEX_CONF, Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
+    }
+    else if (fileType === 'wav'){
+      //sysex(SYSEX_SOUND, sound);
+>>>>>>> 7f7ea19216287f09492eb9cad3f590c79a5aa008
     } else {
       alert("CONFIG FILE MISSING!");
     };
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
+<<<<<<< HEAD
   };
 };
+=======
+  }
+}
+>>>>>>> 7f7ea19216287f09492eb9cad3f590c79a5aa008
