@@ -12,9 +12,7 @@ Starting from the textile design paterns placed on top of the matrix sensor, thi
 ## Functionalities
 - Create your custom textile graphic user interface
   - Add graphics components with interactive bihavious
-  - define the MIDI channels of each graphic components according to the built in or external syntesizer
-
-- Select the MIDI audio effects you want to mapp to your textile graphic user interface.
+  - define the MIDI channels of each graphic components according to the built in or external MIDI synthesizer
 - Upload your created UI and MIDI parameters to the eTextile-Synthesizer.
 - If you are satisfied, save your mapping to the eTextile-Synthesizer permanent memory.
 
