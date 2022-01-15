@@ -5,7 +5,6 @@ let getBlobsButton = document.getElementById("getBlobsButton");
 let getRawButton = document.getElementById("getRawButton");
 let loadFileButton = document.getElementById("loadFileButton");
 let sendFileButton = document.getElementById("sendFileButton");
-let receiveText = document.getElementById("receiveText");
 
 /*Couple the elements to the Events*/
 connectButton.addEventListener('click', e256_MIDIConnect);
@@ -34,6 +33,21 @@ const BLOBS_PLAY = 3;     // Send all blobs values over USB using MIDI format
 const MAPPING_LIB = 4;    //
 const RAW_MATRIX = 5;     //
 const INTERP_MATRIX = 6;  //
+
+const FLASH_SIZE                  = 4096;
+const ALLOC_MODE                  = 0xC9;
+const LOAD_MODE                   = 0XCB;
+const ALLOC_DONE                  = 10;
+const LOAD_DONE                   = 11;
+
+const ERROR_WAITING_FOR_GONFIG    = 33;
+const ERROR_LOADING_GONFIG_FAILED = 34;
+const ERROR_CONNECTING_FLASH      = 35;
+const ERROR_WHILE_OPEN_FLASH_FILE = 36;
+const ERROR_FLASH_FULL            = 37;
+const ERROR_FILE_TO_BIG           = 38;
+const ERROR_NO_CONFIG_FILE        = 39;
+const ERROR_UNKNOWN_SYSEX         = 40;
 
 const BI = 0; // [0] Blob UIDconst
 const BS = 1; // [1] Blob State
@@ -172,8 +186,8 @@ class blobs {
   }
   get() {
     return this.blobs;
-  }
-}
+  };
+};
 
 let e256_matrix = new matrix(256);
 let e256_blobs = new blobs();
@@ -192,62 +206,90 @@ function onMIDIMessage(midiMsg) {
       e256_blobs.update(channel, midiMsg.data[1], midiMsg.data[2]);
       break;
     case PROGRAM_CHANGE:
-      //console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
+      console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
       //256_mode.select(midiMsg.data[1]); //TODO 
+      switch(midiMsg.data[1]){
+        case ALLOC_DONE:
+          sysex_load(SYSEX_CONF, Array.from(JSON.stringify(config)));
+          break;
+        case LOAD_DONE:
+          alert("eTextile-Synthesizer LOAD_CONFIG DONE!");
+          break;
+        default:
+          //
+          break;
+      }
       break;
     case SYSTEM_EXCLUSIVE:
       //TODO: fetch the config file!?
       for (var i = 1; i < midiMsg.data.length - 1; i++) {
         e256_matrix.update(i - 1, midiMsg.data[i]);
-      }
+      };
       break;
-  }
-}
+  };
+};
 
 function noteOn(note, volume) {
-  output.send([NOTE_ON, note, volume])
-}
+  if (connected){
+    output.send([NOTE_ON, note, volume]);
+  } else {
+    alert("eTextile-Synthesizer NOT CONNECTED!");
+  };
+};
 
 function noteOff(note) {
-  output.send([NOTE_OFF, note, 0]);
-}
+  if (connected){
+    output.send([NOTE_OFF, note, 0]);
+  } else {
+    alert("eTextile-Synthesizer NOT CONNECTED!");
+  };
+};
 
 function controlChange(value) {
   if (connected){
     output.send([CONTROL_CHANGE, value]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
-  }
-}
+  };
+};
 
 function programChange(value) {
   if (connected){
     output.send([PROGRAM_CHANGE, value]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
-  }
-}
+  };
+};
 
-//Must provides the data in chunks!
-//TODO: https://github.com/PaulStoffregen/cores/pull/17
-function sysex(data, identifier) {
-  console.log(data.size);
-  let header = [SYSEX_BEGIN, SYSEX_ID, identifier];
+// Load config via MIDI system exclusive message
+// Must provides the data in chunks!
+// [ SYSEX_BEGIN, SYSEX_ID, MODE, CONFIG_SIZE, SYSEX_END ] 
+// ALLOC_DONE
+// [ SYSEX_BEGIN, SYSEX_ID, MODE, IDENTIFIER, DATA, SYSEX_END ]
+// LOAD_DONE
+function sysex_alloc(size) {
+  let header = [SYSEX_BEGIN, SYSEX_ID, ALLOC_MODE];
+  let midiMsg = header.concat(size).concat(SYSEX_END);
+  output.send(midiMsg);
+};
+
+function sysex_load(identifier, data) {
+  let header = [SYSEX_BEGIN, SYSEX_ID, LOAD_MODE, identifier]; 
   let midiMsg = header.concat(data).concat(SYSEX_END);
   output.send(midiMsg);
-}
+};
 
 function e256_calibrate() {
   programChange(CALIBRATE);
-}
+};
 
 function e256_getRawMatriw() {
   programChange(RAW_MATRIX);
-}
+};
 
 function e256_getBlobs() {
   programChange(BLOBS_PLAY);
-}
+};
 
 function e256_loadFile(event) {
   var uploadedFile = event.target.files[0];
@@ -262,8 +304,8 @@ function e256_loadFile(event) {
     //TODO
   } else {
     alert("Wrong file type!"); 
-  }
-}
+  };
+};
 
 function onReaderLoad(event){
   try {
@@ -271,20 +313,20 @@ function onReaderLoad(event){
     console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
   } catch(e) {
     alert(e); // error in the above string!
-  }
-}
+  };
+};
 
 function e256_sendFile() {
   if (connected){
-    if (fileType === 'json'){    
-      sysex(Array.from(JSON.stringify(config)), SYSEX_CONF);
+    if (fileType === 'json'){
+      sysex_alloc(Object.keys(config).length);
     }
     else if (fileType === 'wav'){
-      //sysex(sound, SYSEX_SOUND);
+      //sysex_alloc(sound.length);
     } else {
       alert("CONFIG FILE MISSING!");
-    }
+    };
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
-  }
-}
+  };
+};
