@@ -35,8 +35,10 @@ const RAW_MATRIX = 5;     //
 const INTERP_MATRIX = 6;  //
 
 const FLASH_SIZE                  = 4096;
-const ALLOC_MODE                  = 0xC9;
-const LOAD_MODE                   = 0XCB;
+
+const ALLOC_MODE                  = 0x64; // Dec [100]
+const LOAD_MODE                   = 0X65; // Dec [101]
+
 const ALLOC_DONE                  = 10;
 const LOAD_DONE                   = 11;
 
@@ -210,7 +212,8 @@ function onMIDIMessage(midiMsg) {
       //256_mode.select(midiMsg.data[1]); //TODO 
       switch(midiMsg.data[1]){
         case ALLOC_DONE:
-          sysex_load(SYSEX_CONF, Array.from(JSON.stringify(config)));
+          //sysex_load(SYSEX_CONF, Array.from(JSON.stringify(config)));
+          sysex_load(SYSEX_CONF, Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           break;
         case LOAD_DONE:
           alert("eTextile-Synthesizer LOAD_CONFIG DONE!");
