@@ -10,11 +10,11 @@ Starting from the textile design paterns placed on top of the matrix sensor, thi
     https://mapping.etextile.org/
 
 ## Functionalities
-- Create your custom textile graphic user interface
-  - Add graphics components with interactive bihavious
-  - define the MIDI channels of each graphic components according to the built in or external MIDI synthesizer
-- Upload your created UI and MIDI parameters to the eTextile-Synthesizer.
-- If you are satisfied, save your mapping to the eTextile-Synthesizer permanent memory.
+- Create custom graphic user interface for the eTextile-Synthesizer
+  - Add graphics components with interactive bihavious.
+  - define the MIDI commands (channes, notes, ...) of each graphic components according to the built in or external MIDI synthesizer.
+- Upload your created GUI and MIDI parameters to the eTextile-Synthesizer.
+- If you are satisfied, save it to the eTextile-Synthesizer permanent memory.
 
 ## Repository
 
