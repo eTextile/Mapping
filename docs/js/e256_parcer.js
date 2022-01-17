@@ -14,28 +14,22 @@ getRawButton.addEventListener('click', e256_getRawMatriw);
 loadFileButton.addEventListener('change', e256_loadFile);
 sendFileButton.addEventListener('click', e256_sendFile);
 
-const MIDI_CHANNEL = 1;
+const MIDI_CHANNEL                = 1;
 
-const NOTE_ON           = 0x90; // 
-const NOTE_OFF          = 0x80; //
-const CONTROL_CHANGE    = 0xB0; //
-const PROGRAM_CHANGE    = 0xC0; //
-
+const NOTE_ON                     = 0x90; // 
+const NOTE_OFF                    = 0x80; //
+const CONTROL_CHANGE              = 0xB0; //
+const PROGRAM_CHANGE              = 0xC0; //
 
 const FLASH_SIZE                  = 4096;
 
-const SYSTEM_EXCLUSIVE  = 0xF0; // 240
-const SYSEX_BEGIN       = 0xF0; // 240
-const SYSEX_END         = 0xF7; // 247
-const SYSEX_ID          = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
+const SYSTEM_EXCLUSIVE            = 0xF0; // 240
+const SYSEX_BEGIN                 = 0xF0; // 240
+const SYSEX_END                   = 0xF7; // 247
+const SYSEX_ID                    = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
 
-const SYSEX_CONF        = 0x7C; // 124
-const SYSEX_SOUND       = 0x6C; // 108
-
-const ALLOC_MODE        = 0x64; // Dec [100]
-const LOAD_MODE         = 0X65; // Dec [101]
-const ALLOC_DONE        = 10;
-const LOAD_DONE         = 11;
+const SYSEX_CONF                  = 0x7C; // 124
+const SYSEX_SOUND                 = 0x6C; // 108
 
 const ERROR_WAITING_FOR_GONFIG    = 33;
 const ERROR_LOADING_GONFIG_FAILED = 34;
@@ -46,20 +40,17 @@ const ERROR_FILE_TO_BIG           = 38;
 const ERROR_NO_CONFIG_FILE        = 39;
 const ERROR_UNKNOWN_SYSEX         = 40;
 
-const CALIBRATE = 2;      //
-const BLOBS_PLAY = 3;     // Send all blobs values over USB using MIDI format
-const MAPPING_LIB = 4;    //
-const RAW_MATRIX = 5;     //
-const INTERP_MATRIX = 6;  //
+const DONE_CONFIG_LOAD_FLASH      = 15;
+const DONE_CONFIG_ALLOC           = 16;
+const DONE_CONFIG_LOAD_USBMIDI    = 17;
+const DONE_SOUND_LOAD_USBMIDI     = 18;
+const DONE_CONFIG_FLASH           = 19;
 
-const BI = 0; // [0] Blob UIDconst
-const BS = 1; // [1] Blob State
-const BL = 2; // [2] Blob Last State
-const BX = 3; // [3] Blob X centroid position
-const BY = 4; // [4] Blob Y centroid position
-const BZ = 5; // [5] Blob Depth
-const BW = 6; // [6] Blob width
-const BH = 7; // [7] Blob Height
+const CALIBRATE                   = 2; //
+const BLOBS_PLAY                  = 3; // Send all blobs values over USB using MIDI format
+const MAPPING_LIB                 = 4; //
+const RAW_MATRIX                  = 5; //
+const INTERP_MATRIX               = 6; //
 
 var connected = false;
 var fileType = "";
@@ -134,11 +125,11 @@ class matrix {
 class blob {
   constructor(id, x, y, z, w, h) {
     this.id = id;
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.w = w;
-    this.h = h;
+    this.x = x; // Blob X centroid position
+    this.y = y; // Blob Y centroid position
+    this.z = z; // Blob Depth
+    this.w = w; // Blob width
+    this.h = h; // Blob Height
   }
 }
 
