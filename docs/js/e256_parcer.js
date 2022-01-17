@@ -21,26 +21,21 @@ const NOTE_OFF          = 0x80; //
 const CONTROL_CHANGE    = 0xB0; //
 const PROGRAM_CHANGE    = 0xC0; //
 
+
+const FLASH_SIZE                  = 4096;
+
 const SYSTEM_EXCLUSIVE  = 0xF0; // 240
 const SYSEX_BEGIN       = 0xF0; // 240
 const SYSEX_END         = 0xF7; // 247
 const SYSEX_ID          = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
+
 const SYSEX_CONF        = 0x7C; // 124
 const SYSEX_SOUND       = 0x6C; // 108
 
-const CALIBRATE = 2;      //
-const BLOBS_PLAY = 3;     // Send all blobs values over USB using MIDI format
-const MAPPING_LIB = 4;    //
-const RAW_MATRIX = 5;     //
-const INTERP_MATRIX = 6;  //
-
-const FLASH_SIZE                  = 4096;
-
-const ALLOC_MODE                  = 0x64; // Dec [100]
-const LOAD_MODE                   = 0X65; // Dec [101]
-
-const ALLOC_DONE                  = 10;
-const LOAD_DONE                   = 11;
+const ALLOC_MODE        = 0x64; // Dec [100]
+const LOAD_MODE         = 0X65; // Dec [101]
+const ALLOC_DONE        = 10;
+const LOAD_DONE         = 11;
 
 const ERROR_WAITING_FOR_GONFIG    = 33;
 const ERROR_LOADING_GONFIG_FAILED = 34;
@@ -50,6 +45,12 @@ const ERROR_FLASH_FULL            = 37;
 const ERROR_FILE_TO_BIG           = 38;
 const ERROR_NO_CONFIG_FILE        = 39;
 const ERROR_UNKNOWN_SYSEX         = 40;
+
+const CALIBRATE = 2;      //
+const BLOBS_PLAY = 3;     // Send all blobs values over USB using MIDI format
+const MAPPING_LIB = 4;    //
+const RAW_MATRIX = 5;     //
+const INTERP_MATRIX = 6;  //
 
 const BI = 0; // [0] Blob UIDconst
 const BS = 1; // [1] Blob State
@@ -149,14 +150,14 @@ class blobs {
   add(id) {
     let newBlob = new blob(id);
     this.blobs.push(newBlob);
-    console.log("ADD_BLOB " + id);
+    //console.log("ADD_BLOB " + id);
   }
 
   remove(id) {
     for (var i = 0; i < this.blobs.length; i++) {
       if (this.blobs[i].id === id) {
         this.blobs.splice(i, 1);
-        console.log("REMOVE_BLOB " + id);
+        //console.log("REMOVE_BLOB " + id);
         break;
       }
     }
@@ -208,12 +209,9 @@ function onMIDIMessage(midiMsg) {
       e256_blobs.update(channel, midiMsg.data[1], midiMsg.data[2]);
       break;
     case PROGRAM_CHANGE:
-      console.log("PROGRAM_CHANGE " + midiMsg.data[1]);
-      //256_mode.select(midiMsg.data[1]); //TODO 
       switch(midiMsg.data[1]){
         case ALLOC_DONE:
-          //sysex_load(SYSEX_CONF, Array.from(JSON.stringify(config)));
-          sysex_load(SYSEX_CONF, Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
+          sysex_load(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           break;
         case LOAD_DONE:
           alert("eTextile-Synthesizer LOAD_CONFIG DONE!");
@@ -264,20 +262,21 @@ function programChange(value) {
   };
 };
 
-// Load config via MIDI system exclusive message
+// Send data via MIDI system exclusive message
 // Must provides the data in chunks!
-// [ SYSEX_BEGIN, SYSEX_ID, MODE, CONFIG_SIZE, SYSEX_END ] 
+// [ SYSEX_BEGIN, SYSEX_ID, SYSEX_IDENTIFIER, SYSEX_SIZE_MSB, SYSEX_SIZE_LSB, SYSEX_END ] 
 // ALLOC_DONE
-// [ SYSEX_BEGIN, SYSEX_ID, MODE, IDENTIFIER, DATA, SYSEX_END ]
+// [ SYSEX_BEGIN, SYSEX_ID, SYSEX_DATA, SYSEX_END ]
 // LOAD_DONE
-function sysex_alloc(size) {
-  let header = [SYSEX_BEGIN, SYSEX_ID, ALLOC_MODE];
-  let midiMsg = header.concat(size).concat(SYSEX_END);
+function sysex_alloc(identifier, size) {
+  var size_msb = size >> 7;
+  var size_lsb = size & 0x7F;
+  let midiMsg = [SYSEX_BEGIN, SYSEX_ID, identifier, size_msb, size_lsb, SYSEX_END];
   output.send(midiMsg);
 };
 
-function sysex_load(identifier, data) {
-  let header = [SYSEX_BEGIN, SYSEX_ID, LOAD_MODE, identifier]; 
+function sysex_load(data) {
+  let header = [SYSEX_BEGIN, SYSEX_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
   output.send(midiMsg);
 };
@@ -313,7 +312,7 @@ function e256_loadFile(event) {
 function onReaderLoad(event){
   try {
     config = JSON.parse(event.target.result);
-    console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
+    //console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
   } catch(e) {
     alert(e); // error in the above string!
   };
@@ -322,10 +321,10 @@ function onReaderLoad(event){
 function e256_sendFile() {
   if (connected){
     if (fileType === 'json'){
-      sysex_alloc(Object.keys(config).length);
+      sysex_alloc(SYSEX_CONF, Object.keys(JSON.stringify(config)).length);
     }
     else if (fileType === 'wav'){
-      //sysex_alloc(sound.length);
+      //sysex_alloc(SYSEX_SOUND, sound.length);
     } else {
       alert("CONFIG FILE MISSING!");
     };
