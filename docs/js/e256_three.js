@@ -1,9 +1,11 @@
+let e256_matrix = new matrix(256);
+
 let camera, scene, renderer;
 let geometry, material, plane;
 let points;
 var myWidth, myHeight;
 
-const myCanvas = document.getElementById("myScene");
+const myCanvas = document.getElementById("myScene_three");
 
 window.addEventListener('resize', function(event){
   myWidth = myCanvas.offsetWidth;

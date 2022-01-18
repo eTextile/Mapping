@@ -9,13 +9,13 @@
     <link rel="icon" href="./assets/img/favicon.ico">
     <title>e256_mapping</title>
     <link rel="stylesheet" href="./css/style.css">
-    <script type="text/javascript" src="assets/js/three.js"></script>
+    <script type="text/javascript" src="assets/js/paper.js"></script>
   </head>
 
   <body>
     <header>
-      <a href="index.html">MAIN</a>
-      <a href="mapping.html">MAPPING</a>
+        <a href="index.html">MAIN</a>
+        <a href="mapping.html">MAPPING</a>
     </header>
     <div id="main">
       <dashboard>
@@ -28,13 +28,12 @@
         <button id="sendFileButton">SEND_CONFIG</button><br/>
       </dashboard>
       <container>
-        <canvas id="myScene_three" resize></canvas>
+        <canvas id="myScene_paper" resize></canvas>
       </container>
       <aside>Aside</aside>
     </div>
     <footer>Footer</footer>
     <script type="text/javascript" src="js/e256_parcer.js"></script>
-    <script type="text/javascript" src="js/e256_three.js"></script>
-  </body>
-
+    <script type="text/paperscript" src="js/e256_paper.js" canvas="myScene_paper"></script>
+   </body>
   </html>

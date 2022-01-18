@@ -1,16 +1,22 @@
 /*Define the elements*/
 let connectButton = document.getElementById("connectButton");
-let calibrateButton = document.getElementById("calibrateButton");
-let getBlobsButton = document.getElementById("getBlobsButton");
+
 let getRawButton = document.getElementById("getRawButton");
+let getBlobsButton = document.getElementById("getBlobsButton");
+let setMappingButton = document.getElementById("setMappingButton");
+let calibrateButton = document.getElementById("calibrateButton");
+
 let loadFileButton = document.getElementById("loadFileButton");
 let sendFileButton = document.getElementById("sendFileButton");
 
 /*Couple the elements to the Events*/
 connectButton.addEventListener('click', e256_MIDIConnect);
-calibrateButton.addEventListener('click', e256_calibrate);
-getBlobsButton.addEventListener('click', e256_getBlobs);
-getRawButton.addEventListener('click', e256_getRawMatriw);
+
+getRawButton.addEventListener('click', sendParams, false);
+getBlobsButton.addEventListener('click', sendParams, false);
+setMappingButton.addEventListener('click', sendParams, false);
+calibrateButton.addEventListener('click', sendParams, false);
+
 loadFileButton.addEventListener('change', e256_loadFile);
 sendFileButton.addEventListener('click', e256_sendFile);
 
@@ -196,9 +202,6 @@ class blobs {
   };
 };
 
-let e256_matrix = new matrix(256);
-let e256_blobs = new blobs();
-
 function onMIDIMessage(midiMsg) {
   var status = midiMsg.data[0];
   var channel = midiMsg.data[0] & 0xF;
@@ -285,17 +288,20 @@ function sysex_load(data) {
   output.send(midiMsg);
 };
 
-function e256_calibrate() {
-  programChange(CALIBRATE);
-};
-
-function e256_getRawMatriw() {
-  programChange(RAW_MATRIX);
-};
-
-function e256_getBlobs() {
-  programChange(BLOBS_PLAY);
-};
+function sendParams(){
+  if(this.id == 'getRawButton') {
+    programChange(RAW_MATRIX);
+  } 
+  else if (this.id == 'getBlobsButton'){
+    programChange(BLOBS_PLAY);
+  }
+  else if (this.id == 'setMappingButton'){
+    programChange(MAPPING_LIB);
+  }
+  else if (this.id == 'calibrateButton'){
+    programChange(CALIBRATE);
+  }
+}
 
 function e256_loadFile(event) {
   var uploadedFile = event.target.files[0];
