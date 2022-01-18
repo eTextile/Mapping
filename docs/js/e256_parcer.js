@@ -18,10 +18,10 @@ const MIDI_CHANNEL                = 1;
 const FLASH_SIZE                  = 4096;
 
 // MODES
-const BLOBS_PLAY                  = 0; // Send all blobs values over USB using MIDI format
-const MAPPING_LIB                 = 1; // 
-const RAW_MATRIX                  = 2; //
-const INTERP_MATRIX               = 3; //
+const RAW_MATRIX                  = 0; //
+const INTERP_MATRIX               = 1; //
+const BLOBS_PLAY                  = 2; // Send all blobs values over USB using MIDI format
+const MAPPING_LIB                 = 3; // 
 // STATES
 const CALIBRATE                   = 10; //
 const DONE_ACTION                 = 11; //
