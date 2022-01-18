@@ -221,7 +221,7 @@ function onMIDIMessage(midiMsg) {
           alert("eTextile-Synthesizer LOAD_CONFIG DONE!");
           break;
         default:
-          //
+          console.log("midiMsg: " + midiMsg.data[1]);
           break;
       };
       break;
