@@ -15,22 +15,41 @@ loadFileButton.addEventListener('change', e256_loadFile);
 sendFileButton.addEventListener('click', e256_sendFile);
 
 const MIDI_CHANNEL                = 1;
+const FLASH_SIZE                  = 4096;
 
+// MODES
+const BLOBS_PLAY                  = 0; // Send all blobs values over USB using MIDI format
+const MAPPING_LIB                 = 1; // 
+const RAW_MATRIX                  = 2; //
+const INTERP_MATRIX               = 3; //
+// STATES
+const CALIBRATE                   = 10; //
+const DONE_ACTION                 = 11; //
+const ERROR                       = 12; //
+// LEVELS
+const SIG_IN                      = 0; // E256-LEDs: | 1 | 0 |
+const SIG_OUT                     = 1; // E256-LEDs: | 0 | 1 |
+const LINE_OUT                    = 2; // E256-LEDs: | 0 | 0 |
+const THRESHOLD                   = 3; // E256-LEDs: | 1 | 1 |
+// MIDI CONSTANTS
 const NOTE_ON                     = 0x90; // 
 const NOTE_OFF                    = 0x80; //
 const CONTROL_CHANGE              = 0xB0; //
 const PROGRAM_CHANGE              = 0xC0; //
-
-const FLASH_SIZE                  = 4096;
-
 const SYSTEM_EXCLUSIVE            = 0xF0; // 240
 const SYSEX_BEGIN                 = 0xF0; // 240
 const SYSEX_END                   = 0xF7; // 247
 const SYSEX_ID                    = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
-
 const SYSEX_CONF                  = 0x7C; // 124
 const SYSEX_SOUND                 = 0x6C; // 108
-
+// VERBOSITY
+const DONE_FLASH_CONFIG_ALLOC     = 16;
+const DONE_FLASH_CONFIG_LOAD      = 17;
+const DONE_FLASH_CONFIG_WRITE     = 18;
+const DONE_USBMIDI_CONFIG_ALLOC   = 19;
+const DONE_USBMIDI_CONFIG_LOAD    = 20;
+const DONE_USBMIDI_SOUND_LOAD     = 21;
+// ERROR CODES
 const ERROR_WAITING_FOR_GONFIG    = 33;
 const ERROR_LOADING_GONFIG_FAILED = 34;
 const ERROR_CONNECTING_FLASH      = 35;
@@ -40,18 +59,17 @@ const ERROR_FILE_TO_BIG           = 38;
 const ERROR_NO_CONFIG_FILE        = 39;
 const ERROR_UNKNOWN_SYSEX         = 40;
 
-const DONE_CONFIG_LOAD_FLASH      = 15;
-const DONE_CONFIG_ALLOC           = 16;
-const DONE_CONFIG_LOAD_USBMIDI    = 17;
-const DONE_SOUND_LOAD_USBMIDI     = 18;
-const DONE_CONFIG_FLASH           = 19;
+const BI  = 0; // [0] Blob UID
+const BS  = 1; // [1] Blob State
+const BL  = 2; // [2] Blob Last State
+const BX  = 3; // [3] Blob X centroid position
+const BY  = 4; // [4] Blob Y centroid position
+const BZ  = 5; // [5] Blob Depth
+const BW  = 6; // [6] Blob width
+const BH  = 7; // [7] Blob Height
 
-const CALIBRATE                   = 2; //
-const BLOBS_PLAY                  = 3; // Send all blobs values over USB using MIDI format
-const MAPPING_LIB                 = 4; //
-const RAW_MATRIX                  = 5; //
-const INTERP_MATRIX               = 6; //
-
+var input;
+var output;
 var connected = false;
 var fileType = "";
 var config = "";
@@ -61,13 +79,11 @@ async function e256_MIDIConnect() {
     navigator.requestMIDIAccess({sysex: true}).then(onMIDISuccess, onMIDIFailure);
   } else {
     alert("No MIDI support in your browser!");
-  }
-}
-
-var output;
+  };
+};
 
 function onMIDISuccess(midiAccess) {
-  listInputsAndOutputs(midiAccess);
+  //listInputsAndOutputs(midiAccess);
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
       input = entry;
@@ -75,42 +91,42 @@ function onMIDISuccess(midiAccess) {
       connectButton.innerHTML = 'E256_CONNECTED';
       connectButton.style.background = "rgb(10,180,0)";
       connected = true;
-    }
-  }
+    };
+  };
   for (var entry of midiAccess.outputs.values()) {
     if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
       output = entry;
-    }
-  }
-}
+    };
+  };
+};
 
-//TODO: need a drop down menu!
+// TODO: need a drop down menu!
 function listInputsAndOutputs(midiAccess) {
   for (var entry of midiAccess.inputs) {
     var input = entry[1];
     console.log( "Input port [type:'" + input.type + "'] id:'" + input.id +
                  "' manufacturer:'" + input.manufacturer + "' name:'" + input.name +
                  "' version:'" + input.version + "'" );
-  }
+  };
   for (var entry of midiAccess.outputs) {
     var output = entry[1];
     console.log( "Output port [type:'" + output.type + "'] id:'" + output.id +
                  "' manufacturer:'" + output.manufacturer + "' name:'" + output.name +
                  "' version:'" + output.version + "'" );
-  }
-}
+  };
+};
 
 function onMIDIFailure(error) {
   alert("eTextile-Synthesizer NOT CONNECTED! || No MIDI support in your browser! " + error);
-}
+};
 
 class matrix {
   constructor(size) {
     this.matrix = [size];
-  }
+  };
   update(index, val) {
     this.matrix[index] = val / 10;
-  }
+  };
   getZ(index) {
     let val = this.matrix[index];
     if (val != null) {
@@ -118,9 +134,9 @@ class matrix {
     }
     else {
       return 0;
-    }
-  }
-}
+    };
+  };
+};
 
 class blob {
   constructor(id, x, y, z, w, h) {
@@ -130,30 +146,27 @@ class blob {
     this.z = z; // Blob Depth
     this.w = w; // Blob width
     this.h = h; // Blob Height
-  }
-}
+  };
+};
 
 class blobs {
   constructor() {
     this.blobs = [];
-  }
-
+  };
   add(id) {
     let newBlob = new blob(id);
     this.blobs.push(newBlob);
     //console.log("ADD_BLOB " + id);
-  }
-
+  };
   remove(id) {
     for (var i = 0; i < this.blobs.length; i++) {
       if (this.blobs[i].id === id) {
         this.blobs.splice(i, 1);
         //console.log("REMOVE_BLOB " + id);
         break;
-      }
-    }
-  }
-
+      };
+    };
+  };
   update(id, param, val) {
     for (var i = 0; i < this.blobs.length; i++) {
       if (this.blobs[i].id === id) {
@@ -173,11 +186,11 @@ class blobs {
           case BH:
             this.blobs[i].h = val;
             break;
-        }
+        };
         break;
-      }
-    }
-  }
+      };
+    };
+  };
   get() {
     return this.blobs;
   };
@@ -201,16 +214,16 @@ function onMIDIMessage(midiMsg) {
       break;
     case PROGRAM_CHANGE:
       switch(midiMsg.data[1]){
-        case ALLOC_DONE:
+        case DONE_USBMIDI_CONFIG_ALLOC:
           sysex_load(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           break;
-        case LOAD_DONE:
+        case DONE_USBMIDI_CONFIG_LOAD:
           alert("eTextile-Synthesizer LOAD_CONFIG DONE!");
           break;
         default:
           //
           break;
-      }
+      };
       break;
     case SYSTEM_EXCLUSIVE:
       //TODO: fetch the config file!?
