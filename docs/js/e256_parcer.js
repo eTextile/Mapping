@@ -1,37 +1,21 @@
-/*Define the elements*/
-let connectButton = document.getElementById("connectButton");
 
-let getRawButton = document.getElementById("getRawButton");
-let getBlobsButton = document.getElementById("getBlobsButton");
-let setMappingButton = document.getElementById("setMappingButton");
-let calibrateButton = document.getElementById("calibrateButton");
-
-let loadFileButton = document.getElementById("loadFileButton");
-let sendFileButton = document.getElementById("sendFileButton");
-
-/*Couple the elements to the Events*/
-connectButton.addEventListener('click', e256_MIDIConnect);
-
-getRawButton.addEventListener('click', sendParams, false);
-getBlobsButton.addEventListener('click', sendParams, false);
-setMappingButton.addEventListener('click', sendParams, false);
-calibrateButton.addEventListener('click', sendParams, false);
-
-loadFileButton.addEventListener('change', e256_loadFile);
-sendFileButton.addEventListener('click', e256_sendFile);
-
-const MIDI_CHANNEL                = 1;
+const MIDI_INPUT_CHANNEL          = 1; // [1:15] Set the HARDWARE MIDI_INPUT channel
+const MIDI_OUTPUT_CHANNEL         = 1; // [1:15] Set the HARDWARE MIDI_OUTPUT channel
+// E256 HARDWARE CONSTANTS
 const FLASH_SIZE                  = 4096;
-
+const RAW_COLS                    = 16;
+const RAW_ROWS                    = 16;
+const RAW_FRAME                   = RAW_COLS * RAW_ROWS;
 // MODES
 const RAW_MATRIX                  = 0; //
 const INTERP_MATRIX               = 1; //
-const BLOBS_PLAY                  = 2; // Send all blobs values over USB using MIDI format
-const MAPPING_LIB                 = 3; // 
+const BLOBS                       = 2; // Send all blobs values over USB using MIDI format
+const MAPPING                     = 3; //
 // STATES
 const CALIBRATE                   = 10; //
 const DONE_ACTION                 = 11; //
 const ERROR                       = 12; //
+const GET_CONFIG                  = 13; //
 // LEVELS
 const SIG_IN                      = 0; // E256-LEDs: | 1 | 0 |
 const SIG_OUT                     = 1; // E256-LEDs: | 0 | 1 |
@@ -74,9 +58,10 @@ const BZ  = 5; // [5] Blob Depth
 const BW  = 6; // [6] Blob width
 const BH  = 7; // [7] Blob Height
 
-var input;
-var output;
+var MIDIInput
+var MIDIIoutput;
 var connected = false;
+var sysEx_mode;
 var fileType = "";
 var config = "";
 
@@ -92,8 +77,9 @@ function onMIDISuccess(midiAccess) {
   //listInputsAndOutputs(midiAccess);
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
-      input = entry;
-      input.onmidimessage = (onMIDIMessage);
+      MIDIInput = entry; 
+      MIDIInput.onmidimessage = onMIDIMessage;
+      //MIDIInput.open();
       connectButton.innerHTML = 'E256_CONNECTED';
       connectButton.style.background = "rgb(10,180,0)";
       connected = true;
@@ -101,7 +87,7 @@ function onMIDISuccess(midiAccess) {
   };
   for (var entry of midiAccess.outputs.values()) {
     if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
-      output = entry;
+      MIDIIoutput = entry;
     };
   };
 };
@@ -130,11 +116,13 @@ class matrix {
   constructor(size) {
     this.matrix = [size];
   };
-  update(index, val) {
-    this.matrix[index] = val / 10;
+  update(sysExMsg) {
+    for (var i = 0; i < RAW_FRAME; i++) {
+      this.matrix[i] = sysExMsg[i + 1] / 10;
+    };
   };
-  getZ(index) {
-    let val = this.matrix[index];
+  Z(index) {
+    var val = this.matrix[index];
     if (val != null) {
       return val;
     }
@@ -158,62 +146,83 @@ class blob {
 class blobs {
   constructor() {
     this.blobs = [];
-  };
-  add(id) {
-    let newBlob = new blob(id);
+  }
+  set add(noteOn) {
+    let newBlob = new blob(noteOn[1]);
     this.blobs.push(newBlob);
-    //console.log("ADD_BLOB " + id);
+    console.log("ADD_BLOB: " + noteOn[1]);
   };
-  remove(id) {
+  set remove(noteOff) {
     for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].id === id) {
+      if (this.blobs[i].id === noteOff[1]) {
         this.blobs.splice(i, 1);
-        //console.log("REMOVE_BLOB " + id);
+        console.log("REMOVE_BLOB: " + noteOff[1]);
         break;
       };
     };
   };
-  update(id, param, val) {
+  set update(sysEx) {
     for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].id === id) {
-        switch (param) {
+      if (this.blobs[i].id === sysEx.data[1]) {
+        this.blobs[i].x = sysEx[2];
+        this.blobs[i].y = sysEx[3];
+        this.blobs[i].z = sysEx[4];
+        this.blobs[i].w = sysEx[5];
+        this.blobs[i].h = sysEx[6];
+        console.log("BLOB_X: " + this.blobs[i].x);       
+      };
+    };
+  };
+  /*
+  update(controlChange) {
+    for (var i = 0; i < this.blobs.length; i++) {
+      if (this.blobs[i].id === (controlChange[0] & 0xf)) {
+        switch (controlChange[1]) {
           case BX:
             this.blobs[i].x = val;
+            //console.log("BLOB_X " + this.blobs[i].x);
             break;
           case BY:
-            this.blobs[i].y = val;
+            this.blobs[i].y = controlChange[2];
             break;
           case BZ:
-            this.blobs[i].z = val;
+            this.blobs[i].z = controlChange[2];
             break;
           case BW:
-            this.blobs[i].w = val;
+            this.blobs[i].w = controlChange[2];
             break;
           case BH:
-            this.blobs[i].h = val;
+            this.blobs[i].h = controlChange[2];
             break;
         };
         break;
       };
     };
   };
-  get() {
+  */
+  get all() {
     return this.blobs;
+  };
+  get size() {
+    return this.blobs.length;
   };
 };
 
+//let e256_matrix = new matrix(256);
+//let e256_blobs = new blobs();
+
 function onMIDIMessage(midiMsg) {
-  var status = midiMsg.data[0];
-  var channel = midiMsg.data[0] & 0xF;
+  //let status = midiMsg.data[0] >> 4;
+  let status = midiMsg.data[0];
   switch (status) {
     case NOTE_ON:
-      e256_blobs.add(midiMsg.data[1]);
+      e256_blobs.add(midiMsg.data);
       break;
     case NOTE_OFF:
-      e256_blobs.remove(midiMsg.data[1]);
+      e256_blobs.remove(midiMsg.data);
       break;
     case CONTROL_CHANGE:
-      e256_blobs.update(channel, midiMsg.data[1], midiMsg.data[2]);
+      //e256_blobs.update(midiMsg.data);
       break;
     case PROGRAM_CHANGE:
       switch(midiMsg.data[1]){
@@ -221,25 +230,37 @@ function onMIDIMessage(midiMsg) {
           sysex_load(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           break;
         case DONE_USBMIDI_CONFIG_LOAD:
-          alert("eTextile-Synthesizer LOAD_CONFIG DONE!");
+          alert("eTextile-Synthesizer: LOAD CONFIG DONE!");
           break;
         default:
-          console.log("midiMsg: " + midiMsg.data[1]);
+          //console.log("midiMsg: " + midiMsg.data[1]);
           break;
       };
       break;
     case SYSTEM_EXCLUSIVE:
-      //TODO: fetch the config file!?
-      for (var i = 1; i < midiMsg.data.length - 1; i++) {
-        e256_matrix.update(i - 1, midiMsg.data[i]);
+      switch(sysEx_mode){
+        case BLOBS:
+          e256_blobs.update(midiMsg.data); // FIXME!
+          break;
+        case GET_CONFIG:
+          // TODO: fetch config file
+          break;
+        case RAW_MATRIX:
+          e256_matrix.update(midiMsg.data);
+          break;
+        default:
+          //console.log("midiMsg: " + midiMsg.data[1]);
+          break;
       };
+      break;
+    default:
       break;
   };
 };
 
 function noteOn(note, volume) {
   if (connected){
-    output.send([NOTE_ON, note, volume]);
+    MIDIIoutput.send([NOTE_ON, note, volume]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
   };
@@ -247,7 +268,7 @@ function noteOn(note, volume) {
 
 function noteOff(note) {
   if (connected){
-    output.send([NOTE_OFF, note, 0]);
+    MIDIIoutput.send([NOTE_OFF, note, 0]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
   };
@@ -255,7 +276,7 @@ function noteOff(note) {
 
 function controlChange(value) {
   if (connected){
-    output.send([CONTROL_CHANGE, value]);
+    MIDIIoutput.send([CONTROL_CHANGE, value]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
   };
@@ -263,7 +284,7 @@ function controlChange(value) {
 
 function programChange(value) {
   if (connected){
-    output.send([PROGRAM_CHANGE, value]);
+    MIDIIoutput.send([PROGRAM_CHANGE, value]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
   };
@@ -279,29 +300,40 @@ function sysex_alloc(identifier, size) {
   var size_msb = size >> 7;
   var size_lsb = size & 0x7F;
   let midiMsg = [SYSEX_BEGIN, SYSEX_ID, identifier, size_msb, size_lsb, SYSEX_END];
-  output.send(midiMsg);
+  MIDIIoutput.send(midiMsg);
 };
 
 function sysex_load(data) {
   let header = [SYSEX_BEGIN, SYSEX_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
-  output.send(midiMsg);
+  MIDIIoutput.send(midiMsg);
 };
 
-function sendParams(){
-  if(this.id == 'getRawButton') {
-    programChange(RAW_MATRIX);
-  } 
-  else if (this.id == 'getBlobsButton'){
-    programChange(BLOBS_PLAY);
-  }
-  else if (this.id == 'setMappingButton'){
-    programChange(MAPPING_LIB);
-  }
-  else if (this.id == 'calibrateButton'){
-    programChange(CALIBRATE);
-  }
-}
+function e256_sendParams(){
+  switch(this.id){
+    case 'getRawButton':
+      programChange(RAW_MATRIX);
+      sysEx_mode = RAW_MATRIX;
+      break;
+    case 'getBlobsButton':
+      programChange(BLOBS);
+      sysEx_mode = BLOBS;
+      break;
+    case 'getConfigButton':
+      programChange(GET_CONFIG);
+      sysEx_mode = GET_CONFIG;
+    break;
+    case 'setMappingButton':
+      programChange(MAPPING);
+      sysEx_mode = MAPPING;
+      break;
+    case 'calibrateButton':
+      programChange(CALIBRATE);
+      break;
+    default:
+      break;
+  };
+};
 
 function e256_loadFile(event) {
   var uploadedFile = event.target.files[0];
@@ -331,7 +363,7 @@ function onReaderLoad(event){
 function e256_sendFile() {
   if (connected){
     if (fileType === 'json'){
-      sysex_alloc(SYSEX_CONF, Object.keys(JSON.stringify(config)).length);
+      sysex_alloc(SYSEX_CONF, Object.keys(JSON.midiMsg(config)).length);
     }
     else if (fileType === 'wav'){
       //sysex_alloc(SYSEX_SOUND, sound.length);

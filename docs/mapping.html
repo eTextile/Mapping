@@ -6,9 +6,9 @@
     <meta name="description" content="Mapping Toolkit for the e256 eTextile-Synthesizer">
     <meta name="keywords" content="eTextile, e-textile, smarttextiles, intelligenttextiles, electronictextiles, opensource, open hardware"/>
     <meta name="author" content="Maurin Donneaud">
-    <link rel="icon" href="./assets/img/favicon.ico">
+    <link rel="icon" href="assets/img/favicon.ico">
     <title>e256_mapping</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="css/style.css">
     <script type="text/javascript" src="assets/js/paper.js"></script>
   </head>
 
@@ -20,20 +20,38 @@
     <div id="main">
       <dashboard>
         <button id="connectButton">E256_CONNECT</button><br/>
-        <button id="getRawButton">GET_RAW_MATRIX</button><br/>
         <button id="getBlobsButton">GET_BLOBS</button><br/>
-        <button id="setMappingButton">SET_MAPPING</button><br/>
         <button id="calibrateButton">CALIBRATE</button><br/>
+        <button id="getConfigButton">GET_CONFIG</button><br/>
         <input  id="loadFileButton" type="file" name="file" accept=".json, .wav">
         <button id="sendFileButton">SEND_CONFIG</button><br/>
+        <button id="setMappingButton">SET_MAPPING</button><br/>
       </dashboard>
       <container>
-        <canvas id="myScene_paper" resize></canvas>
+        <canvas id="myScene" resize></canvas>
       </container>
       <aside>Aside</aside>
     </div>
     <footer>Footer</footer>
     <script type="text/javascript" src="js/e256_parcer.js"></script>
-    <script type="text/paperscript" src="js/e256_paper.js" canvas="myScene_paper"></script>
+    <script type="text/paperscript" src="js/e256_paper.js" canvas="myScene"></script>
+    <script type="text/javascript">
+      /*Define the elements*/
+      let connectButton = document.getElementById("connectButton");
+      let getBlobsButton = document.getElementById("getBlobsButton");
+      let calibrateButton = document.getElementById("calibrateButton");
+      let getConfigButton = document.getElementById("getConfigButton");
+      let loadFileButton = document.getElementById("loadFileButton");
+      let sendFileButton = document.getElementById("sendFileButton");
+      let setMappingButton = document.getElementById("setMappingButton");
+      /*Couple the elements to the Events*/
+      connectButton.addEventListener('click', e256_MIDIConnect);
+      getBlobsButton.addEventListener('click', e256_sendParams);
+      calibrateButton.addEventListener('click', e256_sendParams);
+      getConfigButton.addEventListener('clic', e256_sendParams);
+      loadFileButton.addEventListener('change', e256_loadFile);
+      sendFileButton.addEventListener('click', e256_sendFile);
+      setMappingButton.addEventListener('click', e256_sendParams);
+    </script>
    </body>
   </html>

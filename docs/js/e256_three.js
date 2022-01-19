@@ -5,7 +5,7 @@ let geometry, material, plane;
 let points;
 var myWidth, myHeight;
 
-const myCanvas = document.getElementById("myScene_three");
+const myCanvas = document.getElementById("myScene");
 
 window.addEventListener('resize', function(event){
   myWidth = myCanvas.offsetWidth;
@@ -41,7 +41,7 @@ function init() {
 
 function animate() {
   for(let i = 0; i<256; i++){
-    geometry.attributes.position.setZ(i, e256_matrix.getZ(i+1));
+    geometry.attributes.position.setZ(i, e256_matrix.Z(i+1));
   }
   geometry.attributes.position.needsUpdate = true;
 	renderer.render(scene, camera);
