@@ -1,26 +1,24 @@
-//let e256_blobs = new blobs();
+window.onload = function() {
+    // Get a reference to the canvas object
+    var canvas = document.getElementById('myScene');
+    // Create an empty project and a view for the canvas:
+    paper.setup(canvas);
+    // Create a Paper.js Path to draw a line into it:
+    var path = new paper.Path();
+    // Give the stroke a color
+    path.strokeColor = 'black';
+    var start = new paper.Point(100, 100);
+    // Move to start and draw a line from there
+    path.moveTo(start);
+    // Note that the plus operator on Point objects does not work
+    // in JavaScript. Instead, we need to call the add() function:
+    path.lineTo(start.add([ 200, -50 ]));
+    // Draw the view now:
+    paper.view.draw();
+}
+
+console.log("\nBLOB_SIZE" + e256_blobs.size);
 
 for (var i = 0;  i < e256_blobs.size; i++){
   console.log("\nBLOB_ID" + e256_blobs.all[i].id);
 };
-
-var myCircle = new Path.Circle(new Point(100, 70), 50);
-myCircle.fillColor = 'black';
-
-// Create a circle shaped path, which is automatically
-// placed within the active layer of the project:
-var path = new Path.Circle({
-	center: [80, 50],
-	radius: 35,
-	fillColor: 'red'
-});
-
-// Create a new layer and activate it:
-var secondLayer = new Layer();
-
-// The second path is added as a child of the second layer:
-var secondPath = new Path.Circle({
-	center: [120, 50],
-	radius: 35,
-	fillColor: '#00FF00'
-});

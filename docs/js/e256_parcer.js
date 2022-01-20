@@ -77,7 +77,7 @@ function onMIDISuccess(midiAccess) {
   //listInputsAndOutputs(midiAccess);
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
-      MIDIInput = entry; 
+      MIDIInput = entry;
       MIDIInput.onmidimessage = onMIDIMessage;
       //MIDIInput.open();
       connectButton.innerHTML = 'E256_CONNECTED';
@@ -177,10 +177,10 @@ const blobs = class {
       };
     };
   };
-  all() {
-    return this.blobs;
+  get all() {
+    return this.blobs();
   };
-  size() {
+  get size() {
     return this.blobs.length;
   };
 };
@@ -198,7 +198,7 @@ function onMIDIMessage(midiMsg) {
       e256_blobs.remove(midiMsg.data);
       break;
     case CONTROL_CHANGE:
-      //e256_blobs.update(midiMsg.data);
+      //e256_blobs.update(midiMsg.data); // Deprecated
       break;
     case PROGRAM_CHANGE:
       switch(midiMsg.data[1]){
@@ -216,7 +216,7 @@ function onMIDIMessage(midiMsg) {
     case SYSTEM_EXCLUSIVE:
       switch(sysEx_mode){
         case BLOBS:
-          e256_blobs.update(midiMsg.data); // FIXME!
+          e256_blobs.update(midiMsg.data);
           break;
         case GET_CONFIG:
           // TODO: fetch config file
