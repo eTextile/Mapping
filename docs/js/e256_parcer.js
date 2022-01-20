@@ -1,62 +1,62 @@
 
-const MIDI_INPUT_CHANNEL          = 1; // [1:15] Set the HARDWARE MIDI_INPUT channel
-const MIDI_OUTPUT_CHANNEL         = 1; // [1:15] Set the HARDWARE MIDI_OUTPUT channel
+const MIDI_INPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_INPUT channel
+const MIDI_OUTPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_OUTPUT channel
 // E256 HARDWARE CONSTANTS
-const FLASH_SIZE                  = 4096;
-const RAW_COLS                    = 16;
-const RAW_ROWS                    = 16;
-const RAW_FRAME                   = RAW_COLS * RAW_ROWS;
+const FLASH_SIZE = 4096;
+const RAW_COLS = 16;
+const RAW_ROWS = 16;
+const RAW_FRAME = RAW_COLS * RAW_ROWS;
 // MODES
-const RAW_MATRIX                  = 0; //
-const INTERP_MATRIX               = 1; //
-const BLOBS                       = 2; // Send all blobs values over USB using MIDI format
-const MAPPING                     = 3; //
+const RAW_MATRIX = 0; //
+const INTERP_MATRIX = 1; //
+const BLOBS = 2; // Send all blobs values over USB using MIDI format
+const MAPPING = 3; //
 // STATES
-const CALIBRATE                   = 10; //
-const DONE_ACTION                 = 11; //
-const ERROR                       = 12; //
-const GET_CONFIG                  = 13; //
+const CALIBRATE = 10; //
+const DONE_ACTION = 11; //
+const ERROR = 12; //
+const GET_CONFIG = 13; //
 // LEVELS
-const SIG_IN                      = 0; // E256-LEDs: | 1 | 0 |
-const SIG_OUT                     = 1; // E256-LEDs: | 0 | 1 |
-const LINE_OUT                    = 2; // E256-LEDs: | 0 | 0 |
-const THRESHOLD                   = 3; // E256-LEDs: | 1 | 1 |
+const SIG_IN = 0; // E256-LEDs: | 1 | 0 |
+const SIG_OUT = 1; // E256-LEDs: | 0 | 1 |
+const LINE_OUT = 2; // E256-LEDs: | 0 | 0 |
+const THRESHOLD = 3; // E256-LEDs: | 1 | 1 |
 // MIDI CONSTANTS
-const NOTE_ON                     = 0x90; // 
-const NOTE_OFF                    = 0x80; //
-const CONTROL_CHANGE              = 0xB0; //
-const PROGRAM_CHANGE              = 0xC0; //
-const SYSTEM_EXCLUSIVE            = 0xF0; // 240
-const SYSEX_BEGIN                 = 0xF0; // 240
-const SYSEX_END                   = 0xF7; // 247
-const SYSEX_ID                    = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
-const SYSEX_CONF                  = 0x7C; // 124
-const SYSEX_SOUND                 = 0x6C; // 108
+const NOTE_ON = 0x90; // 
+const NOTE_OFF = 0x80; //
+const CONTROL_CHANGE = 0xB0; //
+const PROGRAM_CHANGE = 0xC0; //
+const SYSTEM_EXCLUSIVE = 0xF0; // 240
+const SYSEX_BEGIN = 0xF0; // 240
+const SYSEX_END = 0xF7; // 247
+const SYSEX_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
+const SYSEX_CONF = 0x7C; // 124
+const SYSEX_SOUND = 0x6C; // 108
 // VERBOSITY
-const DONE_FLASH_CONFIG_ALLOC     = 16;
-const DONE_FLASH_CONFIG_LOAD      = 17;
-const DONE_FLASH_CONFIG_WRITE     = 18;
-const DONE_USBMIDI_CONFIG_ALLOC   = 19;
-const DONE_USBMIDI_CONFIG_LOAD    = 20;
-const DONE_USBMIDI_SOUND_LOAD     = 21;
+const DONE_FLASH_CONFIG_ALLOC = 16;
+const DONE_FLASH_CONFIG_LOAD = 17;
+const DONE_FLASH_CONFIG_WRITE = 18;
+const DONE_USBMIDI_CONFIG_ALLOC = 19;
+const DONE_USBMIDI_CONFIG_LOAD = 20;
+const DONE_USBMIDI_SOUND_LOAD = 21;
 // ERROR CODES
-const ERROR_WAITING_FOR_GONFIG    = 33;
+const ERROR_WAITING_FOR_GONFIG = 33;
 const ERROR_LOADING_GONFIG_FAILED = 34;
-const ERROR_CONNECTING_FLASH      = 35;
+const ERROR_CONNECTING_FLASH = 35;
 const ERROR_WHILE_OPEN_FLASH_FILE = 36;
-const ERROR_FLASH_FULL            = 37;
-const ERROR_FILE_TO_BIG           = 38;
-const ERROR_NO_CONFIG_FILE        = 39;
-const ERROR_UNKNOWN_SYSEX         = 40;
+const ERROR_FLASH_FULL = 37;
+const ERROR_FILE_TO_BIG = 38;
+const ERROR_NO_CONFIG_FILE = 39;
+const ERROR_UNKNOWN_SYSEX = 40;
 
-const BI  = 0; // [0] Blob UID
-const BS  = 1; // [1] Blob State
-const BL  = 2; // [2] Blob Last State
-const BX  = 3; // [3] Blob X centroid position
-const BY  = 4; // [4] Blob Y centroid position
-const BZ  = 5; // [5] Blob Depth
-const BW  = 6; // [6] Blob width
-const BH  = 7; // [7] Blob Height
+const BI = 0; // [0] Blob UID
+const BS = 1; // [1] Blob State
+const BL = 2; // [2] Blob Last State
+const BX = 3; // [3] Blob X centroid position
+const BY = 4; // [4] Blob Y centroid position
+const BZ = 5; // [5] Blob Depth
+const BW = 6; // [6] Blob width
+const BH = 7; // [7] Blob Height
 
 var MIDIInput
 var MIDIIoutput;
@@ -67,7 +67,7 @@ var config = "";
 
 async function e256_MIDIConnect() {
   if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess({sysex: true}).then(onMIDISuccess, onMIDIFailure);
+    navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
   } else {
     alert("No MIDI support in your browser!");
   };
@@ -96,15 +96,15 @@ function onMIDISuccess(midiAccess) {
 function listInputsAndOutputs(midiAccess) {
   for (var entry of midiAccess.inputs) {
     var input = entry[1];
-    console.log( "Input port [type:'" + input.type + "'] id:'" + input.id +
-                 "' manufacturer:'" + input.manufacturer + "' name:'" + input.name +
-                 "' version:'" + input.version + "'" );
+    console.log("Input port [type:'" + input.type + "'] id:'" + input.id +
+      "' manufacturer:'" + input.manufacturer + "' name:'" + input.name +
+      "' version:'" + input.version + "'");
   };
   for (var entry of midiAccess.outputs) {
     var output = entry[1];
-    console.log( "Output port [type:'" + output.type + "'] id:'" + output.id +
-                 "' manufacturer:'" + output.manufacturer + "' name:'" + output.name +
-                 "' version:'" + output.version + "'" );
+    console.log("Output port [type:'" + output.type + "'] id:'" + output.id +
+      "' manufacturer:'" + output.manufacturer + "' name:'" + output.name +
+      "' version:'" + output.version + "'");
   };
 };
 
@@ -143,7 +143,7 @@ const blob = class {
   };
 };
 
-const blobs = class {
+class blobs {
   constructor() {
     this.blobs = [];
   };
@@ -202,7 +202,7 @@ function onMIDIMessage(midiMsg) {
       //e256_blobs.update(midiMsg.data); // Deprecated
       break;
     case PROGRAM_CHANGE:
-      switch(midiMsg.data[1]){
+      switch (midiMsg.data[1]) {
         case DONE_USBMIDI_CONFIG_ALLOC:
           sysex_load(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           break;
@@ -215,7 +215,7 @@ function onMIDIMessage(midiMsg) {
       };
       break;
     case SYSTEM_EXCLUSIVE:
-      switch(sysEx_mode){
+      switch (sysEx_mode) {
         case BLOBS:
           e256_blobs.update(midiMsg.data);
           break;
@@ -236,7 +236,7 @@ function onMIDIMessage(midiMsg) {
 };
 
 function noteOn(note, volume) {
-  if (connected){
+  if (connected) {
     MIDIIoutput.send([NOTE_ON, note, volume]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
@@ -244,7 +244,7 @@ function noteOn(note, volume) {
 };
 
 function noteOff(note) {
-  if (connected){
+  if (connected) {
     MIDIIoutput.send([NOTE_OFF, note, 0]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
@@ -252,7 +252,7 @@ function noteOff(note) {
 };
 
 function controlChange(value) {
-  if (connected){
+  if (connected) {
     MIDIIoutput.send([CONTROL_CHANGE, value]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
@@ -260,7 +260,7 @@ function controlChange(value) {
 };
 
 function programChange(value) {
-  if (connected){
+  if (connected) {
     MIDIIoutput.send([PROGRAM_CHANGE, value]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
@@ -286,8 +286,8 @@ function sysex_load(data) {
   MIDIIoutput.send(midiMsg);
 };
 
-function e256_sendParams(){
-  switch(this.id){
+function e256_sendParams() {
+  switch (this.id) {
     case 'getRawButton':
       programChange(RAW_MATRIX);
       sysEx_mode = RAW_MATRIX;
@@ -299,7 +299,7 @@ function e256_sendParams(){
     case 'getConfigButton':
       programChange(GET_CONFIG);
       sysEx_mode = GET_CONFIG;
-    break;
+      break;
     case 'setMappingButton':
       programChange(MAPPING);
       sysEx_mode = MAPPING;
@@ -314,35 +314,35 @@ function e256_sendParams(){
 
 function e256_loadFile(event) {
   var uploadedFile = event.target.files[0];
-  if (uploadedFile.type === "application/json"){
+  if (uploadedFile.type === "application/json") {
     fileType = 'json';
     var reader = new FileReader();
     reader.onload = onReaderLoad;
     reader.readAsText(event.target.files[0]);
   }
-  else if (uploadedFile.type === "application/wav"){
+  else if (uploadedFile.type === "application/wav") {
     fileType = 'wav';
     //TODO
   } else {
-    alert("Wrong file type!"); 
+    alert("Wrong file type!");
   };
 };
 
-function onReaderLoad(event){
+function onReaderLoad(event) {
   try {
     config = JSON.parse(event.target.result);
     //console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
-  } catch(e) {
+  } catch (e) {
     alert(e); // error in the above string!
   };
 };
 
 function e256_sendFile() {
-  if (connected){
-    if (fileType === 'json'){
+  if (connected) {
+    if (fileType === 'json') {
       sysex_alloc(SYSEX_CONF, Object.keys(JSON.midiMsg(config)).length);
     }
-    else if (fileType === 'wav'){
+    else if (fileType === 'wav') {
       //sysex_alloc(SYSEX_SOUND, sound.length);
     } else {
       alert("CONFIG FILE MISSING!");

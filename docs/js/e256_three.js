@@ -7,7 +7,7 @@ var myWidth, myHeight;
 
 const myCanvas = document.getElementById("myScene");
 
-window.addEventListener('resize', function(event){
+window.addEventListener('resize', function (event) {
   myWidth = myCanvas.offsetWidth;
   myHeight = myCanvas.offsetHeight;
   renderer.setSize(myWidth, myHeight, false);
@@ -22,14 +22,14 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color('white');
 
-  renderer = new THREE.WebGLRenderer({antialias: true, canvas: myCanvas});
+  renderer = new THREE.WebGLRenderer({ antialias: true, canvas: myCanvas });
   //renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(myWidth, myHeight);
 
   geometry = new THREE.PlaneBufferGeometry(15, 15, 15, 15);
-  material = new THREE.MeshBasicMaterial({wireframe: true, color: "blue"});
+  material = new THREE.MeshBasicMaterial({ wireframe: true, color: "blue" });
   plane = new THREE.Mesh(geometry, material);
-  points = new THREE.Points(geometry, new THREE.PointsMaterial({size: 0.2, color: "red"}));
+  points = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.2, color: "red" }));
   plane.add(points);
   scene.add(plane);
 
@@ -40,11 +40,11 @@ function init() {
 }
 
 function animate() {
-  for(let i = 0; i<RAW_FRAME; i++){
+  for (let i = 0; i < RAW_FRAME; i++) {
     geometry.attributes.position.setZ(i, e256_matrix.Z(i));
   }
   geometry.attributes.position.needsUpdate = true;
-	renderer.render(scene, camera);
+  renderer.render(scene, camera);
 }
 
 init();

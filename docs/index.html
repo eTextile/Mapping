@@ -1,46 +1,48 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Mapping Toolkit for the e256 eTextile-Synthesizer">
-    <meta name="keywords" content="eTextile, e-textile, smarttextiles, intelligenttextiles, electronictextiles, opensource, open hardware"/>
-    <meta name="author" content="Maurin Donneaud">
-    <link rel="icon" href="assets/img/favicon.ico">
-    <title>e256_mapping</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script type="text/javascript" src="assets/js/three.js"></script>
-  </head>
 
-  <body>
-    <header>
-      <a href="index.html">MAIN</a>
-      <a href="mapping.html">MAPPING</a>
-    </header>
-    <div id="main">
-      <dashboard>
-        <button id="connectButton">E256_CONNECT</button><br/>
-        <button id="getRawButton">GET_RAW_MATRIX</button><br/>
-        <button id="calibrateButton">CALIBRATE</button><br/>
-      </dashboard>
-      <container>
-        <canvas id="myScene"></canvas>
-      </container>
-      <aside>Aside</aside>
-    </div>
-    <footer>Footer</footer>
-    <script type="text/javascript" src="js/e256_parcer.js"></script>
-    <script type="text/javascript" src="js/e256_three.js"></script>
-    <script type="text/javascript">
-      /*Define the elements*/
-      let connectButton = document.getElementById("connectButton");
-      let getRawButton = document.getElementById("getRawButton");
-      let calibrateButton = document.getElementById("calibrateButton");
-      /*Couple the elements to the Events*/
-      connectButton.addEventListener('click', e256_MIDIConnect);
-      getRawButton.addEventListener('click', e256_sendParams, false);
-      calibrateButton.addEventListener('click', e256_sendParams, false);
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Mapping Toolkit for the e256 eTextile-Synthesizer">
+  <meta name="keywords"
+    content="eTextile, e-textile, smarttextiles, intelligenttextiles, electronictextiles, opensource, open hardware" />
+  <meta name="author" content="Maurin Donneaud">
+  <link rel="icon" href="assets/img/favicon.ico">
+  <title>e256_mapping</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="text/javascript" src="assets/js/three.js"></script>
+</head>
 
-  </html>
+<body>
+  <header>
+    <a href="index.html">MAIN</a>
+    <a href="mapping.html">MAPPING</a>
+  </header>
+  <div id="main">
+    <dashboard>
+      <button id="connectButton">E256_CONNECT</button><br />
+      <button id="getRawButton">GET_RAW_MATRIX</button><br />
+      <button id="calibrateButton">CALIBRATE</button><br />
+    </dashboard>
+    <container>
+      <canvas id="myScene"></canvas>
+    </container>
+    <aside>Aside</aside>
+  </div>
+  <footer>Footer</footer>
+  <script type="text/javascript" src="js/e256_parcer.js"></script>
+  <script type="text/javascript" src="js/e256_three.js"></script>
+  <script type="text/javascript">
+    /*Define the elements*/
+    let connectButton = document.getElementById("connectButton");
+    let getRawButton = document.getElementById("getRawButton");
+    let calibrateButton = document.getElementById("calibrateButton");
+    /*Couple the elements to the Events*/
+    connectButton.addEventListener('click', e256_MIDIConnect);
+    getRawButton.addEventListener('click', e256_sendParams, false);
+    calibrateButton.addEventListener('click', e256_sendParams, false);
+  </script>
+</body>
+
+</html>
