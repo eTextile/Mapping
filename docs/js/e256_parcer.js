@@ -174,11 +174,12 @@ const blobs = class {
         this.blobs[i].z = sysEx[4];
         this.blobs[i].w = sysEx[5];
         this.blobs[i].h = sysEx[6];
+        //console.log("BLOB_UPDATE: " + this.blobs[i].id);
       };
     };
   };
   get all() {
-    return this.blobs();
+    return this.blobs;
   };
   get size() {
     return this.blobs.length;
