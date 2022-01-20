@@ -41,7 +41,7 @@ function init() {
 
 function animate() {
   for(let i = 0; i<256; i++){
-    geometry.attributes.position.setZ(i, e256_matrix.Z(i+1));
+    geometry.attributes.position.setZ(i, e256_matrix.Z(i));
   }
   geometry.attributes.position.needsUpdate = true;
 	renderer.render(scene, camera);

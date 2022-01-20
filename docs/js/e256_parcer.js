@@ -112,7 +112,7 @@ function onMIDIFailure(error) {
   alert("eTextile-Synthesizer NOT CONNECTED! || No MIDI support in your browser! " + error);
 };
 
-class matrix {
+const matrix = class {
   constructor(size) {
     this.matrix = [size];
   };
@@ -132,7 +132,7 @@ class matrix {
   };
 };
 
-class blob {
+const blob = class {
   constructor(id, x, y, z, w, h) {
     this.id = id;
     this.x = x; // Blob X centroid position
@@ -143,73 +143,49 @@ class blob {
   };
 };
 
-class blobs {
+const blobs = class {
   constructor() {
     this.blobs = [];
-  }
-  set add(noteOn) {
+  };
+  add(noteOn) {
+    for (var i = 0; i < this.blobs.length; i++) {
+      if (this.blobs[i].id === noteOn[1]) {
+        return;
+      };
+    };
     let newBlob = new blob(noteOn[1]);
     this.blobs.push(newBlob);
-    console.log("ADD_BLOB: " + noteOn[1]);
+    //console.log("ADD_BLOB: " + noteOn[1]);
   };
-  set remove(noteOff) {
+  remove(noteOff) {
     for (var i = 0; i < this.blobs.length; i++) {
       if (this.blobs[i].id === noteOff[1]) {
         this.blobs.splice(i, 1);
-        console.log("REMOVE_BLOB: " + noteOff[1]);
+        //console.log("REMOVE_BLOB: " + noteOff[1]);
         break;
       };
     };
   };
-  set update(sysEx) {
+  update(sysEx) {
     for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].id === sysEx.data[1]) {
+      if (this.blobs[i].id === sysEx[1]) {
         this.blobs[i].x = sysEx[2];
         this.blobs[i].y = sysEx[3];
         this.blobs[i].z = sysEx[4];
         this.blobs[i].w = sysEx[5];
         this.blobs[i].h = sysEx[6];
-        console.log("BLOB_X: " + this.blobs[i].x);       
       };
     };
   };
-  /*
-  update(controlChange) {
-    for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].id === (controlChange[0] & 0xf)) {
-        switch (controlChange[1]) {
-          case BX:
-            this.blobs[i].x = val;
-            //console.log("BLOB_X " + this.blobs[i].x);
-            break;
-          case BY:
-            this.blobs[i].y = controlChange[2];
-            break;
-          case BZ:
-            this.blobs[i].z = controlChange[2];
-            break;
-          case BW:
-            this.blobs[i].w = controlChange[2];
-            break;
-          case BH:
-            this.blobs[i].h = controlChange[2];
-            break;
-        };
-        break;
-      };
-    };
-  };
-  */
-  get all() {
+  all() {
     return this.blobs;
   };
-  get size() {
+  size() {
     return this.blobs.length;
   };
 };
 
-//let e256_matrix = new matrix(256);
-//let e256_blobs = new blobs();
+let e256_blobs = new blobs();
 
 function onMIDIMessage(midiMsg) {
   //let status = midiMsg.data[0] >> 4;
@@ -249,7 +225,7 @@ function onMIDIMessage(midiMsg) {
           e256_matrix.update(midiMsg.data);
           break;
         default:
-          //console.log("midiMsg: " + midiMsg.data[1]);
+          console.log("midiMsg: " + midiMsg.data[1]);
           break;
       };
       break;
