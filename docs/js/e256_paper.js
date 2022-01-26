@@ -17,9 +17,11 @@ window.onload = function() {
     paper.view.draw();
 
     var e256_draw = function () {
+        /*
         for (var i = 0; i < this.blobs.length; i++) {
             console.log("BLOB: " + e256_blobs.all[i].x);
         }
+        */
     }
     e256_blobs.update = e256_draw;
 

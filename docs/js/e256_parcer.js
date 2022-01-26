@@ -9,7 +9,7 @@ const RAW_FRAME = RAW_COLS * RAW_ROWS;
 // MODES
 const RAW_MATRIX = 0; //
 const INTERP_MATRIX = 1; //
-const BLOBS = 2; // Send all blobs values over USB using MIDI format
+const BLOBS = 2; // Get all blobs values over USB using MIDI format
 const MAPPING = 3; //
 // STATES
 const CALIBRATE = 10; //
@@ -70,8 +70,8 @@ async function e256_MIDIConnect() {
     navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
   } else {
     alert("No MIDI support in your browser!");
-  };
-};
+  }
+}
 
 function onMIDISuccess(midiAccess) {
   //listInputsAndOutputs(midiAccess);
@@ -83,14 +83,14 @@ function onMIDISuccess(midiAccess) {
       connectButton.innerHTML = 'E256_CONNECTED';
       connectButton.style.background = "rgb(10,180,0)";
       connected = true;
-    };
-  };
+    }
+  }
   for (var entry of midiAccess.outputs.values()) {
     if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
       MIDIIoutput = entry;
-    };
-  };
-};
+    }
+  }
+}
 
 // TODO: need a drop down menu!
 function listInputsAndOutputs(midiAccess) {
@@ -99,28 +99,28 @@ function listInputsAndOutputs(midiAccess) {
     console.log("Input port [type:'" + input.type + "'] id:'" + input.id +
       "' manufacturer:'" + input.manufacturer + "' name:'" + input.name +
       "' version:'" + input.version + "'");
-  };
+  }
   for (var entry of midiAccess.outputs) {
     var output = entry[1];
     console.log("Output port [type:'" + output.type + "'] id:'" + output.id +
       "' manufacturer:'" + output.manufacturer + "' name:'" + output.name +
       "' version:'" + output.version + "'");
-  };
-};
+  }
+}
 
 function onMIDIFailure(error) {
   alert("eTextile-Synthesizer NOT CONNECTED! || No MIDI support in your browser! " + error);
-};
+}
 
 const matrix = class {
   constructor(size) {
     this.matrix = [size];
-  };
+  }
   update(sysExMsg) {
     for (var i = 0; i < RAW_FRAME; i++) {
       this.matrix[i] = sysExMsg[i + 1] / 10;
-    };
-  };
+    }
+  }
   Z(index) {
     var val = this.matrix[index];
     if (val != null) {
@@ -128,65 +128,66 @@ const matrix = class {
     }
     else {
       return 0;
-    };
-  };
-};
+    }
+  }
+}
 
-const blob = class {
-  constructor(id, x, y, z, w, h) {
-    this.id = id;
-    this.x = x; // Blob X centroid position
-    this.y = y; // Blob Y centroid position
-    this.z = z; // Blob Depth
-    this.w = w; // Blob width
-    this.h = h; // Blob Height
-  };
-};
+function Blob(id) {
+  this.id = id;
+  //this.x = x;
+  //this.y = y;
+  //this.z = z;
+  //this.w = w;
+  //this.h = h;
+}
 
-class blobs {
-  constructor() {
-    this.blobs = [];
-  };
-  add(noteOn) {
-    for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].id === noteOn[1]) {
+  function Blobs(blob) {
+  this.Blobs = [];
+
+  this.add = function(noteOn) {
+    for (var i = 0; i < this.Blobs.length; i++) {
+      if (this.Blobs[i].id === noteOn[1]) {
         return;
-      };
-    };
-    let newBlob = new blob(noteOn[1]);
-    this.blobs.push(newBlob);
-    //console.log("ADD_BLOB: " + noteOn[1]);
-  };
-  remove(noteOff) {
-    for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].id === noteOff[1]) {
-        this.blobs.splice(i, 1);
-        //console.log("REMOVE_BLOB: " + noteOff[1]);
-        break;
-      };
-    };
-  };
-  update(sysEx) {
-    for (var i = 0; i < this.blobs.length; i++) {
-      if (this.blobs[i].id === sysEx[1]) {
-        this.blobs[i].x = sysEx[2];
-        this.blobs[i].y = sysEx[3];
-        this.blobs[i].z = sysEx[4];
-        this.blobs[i].w = sysEx[5];
-        this.blobs[i].h = sysEx[6];
-        //console.log("BLOB_UPDATE: " + this.blobs[i].id);
-      };
-    };
-  };
-  get all() {
-    return this.blobs;
-  };
-  get size() {
-    return this.blobs.length;
-  };
-};
+      }
+    }
+    blob = new Blob(noteOn[1]);
+    this.Blobs.push(blob);
+    console.log("BLOB_ADD: " + noteOn[1]);    
+  }
 
-let e256_blobs = new blobs();
+  this.remove = function(noteOff) {
+    for (var i = 0; i < this.Blobs.length; i++) {
+      if (this.Blobs[i].id === noteOff[1]) {
+        this.Blobs.splice(i, 1);
+        console.log("BLOB_REMOVE: " + noteOff[1]);
+        break;
+      }
+    }
+  }
+
+  this.setPos = function(sysEx) {
+    for (var i = 0; i < this.Blobs.length; i++) {
+      if (this.Blobs[i].id === sysEx[1]) {
+        this.Blobs[i].x = sysEx[2];
+        this.Blobs[i].y = sysEx[3];
+        this.Blobs[i].z = sysEx[4];
+        this.Blobs[i].w = sysEx[5];
+        this.Blobs[i].h = sysEx[6];
+        //console.log("BLOB_UPDATE: " + this.Blobs[i].x);
+      }
+    }
+  }
+
+  this.getList = function() {
+    return Blobs;
+  }
+
+  this.getSize = function() {
+    Blobs.length;
+  }
+}
+
+let e256_blobs = new Blobs();
 
 function onMIDIMessage(midiMsg) {
   //let status = midiMsg.data[0] >> 4;
@@ -212,12 +213,17 @@ function onMIDIMessage(midiMsg) {
         default:
           //console.log("midiMsg: " + midiMsg.data[1]);
           break;
-      };
+      }
       break;
     case SYSTEM_EXCLUSIVE:
       switch (sysEx_mode) {
         case BLOBS:
-          e256_blobs.update(midiMsg.data);
+
+        e256_blobs.setPos(midiMsg.data);
+          console.log("BLOBS_SIZE: " + e256_blobs.getSize);
+          for (var i = 0; i < e256_blobs.getSize; i++) {
+            console.log("BLOB_X: " + e256_blobs.getList[i].x);
+          }
           break;
         case GET_CONFIG:
           // TODO: fetch config file
@@ -228,44 +234,44 @@ function onMIDIMessage(midiMsg) {
         default:
           console.log("midiMsg: " + midiMsg.data[1]);
           break;
-      };
+      }
       break;
     default:
       break;
-  };
-};
+  }
+}
 
 function noteOn(note, volume) {
   if (connected) {
     MIDIIoutput.send([NOTE_ON, note, volume]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
-  };
-};
+  }
+}
 
 function noteOff(note) {
   if (connected) {
     MIDIIoutput.send([NOTE_OFF, note, 0]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
-  };
-};
+  }
+}
 
 function controlChange(value) {
   if (connected) {
     MIDIIoutput.send([CONTROL_CHANGE, value]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
-  };
-};
+  }
+}
 
 function programChange(value) {
   if (connected) {
     MIDIIoutput.send([PROGRAM_CHANGE, value]);
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
-  };
-};
+  }
+}
 
 // Send data via MIDI system exclusive message
 // Must provides the data in chunks!
@@ -278,13 +284,13 @@ function sysex_alloc(identifier, size) {
   var size_lsb = size & 0x7F;
   let midiMsg = [SYSEX_BEGIN, SYSEX_ID, identifier, size_msb, size_lsb, SYSEX_END];
   MIDIIoutput.send(midiMsg);
-};
+}
 
 function sysex_load(data) {
   let header = [SYSEX_BEGIN, SYSEX_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
   MIDIIoutput.send(midiMsg);
-};
+}
 
 function e256_sendParams() {
   switch (this.id) {
@@ -309,8 +315,8 @@ function e256_sendParams() {
       break;
     default:
       break;
-  };
-};
+  }
+}
 
 function e256_loadFile(event) {
   var uploadedFile = event.target.files[0];
@@ -325,8 +331,8 @@ function e256_loadFile(event) {
     //TODO
   } else {
     alert("Wrong file type!");
-  };
-};
+  }
+}
 
 function onReaderLoad(event) {
   try {
@@ -334,8 +340,8 @@ function onReaderLoad(event) {
     //console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
   } catch (e) {
     alert(e); // error in the above string!
-  };
-};
+  }
+}
 
 function e256_sendFile() {
   if (connected) {
@@ -346,8 +352,8 @@ function e256_sendFile() {
       //sysex_alloc(SYSEX_SOUND, sound.length);
     } else {
       alert("CONFIG FILE MISSING!");
-    };
+    }
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
-  };
-};
+  }
+}
