@@ -7,15 +7,14 @@ const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
 // MODES
-const RAW_MATRIX = 0; //
-const INTERP_MATRIX = 1; //
-const BLOBS = 2; // Get all blobs values over USB using MIDI format
+const MATRIX = 0; //
+const BLOBS_PLAY = 2; // Get all blobs values over USB using MIDI format
 const MAPPING = 3; //
 // STATES
 const CALIBRATE = 10; //
 const DONE_ACTION = 11; //
 const ERROR = 12; //
-const GET_CONFIG = 13; //
+const CONFIG = 13; //
 // LEVELS
 const SIG_IN = 0; // E256-LEDs: | 1 | 0 |
 const SIG_OUT = 1; // E256-LEDs: | 0 | 1 |
@@ -61,7 +60,7 @@ const BH = 7; // [7] Blob Height
 var MIDIInput
 var MIDIIoutput;
 var connected = false;
-var sysEx_mode;
+let playMode = null;
 var fileType = "";
 var config = "";
 
@@ -112,79 +111,90 @@ function onMIDIFailure(error) {
   alert("eTextile-Synthesizer NOT CONNECTED! || No MIDI support in your browser! " + error);
 }
 
-const matrix = class {
-  constructor(size) {
-    this.matrix = [size];
+function Matrix(width, height) {
+  this.matrix = [width * height];
+}
+Matrix.prototype.update = function(sysExMsg) {
+  for (var i = 0; i < RAW_FRAME; i++) {
+    this.matrix[i] = sysExMsg[i + 1] / 4;
   }
-  update(sysExMsg) {
-    for (var i = 0; i < RAW_FRAME; i++) {
-      this.matrix[i] = sysExMsg[i + 1] / 10;
-    }
+}
+Matrix.prototype.Z = function(index) {
+  var val = this.matrix[index];
+  if (val != null) {
+    return val;
   }
-  Z(index) {
-    var val = this.matrix[index];
-    if (val != null) {
-      return val;
-    }
-    else {
-      return 0;
-    }
+  else {
+    return 0;
   }
 }
 
-function Blob(id) {
-  this.id = id;
-  //this.x = x;
-  //this.y = y;
-  //this.z = z;
-  //this.w = w;
-  //this.h = h;
+function Blob(id, x, y, z, w, h) {
+  this.uid = id;
+  this.x = x;
+  this.y = y;
+  this.z = z;
+  this.w = w;
+  this.h = h;
+}
+Blob.prototype.Update = function(sysExMsg) {
+  this.x = sysExMsg[2];
+  this.y = sysExMsg[3];
+  this.z = sysExMsg[4];
+  this.w = sysExMsg[5];
+  this.h = sysExMsg[6];
+  //console.log("BLOB_UPDATE: " + sysExMsg[1]);
+}
+Blob.prototype.print = function() {
+  console.log(
+    `ID:` + this.uid +
+    ` X:` + this.x +
+    ` Y:` + this.y +
+    ` Z:` + this.z +
+    ` W:` + this.w +
+    ` H:` + this.h
+  );
 }
 
-  function Blobs(blob) {
-  this.Blobs = [];
-
-  this.add = function(noteOn) {
-    for (var i = 0; i < this.Blobs.length; i++) {
-      if (this.Blobs[i].id === noteOn[1]) {
-        return;
-      }
-    }
-    blob = new Blob(noteOn[1]);
-    this.Blobs.push(blob);
-    console.log("BLOB_ADD: " + noteOn[1]);    
+function Blobs() {
+  this.blobs = [];
+}
+Blobs.prototype.add = function(noteOn) {
+  if (this.blobs.findIndex(blob => blob.uid == noteOn[1]) == -1){
+    var blob = new Blob(noteOn[1], -1, -1, -1, -1, -1);
+    this.blobs.push(blob);
+    //console.log("BLOB_ADD: " + noteOn[1]);
+  } else {
+    console.log("BLOB_EXIST: " + noteOn[1]);
+    return;
   }
-
-  this.remove = function(noteOff) {
-    for (var i = 0; i < this.Blobs.length; i++) {
-      if (this.Blobs[i].id === noteOff[1]) {
-        this.Blobs.splice(i, 1);
-        console.log("BLOB_REMOVE: " + noteOff[1]);
-        break;
-      }
-    }
+}
+Blobs.prototype.remove = function(noteOff) {
+  let index = this.blobs.findIndex(blob => blob.uid == noteOff[1]);
+  if (index !== -1){
+    this.blobs.splice(index, 1);
+    //console.log("BLOB_REMOVE: " + noteOff[1]);
+  } else {
+    console.log("BLOB_NOT_FOUND: " + noteOff[1]);
+    return;
   }
-
-  this.setPos = function(sysEx) {
-    for (var i = 0; i < this.Blobs.length; i++) {
-      if (this.Blobs[i].id === sysEx[1]) {
-        this.Blobs[i].x = sysEx[2];
-        this.Blobs[i].y = sysEx[3];
-        this.Blobs[i].z = sysEx[4];
-        this.Blobs[i].w = sysEx[5];
-        this.Blobs[i].h = sysEx[6];
-        //console.log("BLOB_UPDATE: " + this.Blobs[i].x);
-      }
-    }
+}
+Blobs.prototype.move = function(sysExMsg) {
+  let index = this.blobs.findIndex(blob => blob.uid === sysExMsg[1]);
+  if (index){
+    this.blobs[index].Update(sysExMsg);
+    console.log("BLOB_MOVE: " + sysExMsg[1]);
+    this.blobs[index].print();
+  } else {
+    console.log("BLOB_NOT_FOUND: " + sysExMsg[1]);
+    return;
   }
-
-  this.getList = function() {
-    return Blobs;
-  }
-
-  this.getSize = function() {
-    Blobs.length;
-  }
+}
+Blobs.prototype.get = function(pos) {
+  return this.blobs[pos];
+}
+Blobs.prototype.size = function() {
+  return this.blobs.length;
 }
 
 let e256_blobs = new Blobs();
@@ -200,7 +210,7 @@ function onMIDIMessage(midiMsg) {
       e256_blobs.remove(midiMsg.data);
       break;
     case CONTROL_CHANGE:
-      //e256_blobs.update(midiMsg.data); // Deprecated
+      //e256_parcer.update(midiMsg.data); // Deprecated
       break;
     case PROGRAM_CHANGE:
       switch (midiMsg.data[1]) {
@@ -216,23 +226,18 @@ function onMIDIMessage(midiMsg) {
       }
       break;
     case SYSTEM_EXCLUSIVE:
-      switch (sysEx_mode) {
-        case BLOBS:
-
-        e256_blobs.setPos(midiMsg.data);
-          console.log("BLOBS_SIZE: " + e256_blobs.getSize);
-          for (var i = 0; i < e256_blobs.getSize; i++) {
-            console.log("BLOB_X: " + e256_blobs.getList[i].x);
-          }
-          break;
-        case GET_CONFIG:
-          // TODO: fetch config file
-          break;
-        case RAW_MATRIX:
+      switch (playMode) {
+        case MATRIX:
           e256_matrix.update(midiMsg.data);
           break;
+        case BLOBS_PLAY:
+          e256_blobs.move(midiMsg.data);
+          break;
+        case CONFIG:
+          // TODO: fetch config file
+          break;
         default:
-          console.log("midiMsg: " + midiMsg.data[1]);
+          console.log("Unknown_playMode: " + playMode);
           break;
       }
       break;
@@ -295,20 +300,20 @@ function sysex_load(data) {
 function e256_sendParams() {
   switch (this.id) {
     case 'getRawButton':
+      playMode = RAW_MATRIX;
       programChange(RAW_MATRIX);
-      sysEx_mode = RAW_MATRIX;
       break;
     case 'getBlobsButton':
-      programChange(BLOBS);
-      sysEx_mode = BLOBS;
+      playMode = BLOBS_PLAY;
+      programChange(BLOBS_PLAY);
       break;
     case 'getConfigButton':
+      playMode = GET_CONFIG;
       programChange(GET_CONFIG);
-      sysEx_mode = GET_CONFIG;
       break;
     case 'setMappingButton':
+      playMode = MAPPING;
       programChange(MAPPING);
-      sysEx_mode = MAPPING;
       break;
     case 'calibrateButton':
       programChange(CALIBRATE);

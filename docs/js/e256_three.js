@@ -1,4 +1,4 @@
-let e256_matrix = new matrix(256);
+let e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);
 
 let camera, scene, renderer;
 let geometry, material, plane;
@@ -13,7 +13,8 @@ window.addEventListener('resize', function (event) {
   renderer.setSize(myWidth, myHeight, false);
   camera.aspect = myWidth / myHeight;
   camera.updateProjectionMatrix();
-});
+}, {passive: true});
+
 
 function init() {
   myWidth = myCanvas.offsetWidth;
