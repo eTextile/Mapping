@@ -1,3 +1,8 @@
+import { Blobs } from 'e256_parcer.js';
+//const Blobs = require('e256_parcer.js');
+
+let e256_blobs = new Blobs();
+
 window.onload = function () {
     // Get a reference to the canvas object
     var canvas = document.getElementById('myScene');
@@ -15,14 +20,11 @@ window.onload = function () {
     path.lineTo(start.add([10, 10]));
     // Draw the view now:
     paper.view.draw();
+}
 
-    var e256_draw = function() {
-        for (var i = 0; i < e256_blobs.size(); i++) {
-            let myBlob = e256_blobs.get(i);
-            //console.log("BLOB: " + myBlob.id);
-            //myBlob.print();
-        }
-    }
-
-    e256_blobs.move = e256_draw;
+var e256_draw_blobs = function() {
+  for (var i = 0; i < e256_blobs.size(); i++) {
+    let myBlob = e256_blobs.get(i);
+    myBlob.print();
+  }
 }

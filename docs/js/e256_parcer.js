@@ -1,4 +1,3 @@
-
 const MIDI_INPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_INPUT channel
 const MIDI_OUTPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_OUTPUT channel
 // E256 HARDWARE CONSTANTS
@@ -129,6 +128,9 @@ Matrix.prototype.Z = function(index) {
   }
 }
 
+export { Matrix };
+
+// Blob object
 function Blob(id, x, y, z, w, h) {
   this.uid = id;
   this.x = x;
@@ -137,7 +139,7 @@ function Blob(id, x, y, z, w, h) {
   this.w = w;
   this.h = h;
 }
-Blob.prototype.Update = function(sysExMsg) {
+Blob.prototype.update = function(sysExMsg) {
   this.x = sysExMsg[2];
   this.y = sysExMsg[3];
   this.z = sysExMsg[4];
@@ -156,6 +158,7 @@ Blob.prototype.print = function() {
   );
 }
 
+// Blobs array management
 function Blobs() {
   this.blobs = [];
 }
@@ -179,12 +182,13 @@ Blobs.prototype.remove = function(noteOff) {
     return;
   }
 }
-Blobs.prototype.move = function(sysExMsg) {
+//Blobs.prototype.update = function(sysExMsg, callback) {
+Blobs.prototype.update = function(sysExMsg) {
+
   let index = this.blobs.findIndex(blob => blob.uid === sysExMsg[1]);
-  if (index){
-    this.blobs[index].Update(sysExMsg);
-    console.log("BLOB_MOVE: " + sysExMsg[1]);
-    this.blobs[index].print();
+  if (index != -1){
+    this.blobs[index].update(sysExMsg);
+    //callback();
   } else {
     console.log("BLOB_NOT_FOUND: " + sysExMsg[1]);
     return;
@@ -197,7 +201,7 @@ Blobs.prototype.size = function() {
   return this.blobs.length;
 }
 
-let e256_blobs = new Blobs();
+export { Blobs };
 
 function onMIDIMessage(midiMsg) {
   //let status = midiMsg.data[0] >> 4;
@@ -231,7 +235,7 @@ function onMIDIMessage(midiMsg) {
           e256_matrix.update(midiMsg.data);
           break;
         case BLOBS_PLAY:
-          e256_blobs.move(midiMsg.data);
+          e256_blobs.update(midiMsg.data);
           break;
         case CONFIG:
           // TODO: fetch config file
