@@ -304,8 +304,8 @@ function sysex_load(data) {
 function e256_sendParams() {
   switch (this.id) {
     case 'getRawButton':
-      playMode = RAW_MATRIX;
-      programChange(RAW_MATRIX);
+      playMode = MATRIX;
+      programChange(MATRIX);
       break;
     case 'getBlobsButton':
       playMode = BLOBS_PLAY;

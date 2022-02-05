@@ -1,4 +1,4 @@
-import { Matrix } from 'e256_parcer.js';
+//import { Matrix } from 'e256_parcer.js';
 //const Matrix = require('e256_parcer.js');
 
 let e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);

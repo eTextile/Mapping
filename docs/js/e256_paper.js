@@ -1,4 +1,4 @@
-import { Blobs } from 'e256_parcer.js';
+//import { Blobs } from 'e256_parcer.js';
 //const Blobs = require('e256_parcer.js');
 
 let e256_blobs = new Blobs();
