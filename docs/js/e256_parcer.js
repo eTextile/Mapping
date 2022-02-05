@@ -128,7 +128,7 @@ Matrix.prototype.Z = function(index) {
   }
 }
 
-export { Matrix };
+//export { Matrix };
 
 // Blob object
 function Blob(id, x, y, z, w, h) {
@@ -201,7 +201,7 @@ Blobs.prototype.size = function() {
   return this.blobs.length;
 }
 
-export { Blobs };
+//export { Blobs };
 
 function onMIDIMessage(midiMsg) {
   //let status = midiMsg.data[0] >> 4;
