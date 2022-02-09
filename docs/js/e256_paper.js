@@ -1,11 +1,9 @@
 //import { Blobs } from 'e256_parcer.js';
 //const Blobs = require('e256_parcer.js');
 
-let e256_blobs = new Blobs();
-
 window.onload = function () {
     // Get a reference to the canvas object
-    var canvas = document.getElementById('myScene');
+    var canvas = document.getElementById('canvas');
     // Create an empty project and a view for the canvas:
     paper.setup(canvas);
     // Create a Paper.js Path to draw a line into it:

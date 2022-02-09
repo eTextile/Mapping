@@ -110,15 +110,16 @@ function onMIDIFailure(error) {
   alert("eTextile-Synthesizer NOT CONNECTED! || No MIDI support in your browser! " + error);
 }
 
+//export { Matrix };
 function Matrix(width, height) {
   this.matrix = [width * height];
 }
 Matrix.prototype.update = function(sysExMsg) {
   for (var i = 0; i < RAW_FRAME; i++) {
-    this.matrix[i] = sysExMsg[i + 1] / 4;
+    this.matrix[i] = sysExMsg[i + 1] / 10;
   }
 }
-Matrix.prototype.Z = function(index) {
+Matrix.prototype.getZ = function(index) {
   var val = this.matrix[index];
   if (val != null) {
     return val;
@@ -128,9 +129,9 @@ Matrix.prototype.Z = function(index) {
   }
 }
 
-//export { Matrix };
+let e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);
 
-// Blob object
+//export { Blob };
 function Blob(id, x, y, z, w, h) {
   this.uid = id;
   this.x = x;
@@ -184,7 +185,6 @@ Blobs.prototype.remove = function(noteOff) {
 }
 //Blobs.prototype.update = function(sysExMsg, callback) {
 Blobs.prototype.update = function(sysExMsg) {
-
   let index = this.blobs.findIndex(blob => blob.uid === sysExMsg[1]);
   if (index != -1){
     this.blobs[index].update(sysExMsg);
@@ -201,7 +201,7 @@ Blobs.prototype.size = function() {
   return this.blobs.length;
 }
 
-//export { Blobs };
+let e256_blobs = new Blobs();
 
 function onMIDIMessage(midiMsg) {
   //let status = midiMsg.data[0] >> 4;
@@ -241,7 +241,7 @@ function onMIDIMessage(midiMsg) {
           // TODO: fetch config file
           break;
         default:
-          console.log("Unknown_playMode: " + playMode);
+          //console.log("Unknown_playMode: " + playMode);
           break;
       }
       break;
@@ -251,35 +251,19 @@ function onMIDIMessage(midiMsg) {
 }
 
 function noteOn(note, volume) {
-  if (connected) {
-    MIDIIoutput.send([NOTE_ON, note, volume]);
-  } else {
-    alert("eTextile-Synthesizer NOT CONNECTED!");
-  }
+  MIDIIoutput.send([NOTE_ON, note, volume]);
 }
 
 function noteOff(note) {
-  if (connected) {
-    MIDIIoutput.send([NOTE_OFF, note, 0]);
-  } else {
-    alert("eTextile-Synthesizer NOT CONNECTED!");
-  }
+  MIDIIoutput.send([NOTE_OFF, note, 0]);
 }
 
 function controlChange(value) {
-  if (connected) {
-    MIDIIoutput.send([CONTROL_CHANGE, value]);
-  } else {
-    alert("eTextile-Synthesizer NOT CONNECTED!");
-  }
+  MIDIIoutput.send([CONTROL_CHANGE, value]);
 }
 
 function programChange(value) {
-  if (connected) {
-    MIDIIoutput.send([PROGRAM_CHANGE, value]);
-  } else {
-    alert("eTextile-Synthesizer NOT CONNECTED!");
-  }
+  MIDIIoutput.send([PROGRAM_CHANGE, value]);
 }
 
 // Send data via MIDI system exclusive message
@@ -302,28 +286,35 @@ function sysex_load(data) {
 }
 
 function e256_sendParams() {
-  switch (this.id) {
-    case 'getRawButton':
-      playMode = MATRIX;
-      programChange(MATRIX);
-      break;
-    case 'getBlobsButton':
-      playMode = BLOBS_PLAY;
-      programChange(BLOBS_PLAY);
-      break;
-    case 'getConfigButton':
-      playMode = GET_CONFIG;
-      programChange(GET_CONFIG);
-      break;
-    case 'setMappingButton':
-      playMode = MAPPING;
-      programChange(MAPPING);
-      break;
-    case 'calibrateButton':
-      programChange(CALIBRATE);
-      break;
-    default:
-      break;
+  if (connected) {
+    switch (this.id) {
+      case 'getRawButton':
+        playMode = MATRIX;
+        programChange(MATRIX);
+        getRawButton.style.background = "rgb(10,180,0)";
+        break;
+      case 'getBlobsButton':
+        playMode = BLOBS_PLAY;
+        programChange(BLOBS_PLAY);
+        getBlobsButton.style.background = "rgb(10,180,0)";
+        break;
+      case 'getConfigButton':
+        playMode = GET_CONFIG;
+        programChange(GET_CONFIG);
+        break;
+      case 'setMappingButton':
+        playMode = MAPPING;
+        programChange(MAPPING);
+        break;
+      case 'calibrateButton':
+        programChange(CALIBRATE);
+        //calibrateButton.onclick = "rgb(255,0,0)"; // FIXME!
+        break;
+      default:
+        break;
+    }
+  } else {
+    alert("eTextile-Synthesizer NOT CONNECTED!");
   }
 }
 

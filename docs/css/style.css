@@ -20,13 +20,8 @@ body {
 #main > container {
   flex: 1;
 }
-/* Scale canvas with resize attribute to full size */
-canvas[resize] {
-  width: 100%;
-  height: 100%;
-}
 
-#myScene {
+#canvas {
   flex: 1;
   margin: 0px;
   padding: 0px;
