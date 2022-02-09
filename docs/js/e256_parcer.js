@@ -163,6 +163,7 @@ Blob.prototype.print = function() {
 function Blobs() {
   this.blobs = [];
 }
+
 Blobs.prototype.add = function(noteOn) {
   if (this.blobs.findIndex(blob => blob.uid == noteOn[1]) == -1){
     var blob = new Blob(noteOn[1], -1, -1, -1, -1, -1);
@@ -173,6 +174,7 @@ Blobs.prototype.add = function(noteOn) {
     return;
   }
 }
+
 Blobs.prototype.remove = function(noteOff) {
   let index = this.blobs.findIndex(blob => blob.uid == noteOff[1]);
   if (index !== -1){
@@ -183,20 +185,23 @@ Blobs.prototype.remove = function(noteOff) {
     return;
   }
 }
-//Blobs.prototype.update = function(sysExMsg, callback) {
-Blobs.prototype.update = function(sysExMsg) {
+
+Blobs.prototype.update = function(sysExMsg, callback) {
+//Blobs.prototype.update = function(sysExMsg) {
   let index = this.blobs.findIndex(blob => blob.uid === sysExMsg[1]);
   if (index != -1){
     this.blobs[index].update(sysExMsg);
-    //callback();
+    callback(index);
   } else {
     console.log("BLOB_NOT_FOUND: " + sysExMsg[1]);
     return;
   }
 }
+
 Blobs.prototype.get = function(pos) {
   return this.blobs[pos];
 }
+
 Blobs.prototype.size = function() {
   return this.blobs.length;
 }
@@ -235,7 +240,7 @@ function onMIDIMessage(midiMsg) {
           e256_matrix.update(midiMsg.data);
           break;
         case BLOBS_PLAY:
-          e256_blobs.update(midiMsg.data);
+          e256_blobs.update(midiMsg.data, onBlobsUpdate);
           break;
         case CONFIG:
           // TODO: fetch config file
