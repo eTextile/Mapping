@@ -3,15 +3,16 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
   <meta name="description" content="Mapping Toolkit for the e256 eTextile-Synthesizer">
   <meta name="keywords"
     content="eTextile, e-textile, smart textiles, intelligent textiles, electronic textiles, opensource, open hardware" />
   <meta name="author" content="Maurin Donneaud">
-  <link rel="icon" href="assets/img/favicon.ico">
+  <link rel="icon" href="./assets/img/favicon.ico">
   <title>Mapping-app</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script type="text/javascript" src="assets/js/paper.js"></script>
+  <link rel="stylesheet" href="./css/style.css">
+  <script type="text/javascript" src="./js/e256_parcer.js"></script>
+  <script type="text/javascript" src="./assets/js/paper.js"></script>
 </head>
 
 <body>
@@ -30,15 +31,12 @@
       <button id="setMappingButton">SET_MAPPING</button><br />
     </dashboard>
     <container>
-      <canvas id="canvas"></canvas>
+      <canvas id="myCanvas" resize></canvas>
+      <script type="text/javascript" src="./js/e256_paper.js"></script>
     </container>
     <aside>Aside</aside>
   </div>
   <footer>Footer</footer>
-
-  <script type="text/javascript" src="js/e256_parcer.js"></script>
-  <script type="text/javascript" src="js/e256_paper.js"></script>
-
   <script type="text/javascript">
     /*Define the elements*/
     let connectButton = document.getElementById("connectButton");

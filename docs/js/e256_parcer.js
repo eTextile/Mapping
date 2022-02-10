@@ -113,6 +113,9 @@ function onMIDIFailure(error) {
 //export { Matrix };
 function Matrix(width, height) {
   this.matrix = [width * height];
+  for (var i = 0; i < RAW_FRAME; i++) {
+    this.matrix[i] = 0;
+  }
 }
 Matrix.prototype.update = function(sysExMsg) {
   for (var i = 0; i < RAW_FRAME; i++) {
@@ -140,6 +143,7 @@ function Blob(id, x, y, z, w, h) {
   this.w = w;
   this.h = h;
 }
+
 Blob.prototype.update = function(sysExMsg) {
   this.x = sysExMsg[2];
   this.y = sysExMsg[3];
@@ -148,6 +152,7 @@ Blob.prototype.update = function(sysExMsg) {
   this.h = sysExMsg[6];
   //console.log("BLOB_UPDATE: " + sysExMsg[1]);
 }
+
 Blob.prototype.print = function() {
   console.log(
     `ID:` + this.uid +
@@ -164,22 +169,24 @@ function Blobs() {
   this.blobs = [];
 }
 
-Blobs.prototype.add = function(noteOn) {
-  if (this.blobs.findIndex(blob => blob.uid == noteOn[1]) == -1){
-    var blob = new Blob(noteOn[1], -1, -1, -1, -1, -1);
+Blobs.prototype.add = function(noteOn, callback) {
+  if (this.blobs.findIndex(blob => blob.uid === noteOn[1]) === -1){
+    var blob = new Blob(noteOn[1], 0, 0, 0, 0, 0);
     this.blobs.push(blob);
     //console.log("BLOB_ADD: " + noteOn[1]);
+    callback();
   } else {
     console.log("BLOB_EXIST: " + noteOn[1]);
     return;
   }
 }
 
-Blobs.prototype.remove = function(noteOff) {
-  let index = this.blobs.findIndex(blob => blob.uid == noteOff[1]);
+Blobs.prototype.remove = function(noteOff, callback) {
+  let index = this.blobs.findIndex(blob => blob.uid === noteOff[1]);
   if (index !== -1){
     this.blobs.splice(index, 1);
     //console.log("BLOB_REMOVE: " + noteOff[1]);
+    callback(index);
   } else {
     console.log("BLOB_NOT_FOUND: " + noteOff[1]);
     return;
@@ -198,8 +205,8 @@ Blobs.prototype.update = function(sysExMsg, callback) {
   }
 }
 
-Blobs.prototype.get = function(pos) {
-  return this.blobs[pos];
+Blobs.prototype.get = function(index) {
+  return this.blobs[index];
 }
 
 Blobs.prototype.size = function() {
@@ -213,10 +220,10 @@ function onMIDIMessage(midiMsg) {
   let status = midiMsg.data[0];
   switch (status) {
     case NOTE_ON:
-      e256_blobs.add(midiMsg.data);
+      e256_blobs.add(midiMsg.data, onBlobDown);
       break;
     case NOTE_OFF:
-      e256_blobs.remove(midiMsg.data);
+      e256_blobs.remove(midiMsg.data, onBlobRelease);
       break;
     case CONTROL_CHANGE:
       //e256_parcer.update(midiMsg.data); // Deprecated
@@ -240,7 +247,7 @@ function onMIDIMessage(midiMsg) {
           e256_matrix.update(midiMsg.data);
           break;
         case BLOBS_PLAY:
-          e256_blobs.update(midiMsg.data, onBlobsUpdate);
+          e256_blobs.update(midiMsg.data, onBlobUpdate);
           break;
         case CONFIG:
           // TODO: fetch config file

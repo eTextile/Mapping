@@ -18,7 +18,7 @@ function init() {
   windowHalfY = myHeight / 2;
 
   camera = new THREE.PerspectiveCamera(45, myWidth / myHeight, 1, 1000);
-  camera.position.z = 35;
+  camera.position.z = 31;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
