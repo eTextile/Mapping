@@ -1,15 +1,16 @@
 var circleArray = [];
 
-window.onload = function() { 
-  paper.setup('myCanvas');
+window.onload = function() {
+  var myCanvas = document.getElementById('canvas');
+  paper.install(window);
+  paper.setup(myCanvas);
+}
+
+function onFrame(event) {
+  //paper.view.draw();
 }
 
 /*
-function onFrame(event) {
-	for (var i = 0, l = circleArray.length; i < l; i++) {
-	}
-}
-
 function onMouseMove(event) {
   project.activeLayer.selected = false;
   if (event.item)
@@ -27,8 +28,8 @@ function onMouseDrag(event) {
 */
 
 function onBlobDown() {
-  var circle = new paper.Path.Circle({
-    center: [160, 80],
+  let circle = new Path.Circle({
+    center: [0, 0],
     radius: 10,
     fillColor: 'red'
   });
@@ -36,12 +37,18 @@ function onBlobDown() {
 }
 
 function onBlobUpdate(event) {
-  let circle = circleArray[event];
-  circle.center = new paper.Point(e256_blobs[event].x, e256_blobs[event].y);
-  circle.radius = e256_blobs[event].z;
-  paper.view.draw();
+  //console.log("BLOB_INDEX: " + event);
+  let blob = new Blob;
+  blob = e256_blobs.get(event);
+  //console.log("BLOB_X: " + blob.x + " BLOB_Y: " + blob.y);
+  let pos = new Point(blob.x*4, blob.y*4);
+  circleArray[event].position = pos;
+  circleArray[event].radius = blob.z;
 }
 
 function onBlobRelease(event) {
+
+  circleArray[event].remove();
   circleArray.splice(event, 1);
+  //paper.view.draw();
 }

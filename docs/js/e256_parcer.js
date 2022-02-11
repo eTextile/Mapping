@@ -170,7 +170,7 @@ function Blobs() {
 }
 
 Blobs.prototype.add = function(noteOn, callback) {
-  if (this.blobs.findIndex(blob => blob.uid === noteOn[1]) === -1){
+  if (this.blobs.findIndex(blob => blob.uid == noteOn[1]) === -1){
     var blob = new Blob(noteOn[1], 0, 0, 0, 0, 0);
     this.blobs.push(blob);
     //console.log("BLOB_ADD: " + noteOn[1]);
@@ -182,7 +182,7 @@ Blobs.prototype.add = function(noteOn, callback) {
 }
 
 Blobs.prototype.remove = function(noteOff, callback) {
-  let index = this.blobs.findIndex(blob => blob.uid === noteOff[1]);
+  let index = this.blobs.findIndex(blob => blob.uid == noteOff[1]);
   if (index !== -1){
     this.blobs.splice(index, 1);
     //console.log("BLOB_REMOVE: " + noteOff[1]);
@@ -195,7 +195,7 @@ Blobs.prototype.remove = function(noteOff, callback) {
 
 Blobs.prototype.update = function(sysExMsg, callback) {
 //Blobs.prototype.update = function(sysExMsg) {
-  let index = this.blobs.findIndex(blob => blob.uid === sysExMsg[1]);
+  let index = this.blobs.findIndex(blob => blob.uid == sysExMsg[1]);
   if (index != -1){
     this.blobs[index].update(sysExMsg);
     callback(index);
@@ -213,7 +213,7 @@ Blobs.prototype.size = function() {
   return this.blobs.length;
 }
 
-let e256_blobs = new Blobs();
+e256_blobs = new Blobs();
 
 function onMIDIMessage(midiMsg) {
   //let status = midiMsg.data[0] >> 4;
