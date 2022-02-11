@@ -1,4 +1,5 @@
-var circleArray = [];
+let circleArray = [];
+let pathArray = [];
 
 window.onload = function() {
   var myCanvas = document.getElementById('canvas');
@@ -10,11 +11,11 @@ function onFrame(event) {
   //paper.view.draw();
 }
 
-/*
 function onMouseMove(event) {
   project.activeLayer.selected = false;
-  if (event.item)
+  if (event.item){
     event.item.selected = true;
+  }
 }
 
 function onMouseDrag(event) {
@@ -25,7 +26,6 @@ function onMouseDrag(event) {
     path.position += event.delta;
   }
 }
-*/
 
 function onBlobDown() {
   let circle = new Path.Circle({
@@ -34,6 +34,10 @@ function onBlobDown() {
     fillColor: 'red'
   });
   circleArray.push(circle);
+
+  path = new Path();
+  path.strokeColor = '#00000';
+  pathArray.push(path);
 }
 
 function onBlobUpdate(event) {
@@ -44,11 +48,12 @@ function onBlobUpdate(event) {
   let pos = new Point(blob.x*4, blob.y*4);
   circleArray[event].position = pos;
   circleArray[event].radius = blob.z;
+  pathArray[event].add(pos);
 }
 
 function onBlobRelease(event) {
-
   circleArray[event].remove();
   circleArray.splice(event, 1);
-  //paper.view.draw();
+  pathArray[event].remove();
+  pathArray.splice(event, 1);
 }

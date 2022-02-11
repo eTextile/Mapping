@@ -5,15 +5,15 @@ const FLASH_SIZE = 4096;
 const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
-// MODES
+// MODES (CHANNEL 1)
 const MATRIX = 0; //
 const BLOBS_PLAY = 2; // Get all blobs values over USB using MIDI format
 const MAPPING = 3; //
-// STATES
-const CALIBRATE = 10; //
-const DONE_ACTION = 11; //
-const ERROR = 12; //
-const CONFIG = 13; //
+// STATES (CHANNEL 2)
+const CALIBRATE = 0;
+const DONE_ACTION = 1;
+const ERROR = 2;
+const CONFIG = 3;
 // LEVELS
 const SIG_IN = 0; // E256-LEDs: | 1 | 0 |
 const SIG_OUT = 1; // E256-LEDs: | 0 | 1 |
@@ -274,8 +274,9 @@ function controlChange(value) {
   MIDIIoutput.send([CONTROL_CHANGE, value]);
 }
 
-function programChange(value) {
-  MIDIIoutput.send([PROGRAM_CHANGE, value]);
+function programChange(value, channel) {
+  var status = PROGRAM_CHANGE | channel;
+  MIDIIoutput.send([status, value]);
 }
 
 // Send data via MIDI system exclusive message
@@ -302,24 +303,24 @@ function e256_sendParams() {
     switch (this.id) {
       case 'getRawButton':
         playMode = MATRIX;
-        programChange(MATRIX);
+        programChange(MATRIX, 1);
         getRawButton.style.background = "rgb(10,180,0)";
         break;
       case 'getBlobsButton':
         playMode = BLOBS_PLAY;
-        programChange(BLOBS_PLAY);
+        programChange(BLOBS_PLAY, 1);
         getBlobsButton.style.background = "rgb(10,180,0)";
         break;
       case 'getConfigButton':
         playMode = GET_CONFIG;
-        programChange(GET_CONFIG);
+        programChange(GET_CONFIG, 2);
         break;
       case 'setMappingButton':
         playMode = MAPPING;
-        programChange(MAPPING);
+        programChange(MAPPING, 1);
         break;
       case 'calibrateButton':
-        programChange(CALIBRATE);
+        programChange(CALIBRATE, 2);
         //calibrateButton.onclick = "rgb(255,0,0)"; // FIXME!
         break;
       default:
