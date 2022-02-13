@@ -10,7 +10,8 @@ var myWidth, myHeight;
 var myCanvas, paper;
 let selectItem;
 let selectPath;
-
+let selectSegment;
+var translate = false;
 let blobTouch = [];
 let blobPath = [];
 
@@ -21,7 +22,7 @@ var sliderOptions = {
   strokeColor: 'lightblue',
   fillColor: 'lightblue',
   strokeWidth: 1,
-  selected: false
+  selected: false,
 };
 
 var hitOptions = {
@@ -72,13 +73,12 @@ $(document).ready(function(){
         break;
       case 'stroke':
         selectPath = hitResult.type;
-        console.log("MOUSE_DOWN_STROKE: " + selectItem.strokeBounds);
-
-        //selectPath = selectItem.insert(location.index + 1, event.point);
-        //path.smooth();
+        selectSegment = hitResult.location.index;
+        translate = false;
         break;
       case 'fill':
         selectPath = hitResult.type;
+        translate = true;
         break;
       default:
         selectPath = null;
@@ -94,10 +94,26 @@ $(document).ready(function(){
         selectItem.smooth();
         break;
       case 'stroke':
-        //
-        break;
+        switch (selectSegment){
+          case 0:
+            selectItem.segments[0].point.x = event.point.x;
+            selectItem.segments[1].point.x = event.point.x;
+            break;
+          case 1:
+            selectItem.segments[1].point.y = event.point.y;
+            selectItem.segments[2].point.y = event.point.y;
+            break;
+          case 2:
+            selectItem.segments[2].point.x = event.point.x;
+            selectItem.segments[3].point.x = event.point.x;
+            break;
+          case 3:
+            selectItem.segments[3].point.y = event.point.y;
+            selectItem.segments[0].point.y = event.point.y;
+            break;
+        }
       case 'fill':
-        selectItem.translate(event.delta);
+        if (translate) selectItem.translate(event.delta);
         break;
     } 
   }
@@ -112,10 +128,10 @@ $(document).ready(function(){
 
 ////////////// ADD_SHAPES
 function addSlider(event) {
-  var slider = new Shape.Rectangle(sliderOptions);
+  var slider = new Path.Rectangle(sliderOptions);
+  slider.fillColor = Color.random();
   project.activeLayer.addChild(slider);
 }
-
 
 ////////////// BLOB_INPUT
 function onBlobDown() {
@@ -137,6 +153,7 @@ function onBlobUpdate(event) {
   blobTouch[event].position = pos;
   blobTouch[event].radius = blob.z;
   blobPath[event].add(pos);
+  //blobPath.smooth(); // http://paperjs.org/reference/path/#smooth
 }
 
 function onBlobRelease(event) {
