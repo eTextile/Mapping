@@ -11,7 +11,9 @@
   <link rel="icon" href="./assets/img/favicon.ico">
   <title>Mapping-app</title>
   <link rel="stylesheet" href="./css/style.css">
+  <script type="text/javascript" src="./js/lib/jquery.js"></script>
   <script type="text/javascript" src="./js/e256_parcer.js"></script>
+  <!--script type="text/javascript" src="./js/lib/paper-core.js"></script-->
   <script type="text/javascript" src="./js/lib/paper-full.js"></script>
 </head>
 
@@ -22,13 +24,14 @@
   </header>
   <div id="main">
     <dashboard>
-      <button id="connectButton">E256_CONNECT</button><br />
-      <button id="getBlobsButton">GET_BLOBS</button><br />
-      <button id="calibrateButton">CALIBRATE</button><br />
-      <button id="getConfigButton">GET_CONFIG</button><br />
+      <button id="connectButton">E256_CONNECT</button><br/>
+      <button id="getBlobsButton">GET_BLOBS</button><br/>
+      <button id="calibrateButton">CALIBRATE</button><br/>
+      <button id="getConfigButton">GET_CONFIG</button><br/>
       <input id="loadFileButton" type="file" name="file" accept=".json, .wav">
-      <button id="sendFileButton">SEND_CONFIG</button><br />
-      <button id="setMappingButton">SET_MAPPING</button><br />
+      <button id="sendFileButton">SEND_CONFIG</button><br/>
+      <button id="setMappingButton">SET_MAPPING</button><br/>
+      <button id="addSliderButton">SLIDER</button><br/>
     </dashboard>
     <container>
       <canvas id="canvas"></canvas>
@@ -46,7 +49,10 @@
     let loadFileButton = document.getElementById("loadFileButton");
     let sendFileButton = document.getElementById("sendFileButton");
     let setMappingButton = document.getElementById("setMappingButton");
-    /*Couple the elements to the Events*/
+
+    let addSliderButton = document.getElementById("addSliderButton");
+
+    /*Coupling the elements to the Events*/
     connectButton.addEventListener('click', e256_MIDIConnect);
     getBlobsButton.addEventListener('click', e256_sendParams);
     calibrateButton.addEventListener('click', e256_sendParams);
@@ -54,7 +60,9 @@
     loadFileButton.addEventListener('change', e256_loadFile);
     sendFileButton.addEventListener('click', e256_sendFile);
     setMappingButton.addEventListener('click', e256_sendParams);
-  </script>
+    addSliderButton.addEventListener('click', addSlider);
+
+</script>
 </body>
 
 </html>
