@@ -21,7 +21,7 @@ var sliderOptions = {
   to: [100, 200],
   strokeColor: 'lightblue',
   fillColor: 'lightblue',
-  strokeWidth: 1,
+  strokeWidth: 10,
   selected: false,
 };
 
