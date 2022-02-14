@@ -26,9 +26,12 @@ var layerTrigger;
 var sliderOptions = {
   from: [50, 50],
   to: [100, 200],
-  //radius: [10, 10],
   strokeColor: 'lightblue',
-  fillColor: 'lightblue',
+  fillColor: {
+    gradient: {
+        stops: ['yellow', 'blue']
+    }
+  },
   strokeWidth: 10,
   selected: false,
 };
@@ -38,6 +41,13 @@ var knobOptions = {
   radius: [50, 50],
   strokeColor: 'lightblue',
   fillColor: 'lightblue',
+  /*
+  fillColor: {
+    gradient: {
+        stops: ['yellow', 'blue']
+    }
+  },
+  */
   strokeWidth: 10,
   selected: false,
 };
@@ -81,7 +91,10 @@ $(document).ready(function(){
     } else {
       selectItem = hitResult.item;
       activeLayer = hitResult.item.layer;
-      project.layers[hitResult.item.layer.index].activate();
+      project.layers[activeLayer.index].activate();
+      
+      console.log("TYPE: " + hitResult.type);
+
       switch (hitResult.type){
       case 'segment':
         selectPath = hitResult.type;
@@ -135,7 +148,10 @@ $(document).ready(function(){
   function updateKnob(event) {
     switch (selectPath) {
       case 'stroke':
-        selectItem.segments[selectSegment].radius = event.point.x;
+        var x = event.point.x - selectItem.position.x;
+        var y = event.point.y - selectItem.position.y;
+        var radius = Math.sqrt((x * x) + (y * y));
+        setRadius(selectItem, radius);
         break;
       case 'fill':
         if (translate) selectItem.translate(event.delta);
@@ -162,10 +178,18 @@ $(document).ready(function(){
 
 })
 
+var setRadius = function(path, radius) {
+  // figure out what the new radius should be without the stroke
+  var newRadiusWithoutStroke = radius - path.strokeWidth / 2;
+  // figure out what the current radius is without the stroke 
+  var oldRadiusWithoutStroke = path.bounds.width / 2;
+  path.scale(newRadiusWithoutStroke / oldRadiusWithoutStroke);
+}
+
 ////////////// ADD_SHAPES
 function addSlider(event) {
   var e256_slider = new Path.Rectangle(sliderOptions);
-  e256_slider.fillColor = Color.random();
+  //e256_slider.fillColor = Color.random();
   layerSlider.activate();
   project.activeLayer.addChild(e256_slider);
   activeLayer = project.activeLayer;
@@ -174,7 +198,7 @@ function addSlider(event) {
 ////////////// ADD_KNOB
 function addKnob(event) {
   var e256_knob = new Path.Circle(knobOptions); 
-  e256_knob.fillColor = Color.random();
+  //e256_knob.fillColor = Color.random();
   layerKnob.activate();
   project.activeLayer.addChild(e256_knob);
   activeLayer = project.activeLayer;
@@ -182,7 +206,7 @@ function addKnob(event) {
 
 ////////////// BLOB_INPUT
 function onBlobDown() {
-  let circle = new Path.Circle({
+  let circle = new Circle({
     center: [0, 0],
     radius: 10,
     fillColor: 'red'
