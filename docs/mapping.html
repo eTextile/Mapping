@@ -39,8 +39,29 @@
       <input id="loadFileButton" type="file" name="file" accept=".json, .wav">
       <button id="sendFileButton">SEND_CONFIG</button><br/>
       <button id="setMappingButton">SET_MAPPING</button><br/>
-      <button id="addSliderButton">SLIDER</button><br/>
-      <button id="addKnobButton">KNOB</button><br/>
+
+      <form method="post">
+        <h3>Tools</h3>
+          <div>
+          <div class="form-check">
+          <input class="form-check-input" type="radio" name="tools" id="Toggel" value="option1">
+            <label class="form-check-label" for="Toggel">Toggel</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tools" id="Trigger" value="option2">
+            <label class="form-check-label" for="Trigger">Trigger</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tools" id="Slider" value="option3">
+            <label class="form-check-label" for="Slider">Slider</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="tools" id="Knob" value="option4">
+            <label class="form-check-label" for="Knob">Knob</label>
+          </div>
+        </div>
+      </form>
+
     </dashboard>
     <container>
       <canvas id="canvas"></canvas>
@@ -54,6 +75,11 @@
     document.querySelector('#connectButton').addEventListener('change', e256_MIDIConnect, false);
     document.querySelector('#getBlobsButton').addEventListener('change', e256_sendParams, false);
 
+    let Toggel = document.getElementById("Toggel").addEventListener('click', toggelMode);
+    let Trigger = document.getElementById("Trigger").addEventListener('click', triggerMode);
+    let Slider = document.getElementById("Slider").addEventListener('click', sliderMode);
+    let Knob = document.getElementById("Knob").addEventListener('click', knobMode);
+
     /*Define the elements*/
     //let connectButton = document.getElementById("connectButton");
     //let getBlobsButton = document.getElementById("getBlobsButton");
@@ -62,8 +88,6 @@
     let loadFileButton = document.getElementById("loadFileButton");
     let sendFileButton = document.getElementById("sendFileButton");
     let setMappingButton = document.getElementById("setMappingButton");
-    let addSliderButton = document.getElementById("addSliderButton");
-    let addKnobButton = document.getElementById("addKnobButton");
 
     /*Coupling the elements to the Events*/
     //connectButton.addEventListener('click', e256_MIDIConnect);
@@ -73,9 +97,7 @@
     loadFileButton.addEventListener('change', e256_loadFile);
     sendFileButton.addEventListener('click', e256_sendFile);
     setMappingButton.addEventListener('click', e256_sendParams);
-    addSliderButton.addEventListener('click', addSlider);
-    addKnobButton.addEventListener('click', addKnob);
-
+  
 </script>
 </body>
 

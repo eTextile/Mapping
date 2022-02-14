@@ -23,6 +23,11 @@ var layerTrigger;
 var layerSlider;
 var layerKnob;
 
+var toggelOptions = {
+}
+var triggerOptions = {
+}
+
 // SHAPES DEFAULT PARAMS
 var sliderOptions = {
   from: [50, 50],
@@ -186,21 +191,28 @@ var setRadius = function(path, radius) {
 
 ////////////// ADD_CONTROL_GUI
 
-function addToggel(event) {
-  var e256_toggel = new Path.Rectangle(sliderOptions);
+function toggelMode(event) {
+  var e256_toggel = new Path.Rectangle(toggelOptions);
   //e256_slider.fillColor = Color.random();
   layerToggel.activate();
   project.activeLayer.addChild(e256_toggel);
   activeLayer = project.activeLayer;
 }
-function addSlider(event) {
+function triggerMode(event) {
+  var e256_trigger = new Path.Rectangle(triggerOptions);
+  //e256_slider.fillColor = Color.random();
+  layerTrigger.activate();
+  project.activeLayer.addChild(e256_trigger);
+  activeLayer = project.activeLayer;
+}
+function sliderMode(event) {
   var e256_slider = new Path.Rectangle(sliderOptions);
   //e256_slider.fillColor = Color.random();
   layerSlider.activate();
   project.activeLayer.addChild(e256_slider);
   activeLayer = project.activeLayer;
 }
-function addKnob(event) {
+function knobMode(event) {
   var e256_knob = new Path.Circle(knobOptions); 
   //e256_knob.fillColor = Color.random();
   layerKnob.activate();
