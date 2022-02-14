@@ -32,6 +32,7 @@
       <button id="sendFileButton">SEND_CONFIG</button><br/>
       <button id="setMappingButton">SET_MAPPING</button><br/>
       <button id="addSliderButton">SLIDER</button><br/>
+      <button id="addKnobButton">KNOB</button><br/>
     </dashboard>
     <container>
       <canvas id="canvas"></canvas>
@@ -49,9 +50,10 @@
     let loadFileButton = document.getElementById("loadFileButton");
     let sendFileButton = document.getElementById("sendFileButton");
     let setMappingButton = document.getElementById("setMappingButton");
-
     let addSliderButton = document.getElementById("addSliderButton");
+    let addKnobButton = document.getElementById("addKnobButton");
 
+    
     /*Coupling the elements to the Events*/
     connectButton.addEventListener('click', e256_MIDIConnect);
     getBlobsButton.addEventListener('click', e256_sendParams);
@@ -61,6 +63,7 @@
     sendFileButton.addEventListener('click', e256_sendFile);
     setMappingButton.addEventListener('click', e256_sendParams);
     addSliderButton.addEventListener('click', addSlider);
+    addKnobButton.addEventListener('click', addKnob);
 
 </script>
 </body>

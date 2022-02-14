@@ -11,14 +11,31 @@ var myCanvas, paper;
 let selectItem;
 let selectPath;
 let selectSegment;
+let activeLayer;
+
 var translate = false;
 let blobTouch = [];
 let blobPath = [];
+
+var layerSlider;
+var layerKnob;
+var layerToggel;
+var layerTrigger;
 
 // SHAPES DEFAULT PARAMS
 var sliderOptions = {
   from: [50, 50],
   to: [100, 200],
+  //radius: [10, 10],
+  strokeColor: 'lightblue',
+  fillColor: 'lightblue',
+  strokeWidth: 10,
+  selected: false,
+};
+
+var knobOptions = {
+  center: [100,100],
+  radius: [50, 50],
   strokeColor: 'lightblue',
   fillColor: 'lightblue',
   strokeWidth: 10,
@@ -41,15 +58,12 @@ $(document).ready(function(){
   myHeight = window.innerHeight;
   var tool = new paper.Tool();
   tool.activate();
-  tool.minDistance = 5; 
-  
-  /*
-  if (event.modifiers.shift) {
-    if (hitResult.type == 'segment') {
-      hitResult.segment.remove();
-    }
-    return;
-  */
+  tool.minDistance = 5;
+
+  layerSlider = new Layer();
+  layerKnob = new Layer();
+  layerToggel = new Layer();
+  layerTrigger = new Layer();
 
   // MOUSE_OVER
   tool.onMouseMove = function (event) {
@@ -60,41 +74,38 @@ $(document).ready(function(){
   }
 
   tool.onMouseDown = function (event) {
-    var hitResult = project.activeLayer.hitTest(event.point, hitOptions);
+    var hitResult = project.hitTest(event.point, hitOptions);
     if (!hitResult) {
-      console.log("MOUSE_DOWN: null");
+      activeLayer = selectItem = selectSegment = selectPath = null;
       return;
     } else {
       selectItem = hitResult.item;
+      activeLayer = hitResult.item.layer;
+      project.layers[hitResult.item.layer.index].activate();
       switch (hitResult.type){
       case 'segment':
-        console.log("MOUSE_DOWN_SEGMENT: " + hitResult);
         selectPath = hitResult.type;
         break;
       case 'stroke':
+        translate = false;
         selectPath = hitResult.type;
         selectSegment = hitResult.location.index;
-        translate = false;
         break;
       case 'fill':
         selectPath = hitResult.type;
         translate = true;
         break;
       default:
-        selectPath = null;
+        // NA
         break;
       }
     }
   }
 
-  tool.onMouseDrag = function (event) {
-    switch (selectPath){
-      case 'segment':
-        selectPath.point += event.delta;
-        selectItem.smooth();
-        break;
+  function updateSlider(event) {
+    switch (selectPath) {
       case 'stroke':
-        switch (selectSegment){
+        switch (selectSegment) {
           case 0:
             selectItem.segments[0].point.x = event.point.x;
             selectItem.segments[1].point.x = event.point.x;
@@ -115,22 +126,58 @@ $(document).ready(function(){
       case 'fill':
         if (translate) selectItem.translate(event.delta);
         break;
-    } 
+      case 'segment':
+        // NA
+        break;
+    }
   }
 
-  tool.updateRect = function(event) {
-    //var tlVec = bounds.topLeft.subtract(bounds.center).multiply(scale);
-    //var brVec = bounds.bottomRight.subtract(bounds.center).multiply(scale);
-    //var newBounds = new Rectangle(tlVec + bounds.center, brVec + bounds.center);
+  function updateKnob(event) {
+    switch (selectPath) {
+      case 'stroke':
+        selectItem.segments[selectSegment].radius = event.point.x;
+        break;
+      case 'fill':
+        if (translate) selectItem.translate(event.delta);
+        break;
+      case 'segment':
+        // NA
+        break;
+    }
+  }
+
+  tool.onMouseDrag = function (event) {
+    switch (activeLayer) {
+      case layerSlider:
+        updateSlider(event);
+        break;
+      case layerKnob:
+        updateKnob(event);
+        break;
+      default:
+        // NA
+        break;
+    }
   }
 
 })
 
 ////////////// ADD_SHAPES
 function addSlider(event) {
-  var slider = new Path.Rectangle(sliderOptions);
-  slider.fillColor = Color.random();
-  project.activeLayer.addChild(slider);
+  var e256_slider = new Path.Rectangle(sliderOptions);
+  e256_slider.fillColor = Color.random();
+  layerSlider.activate();
+  project.activeLayer.addChild(e256_slider);
+  activeLayer = project.activeLayer;
+}
+
+////////////// ADD_KNOB
+function addKnob(event) {
+  var e256_knob = new Path.Circle(knobOptions); 
+  e256_knob.fillColor = Color.random();
+  layerKnob.activate();
+  project.activeLayer.addChild(e256_knob);
+  activeLayer = project.activeLayer;
 }
 
 ////////////// BLOB_INPUT
@@ -163,5 +210,14 @@ function onBlobRelease(event) {
   blobPath.splice(event, 1);
 }
 
+//////////////////////////////////// TODO
 //onKeyDown(delate)
 //project.activeLayer.children[itemName].remove();
+
+ /*
+  if (event.modifiers.shift) {
+    if (hitResult.type == 'segment') {
+      hitResult.segment.remove();
+    }
+    return;
+  */
