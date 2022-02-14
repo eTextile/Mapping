@@ -17,21 +17,25 @@ var translate = false;
 let blobTouch = [];
 let blobPath = [];
 
-var layerSlider;
-var layerKnob;
+
 var layerToggel;
 var layerTrigger;
+var layerSlider;
+var layerKnob;
 
 // SHAPES DEFAULT PARAMS
 var sliderOptions = {
   from: [50, 50],
   to: [100, 200],
   strokeColor: 'lightblue',
+  fillColor: 'yellow',
+  /*
   fillColor: {
     gradient: {
         stops: ['yellow', 'blue']
     }
   },
+  */
   strokeWidth: 10,
   selected: false,
 };
@@ -40,7 +44,7 @@ var knobOptions = {
   center: [100,100],
   radius: [50, 50],
   strokeColor: 'lightblue',
-  fillColor: 'lightblue',
+  fillColor: 'blue',
   /*
   fillColor: {
     gradient: {
@@ -92,13 +96,7 @@ $(document).ready(function(){
       selectItem = hitResult.item;
       activeLayer = hitResult.item.layer;
       project.layers[activeLayer.index].activate();
-      
-      console.log("TYPE: " + hitResult.type);
-
       switch (hitResult.type){
-      case 'segment':
-        selectPath = hitResult.type;
-        break;
       case 'stroke':
         translate = false;
         selectPath = hitResult.type;
@@ -107,6 +105,9 @@ $(document).ready(function(){
       case 'fill':
         selectPath = hitResult.type;
         translate = true;
+        break;
+      case 'segment':
+        selectPath = hitResult.type;
         break;
       default:
         // NA
@@ -147,7 +148,7 @@ $(document).ready(function(){
 
   function updateKnob(event) {
     switch (selectPath) {
-      case 'stroke':
+      case 'stroke' || 'segment':
         var x = event.point.x - selectItem.position.x;
         var y = event.point.y - selectItem.position.y;
         var radius = Math.sqrt((x * x) + (y * y));
@@ -155,9 +156,6 @@ $(document).ready(function(){
         break;
       case 'fill':
         if (translate) selectItem.translate(event.delta);
-        break;
-      case 'segment':
-        // NA
         break;
     }
   }
@@ -186,7 +184,15 @@ var setRadius = function(path, radius) {
   path.scale(newRadiusWithoutStroke / oldRadiusWithoutStroke);
 }
 
-////////////// ADD_SHAPES
+////////////// ADD_CONTROL_GUI
+
+function addToggel(event) {
+  var e256_toggel = new Path.Rectangle(sliderOptions);
+  //e256_slider.fillColor = Color.random();
+  layerToggel.activate();
+  project.activeLayer.addChild(e256_toggel);
+  activeLayer = project.activeLayer;
+}
 function addSlider(event) {
   var e256_slider = new Path.Rectangle(sliderOptions);
   //e256_slider.fillColor = Color.random();
@@ -194,8 +200,6 @@ function addSlider(event) {
   project.activeLayer.addChild(e256_slider);
   activeLayer = project.activeLayer;
 }
-
-////////////// ADD_KNOB
 function addKnob(event) {
   var e256_knob = new Path.Circle(knobOptions); 
   //e256_knob.fillColor = Color.random();
@@ -206,7 +210,7 @@ function addKnob(event) {
 
 ////////////// BLOB_INPUT
 function onBlobDown() {
-  let circle = new Circle({
+  let circle = new Path.Circle({
     center: [0, 0],
     radius: 10,
     fillColor: 'red'
@@ -222,9 +226,9 @@ function onBlobUpdate(event) {
   blob = e256_blobs.get(event);
   let pos = new Point(blob.x * 4, blob.y * 4);
   blobTouch[event].position = pos;
-  blobTouch[event].radius = blob.z;
+  //blobTouch[event].radius = blob.z;
   blobPath[event].add(pos);
-  //blobPath.smooth(); // http://paperjs.org/reference/path/#smooth
+  //blobPath[event].path.smooth({ type: 'catmull-rom', factor: 0.1 }); // http://paperjs.org/reference/path/#smooth
 }
 
 function onBlobRelease(event) {

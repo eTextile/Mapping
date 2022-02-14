@@ -11,6 +11,7 @@
   <link rel="icon" href="./assets/img/favicon.ico">
   <title>Mapping-app</title>
   <link rel="stylesheet" href="./css/style.css">
+  <link href="./css/bootstrap.css" rel="stylesheet">
   <script type="text/javascript" src="./js/e256_parcer.js"></script>
   <script type="importmap">
     {
@@ -28,9 +29,17 @@
   </header>
   <div id="main">
     <dashboard>
-      <button id="connectButton">E256_CONNECT</button><br />
-      <button id="getRawButton">GET_RAW_MATRIX</button><br />
-      <button id="calibrateButton">CALIBRATE</button><br />
+      <!--button id="connectButton">E256_CONNECT</button><br/-->
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="connectButton"/>
+        <label class="form-check-label" for="connectButton">E256_CONNECT</label>
+      </div>
+      <!--button id="getRawButton">SCAN_MATRIX</button><br/-->
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="getRawButton"/>
+        <label class="form-check-label" for="getBlobsButton">SCAN_MATRIX</label>
+      </div>
+      <button id="calibrateButton">CALIBRATE</button><br/>
     </dashboard>
     <container>
       <div id="canvas"></div>
@@ -41,12 +50,16 @@
   <footer>Footer</footer>
   <script type="text/javascript">
     /*Define the elements*/
-    let connectButton = document.getElementById("connectButton");
-    let getRawButton = document.getElementById("getRawButton");
+
+    document.querySelector('#connectButton').addEventListener('change', e256_MIDIConnect, false);
+    document.querySelector('#getRawButton').addEventListener('change', e256_sendParams, false);
+
+    //let connectButton = document.getElementById("connectButton");
+    //let getRawButton = document.getElementById("getRawButton");
     let calibrateButton = document.getElementById("calibrateButton");
     /*Couple the elements to the Events*/
-    connectButton.addEventListener('click', e256_MIDIConnect, false);
-    getRawButton.addEventListener('click', e256_sendParams, false);
+    //connectButton.addEventListener('click', e256_MIDIConnect, false);
+    //getRawButton.addEventListener('click', e256_sendParams, false);
     calibrateButton.addEventListener('click', e256_sendParams, false);
   </script>
 </body>

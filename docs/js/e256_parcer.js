@@ -64,11 +64,7 @@ var fileType = "";
 var config = "";
 
 async function e256_MIDIConnect() {
-  if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
-  } else {
-    alert("No MIDI support in your browser!");
-  }
+  navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
 }
 
 function onMIDISuccess(midiAccess) {
@@ -78,9 +74,11 @@ function onMIDISuccess(midiAccess) {
       MIDIInput = entry;
       MIDIInput.onmidimessage = onMIDIMessage;
       //MIDIInput.open();
-      connectButton.innerHTML = 'E256_CONNECTED';
-      connectButton.style.background = "rgb(10,180,0)";
+      //connectButton.innerHTML = 'E256_CONNECTED';
+      //connectButton.style.background = "rgb(10,180,0)";
       connected = true;
+    } else {
+      connectButton.checked = false;
     }
   }
   for (var entry of midiAccess.outputs.values()) {
@@ -88,6 +86,10 @@ function onMIDISuccess(midiAccess) {
       MIDIIoutput = entry;
     }
   }
+}
+
+function onMIDIFailure(error) {
+  alert("eTextile-Synthesizer NOT CONNECTED! || No MIDI support in your browser! " + error);
 }
 
 // TODO: need a drop down menu!
@@ -104,10 +106,6 @@ function listInputsAndOutputs(midiAccess) {
       "' manufacturer:'" + output.manufacturer + "' name:'" + output.name +
       "' version:'" + output.version + "'");
   }
-}
-
-function onMIDIFailure(error) {
-  alert("eTextile-Synthesizer NOT CONNECTED! || No MIDI support in your browser! " + error);
 }
 
 //export { Matrix };
@@ -328,6 +326,8 @@ function e256_sendParams() {
     }
   } else {
     alert("eTextile-Synthesizer NOT CONNECTED!");
+    getRawButton.checked = false;
+    getBlobsButton.checked = false;
   }
 }
 
