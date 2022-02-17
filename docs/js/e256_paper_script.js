@@ -46,7 +46,7 @@ var sliderOptions = {
 };
 
 var knobOptions = {
-  center: [100,100],
+  center: [100, 100],
   radius: [50, 50],
   strokeColor: 'lightblue',
   fillColor: 'blue',
@@ -68,11 +68,11 @@ var hitOptions = {
   tolerance: 2
 };
 
-$(document).ready(function(){
+$(document).ready(function () {
 
   'use strict';
   paper.install(window);
-  paper.setup(document.getElementById('canvas'));
+  paper.setup(document.getElementById('mappingCanvas'));
   myWidth = window.innerWidth;
   myHeight = window.innerHeight;
   var tool = new paper.Tool();
@@ -101,22 +101,22 @@ $(document).ready(function(){
       selectItem = hitResult.item;
       activeLayer = hitResult.item.layer;
       project.layers[activeLayer.index].activate();
-      switch (hitResult.type){
-      case 'stroke':
-        translate = false;
-        selectPath = hitResult.type;
-        selectSegment = hitResult.location.index;
-        break;
-      case 'fill':
-        selectPath = hitResult.type;
-        translate = true;
-        break;
-      case 'segment':
-        selectPath = hitResult.type;
-        break;
-      default:
-        // NA
-        break;
+      switch (hitResult.type) {
+        case 'stroke':
+          translate = false;
+          selectPath = hitResult.type;
+          selectSegment = hitResult.location.index;
+          break;
+        case 'fill':
+          selectPath = hitResult.type;
+          translate = true;
+          break;
+        case 'segment':
+          selectPath = hitResult.type;
+          break;
+        default:
+          // NA
+          break;
       }
     }
   }
@@ -181,7 +181,7 @@ $(document).ready(function(){
 
 })
 
-var setRadius = function(path, radius) {
+var setRadius = function (path, radius) {
   // figure out what the new radius should be without the stroke
   var newRadiusWithoutStroke = radius - path.strokeWidth / 2;
   // figure out what the current radius is without the stroke 
@@ -190,34 +190,40 @@ var setRadius = function(path, radius) {
 }
 
 ////////////// ADD_CONTROL_GUI
-
-function toggelMode(event) {
-  var e256_toggel = new Path.Rectangle(toggelOptions);
-  //e256_slider.fillColor = Color.random();
-  layerToggel.activate();
-  project.activeLayer.addChild(e256_toggel);
-  activeLayer = project.activeLayer;
-}
-function triggerMode(event) {
-  var e256_trigger = new Path.Rectangle(triggerOptions);
-  //e256_slider.fillColor = Color.random();
-  layerTrigger.activate();
-  project.activeLayer.addChild(e256_trigger);
-  activeLayer = project.activeLayer;
-}
-function sliderMode(event) {
-  var e256_slider = new Path.Rectangle(sliderOptions);
-  //e256_slider.fillColor = Color.random();
-  layerSlider.activate();
-  project.activeLayer.addChild(e256_slider);
-  activeLayer = project.activeLayer;
-}
-function knobMode(event) {
-  var e256_knob = new Path.Circle(knobOptions); 
-  //e256_knob.fillColor = Color.random();
-  layerKnob.activate();
-  project.activeLayer.addChild(e256_knob);
-  activeLayer = project.activeLayer;
+function toolSelector(event) {
+  switch (event.target.name) {
+    case 'toggel':
+      var e256_toggel = new Path.Rectangle(toggelOptions);
+      //e256_slider.fillColor = Color.random();
+      layerToggel.activate();
+      project.activeLayer.addChild(e256_toggel);
+      activeLayer = project.activeLayer;
+      break;
+    case 'trigger':
+      var e256_trigger = new Path.Rectangle(triggerOptions);
+      //e256_slider.fillColor = Color.random();
+      layerTrigger.activate();
+      project.activeLayer.addChild(e256_trigger);
+      activeLayer = project.activeLayer;
+      break;
+    case 'slider':
+      var e256_slider = new Path.Rectangle(sliderOptions);
+      //e256_slider.fillColor = Color.random();
+      layerSlider.activate();
+      project.activeLayer.addChild(e256_slider);
+      activeLayer = project.activeLayer;
+      break;
+    case 'knob':
+      var e256_knob = new Path.Circle(knobOptions);
+      //e256_knob.fillColor = Color.random();
+      layerKnob.activate();
+      project.activeLayer.addChild(e256_knob);
+      activeLayer = project.activeLayer;
+      break;
+    default:
+      // NA
+      break;
+  }
 }
 
 ////////////// BLOB_INPUT
@@ -254,10 +260,10 @@ function onBlobRelease(event) {
 //onKeyDown(delate)
 //project.activeLayer.children[itemName].remove();
 
- /*
-  if (event.modifiers.shift) {
-    if (hitResult.type == 'segment') {
-      hitResult.segment.remove();
-    }
-    return;
-  */
+/*
+ if (event.modifiers.shift) {
+   if (hitResult.type == 'segment') {
+     hitResult.segment.remove();
+   }
+   return;
+ */

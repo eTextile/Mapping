@@ -1,27 +1,4 @@
-* {
-  box-sizing: border-box; 
-}
-
-body {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
-  margin: 0;
-  background-color: white;
-  scrollbar-color: lightblue;
-  scrollbar-width: large;
-}
-
-#main {
-  display: flex;
-  flex: 1;
-}
-
-#main > container {
-  flex: 1;
-}
-
-#canvas {
+#matrixCanvas, #mappingCanvas {
   flex: 1;
   margin: 0px;
   padding: 0px;
@@ -31,33 +8,33 @@ body {
   border: 1px solid black;
 }
 
-/* Style the scrollbar background */
-::-webkit-scrollbar {
-  background: white;
+#mappingMenu {
+  width: auto;
 }
 
-/* Style the scrollbar handle */
-::-webkit-scrollbar-thumb {
-  background: lightblue;
-  border-radius: 10px;
+/* Remove the navbar's default margin-bottom and rounded borders */ 
+.navbar {
+  margin-bottom: 0;
+  border-radius: 0;
 }
 
-#main > dashboard,
-#main > aside {
-  flex: 0 0 20vw;
-  background: lightgray;
-  overflow: scroll;
+/* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+.row.content {
+  height: 100%;
+  padding: 0px;
 }
 
-#main > dashboard {
-  order: -1;
+/* Set gray background color and 100% height */
+.sidenav {
+  flex: 1;
+  padding-top: 20px;
+  background-color: #f1f1f1;
+  height: auto;
 }
 
-header, footer {
-  background: white;
-  height: 10vh;
-}
-
-header, footer, container, dashboard, aside {
-  padding: 1em;
+/* Set black background color, white text and some padding */
+footer {
+  background-color: rgb(182, 182, 182);
+  color: white;
+  padding: 15px;
 }

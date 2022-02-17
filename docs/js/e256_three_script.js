@@ -1,21 +1,30 @@
+/*
+  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
+  This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
+*/
+
 // https://github.com/mrdoob/three.js/blob/master/examples/webgl_buffergeometry_indexed.html
 import * as THREE from 'three';
+var myToggle = false;
 
 let camera, scene, geometry, renderer;
 var myWidth, myHeight;
-let windowHalfX, windowHalfY;
+var windowHalfX, windowHalfY;
+
+$(document).ready(function(){
 
 init();
 animate();
 
 function init() {
 
-  var myCanvas = document.getElementById('canvas');
+  var myCanvas = document.getElementById('matrixCanvas');
 
-  myWidth = window.innerWidth * 0.6;
-  myHeight = window.innerHeight * 0.8;
-  windowHalfX = myWidth / 2;
-  windowHalfY = myHeight / 2;
+  myWidth = (window.innerWidth * 0.7);
+  myHeight = (window.innerHeight * 0.8);
+  windowHalfX = (myWidth / 2);
+  windowHalfY = (myHeight / 2);
 
   camera = new THREE.PerspectiveCamera(45, myWidth / myHeight, 1, 1000);
   camera.position.z = 31;
@@ -42,17 +51,19 @@ function init() {
 
   const sizeX = 26;
   const sizeY = 26;
+
   const X_offset = sizeX / 2;
   const Y_offset = sizeY / 2;
+  
   const segmentSizeX = sizeX / RAW_COLS;
   const segmentSizeY = sizeY / RAW_ROWS;
-  
+
   // RAW_FRAME = RAW_ROWS * RAW_COLS (16 * 16)
-  for (let i = 0; i < RAW_ROWS; i++) {
+  for (var i = 0; i < RAW_ROWS; i++) {
     const y = (i * segmentSizeY) - Y_offset;
-    for (let j = 0; j < RAW_COLS; j++) {
+    for (var j = 0; j < RAW_COLS; j++) {
       const x = (j * segmentSizeX) - X_offset;
-      vertices.push(x, -y, 0); // Make new vertex
+      vertices.push(x, y, 0); // Make new vertex
       normals.push( 0, 0, 1 );
       const r = ( x / sizeX ) + 0.5;
       const g = ( y / sizeY ) + 0.5;
@@ -100,12 +111,13 @@ function init() {
 
   window.addEventListener('resize', onWindowResize);
 }
+});
 
 function onWindowResize() {
-  myWidth = window.innerWidth * 0.6;
+  myWidth = window.innerWidth * 0.7;
   myHeight = window.innerHeight * 0.8;
-  windowHalfX = myWidth / 2;
-  windowHalfY = myHeight / 2;
+  windowHalfX = (myWidth / 2);
+  windowHalfY = (myHeight / 2);
   renderer.setSize(myWidth, myHeight);
   camera.aspect = myWidth / myHeight;
   camera.updateProjectionMatrix();
@@ -118,7 +130,7 @@ function animate() {
 
 function render() {
   let position = geometry.getAttribute('position');
-  let colorAttribute = geometry.getAttribute('color');
+  //let colorAttribute = geometry.getAttribute('color');
   for (let i = 0; i < RAW_FRAME; i++) {
     position.setZ(i, e256_matrix.getZ(i));
     //var r = e256_matrix.getZ(i);

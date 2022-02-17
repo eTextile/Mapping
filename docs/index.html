@@ -11,7 +11,10 @@
   <link rel="icon" href="./assets/img/favicon.ico">
   <title>Mapping-app</title>
   <link rel="stylesheet" href="./css/style.css">
-  <link href="./css/bootstrap.css" rel="stylesheet">
+  <link rel="stylesheet" href="./css/bootstrap.css">
+  <script type="text/javascript" src="./js/lib/jquery.js"></script>
+  <script type="text/javascript" src="./js/lib/paper-full.js"></script>
+  <script type="text/javascript" src="./js/lib/bootstrap.min.js"></script>
   <script type="text/javascript" src="./js/e256_parcer.js"></script>
   <script type="importmap">
     {
@@ -23,45 +26,159 @@
 </head>
 
 <body>
-  <header>
-    <a href="index.html">MATRIX</a>
-    <a href="mapping.html">MAPPING</a>
-  </header>
-  <div id="main">
-    <dashboard>
-      <!--button id="connectButton">E256_CONNECT</button><br/-->
-      <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" role="switch" id="connectButton"/>
-        <label class="form-check-label" for="connectButton">E256_CONNECT</label>
-      </div>
-      <!--button id="getRawButton">SCAN_MATRIX</button><br/-->
-      <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" role="switch" id="getRawButton"/>
-        <label class="form-check-label" for="getBlobsButton">SCAN_MATRIX</label>
-      </div>
-      <button id="calibrateButton">CALIBRATE</button><br/>
-    </dashboard>
-    <container>
-      <div id="canvas"></div>
+
+  <div class="container-fluid">
+
+    <div class="row content">
+
+      <section id="sidenav" class="col-sm-2 sidenav">
+
+        <div class="sidebar-header">
+          <h3>Mapping-app</h3>
+        </div>
+
+        <p>
+        <div class="form-check form-switch">
+          <input id="connect" class="sendMidi form-check-input" type="checkbox" role="button" />
+          <label class="form-check-label" for="connect">CONNECT</label>
+        </div>
+        </p>
+
+        <div id="startMenu" class="collapse">
+          <button id="calibrate" name="" class="sendMidi btn btn-outline-secondary btn-sm input-group"
+            type="button">CALIBRATE</button>
+          <div class="btn-group input-group" role="group">
+            <button id="matrixMode" class="sendMidi btn btn-primary btn-sm" type="button">MATRIX</button>
+            <button id="mappingMode" class="sendMidi btn btn-primary btn-sm" type="button">MAPPING</button>
+          </div>
+        </div>
+
+        <div id="matrixMenu" class="collapse">
+          <div class="input-group"></div>
+        </div>
+
+        <div id="mappingMenu" class="collapse w-100">
+
+          <div class="btn-group btn-group-sm input-group" role="group">
+            <button id="editMode" class="sendMidi btn btn-outline-secondary" type="button">EDIT</button>
+            <button id="playMode" class="sendMidi btn btn-outline-secondary" type="button">PLAY</button>
+          </div>
+
+          <div id="mappingEditMode" class="collapse">
+
+            <div class="btn-group btn-group-sm input-group" role="group">
+              <button id="editMode" class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
+                data-bs-target="#configEditTool">CONFIG</button>
+              <button id="getConfig" class="sendMidi btn btn-outline-secondary" type="button">GET</button>
+              <button id="setConfig" class="sendMidi btn btn-outline-secondary" type="button">SET</button>
+            </div>
+
+            <div id="fileLoaderMenu">
+              <input id="loadConfig" class="sendMidi form-control form-control-sm" type="file" accept=".json, .wav">
+              <label for="formFileSm" class="form-label"></label>
+            </div>
+
+            <div id="mappingToolsMenu">
+
+              <div class="card card-body">
+                <div class="form-check">
+                  <input type="radio" class="mapingTool form-check-input" name="tool" value="toggle" id="toggle">
+                  <label class="form-check-label" for="toggle">Toggel</label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" class="mapingTool form-check-input" name="tool" value="trigger" id="trigger">
+                  <label class="form-check-label" for="trigger">Trigger</label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" class="mapingTool form-check-input" name="tool" value="slider" id="slider">
+                  <label class="form-check-label" for="slider">Slider</label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" class="mapingTool form-check-input" name="tool" value="knob" id="knob">
+                  <label class="form-check-label" for="knob">Knob</label>
+                </div>
+                </form>
+              </div>
+
+            </div>
+          </div>
+
+          <div id="mappingPlayMode" class="collapse">
+            <div class="input-group"></div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <section id="page" class="col-sm-8">
+        <div id="matrixCanvas" class="collapse"></div>
+        <canvas id="mappingCanvas" class="collapse"></canvas>
+      </section>
+
       <script type="module" src="./js/e256_three_script.js"></script>
-    </container>
-    <aside>Aside</aside>
+
+      <script type="text/javascript" src="./js/e256_paper_script.js"></script>
+
+      <section class="col-sm-2 sidenav">
+        Aside
+      </section>
+
+    </div>
+
+    <footer class="col-12">
+      Footer
+    </footer>
+
+    <script type="text/javascript">
+      $('#connect').change(
+        function () {
+          if ($(this).is(':checked')) {
+            $('#startMenu').collapse('show');
+          } else {
+            $('#startMenu').collapse('hide');
+            $('#matrixMenu').collapse('hide');
+            $('#mappingMenu').collapse('hide');
+            $('#matrixCanvas').collapse('hide');
+            $('#mappingCanvas').collapse('hide');
+          }
+        }
+      );
+
+      $('#matrixMode').on("click", function () {
+        $('#mappingMenu').collapse('hide');
+        $('#mappingCanvas').collapse('hide');
+        $('#matrixMenu').collapse('show');
+        $('#matrixCanvas').collapse('show');
+      });
+
+      $('#mappingMode').on("click", function () {
+        $('#matrixMenu').collapse('hide');
+        $('#matrixCanvas').collapse('hide');
+        $('#mappingMenu').collapse('show');
+        $('#mappingCanvas').collapse('show');
+      });
+
+      $('#editMode').on("click", function () {
+        $('#mappingPlayMode').collapse('hide');
+        $('#mappingEditMode').collapse('show');
+      });
+
+      $('#playMode').on("click", function () {
+        $('#mappingEditMode').collapse('hide');
+        $('#mappingPlayMode').collapse('show');
+      });
+
+      $("#connect").on('change', MIDIConnect);
+      
+      $(".sendMidi").click(function () {
+        sendParams(event);
+      });
+
+      //$(".mapingTool").on('click', toolSelector);
+
+    </script>
   </div>
-  <footer>Footer</footer>
-  <script type="text/javascript">
-    /*Define the elements*/
-
-    document.querySelector('#connectButton').addEventListener('change', e256_MIDIConnect, false);
-    document.querySelector('#getRawButton').addEventListener('change', e256_sendParams, false);
-
-    //let connectButton = document.getElementById("connectButton");
-    //let getRawButton = document.getElementById("getRawButton");
-    let calibrateButton = document.getElementById("calibrateButton");
-    /*Couple the elements to the Events*/
-    //connectButton.addEventListener('click', e256_MIDIConnect, false);
-    //getRawButton.addEventListener('click', e256_sendParams, false);
-    calibrateButton.addEventListener('click', e256_sendParams, false);
-  </script>
 </body>
 
 </html>
