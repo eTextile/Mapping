@@ -113,7 +113,7 @@
 
       <section id="page" class="col-sm-8">
         <div id="matrixCanvas" class="collapse"></div>
-        <canvas id="mappingCanvas" class="collapse"></canvas>
+        <div id="mappingCanvas" class="collapse"></div>
       </section>
 
       <script type="module" src="./js/e256_three_script.js"></script>
@@ -125,60 +125,60 @@
       </section>
 
     </div>
-
-    <footer class="col-12">
-      Footer
-    </footer>
-
-    <script type="text/javascript">
-      $('#connect').change(
-        function () {
-          if ($(this).is(':checked')) {
-            $('#startMenu').collapse('show');
-          } else {
-            $('#startMenu').collapse('hide');
-            $('#matrixMenu').collapse('hide');
-            $('#mappingMenu').collapse('hide');
-            $('#matrixCanvas').collapse('hide');
-            $('#mappingCanvas').collapse('hide');
-          }
-        }
-      );
-
-      $('#matrixMode').on("click", function () {
-        $('#mappingMenu').collapse('hide');
-        $('#mappingCanvas').collapse('hide');
-        $('#matrixMenu').collapse('show');
-        $('#matrixCanvas').collapse('show');
-      });
-
-      $('#mappingMode').on("click", function () {
-        $('#matrixMenu').collapse('hide');
-        $('#matrixCanvas').collapse('hide');
-        $('#mappingMenu').collapse('show');
-        $('#mappingCanvas').collapse('show');
-      });
-
-      $('#editMode').on("click", function () {
-        $('#mappingPlayMode').collapse('hide');
-        $('#mappingEditMode').collapse('show');
-      });
-
-      $('#playMode').on("click", function () {
-        $('#mappingEditMode').collapse('hide');
-        $('#mappingPlayMode').collapse('show');
-      });
-
-      $("#connect").on('change', MIDIConnect);
-      
-      $(".sendMidi").click(function () {
-        sendParams(event);
-      });
-
-      //$(".mapingTool").on('click', toolSelector);
-
-    </script>
   </div>
+
+  <footer class="col-12">Electronic textile interfaces - Creative use of technologies</footer>
+
+  <script type="text/javascript">
+    $('#connect').change(
+      function () {
+        if ($(this).is(':checked')) {
+          $('#startMenu').collapse('show');
+        } else {
+          $('#startMenu').collapse('hide');
+          $('#matrixMenu').collapse('hide');
+          $('#mappingMenu').collapse('hide');
+          $('#matrixCanvas').collapse('hide');
+          $('#mappingCanvas').collapse('hide');
+        }
+      }
+    );
+
+    $('#matrixMode').on("click", function () {
+      $('#mappingMenu').collapse('hide');
+      $('#mappingCanvas').collapse('hide');
+      $('#matrixMenu').collapse('show');
+      $('#matrixCanvas').collapse('show');
+    });
+
+    $('#mappingMode').on("click", function () {
+      $('#matrixMenu').collapse('hide');
+      $('#matrixCanvas').collapse('hide');
+      $('#mappingMenu').collapse('show');
+      $('#mappingCanvas').collapse('show');
+    });
+
+    $('#editMode').on("click", function () {
+      $('#mappingPlayMode').collapse('hide');
+      $('#mappingEditMode').collapse('show');
+    });
+
+    $('#playMode').on("click", function () {
+      $('#mappingEditMode').collapse('hide');
+      $('#mappingPlayMode').collapse('show');
+    });
+
+    $("#connect").on('change', MIDIConnect);
+
+    $(".sendMidi").click(function () {
+      sendParams(event);
+    });
+
+    $(".mapingTool").click(function () {
+      toolSelector(event);
+    });
+
+  </script>
 </body>
 
 </html>

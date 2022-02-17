@@ -70,9 +70,9 @@ var hitOptions = {
 
 $(document).ready(function () {
 
-  'use strict';
+  //'use strict';
   paper.install(window);
-  paper.setup(document.getElementById('mappingCanvas'));
+  paper.setup(document.getElementById('#mappingCanvas'));
   myWidth = window.innerWidth;
   myHeight = window.innerHeight;
   var tool = new paper.Tool();

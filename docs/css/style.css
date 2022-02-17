@@ -8,10 +8,6 @@
   border: 1px solid black;
 }
 
-#mappingMenu {
-  width: auto;
-}
-
 /* Remove the navbar's default margin-bottom and rounded borders */ 
 .navbar {
   margin-bottom: 0;
@@ -34,7 +30,7 @@
 
 /* Set black background color, white text and some padding */
 footer {
-  background-color: rgb(182, 182, 182);
+  background-color: rgb(202, 202, 202);
   color: white;
   padding: 15px;
 }
