@@ -6,8 +6,6 @@
 
 //Cool snap: https://gist.github.com/willismorse/d2a291d20d7a4419e732b9f1679eb3e3
 
-var myWidth, myHeight;
-var myCanvas, paper;
 let selectItem;
 let selectPath;
 let selectSegment;
@@ -17,11 +15,12 @@ var translate = false;
 let blobTouch = [];
 let blobPath = [];
 
-
 var layerToggel;
 var layerTrigger;
 var layerSlider;
 var layerKnob;
+
+var shapeMode;
 
 var toggelOptions = {
 }
@@ -69,12 +68,13 @@ var hitOptions = {
 };
 
 $(document).ready(function () {
-
-  //'use strict';
+  'use strict';
   paper.install(window);
-  paper.setup(document.getElementById('#mappingCanvas'));
-  myWidth = window.innerWidth;
-  myHeight = window.innerHeight;
+  var myCanvas = document.getElementById('myScene_mpping');
+  paper.setup(myCanvas);
+
+  //myWidth = window.innerWidth;
+  //myHeight = window.innerHeight;
   var tool = new paper.Tool();
   tool.activate();
   tool.minDistance = 5;
@@ -93,9 +93,11 @@ $(document).ready(function () {
   }
 
   tool.onMouseDown = function (event) {
+
     var hitResult = project.hitTest(event.point, hitOptions);
     if (!hitResult) {
-      activeLayer = selectItem = selectSegment = selectPath = null;
+      drawShape(event);
+      //activeLayer = selectItem = selectSegment = selectPath = null;
       return;
     } else {
       selectItem = hitResult.item;
@@ -179,6 +181,39 @@ $(document).ready(function () {
     }
   }
 
+
+  ////////////// ADD_CONTROL_GUI
+  // TODO: create the shapes using the mouse point (event.point)
+  function drawShape(event) {
+
+    if (shapeMode == 'toggel') {
+      var e256_toggel = new Path.Rectangle(toggelOptions);
+      //e256_slider.fillColor = Color.random();
+      layerToggel.activate();
+      project.activeLayer.addChild(e256_toggel);
+      activeLayer = project.activeLayer;
+    } else if (shapeMode == 'trigger') {
+      var e256_trigger = new Path.Rectangle(triggerOptions);
+      //e256_slider.fillColor = Color.random();
+      layerTrigger.activate();
+      project.activeLayer.addChild(e256_trigger);
+      activeLayer = project.activeLayer;
+    } else if (shapeMode == 'slider') {
+      var e256_slider = new Path.Rectangle(sliderOptions);
+      //e256_slider.fillColor = Color.random();
+      layerSlider.activate();
+      project.activeLayer.addChild(e256_slider);
+      activeLayer = project.activeLayer;
+    } else if (shapeMode == 'knob') {
+      //var e256_knob = new Path.Circle(knobOptions);
+      var e256_knob = new Path.Circle(event.point, 50);
+      e256_knob.fillColor = Color.random();
+      layerKnob.activate();
+      project.activeLayer.addChild(e256_knob);
+      activeLayer = project.activeLayer;
+    }
+  }
+
 })
 
 var setRadius = function (path, radius) {
@@ -187,43 +222,6 @@ var setRadius = function (path, radius) {
   // figure out what the current radius is without the stroke 
   var oldRadiusWithoutStroke = path.bounds.width / 2;
   path.scale(newRadiusWithoutStroke / oldRadiusWithoutStroke);
-}
-
-////////////// ADD_CONTROL_GUI
-function toolSelector(event) {
-  switch (event.target.name) {
-    case 'toggel':
-      var e256_toggel = new Path.Rectangle(toggelOptions);
-      //e256_slider.fillColor = Color.random();
-      layerToggel.activate();
-      project.activeLayer.addChild(e256_toggel);
-      activeLayer = project.activeLayer;
-      break;
-    case 'trigger':
-      var e256_trigger = new Path.Rectangle(triggerOptions);
-      //e256_slider.fillColor = Color.random();
-      layerTrigger.activate();
-      project.activeLayer.addChild(e256_trigger);
-      activeLayer = project.activeLayer;
-      break;
-    case 'slider':
-      var e256_slider = new Path.Rectangle(sliderOptions);
-      //e256_slider.fillColor = Color.random();
-      layerSlider.activate();
-      project.activeLayer.addChild(e256_slider);
-      activeLayer = project.activeLayer;
-      break;
-    case 'knob':
-      var e256_knob = new Path.Circle(knobOptions);
-      //e256_knob.fillColor = Color.random();
-      layerKnob.activate();
-      project.activeLayer.addChild(e256_knob);
-      activeLayer = project.activeLayer;
-      break;
-    default:
-      // NA
-      break;
-  }
 }
 
 ////////////// BLOB_INPUT
@@ -254,6 +252,11 @@ function onBlobRelease(event) {
   blobTouch.splice(event, 1);
   blobPath[event].remove();
   blobPath.splice(event, 1);
+}
+
+function toolSelector(event) {
+  shapeMode = event.target.id;
+  console.log("CURENT_MODE: " + shapeMode)
 }
 
 //////////////////////////////////// TODO

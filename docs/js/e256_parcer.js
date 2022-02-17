@@ -283,8 +283,9 @@ function controlChange(value) {
 }
 
 function programChange(value, channel) {
-  //var status = PROGRAM_CHANGE | channel; // FIXME!! bug is on the Arduino side!
-  MIDIIoutput.send([PROGRAM_CHANGE, value]);
+  //var status = PROGRAM_CHANGE | channel; // FIXME! bug is on the Arduino side! Open issue: https://github.com/PaulStoffregen/cores/issues/636
+  //MIDIIoutput.send([status, value]);
+  MIDIIoutput.send([PROGRAM_CHANGE, value]); // Quick FIX
 }
 
 // Send data via MIDI system exclusive message

@@ -4,9 +4,7 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-// https://github.com/mrdoob/three.js/blob/master/examples/webgl_buffergeometry_indexed.html
 import * as THREE from 'three';
-var myToggle = false;
 
 let camera, scene, geometry, renderer;
 var myWidth, myHeight;
@@ -19,7 +17,7 @@ animate();
 
 function init() {
 
-  var myCanvas = document.getElementById('matrixCanvas');
+  var myCanvas = document.getElementById('myScene_matrix');
 
   myWidth = (window.innerWidth * 0.7);
   myHeight = (window.innerHeight * 0.8);

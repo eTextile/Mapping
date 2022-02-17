@@ -33,9 +33,7 @@
 
       <section id="sidenav" class="col-sm-2 sidenav">
 
-        <div class="sidebar-header">
-          <h3>Mapping-app</h3>
-        </div>
+        <a class="navbar-brand fs-4" href="http://mapping.etextile.org/">Mapping-app</a>
 
         <p>
         <div class="form-check form-switch">
@@ -45,7 +43,7 @@
         </p>
 
         <div id="startMenu" class="collapse">
-          <button id="calibrate" name="" class="sendMidi btn btn-outline-secondary btn-sm input-group"
+          <button id="calibrate" class="sendMidi btn btn-outline-secondary btn-sm input-group"
             type="button">CALIBRATE</button>
           <div class="btn-group input-group" role="group">
             <button id="matrixMode" class="sendMidi btn btn-primary btn-sm" type="button">MATRIX</button>
@@ -67,8 +65,7 @@
           <div id="mappingEditMode" class="collapse">
 
             <div class="btn-group btn-group-sm input-group" role="group">
-              <button id="editMode" class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse"
-                data-bs-target="#configEditTool">CONFIG</button>
+              <button id="getConfigDoc" class="btn btn-outline-secondary btn-sm" type="button">CONFIG</button>
               <button id="getConfig" class="sendMidi btn btn-outline-secondary" type="button">GET</button>
               <button id="setConfig" class="sendMidi btn btn-outline-secondary" type="button">SET</button>
             </div>
@@ -112,13 +109,18 @@
       </section>
 
       <section id="page" class="col-sm-8">
-        <div id="matrixCanvas" class="collapse"></div>
-        <div id="mappingCanvas" class="collapse"></div>
+
+        <body>
+          <div id="matrixCanvas" class="collapse">
+            <div id="myScene_matrix"></div>
+            <script type="module" src="./js/e256_three_script.js"></script>
+          </div>
+          <div id="mappingCanvas" class="collapse">
+            <canvas id="myScene_mpping" resize></canvas>
+            <script type="text/javascript" src="./js/e256_paper_script.js"></script>
+          </div>
+        </body>
       </section>
-
-      <script type="module" src="./js/e256_three_script.js"></script>
-
-      <script type="text/javascript" src="./js/e256_paper_script.js"></script>
 
       <section class="col-sm-2 sidenav">
         Aside
@@ -177,8 +179,8 @@
     $(".mapingTool").click(function () {
       toolSelector(event);
     });
-
   </script>
+
 </body>
 
 </html>
