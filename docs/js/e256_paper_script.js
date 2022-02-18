@@ -6,6 +6,8 @@
 
 //Cool snap: https://gist.github.com/willismorse/d2a291d20d7a4419e732b9f1679eb3e3
 
+let currentMode = 'editMode';
+
 let selectItem;
 let selectPath;
 let selectSegment;
@@ -67,22 +69,21 @@ var hitOptions = {
   tolerance: 2
 };
 
-$(document).ready(function () {
+window.onload = function () {
   'use strict';
   paper.install(window);
-  var myCanvas = document.getElementById('myScene_mpping');
-  paper.setup(myCanvas);
-
+  paper.setup(document.getElementById('canvas-2D'));
   //myWidth = window.innerWidth;
   //myHeight = window.innerHeight;
+
   var tool = new paper.Tool();
   tool.activate();
   tool.minDistance = 5;
 
+  layerTrigger = new Layer();
+  layerToggel = new Layer();
   layerSlider = new Layer();
   layerKnob = new Layer();
-  layerToggel = new Layer();
-  layerTrigger = new Layer();
 
   // MOUSE_OVER
   tool.onMouseMove = function (event) {
@@ -93,34 +94,46 @@ $(document).ready(function () {
   }
 
   tool.onMouseDown = function (event) {
-
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (!hitResult) {
-      drawShape(event);
-      //activeLayer = selectItem = selectSegment = selectPath = null;
-      return;
-    } else {
-      selectItem = hitResult.item;
-      activeLayer = hitResult.item.layer;
-      project.layers[activeLayer.index].activate();
-      switch (hitResult.type) {
-        case 'stroke':
-          translate = false;
-          selectPath = hitResult.type;
-          selectSegment = hitResult.location.index;
-          break;
-        case 'fill':
-          selectPath = hitResult.type;
-          translate = true;
-          break;
-        case 'segment':
-          selectPath = hitResult.type;
-          break;
-        default:
-          // NA
-          break;
+    if (currentMode === 'editMode') {
+      if (!hitResult) {
+        drawShape(event);
+        //activeLayer = selectItem = selectSegment = selectPath = null;
+        return;
+      } else {
+        selectItem = hitResult.item;
+        activeLayer = hitResult.item.layer;
+        project.layers[activeLayer.index].activate();
+        switch (hitResult.type) {
+          case 'stroke':
+            translate = false;
+            selectPath = hitResult.type;
+            selectSegment = hitResult.location.index;
+            break;
+          case 'fill':
+            selectPath = hitResult.type;
+            translate = true;
+            break;
+          case 'segment':
+            selectPath = hitResult.type;
+            break;
+          default:
+            // NA
+            break;
+        }
       }
     }
+    else if (currentMode === 'playMode') {
+      //
+    }
+  }
+
+  function updateTrigger(event) {
+    // Same as updateSlider
+  }
+
+  function updateToggel(event) {
+    // Same as updateSlider
   }
 
   function updateSlider(event) {
@@ -168,53 +181,63 @@ $(document).ready(function () {
   }
 
   tool.onMouseDrag = function (event) {
-    switch (activeLayer) {
-      case layerSlider:
-        updateSlider(event);
-        break;
-      case layerKnob:
-        updateKnob(event);
-        break;
-      default:
-        // NA
-        break;
+    if (currentMode === 'editMode') {
+      switch (activeLayer) {
+        case layerTrigger:
+          updateTrigger(event);
+          break;
+        case layerToggel:
+          updateToggel(event);
+          break;
+        case layerSlider:
+          updateSlider(event);
+          break;
+        case layerKnob:
+          updateKnob(event);
+          break;
+        default:
+          // NA
+          break;
+      }
+    } else if (currentMode === 'playMode') {
+      // TODO
     }
   }
-
 
   ////////////// ADD_CONTROL_GUI
   // TODO: create the shapes using the mouse point (event.point)
   function drawShape(event) {
 
-    if (shapeMode == 'toggel') {
-      var e256_toggel = new Path.Rectangle(toggelOptions);
-      //e256_slider.fillColor = Color.random();
-      layerToggel.activate();
-      project.activeLayer.addChild(e256_toggel);
-      activeLayer = project.activeLayer;
-    } else if (shapeMode == 'trigger') {
+    if (shapeMode === 'trigger') {
       var e256_trigger = new Path.Rectangle(triggerOptions);
-      //e256_slider.fillColor = Color.random();
       layerTrigger.activate();
       project.activeLayer.addChild(e256_trigger);
       activeLayer = project.activeLayer;
-    } else if (shapeMode == 'slider') {
+    }
+    else if (shapeMode === 'toggel') {
+      var e256_toggel = new Path.Rectangle(toggelOptions);
+      layerToggel.activate();
+      project.activeLayer.addChild(e256_toggel);
+      activeLayer = project.activeLayer;
+    }
+    else if (shapeMode === 'slider') {
       var e256_slider = new Path.Rectangle(sliderOptions);
-      //e256_slider.fillColor = Color.random();
+      e256_slider.position = event.point;
       layerSlider.activate();
       project.activeLayer.addChild(e256_slider);
       activeLayer = project.activeLayer;
-    } else if (shapeMode == 'knob') {
-      //var e256_knob = new Path.Circle(knobOptions);
-      var e256_knob = new Path.Circle(event.point, 50);
+    }
+    else if (shapeMode === 'knob') {
+      var e256_knob = new Path.Circle(knobOptions);
       e256_knob.fillColor = Color.random();
+      e256_knob.position = event.point;
       layerKnob.activate();
       project.activeLayer.addChild(e256_knob);
       activeLayer = project.activeLayer;
     }
   }
 
-})
+}
 
 var setRadius = function (path, radius) {
   // figure out what the new radius should be without the stroke
@@ -242,7 +265,7 @@ function onBlobUpdate(event) {
   blob = e256_blobs.get(event);
   let pos = new Point(blob.x * 4, blob.y * 4);
   blobTouch[event].position = pos;
-  //blobTouch[event].radius = blob.z;
+  //blobTouch[event].radius = blob.z; // FIXME!
   blobPath[event].add(pos);
   //blobPath[event].path.smooth({ type: 'catmull-rom', factor: 0.1 }); // http://paperjs.org/reference/path/#smooth
 }
@@ -254,10 +277,17 @@ function onBlobRelease(event) {
   blobPath.splice(event, 1);
 }
 
+function modeSelector(event) {
+  currentMode = event.target.id;
+  //console.log("CURENT_MODE: " + currentMode)
+}
+
 function toolSelector(event) {
   shapeMode = event.target.id;
-  console.log("CURENT_MODE: " + shapeMode)
+  //console.log("CURENT_SHAPE_MODE: " + shapeMode)
 }
+
+
 
 //////////////////////////////////// TODO
 //onKeyDown(delate)

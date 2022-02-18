@@ -16,8 +16,7 @@ init();
 animate();
 
 function init() {
-
-  var myCanvas = document.getElementById('myScene_matrix');
+  var myCanvas = document.getElementById('canvas-3D');
 
   myWidth = (window.innerWidth * 0.7);
   myHeight = (window.innerHeight * 0.8);

@@ -109,16 +109,18 @@
       </section>
 
       <section id="page" class="col-sm-8">
-
         <body>
-          <div id="matrixCanvas" class="collapse">
-            <div id="myScene_matrix"></div>
-            <script type="module" src="./js/e256_three_script.js"></script>
-          </div>
+
+          <script type="text/javascript" src="./js/e256_paper_script.js" canvas="canvas-2D"></script>
           <div id="mappingCanvas" class="collapse">
-            <canvas id="myScene_mpping" resize></canvas>
-            <script type="text/javascript" src="./js/e256_paper_script.js"></script>
+            <canvas id="canvas-2D" ></canvas>
           </div>
+
+          <script type="module" src="./js/e256_three_script.js"></script>          
+          <div id="matrixCanvas" class="collapse">
+            <div id="canvas-3D"></div>
+          </div>
+          
         </body>
       </section>
 
@@ -163,11 +165,13 @@
     $('#editMode').on("click", function () {
       $('#mappingPlayMode').collapse('hide');
       $('#mappingEditMode').collapse('show');
+      modeSelector(event);
     });
 
     $('#playMode').on("click", function () {
       $('#mappingEditMode').collapse('hide');
       $('#mappingPlayMode').collapse('show');
+      modeSelector(event);
     });
 
     $("#connect").on('change', MIDIConnect);
@@ -179,6 +183,7 @@
     $(".mapingTool").click(function () {
       toolSelector(event);
     });
+    
   </script>
 
 </body>
