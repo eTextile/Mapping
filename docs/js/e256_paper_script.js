@@ -8,6 +8,9 @@
 
 let currentMode = 'editMode';
 
+var myWidth;
+var myHeight;
+
 let selectItem;
 let selectPath;
 let selectSegment;
@@ -73,8 +76,9 @@ window.onload = function () {
   'use strict';
   paper.install(window);
   paper.setup(document.getElementById('canvas-2D'));
-  //myWidth = window.innerWidth;
-  //myHeight = window.innerHeight;
+  myWidth = window.innerWidth;
+  myHeight = window.innerHeight * 0.9;
+  paper.view.viewSize = new Size(myWidth, myHeight);
 
   var tool = new paper.Tool();
   tool.activate();
