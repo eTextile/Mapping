@@ -10,6 +10,8 @@ let currentMode = 'editMode';
 
 var myWidth;
 var myHeight;
+var x_scaleFactor;
+var y_scaleFactor;
 
 let selectItem;
 let selectPath;
@@ -19,6 +21,7 @@ let activeLayer;
 var translate = false;
 let blobTouch = [];
 let blobPath = [];
+let blobPathSmooth = [];
 
 var layerToggel;
 var layerTrigger;
@@ -73,12 +76,18 @@ var hitOptions = {
 };
 
 window.onload = function () {
-  'use strict';
+  //'use strict';
   paper.install(window);
+
   paper.setup(document.getElementById('canvas-2D'));
-  myWidth = window.innerWidth * 0.65;
-  myHeight = window.innerHeight * 0.9;
+
+  myWidth = window.innerWidth;
+  myHeight = window.innerHeight;
+
   paper.view.viewSize = new Size(myWidth, myHeight);
+
+  x_scaleFactor = (myWidth / 127);
+  y_scaleFactor = (myHeight / 127);
 
   var tool = new paper.Tool();
   tool.activate();
@@ -129,6 +138,14 @@ window.onload = function () {
     }
     else if (currentMode === 'playMode') {
       //
+    }
+  }
+
+  //////////////////////////////////// TODO
+  tool.onKeyDown = function (event) {
+    //console.log(event.key);
+    if (Key.isDown('backspace')) {
+      selectItem.remove();
     }
   }
 
@@ -214,12 +231,14 @@ window.onload = function () {
 
     if (shapeMode === 'trigger') {
       var e256_trigger = new Path.Rectangle(triggerOptions);
+      layerTrigger.position = event.point;
       layerTrigger.activate();
       project.activeLayer.addChild(e256_trigger);
       activeLayer = project.activeLayer;
     }
     else if (shapeMode === 'toggel') {
       var e256_toggel = new Path.Rectangle(toggelOptions);
+      e256_toggel.position = event.point;
       layerToggel.activate();
       project.activeLayer.addChild(e256_toggel);
       activeLayer = project.activeLayer;
@@ -267,11 +286,26 @@ function onBlobDown() {
 function onBlobUpdate(event) {
   let blob = new Blob;
   blob = e256_blobs.get(event);
-  let pos = new Point(blob.x * 4, blob.y * 4);
+  let pos = new Point(blob.x * x_scaleFactor, blob.y * y_scaleFactor);
   blobTouch[event].position = pos;
   //blobTouch[event].radius = blob.z; // FIXME!
-  blobPath[event].add(pos);
-  //blobPath[event].path.smooth({ type: 'catmull-rom', factor: 0.1 }); // http://paperjs.org/reference/path/#smooth
+  //blobPath[event].add(pos);
+
+  //blobPathSmooth[event].add(pos);
+  //blobPathSmooth[event].smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15
+
+  //blobPathSmooth[] = blobPath[event].lastSegment.clone();
+  //console.log("SEGMENT: " + copy.point.x);
+
+
+
+  //copy.segments[0].position.x += 10;
+  //copy.segments[0].position.y += 10;
+  //copy.segments[1].position.x += 10;
+  //copy.segments[1].position.y += 10;
+  //blobPath[event].fullySelected = true;
+  //blobPath[event].smooth({ type: 'continuous' }); // http://paperjs.org/reference/path/#smooth
+  //blobPath[event].fullySelected = false;
 }
 
 function onBlobRelease(event) {
@@ -283,24 +317,8 @@ function onBlobRelease(event) {
 
 function modeSelector(event) {
   currentMode = event.target.id;
-  //console.log("CURENT_MODE: " + currentMode)
 }
 
 function toolSelector(event) {
   shapeMode = event.target.id;
-  //console.log("CURENT_SHAPE_MODE: " + shapeMode)
 }
-
-
-
-//////////////////////////////////// TODO
-//onKeyDown(delate)
-//project.activeLayer.children[itemName].remove();
-
-/*
- if (event.modifiers.shift) {
-   if (hitResult.type == 'segment') {
-     hitResult.segment.remove();
-   }
-   return;
- */

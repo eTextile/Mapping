@@ -158,7 +158,6 @@ Blob.prototype.update = function (sysExMsg) {
   this.z = sysExMsg[4];
   this.w = sysExMsg[5];
   this.h = sysExMsg[6];
-  //console.log("BLOB_UPDATE: " + sysExMsg[1]);
 }
 
 Blob.prototype.print = function () {
