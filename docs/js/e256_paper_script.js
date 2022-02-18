@@ -151,10 +151,12 @@ window.onload = function () {
 
   function updateTrigger(event) {
     // Same as updateSlider
+    updateSlider(event);
   }
 
   function updateToggel(event) {
     // Same as updateSlider
+    updateSlider(event);
   }
 
   function updateSlider(event) {
@@ -229,28 +231,28 @@ window.onload = function () {
   // TODO: create the shapes using the mouse point (event.point)
   function drawShape(event) {
 
-    if (shapeMode === 'trigger') {
+    if (shapeMode === 'Trigger') {
       var e256_trigger = new Path.Rectangle(triggerOptions);
       layerTrigger.position = event.point;
       layerTrigger.activate();
       project.activeLayer.addChild(e256_trigger);
       activeLayer = project.activeLayer;
     }
-    else if (shapeMode === 'toggel') {
+    else if (shapeMode === 'Toggel') {
       var e256_toggel = new Path.Rectangle(toggelOptions);
       e256_toggel.position = event.point;
       layerToggel.activate();
       project.activeLayer.addChild(e256_toggel);
       activeLayer = project.activeLayer;
     }
-    else if (shapeMode === 'slider') {
+    else if (shapeMode === 'Slider') {
       var e256_slider = new Path.Rectangle(sliderOptions);
       e256_slider.position = event.point;
       layerSlider.activate();
       project.activeLayer.addChild(e256_slider);
       activeLayer = project.activeLayer;
     }
-    else if (shapeMode === 'knob') {
+    else if (shapeMode === 'Knob') {
       var e256_knob = new Path.Circle(knobOptions);
       e256_knob.fillColor = Color.random();
       e256_knob.position = event.point;

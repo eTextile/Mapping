@@ -69,14 +69,12 @@ let playMode = null;
 var fileType = "";
 var config = "";
 
-async function MIDIConnect(event) {
-  if (event.target.checked) {
-    if (navigator.requestMIDIAccess) {
-      navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
-    } else {
-      alert("No MIDI support in your browser!");
-      connect.checked = false;
-    }
+async function MIDIConnect() {
+  if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
+  } else {
+    alert("No MIDI support in your browser!");
+    connect.checked = false;
   }
 }
 
@@ -308,7 +306,7 @@ function sysex_load(data) {
 
 function sendParams(event) {
   switch (event.target.id) {
-    case 'calibrate':
+    case 'Calibrate':
       programChange(CALIBRATE, 2);
       break;
     case 'matrixMode':

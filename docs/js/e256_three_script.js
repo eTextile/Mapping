@@ -49,11 +49,11 @@ function init() {
   const sizeX = 26;
   const sizeY = 26;
 
-  const X_offset = sizeX / 2;
-  const Y_offset = sizeY / 2;
+  const X_offset = (sizeX / 2);
+  const Y_offset = (sizeY / 2);
   
-  const segmentSizeX = sizeX / RAW_COLS;
-  const segmentSizeY = sizeY / RAW_ROWS;
+  const segmentSizeX = (sizeX / RAW_COLS);
+  const segmentSizeY = (sizeY / RAW_ROWS);
 
   // RAW_FRAME = RAW_ROWS * RAW_COLS (16 * 16)
   for (var i = 0; i < RAW_ROWS; i++) {
