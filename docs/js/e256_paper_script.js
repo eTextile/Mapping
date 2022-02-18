@@ -76,7 +76,7 @@ window.onload = function () {
   'use strict';
   paper.install(window);
   paper.setup(document.getElementById('canvas-2D'));
-  myWidth = window.innerWidth;
+  myWidth = window.innerWidth * 0.65;
   myHeight = window.innerHeight * 0.9;
   paper.view.viewSize = new Size(myWidth, myHeight);
 

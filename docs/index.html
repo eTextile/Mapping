@@ -43,11 +43,11 @@
         </p>
 
         <div id="startMenu" class="collapse">
-          <button id="calibrate" class="sendMidi btn btn-outline-secondary btn-sm input-group"
+          <button id="calibrate" class="sendMidi btn btn-outline-primary btn-sm input-group shadow-none"
             type="button">CALIBRATE</button>
-          <div class="btn-group input-group" role="group">
-            <button id="matrixMode" class="sendMidi btn btn-primary btn-sm" type="button">MATRIX</button>
-            <button id="mappingMode" class="sendMidi btn btn-primary btn-sm" type="button">MAPPING</button>
+          <div class="btn-group btn-group-sm input-group" role="group">
+            <button id="matrixMode" class="sendMidi btn btn-outline-primary shadow-none" type="button">MATRIX</button>
+            <button id="mappingMode" class="sendMidi btn btn-outline-primary shadow-none" type="button">MAPPING</button>
           </div>
         </div>
 
@@ -57,17 +57,17 @@
 
         <div id="mappingMenu" class="collapse w-100">
 
-          <div class="btn-group btn-group-sm input-group" role="group">
-            <button id="editMode" class="sendMidi btn btn-outline-secondary" type="button">EDIT</button>
-            <button id="playMode" class="sendMidi btn btn-outline-secondary" type="button">PLAY</button>
+          <div class="btn-group btn-group-sm input-group shadow-none" role="group">
+            <button id="editMode" class="sendMidi btn btn-outline-primary shadow-none" type="button">EDIT</button>
+            <button id="playMode" class="sendMidi btn btn-outline-primary shadow-none" type="button">PLAY</button>
           </div>
 
           <div id="mappingEditMode" class="collapse">
 
-            <div class="btn-group btn-group-sm input-group" role="group">
-              <button id="getConfigDoc" class="btn btn-outline-secondary btn-sm" type="button">CONFIG</button>
-              <button id="getConfig" class="sendMidi btn btn-outline-secondary" type="button">GET</button>
-              <button id="setConfig" class="sendMidi btn btn-outline-secondary" type="button">SET</button>
+            <div class="btn-group btn-group-sm input-group btn-group-sm" role="group">
+              <button id="getConfigDoc" class="btn btn-outline-primary shadow-none" type="button">CONFIG</button>
+              <button id="getConfig" class="sendMidi btn btn-outline-primary shadow-none" type="button">GET</button>
+              <button id="setConfig" class="sendMidi btn btn-outline-primary shadow-none" type="button">SET</button>
             </div>
 
             <div id="fileLoaderMenu">
@@ -109,18 +109,19 @@
       </section>
 
       <section id="page" class="col-sm-8">
+
         <body>
 
           <script type="text/javascript" src="./js/e256_paper_script.js" canvas="canvas-2D"></script>
           <div id="mappingCanvas" class="collapse">
-            <canvas id="canvas-2D" ></canvas>
+            <canvas id="canvas-2D"></canvas>
           </div>
 
-          <script type="module" src="./js/e256_three_script.js"></script>          
+          <script type="module" src="./js/e256_three_script.js"></script>
           <div id="matrixCanvas" class="collapse">
             <div id="canvas-3D"></div>
           </div>
-          
+
         </body>
       </section>
 
@@ -147,6 +148,10 @@
         }
       }
     );
+
+    $(".btn-group > .btn").click(function () {
+      $(this).addClass("active").siblings().removeClass("active");
+    });
 
     $('#matrixMode').on("click", function () {
       $('#mappingMenu').collapse('hide');
@@ -183,7 +188,7 @@
     $(".mapingTool").click(function () {
       toolSelector(event);
     });
-    
+
   </script>
 
 </body>
