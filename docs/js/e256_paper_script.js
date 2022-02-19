@@ -65,8 +65,8 @@ var sliderOptions = {
   "data": {
     "channel": 1,
     "cChange": 32,
-    "minVal": 0,
-    "maxVal": 127
+    "min": 0,
+    "max": 127
   }
 }
 
@@ -82,9 +82,11 @@ var knobOptions = {
   "data": {
     "channel": 1,
     "cChangeTeta": 32,
+    "min_t": 0,
+    "max_t": 127,   
     "cChangeRadius": 33,
-    "minVal": 0,
-    "maxVal": 127
+    "min_r": 0,
+    "max_r": 127
   }
 }
 
@@ -167,62 +169,82 @@ window.onload = function () {
 
     switch (item.name) {
       case "Trigger":
-        $('#summary_content').html("Trigger: " + item.id);
         $("#paramField-0").collapse("show");
-        $("#paramId-0").html("Chan");
-        $("#param-0").val(item.data.channel);
+        $("#paramId-0").html(item.name);
+        $("#param-0").val(item.id);
         $("#paramField-1").collapse("show");
-        $("#paramId-1").html("Note");
-        $("#param1").val(item.data.note);
-        $("#paramField-2").collapse("hide");
+        $("#paramId-1").html("Chan");
+        $("#param-1").val(item.data.channel);
+        $("#paramField-2").collapse("show");
+        $("#paramId-2").html("Note");
+        $("#param-2").val(item.data.note);
         $("#paramField-3").collapse("hide");
         $("#paramField-4").collapse("hide");
+        $("#paramField-5").collapse("hide");
+        $("#paramField-6").collapse("hide");
+        $("#paramField-7").collapse("hide");
         break;
       case "Toggel":
-        $('#summary_content').html("Toggel: " + item.id);
         $("#paramField-0").collapse("show");
-        $("#paramId-0").html("Chan");
-        $("#param-0").val(item.data.channel);
+        $("#paramId-0").html(item.name);
+        $("#param-0").val(item.id);
         $("#paramField-1").collapse("show");
-        $("#paramId-1").html("Note");
-        $("#param-1").val(item.data.note);
-        $("#paramField-2").collapse("hide");
+        $("#paramId-1").html("Chan");
+        $("#param-1").val(item.data.channel);
+        $("#paramField-2").collapse("show");
+        $("#paramId-2").html("Note");
+        $("#param-2").val(item.data.note);
         $("#paramField-3").collapse("hide");
         $("#paramField-4").collapse("hide");
+        $("#paramField-5").collapse("hide");
+        $("#paramField-6").collapse("hide");
+        $("#paramField-7").collapse("hide");
         break;
       case "Slider":
-        $('#summary_content').html("Slider: " + item.id);
         $("#paramField-0").collapse("show");
-        $("#paramId-0").html("Chan");
-        $("#param-0").val(item.data.channel);
+        $("#paramId-0").html(item.name);
+        $("#param-0").val(item.id);
         $("#paramField-1").collapse("show");
-        $("#paramId-1").html("cChange");
-        $("#param-1").val(item.data.cChange);
+        $("#paramId-1").html("Chan");
+        $("#param-1").val(item.data.channel);
         $("#paramField-2").collapse("show");
-        $("#paramId-2").html("minVal");
-        $("#param-2").val(item.data.minVal);
+        $("#paramId-2").html("cChange");
+        $("#param-2").val(item.data.cChange);
         $("#paramField-3").collapse("show");
-        $("#paramId-3").html("maxVal");
-        $("#param-3").val(item.data.maxVal);
-        $("#paramField-4").collapse("hide");
+        $("#paramId-3").html("min");
+        $("#param-3").val(item.data.min);
+        $("#paramField-4").collapse("show");
+        $("#paramId-4").html("max");
+        $("#param-4").val(item.data.max);
+        $("#paramField-5").collapse("hide");
+        $("#paramField-6").collapse("hide");
+        $("#paramField-7").collapse("hide");
         break;
       case "Knob":
-        $('#summary_content').html("Knob: " + item.id);
         $("#paramField-0").collapse("show");
-        $("#paramId-0").html("Chan");
-        $("#param-0").val(item.data.channel);
+        $("#paramId-0").html(item.name);
+        $("#param-0").val(item.id);
         $("#paramField-1").collapse("show");
-        $("#paramId-1").html("CC-teta");
-        $("#param-1").val(item.data.cChangeTeta);
+        $("#paramId-1").html("Chan");
+        $("#param-1").val(item.data.channel);
         $("#paramField-2").collapse("show");
-        $("#paramId-2").html("CC-radius");
-        $("#param-2").val(item.data.cChangeRadius);
+        $("#paramId-2").html("CC-teta");
+        $("#param-2").val(item.data.cChangeTeta);
         $("#paramField-3").collapse("show");
-        $("#paramId-3").html("minVal");
-        $("#param-3").val(item.data.minVal);
+        $("#paramId-3").html("min");
+        $("#param-3").val(item.data.min_t);
         $("#paramField-4").collapse("show");
-        $("#paramId-4").html("maxVal");
-        $("#param-4").val(item.data.maxVal);
+        $("#paramId-4").html("max");
+        $("#param-4").val(item.data.max_t);
+        $("#paramField-5").collapse("show");
+        $("#paramId-5").html("CC-radius");
+        $("#param-5").val(item.data.cChangeRadius);
+        $("#paramField-6").collapse("show");
+        $("#paramId-6").html("min");
+        $("#param-6").val(item.data.min_r);
+        $("#paramField-7").collapse("show");
+        $("#paramId-7").html("max");
+        $("#param-7").val(item.data.max_r);
         break;
     }
   }

@@ -115,7 +115,7 @@
       </section>
 
       <!--///////////////////////////////////////////////////////////////////////-->
-      <section id="page" class="col-sm-7">
+      <section id="page" class="col-sm-8">
 
         <body>
           <div id="mappingCanvas" class="collapse">
@@ -131,7 +131,7 @@
       </section>
 
       <!--///////////////////////////////////////////////////////////////////////-->
-      <section class="col-sm-3 sidenav">
+      <section class="col-sm-2 sidenav">
         <div class="card" style="width: 100%">
           <div class="card-body">
             <h5 id="summary_title" class="card-title">eTextile - Synthesizer</h5>
@@ -181,8 +181,31 @@
                 <input id="param-4" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-4">
               </div>
             </div>
-          </div>
 
+            <div id="paramField-5" class="params collapse">
+              <div class="input-group">
+                <span id="paramId-5" class="input-group-text"></span>
+                <button class="btn btn-outline-secondary" type="button">set</button>
+                <input id="param-5" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-5">
+              </div>
+            </div>
+
+            <div id="paramField-6" class="params collapse">
+              <div class="input-group">
+                <span id="paramId-6" class="input-group-text"></span>
+                <button class="btn btn-outline-secondary" type="button">set</button>
+                <input id="param-6" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-6">
+              </div>
+            </div>
+
+            <div id="paramField-7" class="params collapse">
+              <div class="input-group">
+                <span id="paramId-7" class="input-group-text"></span>
+                <button class="btn btn-outline-secondary" type="button">set</button>
+                <input id="param-7" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-7">
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -269,7 +292,6 @@
 
     $(".mapingTool").click(function () {
       $('.params').collapse('hide');
-      $('#summary_content').html(event.target.id);
       toolSelector(event.target.id);
     });
   </script>
