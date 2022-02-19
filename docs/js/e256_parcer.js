@@ -92,7 +92,12 @@ function onMIDISuccess(midiAccess) {
       MIDIIoutput = entry;
     }
   }
-  if (!connected) connect.checked = false;
+  if (!connected){
+    connect.checked = false;
+    $('#summary_action').html("Connected!").removeClass("text-danger").addClass("text-success");
+  } else {
+    $('#summary_action').html("Connected!").removeClass("text-danger").addClass("text-success");
+  }
 }
 
 function onMIDIFailure(error) {
@@ -305,7 +310,7 @@ function sysex_load(data) {
 }
 
 function sendParams(event) {
-  switch (event.target.id) {
+  switch (event) {
     case 'Calibrate':
       programChange(CALIBRATE, 2);
       break;

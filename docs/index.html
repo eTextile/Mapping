@@ -23,6 +23,7 @@
       }
     }
     </script>
+  <script type="text/javascript" src="./js/e256_paper_script.js" canvas="canvas-2D"></script>
 </head>
 
 <body>
@@ -31,23 +32,24 @@
 
     <div class="row content">
 
+      <!--///////////////////////////////////////////////////////////////////////-->
       <section id="sidenav" class="col-sm-2 sidenav">
+        <div>
+          <p>
+            <a class="navbar-brand fs-4" href="http://mapping.etextile.org/">Mapping-app</a>
 
-        <a class="navbar-brand fs-4" href="http://mapping.etextile.org/">Mapping-app</a>
-
-        <p>
-        <div class="form-check form-switch">
-          <input id="connect" class="sendMidi form-check-input" type="checkbox" role="button" />
-          <label class="form-check-label" for="connect">CONNECT</label>
+          <div class="form-check form-switch">
+            <input id="connect" class="form-check-input" type="checkbox" role="button" />
+          </div>
         </div>
         </p>
 
         <div id="startMenu" class="collapse">
-          <button id="Calibrate" class="sendMidi btn btn-outline-primary btn-sm input-group shadow-none"
+          <button id="Calibrate" class="sendMidi btn btn-outline-primary btn-sm input-group"
             type="button">CALIBRATE</button>
           <div class="btn-group btn-group-sm input-group" role="group">
-            <button id="matrixMode" class="sendMidi btn btn-outline-primary shadow-none" type="button">MATRIX</button>
-            <button id="mappingMode" class="sendMidi btn btn-outline-primary shadow-none" type="button">MAPPING</button>
+            <button id="matrixMode" class="sendMidi btn btn-outline-primary" type="button">MATRIX</button>
+            <button id="mappingMode" class="sendMidi btn btn-outline-primary" type="button">MAPPING</button>
           </div>
         </div>
 
@@ -58,16 +60,16 @@
         <div id="mappingMenu" class="collapse w-100">
 
           <div class="btn-group btn-group-sm input-group" role="group">
-            <button id="editMode" class="sendMidi btn btn-outline-primary shadow-none" type="button">EDIT</button>
-            <button id="playMode" class="sendMidi btn btn-outline-primary shadow-none" type="button">PLAY</button>
+            <button id="editMode" class="sendMidi btn btn-outline-primary" type="button">EDIT</button>
+            <button id="playMode" class="sendMidi btn btn-outline-primary" type="button">PLAY</button>
           </div>
 
           <div id="mappingEditMode" class="collapse">
 
             <div class="btn-group btn-group-sm input-group" role="group">
-              <button id="getConfigDoc" class="btn btn-outline-primary shadow-none" type="button">CONFIG</button>
-              <button id="getConfig" class="sendMidi btn btn-outline-primary shadow-none" type="button">GET</button>
-              <button id="setConfig" class="sendMidi btn btn-outline-primary shadow-none" type="button">SET</button>
+              <button id="getConfigDoc" class="btn btn-outline-primary" type="button">CONFIG</button>
+              <button id="getConfig" class="sendMidi btn btn-outline-primary" type="button">GET</button>
+              <button id="setConfig" class="sendMidi btn btn-outline-primary" type="button">SET</button>
             </div>
 
             <div id="fileLoaderMenu">
@@ -95,6 +97,10 @@
                   <label class="form-check-label" for="knob">Knob</label>
                 </div>
                 </form>
+                <div>
+                  <input type="color" id="head" name="head" value="#e66465">
+                  <label for="head">Head</label>
+                </div>
               </div>
 
             </div>
@@ -108,11 +114,10 @@
 
       </section>
 
-      <section id="page" class="col-sm-8">
+      <!--///////////////////////////////////////////////////////////////////////-->
+      <section id="page" class="col-sm-7">
 
         <body>
-
-          <script type="text/javascript" src="./js/e256_paper_script.js" canvas="canvas-2D"></script>
           <div id="mappingCanvas" class="collapse">
             <canvas id="canvas-2D"></canvas>
           </div>
@@ -125,31 +130,84 @@
         </body>
       </section>
 
-      <section class="col-sm-2 sidenav">
-        <div class="card" style="width: 100%;">
+      <!--///////////////////////////////////////////////////////////////////////-->
+      <section class="col-sm-3 sidenav">
+        <div class="card" style="width: 100%">
           <div class="card-body">
-            <h5 id="summary_title" class="card-title">Card title</h5>
-            <p id="summary_content" class="card-text"></p>
+            <h5 id="summary_title" class="card-title">eTextile - Synthesizer</h5>
+            <p>
+              <li id="summary_action" class="text list-group-item list-group-item-secondary text-danger">
+                Disconnected!
+              </li>
+            </p>
+            <p id="summary_content" class="text card-text">
+              This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer!
+            </p>
           </div>
+
+          <div>
+            <div id="paramField-0" class="params collapse">
+              <div class="input-group sm-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text input-group-sm" id="paramId-0"></span>
+                </div>
+                <input id="param-0" type="text" class="form-control form-control-sm" aria-describedby="paramId-0">
+              </div>
+            </div>
+
+            <div id="paramField-1" class="params collapse">
+              <div class="input-group sm-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text input-group-sm" id="paramId-1"></span>
+                </div>
+                <input id="param-1" type="text" class="form-control form-control-sm" aria-describedby="paramId-1">
+              </div>
+            </div>
+
+            <div id="paramField-2" class="params collapse">
+              <div class="input-group sm-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text input-group-sm" id="paramId-2"></span>
+                </div>
+                <input id="param-2" type="text" class="form-control form-control-sm" aria-describedby="paramId-2">
+              </div>
+            </div>
+
+            <div id="paramField-3" class="params collapse">
+              <div class="input-group sm-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text input-group-sm" id="paramId-3"></span>
+                </div>
+                <input id="param-3" type="text" class="form-control form-control-sm" aria-describedby="paramId-3">
+              </div>
+            </div>
+
+            <div id="paramField-4" class="params collapse">
+              <div class="input-group sm-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text input-group-sm" id="paramId-4"></span>
+                </div>
+                <input id="param-4" type="text" class="form-control form-control-sm" aria-describedby="paramId-4">
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
     </div>
   </div>
 
-  <footer class="col-12">Electronic textile interfaces - Creative use of technologies</footer>
+  <!--///////////////////////////////////////////////////////////////////////-->
+  <footer class="col-12">Electronic textile interfaces - Creative use of technologies - <a
+      href="https://etextile.org/">www.eTextie.org</a></footer>
+
 
   <script type="text/javascript">
-
-    $('#summary_title').html("Hello Hello");
-    $('#summary_content').html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer!");
-    
     $('#connect').change(
       function () {
         if ($(this).is(':checked')) {
           $('#startMenu').collapse('show');
-          $('#summary_title').html("eTextile-Synthesizer");
-          $('#summary_content').html("connection succeed!");
           MIDIConnect();
         } else {
           $('#startMenu').collapse('hide');
@@ -157,17 +215,19 @@
           $('#mappingMenu').collapse('hide');
           $('#matrixCanvas').collapse('hide');
           $('#mappingCanvas').collapse('hide');
-          $('#summary_title').html("Hello Hello");
+          $('#summary_action').html("Disconnected!").removeClass('text-success').addClass("text-danger");
           $('#summary_content').html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer!");
+          $('.params').collapse('hide');
         }
       }
     );
 
     $('#Calibrate').on("click", function () {
-      $('#summary_title').html(event.target.id);
-      $('#summary_content').html("DONE!");
+      $('#summary_action').html("Calibrate DONE!").removeClass('text-danger').addClass("text-success");
     });
 
+    $('.btn').addClass("shadow-none");
+    $('.form-control').addClass("shadow-none");
     $(".btn-group > .btn").click(function () {
       $(this).addClass("active").siblings().removeClass("active");
     });
@@ -177,8 +237,8 @@
       $('#mappingCanvas').collapse('hide');
       $('#matrixMenu').collapse('show');
       $('#matrixCanvas').collapse('show');
-      $('#summary_title').html("3D Graphic visualisation");
-      $('#summary_content').html("The Textile-Synthesizer is a 16 by 16 piezoresistive sensor matrix. This 3D representation is made to check all the Textile pressure sensors!");
+      $('#summary_action').html("3D graphic - visualisation").addClass("text-success");
+      $('#summary_content').html("This 3D visualisation is made to check all the eTextile piezoresistive pressure sensors of the matrix");
     });
 
     $('#mappingMode').on("click", function () {
@@ -186,32 +246,36 @@
       $('#matrixCanvas').collapse('hide');
       $('#mappingMenu').collapse('show');
       $('#mappingCanvas').collapse('show');
-      $('#summary_title').html("2D mapping app");
-      $('#summary_content').html('This 2D graphic user interface is made to draw your own eTextile custom interfaces! <br><strong>EDIT</strong> to add new components, <br><strong>PLAY</strong> to evaluate what you have made');
+      $('#summary_action').html("2D mapping app").addClass("text-success");
+      $('#summary_content').html('This 2D graphic user interface is made to draw your own eTextile custom interfaces!');
     });
 
     $('#editMode').on("click", function () {
       $('#mappingPlayMode').collapse('hide');
       $('#mappingEditMode').collapse('show');
-      modeSelector(event);
+      modeSelector(event.target.id);
+      $('#summary_action').html("EDIT-MODE").removeClass("text-success").addClass("text-danger");
+      $('#summary_content').html('Add new components');
     });
 
     $('#playMode').on("click", function () {
       $('#mappingEditMode').collapse('hide');
       $('#mappingPlayMode').collapse('show');
-      modeSelector(event);
+      $('.params').collapse('hide');
+      modeSelector(event.target.id);
+      $('#summary_action').html("PLAY-MODE").removeClass("text-danger").addClass("text-success");
+      $('#summary_content').html('Evaluate what you have made');
     });
 
     $(".sendMidi").click(function () {
-      sendParams(event);
+      sendParams(event.target.id);
     });
 
     $(".mapingTool").click(function () {
-      toolSelector(event);
-      $('#summary_title').html(event.target.id + " property");
-      $('#summary_content').html("TODO");
+      $('.params').collapse('hide');
+      $('#summary_content').html(event.target.id);
+      toolSelector(event.target.id);
     });
-
   </script>
 
 </body>

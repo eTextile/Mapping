@@ -13,7 +13,7 @@ var myHeight;
 var x_scaleFactor;
 var y_scaleFactor;
 
-let selectItem;
+let selectItem = {};
 let selectPath;
 let selectSegment;
 let activeLayer;
@@ -30,53 +30,73 @@ var layerKnob;
 
 var shapeMode;
 
-var toggelOptions = {
-}
 var triggerOptions = {
+  "name": "Trigger",
+  "from": [50, 50],
+  "to": [100, 100],
+  "strokeColor": "lightblue",
+  "fillColor": "red",
+  "data": {
+    "channel": 1,
+    "note": 1
+  }
 }
 
-// SHAPES DEFAULT PARAMS
+var toggelOptions = {
+  "name": "Toggel",
+  "from": [50, 50],
+  "to": [100, 100],
+  "strokeColor": "lightblue",
+  "fillColor": "black",
+  "data": {
+    "channel": 1,
+    "note": 1
+  }
+}
+
 var sliderOptions = {
-  from: [50, 50],
-  to: [100, 200],
-  strokeColor: 'lightblue',
-  fillColor: 'yellow',
-  /*
-  fillColor: {
-    gradient: {
-        stops: ['yellow', 'blue']
-    }
-  },
-  */
-  strokeWidth: 10,
-  selected: false,
-};
+  "name": "Slider",
+  "from": [50, 50],
+  "to": [100, 300],
+  "strokeColor": "lightblue",
+  "fillColor": "yellow",
+  "strokeWidth": 10,
+  "selected": false,
+  "data": {
+    "channel": 1,
+    "cChange": 32,
+    "minVal": 0,
+    "maxVal": 127
+  }
+}
 
 var knobOptions = {
-  center: [100, 100],
-  radius: [50, 50],
-  strokeColor: 'lightblue',
-  fillColor: 'blue',
-  /*
-  fillColor: {
-    gradient: {
-        stops: ['yellow', 'blue']
-    }
-  },
-  */
-  strokeWidth: 10,
-  selected: false,
-};
+  "name": "Knob",
+  "center": [100, 100],
+  "radius": [50, 50],
+  "strokeColor": "lightblue",
+  "fillColor": "blue",
+  "opacity": 0.5,
+  "strokeWidth": 10,
+  "selected": false,
+  "data": {
+    "channel": 1,
+    "cChangeTeta": 32,
+    "cChangeRadius": 33,
+    "minVal": 0,
+    "maxVal": 127
+  }
+}
 
 var hitOptions = {
-  segments: true,
-  stroke: true,
-  fill: true,
-  tolerance: 2
-};
+  "segments": true,
+  "stroke": true,
+  "fill": true,
+  "tolerance": 2
+}
 
 window.onload = function () {
-  //'use strict';
+  'use strict';
   paper.install(window);
 
   paper.setup(document.getElementById('canvas-2D'));
@@ -98,7 +118,6 @@ window.onload = function () {
   layerSlider = new Layer();
   layerKnob = new Layer();
 
-  // MOUSE_OVER
   tool.onMouseMove = function (event) {
     project.activeLayer.selected = false;
     if (event.item) {
@@ -117,18 +136,18 @@ window.onload = function () {
         selectItem = hitResult.item;
         activeLayer = hitResult.item.layer;
         project.layers[activeLayer.index].activate();
+        selectPath = hitResult.type;
+        updateParams(selectItem);
         switch (hitResult.type) {
           case 'stroke':
             translate = false;
-            selectPath = hitResult.type;
             selectSegment = hitResult.location.index;
             break;
           case 'fill':
-            selectPath = hitResult.type;
             translate = true;
             break;
           case 'segment':
-            selectPath = hitResult.type;
+            //
             break;
           default:
             // NA
@@ -141,11 +160,80 @@ window.onload = function () {
     }
   }
 
+  function updateParams(item) {
+    //$('#summary_content').html(selectItem.name);
+    //$("#param0").value("X: " + Math.round(selectItem.position.x));
+    //$("#param1").value("Y: " + Math.round(selectItem.position.y));
+
+    switch (item.name) {
+      case "Trigger":
+        $('#summary_content').html("Trigger: " + item.id);
+        $("#paramField-0").collapse("show");
+        $("#paramId-0").html("Chan");
+        $("#param-0").val(item.data.channel);
+        $("#paramField-1").collapse("show");
+        $("#paramId-1").html("Note");
+        $("#param1").value(item.data.note);
+        $("#paramField-2").collapse("hide");
+        $("#paramField-3").collapse("hide");
+        $("#paramField-4").collapse("hide");
+        break;
+      case "Toggel":
+        $('#summary_content').html("Toggel: " + item.id);
+        $("#paramField-0").collapse("show");
+        $("#paramId-0").html("Chan");
+        $("#param-0").val(item.data.channel);
+        $("#paramField-1").collapse("show");
+        $("#paramId-1").html("Note");
+        $("#param-1").val(item.data.note);
+        $("#paramField-2").collapse("hide");
+        $("#paramField-3").collapse("hide");
+        $("#paramField-4").collapse("hide");
+        break;
+      case "Slider":
+        $('#summary_content').html("Slider: " + item.id);
+        $("#paramField-0").collapse("show");
+        $("#paramId-0").html("Chan");
+        $("#param-0").val(item.data.channel);
+        $("#paramField-1").collapse("show");
+        $("#paramId-1").html("cChange");
+        $("#param-1").val(item.data.cChange);
+        $("#paramField-2").collapse("show");
+        $("#paramId-2").html("minVal");
+        $("#param-2").val(item.data.minVal);
+        $("#paramField-3").collapse("show");
+        $("#paramId-3").html("maxVal");
+        $("#param-3").val(item.data.maxVal);
+        $("#paramField-4").collapse("hide");
+        break;
+      case "Knob":
+        $('#summary_content').html("Knob: " + item.id);
+        $("#paramField-0").collapse("show");
+        $("#paramId-0").html("Chan");
+        $("#param-0").val(item.data.channel);
+        $("#paramField-1").collapse("show");
+        $("#paramId-1").html("CC-teta");
+        $("#param-1").val(item.data.cChangeTeta);
+        $("#paramField-2").collapse("show");
+        $("#paramId-2").html("CC-radius");
+        $("#param-2").val(item.data.cChangeRadius);
+        $("#paramField-3").collapse("show");
+        $("#paramId-3").html("minVal");
+        $("#param-3").val(item.data.minVal);
+        $("#paramField-4").collapse("show");
+        $("#paramId-4").html("maxVal");
+        $("#param-4").val(item.data.maxVal);
+        break;
+    }
+  }
+
   //////////////////////////////////// TODO
   tool.onKeyDown = function (event) {
     //console.log(event.key);
-    if (Key.isDown('backspace')) {
-      selectItem.remove();
+    if (event.modifiers.shift) {
+      if (Key.isDown('backspace')) {
+        selectItem.remove();
+      }
     }
   }
 
@@ -230,7 +318,6 @@ window.onload = function () {
   ////////////// ADD_CONTROL_GUI
   // TODO: create the shapes using the mouse point (event.point)
   function drawShape(event) {
-
     if (shapeMode === 'Trigger') {
       var e256_trigger = new Path.Rectangle(triggerOptions);
       layerTrigger.position = event.point;
@@ -243,7 +330,7 @@ window.onload = function () {
       e256_toggel.position = event.point;
       layerToggel.activate();
       project.activeLayer.addChild(e256_toggel);
-      activeLayer = project.activeLayer;
+      activeLayer = project.activeLayer; sendParamssendParams
     }
     else if (shapeMode === 'Slider') {
       var e256_slider = new Path.Rectangle(sliderOptions);
@@ -291,23 +378,9 @@ function onBlobUpdate(event) {
   let pos = new Point(blob.x * x_scaleFactor, blob.y * y_scaleFactor);
   blobTouch[event].position = pos;
   //blobTouch[event].radius = blob.z; // FIXME!
-  //blobPath[event].add(pos);
-
-  //blobPathSmooth[event].add(pos);
+  blobPath[event].add(pos);
   //blobPathSmooth[event].smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15
-
-  //blobPathSmooth[] = blobPath[event].lastSegment.clone();
-  //console.log("SEGMENT: " + copy.point.x);
-
-
-
-  //copy.segments[0].position.x += 10;
-  //copy.segments[0].position.y += 10;
-  //copy.segments[1].position.x += 10;
-  //copy.segments[1].position.y += 10;
-  //blobPath[event].fullySelected = true;
   //blobPath[event].smooth({ type: 'continuous' }); // http://paperjs.org/reference/path/#smooth
-  //blobPath[event].fullySelected = false;
 }
 
 function onBlobRelease(event) {
@@ -318,9 +391,9 @@ function onBlobRelease(event) {
 }
 
 function modeSelector(event) {
-  currentMode = event.target.id;
+  currentMode = event;
 }
 
 function toolSelector(event) {
-  shapeMode = event.target.id;
+  shapeMode = event;
 }
