@@ -162,8 +162,8 @@ window.onload = function () {
 
   function updateParams(item) {
     //$('#summary_content').html(selectItem.name);
-    //$("#param0").value("X: " + Math.round(selectItem.position.x));
-    //$("#param1").value("Y: " + Math.round(selectItem.position.y));
+    //$("#param0").val("X: " + Math.round(selectItem.position.x));
+    //$("#param1").val("Y: " + Math.round(selectItem.position.y));
 
     switch (item.name) {
       case "Trigger":
@@ -173,7 +173,7 @@ window.onload = function () {
         $("#param-0").val(item.data.channel);
         $("#paramField-1").collapse("show");
         $("#paramId-1").html("Note");
-        $("#param1").value(item.data.note);
+        $("#param1").val(item.data.note);
         $("#paramField-2").collapse("hide");
         $("#paramField-3").collapse("hide");
         $("#paramField-4").collapse("hide");
