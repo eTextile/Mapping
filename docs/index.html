@@ -78,31 +78,12 @@
             </div>
 
             <div id="mappingToolsMenu">
-
-              <div class="card card-body">
-                <div class="form-check">
-                  <input type="radio" class="mapingTool form-check-input" name="tool" value="toggle" id="Toggle">
-                  <label class="form-check-label" for="toggle">Toggel</label>
-                </div>
-                <div class="form-check">
-                  <input type="radio" class="mapingTool form-check-input" name="tool" value="trigger" id="Trigger">
-                  <label class="form-check-label" for="trigger">Trigger</label>
-                </div>
-                <div class="form-check">
-                  <input type="radio" class="mapingTool form-check-input" name="tool" value="slider" id="Slider">
-                  <label class="form-check-label" for="slider">Slider</label>
-                </div>
-                <div class="form-check">
-                  <input type="radio" class="mapingTool form-check-input" name="tool" value="knob" id="Knob">
-                  <label class="form-check-label" for="knob">Knob</label>
-                </div>
-                </form>
-                <div>
-                  <input type="color" id="head" name="head" value="#e66465">
-                  <label for="head">Head</label>
-                </div>
+              <div class="btn-group input-group" role="group">
+                <button id="Trigger" class="mapingTool btn btn-outline-primary" type="button">Toggel</button>
+                <button id="Toggle" class="mapingTool btn btn-outline-primary" type="button">Trigger</button>
+                <button id="Slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
+                <button id="Knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
               </div>
-
             </div>
           </div>
 
@@ -246,7 +227,6 @@
     $('.form-control').addClass("shadow-none");
     $('.btn-group').addClass("btn-group-sm");
 
-
     $(".btn-group > .btn").click(function () {
       $(this).addClass("active").siblings().removeClass("active");
     });
@@ -258,6 +238,7 @@
       $('#matrixCanvas').collapse('show');
       $('#summary_action').html("3D graphic - visualisation").addClass("text-success");
       $('#summary_content').html("This 3D visualisation is made to check all the eTextile piezoresistive pressure sensors of the matrix");
+     $('.params').collapse('hide');
     });
 
     $('#mappingMode').on("click", function () {
