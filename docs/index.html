@@ -47,7 +47,7 @@
         <div id="startMenu" class="collapse">
           <button id="Calibrate" class="sendMidi btn btn-outline-primary btn-sm input-group"
             type="button">CALIBRATE</button>
-          <div class="btn-group btn-group-sm input-group" role="group">
+          <div class="btn-group input-group" role="group">
             <button id="matrixMode" class="sendMidi btn btn-outline-primary" type="button">MATRIX</button>
             <button id="mappingMode" class="sendMidi btn btn-outline-primary" type="button">MAPPING</button>
           </div>
@@ -59,14 +59,14 @@
 
         <div id="mappingMenu" class="collapse w-100">
 
-          <div class="btn-group btn-group-sm input-group" role="group">
+          <div class="btn-group input-group" role="group">
             <button id="editMode" class="sendMidi btn btn-outline-primary" type="button">EDIT</button>
             <button id="playMode" class="sendMidi btn btn-outline-primary" type="button">PLAY</button>
           </div>
 
           <div id="mappingEditMode" class="collapse">
 
-            <div class="btn-group btn-group-sm input-group" role="group">
+            <div class="btn-group input-group" role="group">
               <button id="getConfigDoc" class="btn btn-outline-primary" type="button">CONFIG</button>
               <button id="getConfig" class="sendMidi btn btn-outline-primary" type="button">GET</button>
               <button id="setConfig" class="sendMidi btn btn-outline-primary" type="button">SET</button>
@@ -147,47 +147,38 @@
 
           <div>
             <div id="paramField-0" class="params collapse">
-              <div class="input-group sm-3">
-                <div class="input-group-prepend">
-                  <span class="input-group-text input-group-sm" id="paramId-0"></span>
-                </div>
-                <input id="param-0" type="text" class="form-control form-control-sm" aria-describedby="paramId-0">
+              <div class="input-group">
+                <span id="paramId-0" class="input-group-text"></span>
+                <button class="btn btn-outline-secondary" type="button">set</button>
+                <input id="param-0" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-2">
               </div>
             </div>
-
             <div id="paramField-1" class="params collapse">
-              <div class="input-group sm-3">
-                <div class="input-group-prepend">
-                  <span class="input-group-text input-group-sm" id="paramId-1"></span>
-                </div>
-                <input id="param-1" type="text" class="form-control form-control-sm" aria-describedby="paramId-1">
+              <div class="input-group">
+                <span id="paramId-1" class="input-group-text"></span>
+                <button class="btn btn-outline-secondary" type="button">set</button>
+                <input id="param-1" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-2">
               </div>
             </div>
-
             <div id="paramField-2" class="params collapse">
-              <div class="input-group sm-3">
-                <div class="input-group-prepend">
-                  <span class="input-group-text input-group-sm" id="paramId-2"></span>
-                </div>
-                <input id="param-2" type="text" class="form-control form-control-sm" aria-describedby="paramId-2">
+              <div class="input-group">
+                <span id="paramId-2" class="input-group-text"></span>
+                <button class="btn btn-outline-secondary" type="button">set</button>
+                <input id="param-2" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-2">
               </div>
             </div>
-
             <div id="paramField-3" class="params collapse">
-              <div class="input-group sm-3">
-                <div class="input-group-prepend">
-                  <span class="input-group-text input-group-sm" id="paramId-3"></span>
-                </div>
-                <input id="param-3" type="text" class="form-control form-control-sm" aria-describedby="paramId-3">
+              <div class="input-group">
+                <span id="paramId-3" class="input-group-text"></span>
+                <button class="btn btn-outline-secondary" type="button">set</button>
+                <input id="param-3" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-3">
               </div>
             </div>
-
             <div id="paramField-4" class="params collapse">
-              <div class="input-group sm-3">
-                <div class="input-group-prepend">
-                  <span class="input-group-text input-group-sm" id="paramId-4"></span>
-                </div>
-                <input id="param-4" type="text" class="form-control form-control-sm" aria-describedby="paramId-4">
+              <div class="input-group">
+                <span id="paramId-4" class="input-group-text"></span>
+                <button class="btn btn-outline-secondary" type="button">set</button>
+                <input id="param-4" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-4">
               </div>
             </div>
           </div>
@@ -204,6 +195,7 @@
 
 
   <script type="text/javascript">
+
     $('#connect').change(
       function () {
         if ($(this).is(':checked')) {
@@ -227,7 +219,11 @@
     });
 
     $('.btn').addClass("shadow-none");
+    $('.input-group').addClass("input-group-sm");
     $('.form-control').addClass("shadow-none");
+    $('.btn-group').addClass("btn-group-sm");
+
+
     $(".btn-group > .btn").click(function () {
       $(this).addClass("active").siblings().removeClass("active");
     });
