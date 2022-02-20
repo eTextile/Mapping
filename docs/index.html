@@ -45,8 +45,6 @@
         </p>
 
         <div id="startMenu" class="collapse">
-          <button id="Calibrate" class="sendMidi btn btn-outline-primary btn-sm input-group"
-            type="button">CALIBRATE</button>
           <div class="btn-group input-group" role="group">
             <button id="matrixMode" class="sendMidi btn btn-outline-primary" type="button">MATRIX</button>
             <button id="mappingMode" class="sendMidi btn btn-outline-primary" type="button">MAPPING</button>
@@ -57,26 +55,17 @@
           <div class="input-group"></div>
         </div>
 
-        <div id="mappingMenu" class="collapse w-100">
+        <div id="calibrateMenu" class="collapse w-100">
+          <button id="Calibrate" class="sendMidi btn btn-outline-primary input-group" type="button">CALIBRATE</button>
+        </div>
 
+        <div id="mappingMenu" class="collapse w-100">
           <div class="btn-group input-group" role="group">
             <button id="editMode" class="sendMidi btn btn-outline-primary" type="button">EDIT</button>
             <button id="playMode" class="sendMidi btn btn-outline-primary" type="button">PLAY</button>
           </div>
 
           <div id="mappingEditMode" class="collapse">
-
-            <div class="btn-group input-group" role="group">
-              <button id="getConfig" class="sendMidi btn btn-outline-primary" type="button">GET</button>
-              <button id="getConfigDoc" class="btn btn-outline-primary" type="button">CONFIG</button>
-              <button id="setConfig" class="sendMidi btn btn-outline-primary" type="button">SET</button>
-            </div>
-
-            <div id="fileLoaderMenu">
-              <input id="loadConfig" class="sendMidi form-control form-control-sm" type="file" accept=".json, .wav">
-              <label for="formFileSm" class="form-label"></label>
-            </div>
-
             <div id="mappingToolsMenu">
               <div class="btn-group input-group" role="group">
                 <button id="Trigger" class="mapingTool btn btn-outline-primary" type="button">Toggel</button>
@@ -89,6 +78,16 @@
 
           <div id="mappingPlayMode" class="collapse">
             <div class="input-group"></div>
+            <div class="btn-group input-group" role="group">
+              <button id="getConfig" class="sendMidi btn btn-outline-primary" type="button">GET</button>
+              <button id="getConfigDoc" class="btn btn-outline-primary" type="button">CONFIG</button>
+              <button id="setConfig" class="sendMidi btn btn-outline-primary" type="button">SET</button>
+            </div>
+
+            <div id="fileLoaderMenu">
+              <input id="loadConfig" class="sendMidi form-control form-control-sm" type="file" accept=".json, .wav">
+              <label for="formFileSm" class="form-label"></label>
+            </div>
           </div>
 
         </div>
@@ -127,63 +126,71 @@
           </div>
 
           <div>
-            <div id="paramField-0" class="params collapse">
+            <div id="param-0" class="params collapse">
               <div class="input-group">
-                <span id="paramId-0" class="input-group-text"></span>
-                <button class="btn btn-outline-secondary" type="button">set</button>
-                <input id="param-0" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-2">
+                <span id="inputParamAtribute-0" class="input-group-text"></span>
+                <button id="btnSet-0" class="btnSet btn btn-outline-secondary" type="button">set</button>
+                <input id="inputParamValue-0" type="text" class="form-control" aria-label="Small"
+                  aria-describedby="inputParamAtribute-2">
               </div>
             </div>
-            <div id="paramField-1" class="params collapse">
+            <div id="param-1" class="params collapse">
               <div class="input-group">
-                <span id="paramId-1" class="input-group-text"></span>
-                <button class="btn btn-outline-secondary" type="button">set</button>
-                <input id="param-1" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-2">
+                <span id="inputParamAtribute-1" class="input-group-text"></span>
+                <button id="btnSet-1" class="btnSet btn btn-outline-secondary" type="button">set</button>
+                <input id="inputParamValue-1" type="text" class="form-control" aria-label="Small"
+                  aria-describedby="inputParamAtribute-2">
               </div>
             </div>
-            <div id="paramField-2" class="params collapse">
+            <div id="param-2" class="params collapse">
               <div class="input-group">
-                <span id="paramId-2" class="input-group-text"></span>
-                <button class="btn btn-outline-secondary" type="button">set</button>
-                <input id="param-2" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-2">
+                <span id="inputParamAtribute-2" class="input-group-text"></span>
+                <button id="btnSet-2" class="btnSet btn btn-outline-secondary" type="button">set</button>
+                <input id="inputParamValue-2" type="text" class="form-control" aria-label="Small"
+                  aria-describedby="inputParamAtribute-2">
               </div>
             </div>
-            <div id="paramField-3" class="params collapse">
+            <div id="param-3" class="params collapse">
               <div class="input-group">
-                <span id="paramId-3" class="input-group-text"></span>
-                <button class="btn btn-outline-secondary" type="button">set</button>
-                <input id="param-3" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-3">
+                <span id="inputParamAtribute-3" class="input-group-text"></span>
+                <button id="btnSet-3" class="btnSet btn btn-outline-secondary" type="button">set</button>
+                <input id="inputParamValue-3" type="text" class="form-control" aria-label="Small"
+                  aria-describedby="inputParamAtribute-3">
               </div>
             </div>
-            <div id="paramField-4" class="params collapse">
+            <div id="param-4" class="params collapse">
               <div class="input-group">
-                <span id="paramId-4" class="input-group-text"></span>
-                <button class="btn btn-outline-secondary" type="button">set</button>
-                <input id="param-4" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-4">
-              </div>
-            </div>
-
-            <div id="paramField-5" class="params collapse">
-              <div class="input-group">
-                <span id="paramId-5" class="input-group-text"></span>
-                <button class="btn btn-outline-secondary" type="button">set</button>
-                <input id="param-5" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-5">
+                <span id="inputParamAtribute-4" class="input-group-text"></span>
+                <button id="btnSet-4" class="btnSet btn btn-outline-secondary" type="button">set</button>
+                <input id="inputParamValue-4" type="text" class="form-control" aria-label="Small"
+                  aria-describedby="inputParamAtribute-4">
               </div>
             </div>
 
-            <div id="paramField-6" class="params collapse">
+            <div id="param-5" class="params collapse">
               <div class="input-group">
-                <span id="paramId-6" class="input-group-text"></span>
-                <button class="btn btn-outline-secondary" type="button">set</button>
-                <input id="param-6" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-6">
+                <span id="inputParamAtribute-5" class="input-group-text"></span>
+                <button id="btnSet-5" class="btnSet btn btn-outline-secondary" type="button">set</button>
+                <input id="inputParamValue-5" type="text" class="form-control" aria-label="Small"
+                  aria-describedby="inputParamAtribute-5">
               </div>
             </div>
 
-            <div id="paramField-7" class="params collapse">
+            <div id="param-6" class="params collapse">
               <div class="input-group">
-                <span id="paramId-7" class="input-group-text"></span>
-                <button class="btn btn-outline-secondary" type="button">set</button>
-                <input id="param-7" type="text" class="form-control" aria-label="Small" aria-describedby="paramId-7">
+                <span id="inputParamAtribute-6" class="input-group-text"></span>
+                <button id="btnSet-6" class="btnSet btn btn-outline-secondary" type="button">set</button>
+                <input id="inputParamValue-6" type="text" class="form-control" aria-label="Small"
+                  aria-describedby="inputParamAtribute-6">
+              </div>
+            </div>
+
+            <div id="param-7" class="params collapse">
+              <div class="input-group">
+                <span id="inputParamAtribute-7" class="input-group-text"></span>
+                <button id="btnSet-7" class="btnSet btn btn-outline-secondary" type="button">set</button>
+                <input id="inputParamValue-7" type="text" class="form-control" aria-label="Small"
+                  aria-describedby="inputParamAtribute-7">
               </div>
             </div>
           </div>
@@ -207,6 +214,7 @@
           MIDIConnect();
         } else {
           $('#startMenu').collapse('hide');
+          $('#calibrateMenu').collapse('hide');
           $('#matrixMenu').collapse('hide');
           $('#mappingMenu').collapse('hide');
           $('#matrixCanvas').collapse('hide');
@@ -226,22 +234,25 @@
     $('.input-group').addClass("input-group-sm");
     $('.form-control').addClass("shadow-none");
     $('.btn-group').addClass("btn-group-sm");
+    $('.btn').addClass("btn-sm");
 
     $(".btn-group > .btn").click(function () {
       $(this).addClass("active").siblings().removeClass("active");
     });
 
     $('#matrixMode').on("click", function () {
+      $('#calibrateMenu').collapse('show');
       $('#mappingMenu').collapse('hide');
-      $('#mappingCanvas').collapse('hide');
+      $('#mappingCanvas').collapse('hide');      
       $('#matrixMenu').collapse('show');
       $('#matrixCanvas').collapse('show');
       $('#summary_action').html("3D graphic - visualisation").addClass("text-success");
       $('#summary_content').html("This 3D visualisation is made to check all the eTextile piezoresistive pressure sensors of the matrix");
-     $('.params').collapse('hide');
+      $('.params').collapse('hide');
     });
 
     $('#mappingMode').on("click", function () {
+      $('#calibrateMenu').collapse('show');
       $('#matrixMenu').collapse('hide');
       $('#matrixCanvas').collapse('hide');
       $('#mappingMenu').collapse('show');
@@ -275,6 +286,27 @@
       $('.params').collapse('hide');
       toolSelector(event.target.id);
     });
+
+    // Set the params using the input fields
+    $(".btnSet").click(function () {
+      var btnSet = $(this).attr('id');
+      switch (selectItem.name) {
+        case "Trigger":
+          //if (btnSet === "btnSet-1") triggerOptions.append(#inputParamValue-0);
+
+          break;
+        case "Toggel":
+
+          break;
+        case "Slider":
+
+          break;
+        case "Knob":
+
+          break;
+      }
+    });
+
   </script>
 
 </body>
