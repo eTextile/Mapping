@@ -13,8 +13,8 @@ var myHeight;
 var x_scaleFactor;
 var y_scaleFactor;
 
-let selectItem = {};
-let selectPath;
+let selectedItem;
+let selectedtPath;
 let selectSegment;
 let activeLayer;
 
@@ -23,8 +23,8 @@ let blobTouch = [];
 let blobPath = [];
 let blobPathSmooth = [];
 
-var layerToggel;
 var layerTrigger;
+var layerToggel;
 var layerSlider;
 var layerKnob;
 
@@ -83,7 +83,7 @@ var knobOptions = {
     "channel": 1,
     "cChangeTeta": 32,
     "min_t": 0,
-    "max_t": 127,   
+    "max_t": 127,
     "cChangeRadius": 33,
     "min_r": 0,
     "max_r": 127
@@ -120,52 +120,57 @@ window.onload = function () {
   layerSlider = new Layer();
   layerKnob = new Layer();
 
-  tool.onMouseMove = function (event) {
-    project.activeLayer.selected = false;
-    if (event.item) {
-      event.item.selected = true;
+  function mouseEnter(event) {
+    this.selected = true;
+  }
+
+  function mouseLeave(event) {
+    if (this != selectedItem) {
+      this.selected = false;
     }
   }
 
   tool.onMouseDown = function (event) {
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (currentMode === 'editMode') {
+    if (currentMode == "editMode") {
       if (!hitResult) {
         drawShape(event);
-        activeLayer = selectItem = selectSegment = selectPath = null;
+        activeLayer = selectedItem = selectSegment = selectedtPath = null;
         return;
       } else {
-        selectItem = hitResult.item;
-        activeLayer = hitResult.item.layer;
-        project.layers[activeLayer.index].activate();
-        selectPath = hitResult.type;
-        updateParams(selectItem);
+
+        //project.layers.selected = false; // NOT_WORKING!
+        for (var i=1; i<4; i++){
+          project.layers[i].selected = false;
+        }
+        
+        selectedItem = hitResult.item;
+        activeLayer = selectedItem.parent;
+        //console.log("LAYER_ID: " + activeLayer.id);
+        project.layers[activeLayer.id - 1].activate();
+        selectedItem.selected = true;
+
+        selectedtPath = hitResult.type;
+        setParamsMenu(selectedItem);
         switch (hitResult.type) {
-          case 'stroke':
-            translate = false;
-            selectSegment = hitResult.location.index;
-            break;
           case 'fill':
             translate = true;
             break;
-          case 'segment':
-            //
-            break;
-          default:
-            // NA
+          case 'stroke' || 'segment':
+            translate = false;
+            selectSegment = hitResult.location.index;
             break;
         }
       }
     }
     else if (currentMode === 'playMode') {
-      //
     }
   }
 
-  function updateParams(item) {
-    //$('#summary_content').html(selectItem.name);
-    //$("#param0").val("X: " + Math.round(selectItem.position.x));
-    //$("#param1").val("Y: " + Math.round(selectItem.position.y));
+  function setParamsMenu(item) {
+    //$('#summary_content').html(selectedItem.name);
+    //$("#param0").val("X: " + Math.round(selectedItem.position.x));
+    //$("#param1").val("Y: " + Math.round(selectedItem.position.y));
 
     switch (item.name) {
       case "Trigger":
@@ -247,6 +252,8 @@ window.onload = function () {
         $("#inputParamValue-7").val(item.data.max_r);
         break;
     }
+
+
   }
 
   //////////////////////////////////// TODO
@@ -254,7 +261,7 @@ window.onload = function () {
     //console.log(event.key);
     if (event.modifiers.shift) {
       if (Key.isDown('backspace')) {
-        selectItem.remove();
+        selectedItem.remove();
       }
     }
   }
@@ -270,28 +277,28 @@ window.onload = function () {
   }
 
   function updateSlider(event) {
-    switch (selectPath) {
+    switch (selectedtPath) {
       case 'stroke':
         switch (selectSegment) {
           case 0:
-            selectItem.segments[0].point.x = event.point.x;
-            selectItem.segments[1].point.x = event.point.x;
+            selectedItem.segments[0].point.x = event.point.x;
+            selectedItem.segments[1].point.x = event.point.x;
             break;
           case 1:
-            selectItem.segments[1].point.y = event.point.y;
-            selectItem.segments[2].point.y = event.point.y;
+            selectedItem.segments[1].point.y = event.point.y;
+            selectedItem.segments[2].point.y = event.point.y;
             break;
           case 2:
-            selectItem.segments[2].point.x = event.point.x;
-            selectItem.segments[3].point.x = event.point.x;
+            selectedItem.segments[2].point.x = event.point.x;
+            selectedItem.segments[3].point.x = event.point.x;
             break;
           case 3:
-            selectItem.segments[3].point.y = event.point.y;
-            selectItem.segments[0].point.y = event.point.y;
+            selectedItem.segments[3].point.y = event.point.y;
+            selectedItem.segments[0].point.y = event.point.y;
             break;
         }
       case 'fill':
-        if (translate) selectItem.translate(event.delta);
+        if (translate) selectedItem.translate(event.delta);
         break;
       case 'segment':
         // NA
@@ -300,32 +307,32 @@ window.onload = function () {
   }
 
   function updateKnob(event) {
-    switch (selectPath) {
+    switch (selectedtPath) {
       case 'stroke' || 'segment':
-        var x = event.point.x - selectItem.position.x;
-        var y = event.point.y - selectItem.position.y;
+        var x = event.point.x - selectedItem.position.x;
+        var y = event.point.y - selectedItem.position.y;
         var radius = Math.sqrt((x * x) + (y * y));
-        setRadius(selectItem, radius);
+        setRadius(selectedItem, radius);
         break;
       case 'fill':
-        if (translate) selectItem.translate(event.delta);
+        if (translate) selectedItem.translate(event.delta);
         break;
     }
   }
 
   tool.onMouseDrag = function (event) {
     if (currentMode === 'editMode') {
-      switch (activeLayer) {
-        case layerTrigger:
+      switch (activeLayer.id) {
+        case 1:
           updateTrigger(event);
           break;
-        case layerToggel:
+        case 2:
           updateToggel(event);
           break;
-        case layerSlider:
+        case 3:
           updateSlider(event);
           break;
-        case layerKnob:
+        case 4:
           updateKnob(event);
           break;
         default:
@@ -340,34 +347,43 @@ window.onload = function () {
   ////////////// ADD_CONTROL_GUI
   // TODO: create the shapes using the mouse point (event.point)
   function drawShape(event) {
-    if (shapeMode === 'Trigger') {
+    if (shapeMode === "Trigger") {
       var e256_trigger = new Path.Rectangle(triggerOptions);
-      layerTrigger.position = event.point;
+      e256_trigger.onMouseEnter = mouseEnter;
+      e256_trigger.onMouseLeave = mouseLeave;
+      e256_trigger.position = event.point;
       layerTrigger.activate();
-      project.activeLayer.addChild(e256_trigger);
       activeLayer = project.activeLayer;
+      activeLayer.addChild(e256_trigger);
     }
-    else if (shapeMode === 'Toggel') {
+    else if (shapeMode === "Toggel") {
       var e256_toggel = new Path.Rectangle(toggelOptions);
+      e256_toggel.onMouseEnter = mouseEnter;
+      e256_toggel.onMouseLeave = mouseLeave;
       e256_toggel.position = event.point;
       layerToggel.activate();
-      project.activeLayer.addChild(e256_toggel);
-      activeLayer = project.activeLayer; sendParamssendParams
+      activeLayer = project.activeLayer;
+      activeLayer.addChild(e256_toggel);
     }
-    else if (shapeMode === 'Slider') {
+    else if (shapeMode === "Slider") {
       var e256_slider = new Path.Rectangle(sliderOptions);
+      e256_slider.onMouseEnter = mouseEnter;
+      e256_slider.onMouseLeave = mouseLeave;
       e256_slider.position = event.point;
       layerSlider.activate();
-      project.activeLayer.addChild(e256_slider);
       activeLayer = project.activeLayer;
+      activeLayer.addChild(e256_slider);
+
     }
-    else if (shapeMode === 'Knob') {
+    else if (shapeMode === "Knob") {
       var e256_knob = new Path.Circle(knobOptions);
-      e256_knob.fillColor = Color.random();
+      e256_knob.onMouseEnter = mouseEnter;
+      e256_knob.onMouseLeave = mouseLeave;
       e256_knob.position = event.point;
+      e256_knob.fillColor = Color.random();
       layerKnob.activate();
-      project.activeLayer.addChild(e256_knob);
       activeLayer = project.activeLayer;
+      activeLayer.addChild(e256_knob);
     }
   }
 
@@ -414,8 +430,48 @@ function onBlobRelease(event) {
 
 function modeSelector(event) {
   currentMode = event;
+  if (currentMode == "editMode") {
+    // NA
+  }
+  else{
+    //project.layers.selected = false; // NOT_WORKING!
+    activeLayer = selectedItem = selectSegment = selectedtPath = null;
+     for (var i=1; i<4; i++){
+      project.layers[i].selected = false;
+    }
+  }
 }
 
 function toolSelector(event) {
   shapeMode = event;
+}
+
+// Update item parameters using the txt input fields //FIXME!
+function updateParams(btnSet) {
+  switch (selectedItem.name) {
+    case "Trigger":
+      if (btnSet === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
+      if (btnSet === "btnSet-2") selectedItem.data.note = $("#inputParamValue-2").val();
+      break;
+    case "Toggel":
+      if (btnSet === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
+      if (btnSet === "btnSet-2") selectedItem.data.note = $("#inputParamValue-2").val();
+      break;
+    case "Slider":
+      if (btnSet === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
+      if (btnSet === "btnSet-2") selectedItem.data.cChange = $("#inputParamValue-2").val();
+      if (btnSet === "btnSet-3") selectedItem.data.min = $("#inputParamValue-3").val();
+      if (btnSet === "btnSet-4") selectedItem.data.max = $("#inputParamValue-4").val();
+      break;
+    case "Knob":
+      if (btnSet === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
+      if (btnSet === "btnSet-2") selectedItem.data.cChangeTeta = $("#inputParamValue-2").val();
+      if (btnSet === "btnSet-3") selectedItem.data.min_t = $("#inputParamValue-3").val();
+      if (btnSet === "btnSet-4") selectedItem.data.max_t = $("#inputParamValue-4").val();
+      if (btnSet === "btnSet-5") selectedItem.data.cChangeRadius = $("#inputParamValue-5").val();
+      if (btnSet === "btnSet-6") selectedItem.data.min_r = $("#inputParamValue-6").val();
+      if (btnSet === "btnSet-7") selectedItem.data.max_r = $("#inputParamValue-7").val();
+      //...
+      break;
+  }
 }

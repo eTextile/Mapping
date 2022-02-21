@@ -61,15 +61,15 @@
 
         <div id="mappingMenu" class="collapse w-100">
           <div class="btn-group input-group" role="group">
-            <button id="editMode" class="sendMidi btn btn-outline-primary" type="button">EDIT</button>
-            <button id="playMode" class="sendMidi btn btn-outline-primary" type="button">PLAY</button>
+            <button id="editMode" class="setMode btn btn-outline-primary" type="button">EDIT</button>
+            <button id="playMode" class="setMode btn btn-outline-primary" type="button">PLAY</button>
           </div>
 
           <div id="mappingEditMode" class="collapse">
             <div id="mappingToolsMenu">
               <div class="btn-group input-group" role="group">
-                <button id="Trigger" class="mapingTool btn btn-outline-primary" type="button">Toggel</button>
-                <button id="Toggle" class="mapingTool btn btn-outline-primary" type="button">Trigger</button>
+                <button id="Trigger" class="mapingTool btn btn-outline-primary" type="button">Trigger</button>
+                <button id="Toggel" class="mapingTool btn btn-outline-primary" type="button">Toggel</button>
                 <button id="Slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
                 <button id="Knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
               </div>
@@ -202,7 +202,7 @@
 
   <!--///////////////////////////////////////////////////////////////////////-->
   <footer class="col-12">Electronic textile interfaces - Creative use of technologies - <a
-      href="https://etextile.org/">www.eTextie.org</a></footer>
+      href="https://etextile.org/">www.eTextile.org</a></footer>
 
 
   <script type="text/javascript">
@@ -282,29 +282,18 @@
       sendParams(event.target.id);
     });
 
+    $(".setMode").click(function () {
+      setMode(event.target.id);
+    });
+
     $(".mapingTool").click(function () {
       $('.params').collapse('hide');
       toolSelector(event.target.id);
     });
 
-    // Set the params using the input fields
     $(".btnSet").click(function () {
-      var btnSet = $(this).attr('id');
-      switch (selectItem.name) {
-        case "Trigger":
-          //if (btnSet === "btnSet-1") triggerOptions.append(#inputParamValue-0);
-
-          break;
-        case "Toggel":
-
-          break;
-        case "Slider":
-
-          break;
-        case "Knob":
-
-          break;
-      }
+      // Update item parameters using the txt input fields
+      updateParams(event.target.id);
     });
 
   </script>

@@ -92,7 +92,7 @@ function onMIDISuccess(midiAccess) {
       MIDIIoutput = entry;
     }
   }
-  if (!connected){
+  if (!connected) {
     connect.checked = false;
     $('#summary_action').html("Connected!").removeClass("text-danger").addClass("text-success");
   } else {
@@ -310,33 +310,41 @@ function sysex_load(data) {
 }
 
 function sendParams(event) {
+  if (connected) {
+    switch (event) {
+      case 'Calibrate':
+        programChange(CALIBRATE, 2);
+        break;
+      case 'matrixMode':
+        playMode = MATRIX;
+        programChange(MATRIX, 1);
+        console.log("MATRIX_MODE");
+        break;
+      case 'mappingMode':
+        playMode = BLOBS_PLAY;
+        programChange(BLOBS_PLAY, 1);
+        break;
+      case 'getConfig':
+        programChange(GET_CONFIG, 2);
+        break;
+      case 'setConfig':
+        sendFile();
+        break;
+      case 'loadConfig':
+        loadFile();
+        break;
+      default:
+        break;
+    }
+  } else {
+    alert("NOT_CONNECTED!");
+  }
+}
+function setMode(event) {
   switch (event) {
-    case 'Calibrate':
-      programChange(CALIBRATE, 2);
-      break;
-    case 'matrixMode':
-      playMode = MATRIX;
-      programChange(MATRIX, 1);
-      console.log("MATRIX_MODE");
-      break;
-    case 'mappingMode':
-      playMode = BLOBS_PLAY;
-      programChange(BLOBS_PLAY, 1);
-      break;
     case 'playMode':
       break;
     case 'editMode':
-      break;
-    case 'getConfig':
-      programChange(GET_CONFIG, 2);
-      break;
-    case 'setConfig':
-      sendFile();
-      break;
-    case 'loadConfig':
-      loadFile();
-      break;
-    default:
       break;
   }
 }
