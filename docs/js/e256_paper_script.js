@@ -34,6 +34,7 @@ var triggerOptions = {
   "name": "Trigger",
   "from": [50, 50],
   "to": [100, 100],
+  "strokeWidth": 5,
   "strokeColor": "lightblue",
   "fillColor": "red",
   "data": {
@@ -48,6 +49,7 @@ var toggelOptions = {
   "to": [100, 100],
   "strokeColor": "lightblue",
   "fillColor": "black",
+  "strokeWidth": 5,
   "data": {
     "channel": 1,
     "note": 1
@@ -61,7 +63,7 @@ var sliderOptions = {
   "strokeColor": "lightblue",
   "fillColor": "yellow",
   "strokeWidth": 10,
-  "selected": false,
+  //"selected": false,
   "data": {
     "channel": 1,
     "cChange": 32,
@@ -78,7 +80,7 @@ var knobOptions = {
   "fillColor": "blue",
   "opacity": 0.5,
   "strokeWidth": 10,
-  "selected": false,
+  //"selected": false,
   "data": {
     "channel": 1,
     "cChangeTeta": 32,
@@ -121,10 +123,12 @@ window.onload = function () {
   layerKnob = new Layer();
 
   function mouseEnter(event) {
-    this.selected = true;
+    if (this != selectedItem) {
+      this.selected = true;
+    }
   }
 
-  function mouseLeave(event) {
+  function mouseLeave(event) { 
     if (this != selectedItem) {
       this.selected = false;
     }
@@ -132,26 +136,28 @@ window.onload = function () {
 
   tool.onMouseDown = function (event) {
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (currentMode == "editMode") {
+    if (currentMode === "editMode") {
       if (!hitResult) {
         drawShape(event);
         activeLayer = selectedItem = selectSegment = selectedtPath = null;
         return;
       } else {
-
         //project.layers.selected = false; // NOT_WORKING!
         for (var i=1; i<4; i++){
           project.layers[i].selected = false;
         }
         
         selectedItem = hitResult.item;
+        //console.log("onMouseDown->selectedItem: " + selectedItem);
+
+        setParamsMenu();
+
         activeLayer = selectedItem.parent;
-        //console.log("LAYER_ID: " + activeLayer.id);
+        console.log("LAYER_ID: " + activeLayer.id);
         project.layers[activeLayer.id - 1].activate();
         selectedItem.selected = true;
 
         selectedtPath = hitResult.type;
-        setParamsMenu(selectedItem);
         switch (hitResult.type) {
           case 'fill':
             translate = true;
@@ -164,25 +170,27 @@ window.onload = function () {
       }
     }
     else if (currentMode === 'playMode') {
+      // TODO
     }
   }
 
-  function setParamsMenu(item) {
+  function setParamsMenu() {
     //$('#summary_content').html(selectedItem.name);
     //$("#param0").val("X: " + Math.round(selectedItem.position.x));
     //$("#param1").val("Y: " + Math.round(selectedItem.position.y));
+    console.log ("item.name: " + selectedItem.name);
 
-    switch (item.name) {
+    switch (selectedItem.name) {
       case "Trigger":
         $("#param-0").collapse("show");
-        $("#inputParamAtribute-0").html(item.name);
-        $("#inputParamValue-0").val(item.id);
+        $("#inputParamAtribute-0").html(selectedItem.name);
+        $("#inputParamValue-0").val(selectedItem.id);
         $("#param-1").collapse("show");
         $("#inputParamAtribute-1").html("Chan");
-        $("#inputParamValue-1").val(item.data.channel);
+        $("#inputParamValue-1").val(selectedItem.data.channel);
         $("#param-2").collapse("show");
         $("#inputParamAtribute-2").html("Note");
-        $("#inputParamValue-2").val(item.data.note);
+        $("#inputParamValue-2").val(selectedItem.data.note);
         $("#param-3").collapse("hide");
         $("#param-4").collapse("hide");
         $("#param-5").collapse("hide");
@@ -191,14 +199,14 @@ window.onload = function () {
         break;
       case "Toggel":
         $("#param-0").collapse("show");
-        $("#inputParamAtribute-0").html(item.name);
-        $("#inputParamValue-0").val(item.id);
+        $("#inputParamAtribute-0").html(selectedItem.name);
+        $("#inputParamValue-0").val(selectedItem.id);
         $("#param-1").collapse("show");
         $("#inputParamAtribute-1").html("Chan");
-        $("#inputParamValue-1").val(item.data.channel);
+        $("#inputParamValue-1").val(selectedItem.data.channel);
         $("#param-2").collapse("show");
         $("#inputParamAtribute-2").html("Note");
-        $("#inputParamValue-2").val(item.data.note);
+        $("#inputParamValue-2").val(selectedItem.data.note);
         $("#param-3").collapse("hide");
         $("#param-4").collapse("hide");
         $("#param-5").collapse("hide");
@@ -207,53 +215,51 @@ window.onload = function () {
         break;
       case "Slider":
         $("#param-0").collapse("show");
-        $("#inputParamAtribute-0").html(item.name);
-        $("#inputParamValue-0").val(item.id);
+        $("#inputParamAtribute-0").html(selectedItem.name);
+        $("#inputParamValue-0").val(selectedItem.id);
         $("#param-1").collapse("show");
         $("#inputParamAtribute-1").html("Chan");
-        $("#inputParamValue-1").val(item.data.channel);
+        $("#inputParamValue-1").val(selectedItem.data.channel);
         $("#param-2").collapse("show");
         $("#inputParamAtribute-2").html("cChange");
-        $("#inputParamValue-2").val(item.data.cChange);
+        $("#inputParamValue-2").val(selectedItem.data.cChange);
         $("#param-3").collapse("show");
         $("#inputParamAtribute-3").html("min");
-        $("#inputParamValue-3").val(item.data.min);
+        $("#inputParamValue-3").val(selectedItem.data.min);
         $("#param-4").collapse("show");
         $("#inputParamAtribute-4").html("max");
-        $("#inputParamValue-4").val(item.data.max);
+        $("#inputParamValue-4").val(selectedItem.data.max);
         $("#param-5").collapse("hide");
         $("#param-6").collapse("hide");
         $("#param-7").collapse("hide");
         break;
       case "Knob":
         $("#param-0").collapse("show");
-        $("#inputParamAtribute-0").html(item.name);
-        $("#inputParamValue-0").val(item.id);
+        $("#inputParamAtribute-0").html(selectedItem.name);
+        $("#inputParamValue-0").val(selectedItem.id);
         $("#param-1").collapse("show");
         $("#inputParamAtribute-1").html("Chan");
-        $("#inputParamValue-1").val(item.data.channel);
+        $("#inputParamValue-1").val(selectedItem.data.channel);
         $("#param-2").collapse("show");
         $("#inputParamAtribute-2").html("CC-teta");
-        $("#inputParamValue-2").val(item.data.cChangeTeta);
+        $("#inputParamValue-2").val(selectedItem.data.cChangeTeta);
         $("#param-3").collapse("show");
         $("#inputParamAtribute-3").html("min");
-        $("#inputParamValue-3").val(item.data.min_t);
+        $("#inputParamValue-3").val(selectedItem.data.min_t);
         $("#param-4").collapse("show");
         $("#inputParamAtribute-4").html("max");
-        $("#inputParamValue-4").val(item.data.max_t);
+        $("#inputParamValue-4").val(selectedItem.data.max_t);
         $("#param-5").collapse("show");
         $("#inputParamAtribute-5").html("CC-radius");
-        $("#inputParamValue-5").val(item.data.cChangeRadius);
+        $("#inputParamValue-5").val(selectedItem.data.cChangeRadius);
         $("#param-6").collapse("show");
         $("#inputParamAtribute-6").html("min");
-        $("#inputParamValue-6").val(item.data.min_r);
+        $("#inputParamValue-6").val(selectedItem.data.min_r);
         $("#param-7").collapse("show");
         $("#inputParamAtribute-7").html("max");
-        $("#inputParamValue-7").val(item.data.max_r);
+        $("#inputParamValue-7").val(selectedItem.data.max_r);
         break;
     }
-
-
   }
 
   //////////////////////////////////// TODO
@@ -321,7 +327,7 @@ window.onload = function () {
   }
 
   tool.onMouseDrag = function (event) {
-    if (currentMode === 'editMode') {
+    if (currentMode === "editMode") {
       switch (activeLayer.id) {
         case 1:
           updateTrigger(event);
@@ -339,7 +345,7 @@ window.onload = function () {
           // NA
           break;
       }
-    } else if (currentMode === 'playMode') {
+    } else if (currentMode === "playMode") {
       // TODO
     }
   }
@@ -389,12 +395,12 @@ window.onload = function () {
 
 }
 
-var setRadius = function (path, radius) {
+var setRadius = function (item, radius) {
   // figure out what the new radius should be without the stroke
-  var newRadiusWithoutStroke = radius - path.strokeWidth / 2;
+  var newRadiusWithoutStroke = radius - item.strokeWidth / 2;
   // figure out what the current radius is without the stroke 
-  var oldRadiusWithoutStroke = path.bounds.width / 2;
-  path.scale(newRadiusWithoutStroke / oldRadiusWithoutStroke);
+  var oldRadiusWithoutStroke = item.bounds.width / 2;
+  item.scale(newRadiusWithoutStroke / oldRadiusWithoutStroke);
 }
 
 ////////////// BLOB_INPUT
@@ -447,31 +453,35 @@ function toolSelector(event) {
 }
 
 // Update item parameters using the txt input fields //FIXME!
-function updateParams(btnSet) {
+function updateParams(btn) {
+
+  console.log("selectedItem_channel: " + selectedItem.data.channel); // FIXME
+  console.log("buttonSet: " + $("#inputParamValue-1").val());        // FIXME
+
   switch (selectedItem.name) {
     case "Trigger":
-      if (btnSet === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
-      if (btnSet === "btnSet-2") selectedItem.data.note = $("#inputParamValue-2").val();
+      if (btn === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
+      if (btn === "btnSet-2") selectedItem.data.note = $("#inputParamValue-2").val();
       break;
     case "Toggel":
-      if (btnSet === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
-      if (btnSet === "btnSet-2") selectedItem.data.note = $("#inputParamValue-2").val();
+      if (btn === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
+      if (btn === "btnSet-2") selectedItem.data.note = $("#inputParamValue-2").val();
       break;
     case "Slider":
-      if (btnSet === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
-      if (btnSet === "btnSet-2") selectedItem.data.cChange = $("#inputParamValue-2").val();
-      if (btnSet === "btnSet-3") selectedItem.data.min = $("#inputParamValue-3").val();
-      if (btnSet === "btnSet-4") selectedItem.data.max = $("#inputParamValue-4").val();
+      if (btn === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
+      if (btn === "btnSet-2") selectedItem.data.cChange = $("#inputParamValue-2").val();
+      if (btn === "btnSet-3") selectedItem.data.min = $("#inputParamValue-3").val();
+      if (btn === "btnSet-4") selectedItem.data.max = $("#inputParamValue-4").val();
       break;
     case "Knob":
-      if (btnSet === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
-      if (btnSet === "btnSet-2") selectedItem.data.cChangeTeta = $("#inputParamValue-2").val();
-      if (btnSet === "btnSet-3") selectedItem.data.min_t = $("#inputParamValue-3").val();
-      if (btnSet === "btnSet-4") selectedItem.data.max_t = $("#inputParamValue-4").val();
-      if (btnSet === "btnSet-5") selectedItem.data.cChangeRadius = $("#inputParamValue-5").val();
-      if (btnSet === "btnSet-6") selectedItem.data.min_r = $("#inputParamValue-6").val();
-      if (btnSet === "btnSet-7") selectedItem.data.max_r = $("#inputParamValue-7").val();
-      //...
+      $("#inputParamValue-1").val();
+      if (btn === "btnSet-1") selectedItem.data.channel = $("#inputParamValue-1").val();
+      if (btn === "btnSet-2") selectedItem.data.cChangeTeta = $("#inputParamValue-2").val();
+      if (btn === "btnSet-3") selectedItem.data.min_t = $("#inputParamValue-3").val();
+      if (btn === "btnSet-4") selectedItem.data.max_t = $("#inputParamValue-4").val();
+      if (btn === "btnSet-5") selectedItem.data.cChangeRadius = $("#inputParamValue-5").val();
+      if (btn === "btnSet-6") selectedItem.data.min_r = $("#inputParamValue-6").val();
+      if (btn === "btnSet-7") selectedItem.data.max_r = $("#inputParamValue-7").val();
       break;
   }
 }
