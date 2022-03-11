@@ -209,24 +209,19 @@ function sysex_load(data) {
 }
 
 function setMode(event) {
+  currentMode = event;
   if (connected) {
-    currentMode = event;
-    switch (event) {
+    switch (currentMode) {
       case "matrixMode":
-        currentMode = "matrixMode";
         programChange(MATRIX_MODE, 1);
         break;
       case "mappingMode":
-        currentMode = "matrixMode";
         programChange(MAPPING_MODE, 1);
         break;
       case "playMode":
-        currentMode = "playMode";
-        playModeInit();
         programChange(PLAY_MODE, 1);
         break;
       case "editMode":
-        currentMode = "editMode";
         programChange(EDIT_MODE, 1);
         break;
     }
