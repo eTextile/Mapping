@@ -138,7 +138,7 @@ function setMenuParams(item) {
     $("#param-" + paramsIndex).collapse("show");
     paramsIndex++;
   }
-  for (var i = 15; i > paramsIndex; i--) {
+  for (var i = 15; i >= paramsIndex; i--) {
     $("#param-" + i).collapse("hide");
   }
 }
