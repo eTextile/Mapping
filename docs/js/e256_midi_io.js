@@ -12,9 +12,10 @@ const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
 // MODES (CHANNEL 1)
-const MATRIX = 0; //
-const BLOBS_PLAY = 2; // Get all blobs values over USB using MIDI format
-const MAPPING = 3; //
+const MATRIX_MODE = 0; // 
+const MAPPING_MODE = 1; //
+const EDIT_MODE = 2; // Get all blobs values over USB using MIDI format
+const PLAY_MODE = 3; // Get all GUI values over USB using MIDI format
 // STATES (CHANNEL 2)
 const CALIBRATE = 0;
 const DONE_ACTION = 1;
@@ -65,7 +66,6 @@ const BH = 7; // [7] Blob Height
 var MIDIInput
 var MIDIIoutput;
 var connected = false;
-let playMode = null;
 var fileType = "";
 var config = "";
 
@@ -121,110 +121,6 @@ function listInputsAndOutputs(midiAccess) {
   }
 }
 
-//export { Matrix };
-function Matrix(width, height) {
-  this.matrix = [width * height];
-  for (var i = 0; i < RAW_FRAME; i++) {
-    this.matrix[i] = 0;
-  }
-}
-Matrix.prototype.update = function (sysExMsg) {
-  for (var i = 0; i < RAW_FRAME; i++) {
-    this.matrix[i] = sysExMsg[i + 1] / 10;
-  }
-}
-Matrix.prototype.getZ = function (index) {
-  var val = this.matrix[index];
-  if (val != null) {
-    return val;
-  }
-  else {
-    return 0;
-  }
-}
-
-let e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);
-
-//export { Blob };
-function Blob(id, x, y, z, w, h) {
-  this.uid = id;
-  this.x = x;
-  this.y = y;
-  this.z = z;
-  this.w = w;
-  this.h = h;
-}
-
-Blob.prototype.update = function (sysExMsg) {
-  this.x = sysExMsg[2];
-  this.y = sysExMsg[3];
-  this.z = sysExMsg[4];
-  this.w = sysExMsg[5];
-  this.h = sysExMsg[6];
-}
-
-Blob.prototype.print = function () {
-  console.log(
-    `ID:` + this.uid +
-    ` X:` + this.x +
-    ` Y:` + this.y +
-    ` Z:` + this.z +
-    ` W:` + this.w +
-    ` H:` + this.h
-  );
-}
-
-// Blobs array management
-function Blobs() {
-  this.blobs = [];
-}
-
-Blobs.prototype.add = function (noteOn, callback) {
-  if (this.blobs.findIndex(blob => blob.uid == noteOn[1]) === -1) {
-    var blob = new Blob(noteOn[1], 0, 0, 0, 0, 0);
-    this.blobs.push(blob);
-    //console.log("BLOB_ADD: " + noteOn[1]);
-    callback();
-  } else {
-    console.log("BLOB_EXIST: " + noteOn[1]);
-    return;
-  }
-}
-
-Blobs.prototype.remove = function (noteOff, callback) {
-  let index = this.blobs.findIndex(blob => blob.uid == noteOff[1]);
-  if (index !== -1) {
-    this.blobs.splice(index, 1);
-    //console.log("BLOB_REMOVE: " + noteOff[1]);
-    callback(index);
-  } else {
-    console.log("BLOB_NOT_FOUND: " + noteOff[1]);
-    return;
-  }
-}
-
-Blobs.prototype.update = function (sysExMsg, callback) {
-  //Blobs.prototype.update = function(sysExMsg) {
-  let index = this.blobs.findIndex(blob => blob.uid == sysExMsg[1]);
-  if (index != -1) {
-    this.blobs[index].update(sysExMsg);
-    callback(index);
-  } else {
-    console.log("BLOB_NOT_FOUND: " + sysExMsg[1]);
-    return;
-  }
-}
-
-Blobs.prototype.get = function (index) {
-  return this.blobs[index];
-}
-
-Blobs.prototype.size = function () {
-  return this.blobs.length;
-}
-
-e256_blobs = new Blobs();
-
 function onMIDIMessage(midiMsg) {
   //let status = midiMsg.data[0] >> 4;
   let status = midiMsg.data[0];
@@ -252,18 +148,21 @@ function onMIDIMessage(midiMsg) {
       }
       break;
     case SYSTEM_EXCLUSIVE:
-      switch (playMode) {
-        case MATRIX:
+      switch (currentMode) {
+        case "matrixMode":
           e256_matrix.update(midiMsg.data);
           break;
-        case BLOBS_PLAY:
+        case "matrixMode":
+          e256_matrix.update(midiMsg.data);
+          break;
+        case "playMode":
           e256_blobs.update(midiMsg.data, onBlobUpdate);
           break;
-        case CONFIG:
-          // TODO: fetch config file
+        case "editMode":
+          e256_blobs.update(midiMsg.data, onBlobUpdate);
           break;
-        default:
-          //console.log("Unknown_playMode: " + playMode);
+        case "getConfig":
+          // TODO: fetch config file
           break;
       }
       break;
@@ -309,43 +208,57 @@ function sysex_load(data) {
   MIDIIoutput.send(midiMsg);
 }
 
-function sendParams(event) {
+function setMode(event) {
   if (connected) {
+    currentMode = event;
     switch (event) {
-      case 'Calibrate':
-        programChange(CALIBRATE, 2);
+      case "matrixMode":
+        currentMode = "matrixMode";
+        programChange(MATRIX_MODE, 1);
         break;
-      case 'matrixMode':
-        playMode = MATRIX;
-        programChange(MATRIX, 1);
-        console.log("MATRIX_MODE");
+      case "mappingMode":
+        currentMode = "matrixMode";
+        programChange(MAPPING_MODE, 1);
         break;
-      case 'mappingMode':
-        playMode = BLOBS_PLAY;
-        programChange(BLOBS_PLAY, 1);
+      case "playMode":
+        currentMode = "playMode";
+        playModeInit();
+        programChange(PLAY_MODE, 1);
         break;
-      case 'getConfig':
-        programChange(GET_CONFIG, 2);
-        break;
-      case 'setConfig':
-        sendFile();
-        break;
-      case 'loadConfig':
-        loadFile();
-        break;
-      default:
+      case "editMode":
+        currentMode = "editMode";
+        programChange(EDIT_MODE, 1);
         break;
     }
   } else {
     alert("NOT_CONNECTED!");
   }
 }
-function setMode(event) {
-  switch (event) {
-    case 'playMode':
-      break;
-    case 'editMode':
-      break;
+
+function setParams(event) {
+  if (connected) {
+    switch (event) {
+      case "Calibrate":
+        programChange(CALIBRATE, 2);
+        break;
+      case "setConfig":
+        sendFile();
+        break;
+    }
+  } else {
+    alert("NOT_CONNECTED!");
+  }
+}
+
+function getParams(event) {
+  if (connected) {
+    switch (event) {
+      case "getConfig":
+        programChange(GET_CONFIG, 2);
+        break;
+    }
+  } else {
+    alert("NOT_CONNECTED!");
   }
 }
 
