@@ -209,18 +209,11 @@ function onBlobRelease(event) {
   blobPath.splice(event, 1);
 }
 
-/*
-function playModeInit() {
-  selectedItem = selectedtPath = selectSegment = null;
-  project.selectedItems = false;
-}
-*/
-
 function toolSelector(event) {
   shapeMode = event;
 }
 
-// Update item parameters using the txt input fields //FIXME!
+// Update item parameters using the txt input fields
 function updateParams(btnSet) {
   var paramsIndex = 0;
   for (const param in selectedItem.data) {
