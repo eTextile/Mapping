@@ -80,9 +80,7 @@ window.onload = function () {
         lastSelectedItem.selected = false;
         selectedItem = hitResult.item;
         selectedItem.selected = true;
-
         setMenuParams(selectedItem);
-
         selectedtPath = hitResult.type;
         switch (selectedtPath) {
           case "fill":
@@ -140,7 +138,7 @@ function setMenuParams(item) {
     $("#param-" + paramsIndex).collapse("show");
     paramsIndex++;
   }
-  for (var i = 15 ; i > paramsIndex; i--) {
+  for (var i = 15; i > paramsIndex; i--) {
     $("#param-" + i).collapse("hide");
   }
 }
@@ -224,35 +222,9 @@ function toolSelector(event) {
 
 // Update item parameters using the txt input fields //FIXME!
 function updateParams(btnSet) {
-
-  console.log("buttonSetValue: " + $("#paramInputValue-1").val());   // FIXME
-  console.log("selectedItem_channel: " + selectedItem.data.chan); // FIXME
-  console.log("selectedItem_id: " + selectedItem.id);                // FIXME
-
-  switch (selectedItem.data.name) {
-    case "Trigger":
-      //selectedItem.data.length // TODO
-      if (btnSet === "btnSet-1") selectedItem.data.chan = $("#paramInputValue-1").val();
-      if (btnSet === "btnSet-2") selectedItem.data.note = $("#paramInputValue-2").val();
-      break;
-    case "Toggel":
-      if (btnSet === "btnSet-1") selectedItem.data.chan = $("#paramInputValue-1").val();
-      if (btnSet === "btnSet-2") selectedItem.data.note = $("#paramInputValue-2").val();
-      break;
-    case "Slider":
-      if (btnSet === "btnSet-1") selectedItem.data.chan = $("#paramInputValue-1").val();
-      if (btnSet === "btnSet-2") selectedItem.data.cChange = $("#paramInputValue-2").val();
-      if (btnSet === "btnSet-3") selectedItem.data.min = $("#paramInputValue-3").val();
-      if (btnSet === "btnSet-4") selectedItem.data.max = $("#paramInputValue-4").val();
-      break;
-    case "Knob":
-      if (btnSet === "btnSet-1") selectedItem.data.chan = $("#paramInputValue-1").val();
-      if (btnSet === "btnSet-2") selectedItem.data.ccTeta = $("#paramInputValue-2").val();
-      if (btnSet === "btnSet-3") selectedItem.data.tMin = $("#paramInputValue-3").val();
-      if (btnSet === "btnSet-4") selectedItem.data.tMax = $("#paramInputValue-4").val();
-      if (btnSet === "btnSet-5") selectedItem.data.ccRad = $("#paramInputValue-5").val();
-      if (btnSet === "btnSet-6") selectedItem.data.rMin = $("#paramInputValue-6").val();
-      if (btnSet === "btnSet-7") selectedItem.data.rMax = $("#paramInputValue-7").val();
-      break;
+  var paramsIndex = 0;
+  for (const param in selectedItem.data) {
+    if (btnSet === "btnSet-" + paramsIndex) selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
+    paramsIndex++;
   }
 }

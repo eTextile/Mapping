@@ -121,7 +121,7 @@ function triggerFactory(pos) {
       this.translate(event.delta);
     },
     resize: function (event) {
-      rectResies(event);
+      rectResize(event);
     }
   });
   return trigger;
@@ -150,7 +150,7 @@ var toggleFactory = function (pos) {
       this.translate(event.delta);
     },
     resize: function (event) {
-      rectResies(event);
+      rectResize(event);
     }
   });
   return toggle;
@@ -182,7 +182,7 @@ function sliderFactory(pos) {
       this.translate(event.delta);
     },
     resize: function (event) {
-      rectResies(event);
+      rectResize(event);
     }
   });
   return slider;
@@ -225,7 +225,7 @@ function knobFactory(pos) {
   return knob;
 }
 
-function rectResies(event) {
+function rectResize(event) {
   switch (selectSegment) {
     case 0:
       selectedItem.segments[0].point.x = event.point.x;
