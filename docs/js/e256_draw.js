@@ -1,3 +1,9 @@
+/*
+  **Mapping-app V0.1**
+  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
+  This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
+*/
 
 function Matrix(width, height) {
   this.matrix = [width * height];
@@ -101,29 +107,59 @@ Blobs.prototype.size = function () {
 /////////// TRIGGER Factory
 var triggerWidth = 50;
 var triggerHeight = 50;
+var triggerState = false;
+
 function triggerFactory(pos) {
-  var trigger = new Path.Rectangle({
-    from: new Point(pos.x - (triggerWidth/2), pos.y - (triggerHeight/2)),
-    to: new Point(pos.x + (triggerWidth/2), pos.y + (triggerHeight/2)),
+
+  var trigger = new Group({
     data: {
       "name": "Trigger",
       "chan": 1,
       "note": 10
-    },
-    darw: function () {
-      //this.onMouseEnter = mouseEnter;
-      //this.onMouseLeave = mouseLeave;
-      this.strokeColor = "lightblue";
-      this.fillColor = "lightgreen";
-      this.strokeWidth = 10;
-    },
-    setPos: function (event) {
-      this.translate(event.delta);
-    },
-    resize: function (event) {
-      rectResize(event);
     }
   });
+
+  var rectangle = new Path.Rectangle({
+    parent: trigger,
+    from: new Point(pos.x - (triggerWidth / 2), pos.y - (triggerHeight / 2)),
+    to: new Point(pos.x + (triggerWidth / 2), pos.y + (triggerHeight / 2)),
+    strokeColor: "lightblue",
+    fillColor: "lightblue",
+    strokeWidth: 10,
+    
+    resize: function (event) {
+      var x = event.point.x - selectedItem.position.x;
+      var y = event.point.y - selectedItem.position.y;
+      var radius = Math.sqrt((x * x) + (y * y));
+      var newRadius = radius - this.strokeWidth / 2;
+      var oldRadius = this.bounds.width / 2;
+      this.scale(newRadius / oldRadius);
+      selectedItem.parent.children[1].scale(newRadius / oldRadius);
+    },
+  });
+
+  var circle = new Path.Circle({
+    parent: trigger,
+    center: pos,
+    radius: 20,
+    fillColor: "white",
+
+    onMouseDown: function () {
+      triggerState = !triggerState;
+      if (triggerState) {
+        this.fillColor = "red";
+      } else {
+        this.fillColor = "white";
+      }
+      this.selected = false;
+    },
+    setPos: function (event) {
+      //console.log(this.parent.children[0].segments);
+      this.translate(event.delta);
+      selectedItem.parent.children[0].translate(event.delta);
+    }
+  });
+
   return trigger;
 }
 
@@ -132,8 +168,8 @@ var toggleWidth = 50;
 var toggleHeight = 50;
 var toggleFactory = function (pos) {
   var toggle = new Path.Rectangle({
-    from: new Point(pos.x - (toggleWidth/2), pos.y - (toggleHeight/2)),
-    to: new Point(pos.x + (toggleWidth/2), pos.y + (toggleHeight/2)),
+    from: new Point(pos.x - (toggleWidth / 2), pos.y - (toggleHeight / 2)),
+    to: new Point(pos.x + (toggleWidth / 2), pos.y + (toggleHeight / 2)),
     data: {
       "name": "Toggle",
       "chan": 1,
@@ -161,8 +197,8 @@ var sliderWidth = 50;
 var sliderHeight = 150;
 function sliderFactory(pos) {
   var slider = new Path.Rectangle({
-    from: new Point(pos.x - (sliderWidth/2), pos.y - (sliderHeight/2)),
-    to: new Point(pos.x + (sliderWidth/2), pos.y + (sliderHeight/2)),
+    from: new Point(pos.x - (sliderWidth / 2), pos.y - (sliderHeight / 2)),
+    to: new Point(pos.x + (sliderWidth / 2), pos.y + (sliderHeight / 2)),
     data: {
       "name": "Slider",
       "chan": 1,

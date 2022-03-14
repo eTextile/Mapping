@@ -1,4 +1,5 @@
 /*
+  **Mapping-app V0.1**
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
   Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
@@ -109,6 +110,7 @@ window.onload = function () {
             selectedItem.setPos(event);
             break;
           case 'stroke' || 'segment':
+            //console.log(selectedItem);
             selectedItem.resize(event);
             break;
         }
@@ -149,7 +151,6 @@ function drawShape(mousePos) {
   switch (shapeMode) {
     case "Trigger":
       var e256_trigger = triggerFactory(mousePos);
-      e256_trigger.darw();
       triggerGroup.addChild(e256_trigger);
       selectedItem = e256_trigger;
       selectedItem.selected = true;
@@ -207,6 +208,10 @@ function onBlobRelease(event) {
   blobTouch.splice(event, 1);
   blobPath[event].remove();
   blobPath.splice(event, 1);
+}
+
+function toolSelector(event) {
+  shapeMode = event;
 }
 
 function toolSelector(event) {

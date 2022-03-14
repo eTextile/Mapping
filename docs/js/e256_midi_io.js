@@ -1,32 +1,33 @@
 /*
+  **Mapping-app**
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
   Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-const MIDI_INPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_INPUT channel
-const MIDI_OUTPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_OUTPUT channel
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
 const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
-// MODES (CHANNEL 1)
+// MODES (MIDI_CHANNEL 1)
 const MATRIX_MODE = 0; // 
 const MAPPING_MODE = 1; //
 const EDIT_MODE = 2; // Get all blobs values over USB using MIDI format
 const PLAY_MODE = 3; // Get all GUI values over USB using MIDI format
-// STATES (CHANNEL 2)
+// STATES (MIDI_CHANNEL 2)
 const CALIBRATE = 0;
-const DONE_ACTION = 1;
-const ERROR = 2;
-const CONFIG = 3;
+const CONFIG = 1;
+const DONE_ACTION = 2;
+const ERROR = 3;
 // LEVELS
-const SIG_IN = 0; // E256-LEDs: | 1 | 0 |
-const SIG_OUT = 1; // E256-LEDs: | 0 | 1 |
-const LINE_OUT = 2; // E256-LEDs: | 0 | 0 |
-const THRESHOLD = 3; // E256-LEDs: | 1 | 1 |
+const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
+const SIG_IN = 1; // E256-LEDs: | 1 | 0 |
+const SIG_OUT = 2; // E256-LEDs: | 0 | 1 |
+const LINE_OUT = 3; // E256-LEDs: | 0 | 0 |
 // MIDI CONSTANTS
+const MIDI_INPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_INPUT channel
+const MIDI_OUTPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_OUTPUT channel
 const NOTE_ON = 0x90; // 
 const NOTE_OFF = 0x80; //
 const CONTROL_CHANGE = 0xB0; //

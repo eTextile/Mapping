@@ -73,6 +73,7 @@
                 <button id="Toggle" class="mapingTool btn btn-outline-primary" type="button">Toggle</button>
                 <button id="Slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
                 <button id="Knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
+                <button id="Touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
               </div>
             </div>
           </div>
@@ -135,9 +136,10 @@
               </div>
             </div>
             */
+            const MAX_PARAMS = 15;
             container = document.getElementById("params");
 
-            for (i = 0; i < 15; i++) {
+            for (i = 0; i < MAX_PARAMS; i++) {
               var divParam = document.createElement("div");
               divParam.setAttribute("id", "param-" + i);
               divParam.classList.add("param", "collapse");
