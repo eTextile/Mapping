@@ -7,40 +7,24 @@
 
 //Cool snap: https://gist.github.com/willismorse/d2a291d20d7a4419e732b9f1679eb3e3
 
-let currentMode = "editMode";
-
 var myWidth;
 var myHeight;
 var x_scaleFactor;
 var y_scaleFactor;
 
-let activeLayer;
-let selectedItem;
-let lastSelectedItem;
+let currentMode = "editMode";
+var shapeMode = "";
 
-let selectedtPath;
-let selectSegment;
+var selectedItem = "";
 
-var translate = false;
-let blobTouch = [];
-let blobPath = [];
-let blobPathSmooth = [];
-
-var shapeMode;
-
-var triggerGroup;
-var toggleGroup;
-var sliderGroup;
-var knobGroup;
+e256_blobs = new Blobs();
 
 var hitOptions = {
   "segments": true,
   "stroke": true,
   "fill": true,
-  "tolerance": 2
+  "tolerance": 3
 }
-
-e256_blobs = new Blobs();
 
 window.onload = function () {
   'use strict';
@@ -60,158 +44,61 @@ window.onload = function () {
   tool.activate();
   tool.minDistance = 5;
 
-  triggerGroup = new Group();
-  toggleGroup = new Group();
-  sliderGroup = new Group();
-  knobGroup = new Group();
+  var triggerLayer = new Layer();
+  var toggleLayer = new Layer();
+  var sliderLayer = new Layer();
+  var knobLayer = new Layer();
 
   tool.onMouseDown = function (event) {
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (currentMode === "editMode") {
+    if (currentMode == "editMode") {
       if (!hitResult) {
-        if (selectedItem != null) {
-          lastSelectedItem = selectedItem;
-          lastSelectedItem.selected = false;
-        }
-        drawShape(event.point);
-        setMenuParams(selectedItem);
-        return;
+        drawShape(event);
       } else {
-        lastSelectedItem = selectedItem;
-        lastSelectedItem.selected = false;
-        selectedItem = hitResult.item;
-        selectedItem.selected = true;
-        setMenuParams(selectedItem);
-        selectedtPath = hitResult.type;
-        switch (selectedtPath) {
-          case "fill":
-            selectSegment = null;
-            break;
-          case "stroke" || "segment":
-            selectSegment = hitResult.location.index;
-            break;
-        }
+        //console.log("ITEM: " + event.item.className);
+        //console.log("ITEM_ID: " + event.item.id);
+        //console.log("ITEM_LAYER: " + event.item.layer.id);
       }
     }
-    else if (currentMode === "playMode") {
-      // TODO
-    }
-  }
-
-  tool.onMouseUp = function (event) {
-    //setMenuParams(selectedItem);
-  }
-
-  tool.onMouseDrag = function (event) {
-    if (selectedItem != null) {
-      if (currentMode === "editMode") {
-        switch (selectedtPath) {
-          case 'fill':
-            selectedItem.setPos(event);
-            break;
-          case 'stroke' || 'segment':
-            //console.log(selectedItem);
-            selectedItem.resize(event);
-            break;
-        }
-      } else if (currentMode === "playMode") {
+    if (currentMode == "playMode") {
+      if (!hitResult) {
+        // TODO
+      } else {
         // TODO
       }
     }
   }
 
-  //////////////////////////////////// TODO
   tool.onKeyDown = function (event) {
-    //console.log(event.key);
-    if (event.modifiers.shift) {
-      if (Key.isDown("backspace")) {
-        //selectedItem.remove(); //FIXME!
-      }
+    // TODO
+  }
+
+  ////////////// ADD_CONTROL_GUI
+  // TODO: create the shapes using the mouse point (event.point)
+  function drawShape(event) {
+    switch (shapeMode) {
+      case "Trigger":
+        triggerLayer.activate();
+        var e256_trigger = triggerFactory(event);
+        triggerLayer.addChild(e256_trigger);
+        break;
+      case "Toggle":
+        toggleLayer.activate();
+        var e256_toggle = toggleFactory(event);
+        toggleLayer.addChild(e256_toggle);
+        break;
+      case "Slider":
+        sliderLayer.activate();
+        var e256_slider = sliderFactory(event);
+        sliderLayer.addChild(e256_slider);
+        break;
+      case "Knob":
+        knobLayer.activate();
+        var e256_knob = knobFactory(event);
+        knobLayer.addChild(e256_knob);
+        break;
     }
   }
-}
-
-function setMenuParams(item) {
-  $('#summaryContent').html("Parameters");
-  var paramsIndex = 0;
-  for (const param in item.data) {
-    $("#paramInputAtribute-" + paramsIndex).html(param);
-    $("#paramInputValue-" + paramsIndex).val(item.data[param]);
-    $("#param-" + paramsIndex).collapse("show");
-    paramsIndex++;
-  }
-  for (var i = 15; i >= paramsIndex; i--) {
-    $("#param-" + i).collapse("hide");
-  }
-}
-
-////////////// ADD_CONTROL_GUI
-// TODO: create the shapes using the mouse point (event.point)
-function drawShape(mousePos) {
-  switch (shapeMode) {
-    case "Trigger":
-      var e256_trigger = triggerFactory(mousePos);
-      triggerGroup.addChild(e256_trigger);
-      selectedItem = e256_trigger;
-      selectedItem.selected = true;
-      break;
-    case "Toggle":
-      var e256_toggle = toggleFactory(mousePos);
-      e256_toggle.darw();
-      toggleGroup.addChild(e256_toggle);
-      selectedItem = e256_toggle;
-      selectedItem.selected = true;
-      break;
-    case "Slider":
-      var e256_slider = sliderFactory(mousePos);
-      e256_slider.darw();
-      sliderGroup.addChild(e256_slider);
-      selectedItem = e256_slider;
-      selectedItem.selected = true;
-      break;
-    case "Knob":
-      var e256_knob = knobFactory(mousePos);
-      e256_knob.darw();
-      knobGroup.addChild(e256_knob);
-      selectedItem = e256_knob;
-      selectedItem.selected = true;
-      break;
-  }
-}
-
-////////////// BLOB_INPUT
-function onBlobDown() {
-  let circle = new Path.Circle({
-    center: [0, 0],
-    radius: 10,
-    fillColor: "red"
-  });
-  blobTouch.push(circle);
-  path = new Path();
-  path.strokeColor = "#00000";
-  blobPath.push(path);
-}
-
-function onBlobUpdate(event) {
-  let blob = new Blob;
-  blob = e256_blobs.get(event);
-  let pos = new Point(blob.x * x_scaleFactor, blob.y * y_scaleFactor);
-  blobTouch[event].position = pos;
-  //blobTouch[event].radius = blob.z; // FIXME!
-  blobPath[event].add(pos);
-  //blobPathSmooth[event].smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15
-  //blobPath[event].smooth({ type: 'continuous' }); // http://paperjs.org/reference/path/#smooth
-}
-
-function onBlobRelease(event) {
-  blobTouch[event].remove();
-  blobTouch.splice(event, 1);
-  blobPath[event].remove();
-  blobPath.splice(event, 1);
-}
-
-function toolSelector(event) {
-  shapeMode = event;
 }
 
 function toolSelector(event) {
@@ -219,10 +106,10 @@ function toolSelector(event) {
 }
 
 // Update item parameters using the txt input fields
-function updateParams(btnSet) {
+function updateParams(event) {
   var paramsIndex = 0;
   for (const param in selectedItem.data) {
-    if (btnSet === "btnSet-" + paramsIndex) selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
+    if (event == "btnSet-" + paramsIndex) selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
     paramsIndex++;
   }
 }
