@@ -424,3 +424,22 @@ function radians_to_cartesian(radius, theta) {
   var y = radius * Math.sin(theta);
   return new Point(x, y);
 }
+
+function polar_to_midi(radians) {
+  if (radius < mapp_circlesParams[i].radius) {
+  // Rotation of Axes through an angle without shifting Origin
+  float posX = x * cos(mapp_circlesParams[i].offset) + y * sin(mapp_circlesParams[i].offset);
+  float posY = -x * sin(mapp_circlesParams[i].offset) + y * cos(mapp_circlesParams[i].offset);
+    if (posX == 0 && 0 < posY) {
+      theta = PiII;
+    } else if (posX == 0 && posY < 0) {
+      theta = IIIPiII;
+    } else if (posX < 0) {
+      theta = atanf(posY / posX) + PI;
+    } else if (posY < 0) {
+      theta = atanf(posY / posX) + IIPi;
+    } else {
+      theta = atanf(posY / posX);
+    }
+  };
+}

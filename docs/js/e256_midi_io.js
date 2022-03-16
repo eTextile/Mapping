@@ -10,11 +10,12 @@ const FLASH_SIZE = 4096;
 const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
-// MODES (MIDI_CHANNEL 1)
-const MATRIX_MODE = 0; // 
-const MAPPING_MODE = 1; //
-const EDIT_MODE = 2; // Get all blobs values over USB using MIDI format
-const PLAY_MODE = 3; // Get all GUI values over USB using MIDI format
+// E256 MODES CONSTANTS (MIDI_CHANNEL 1)
+const MATRIX_MODE_RAW = 0; // Get matrix analog sensor values (16x16) over USB using MIDI format
+const MATRIX_MODE_INTERP = 1; // Get matrix analog sensor values (16x16) over USB using MIDI format
+const MAPPING_MODE = 2; //
+const EDIT_MODE = 3; // Get all blobs values over USB using MIDI format
+const PLAY_MODE = 4; // Get mappings values over USB using MIDI format
 // STATES (MIDI_CHANNEL 2)
 const CALIBRATE = 0;
 const CONFIG = 1;
@@ -214,16 +215,17 @@ function setMode(event) {
   if (connected) {
     switch (currentMode) {
       case "matrixMode":
-        programChange(MATRIX_MODE, 1);
+        programChange(MATRIX_MODE_RAW, 1);
+        //programChange(MATRIX_MODE_INTERP, 1); // TODO
         break;
       case "mappingMode":
         programChange(MAPPING_MODE, 1);
         break;
-      case "playMode":
-        programChange(PLAY_MODE, 1);
-        break;
       case "editMode":
         programChange(EDIT_MODE, 1);
+        break;
+      case "playMode":
+        programChange(PLAY_MODE, 1);
         break;
     }
   } else {
