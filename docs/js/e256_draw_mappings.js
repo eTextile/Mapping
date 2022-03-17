@@ -415,8 +415,7 @@ function getPolar(event) {
 }
 
 function radian_to_degree(radians) {
-  var pi = Math.PI;
-  return radians * (180 / pi);
+  return radians * (180 / Math.PI);
 }
 
 function radians_to_cartesian(radius, theta) {
@@ -426,6 +425,7 @@ function radians_to_cartesian(radius, theta) {
 }
 
 function polar_to_midi(radians) {
+  /*
   if (radius < mapp_circlesParams[i].radius) {
   // Rotation of Axes through an angle without shifting Origin
   float posX = x * cos(mapp_circlesParams[i].offset) + y * sin(mapp_circlesParams[i].offset);
@@ -442,4 +442,5 @@ function polar_to_midi(radians) {
       theta = atanf(posY / posX);
     }
   };
+  */
 }
