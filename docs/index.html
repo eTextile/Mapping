@@ -15,8 +15,10 @@
   <script type="text/javascript" src="./js/lib/jquery.js"></script>
   <script type="text/javascript" src="./js/lib/paper-full.js"></script>
   <script type="text/javascript" src="./js/lib/bootstrap.min.js"></script>
-  <script type="text/javascript" src="./js/e256_midi_io.js"></script>
+
   <script type="text/javascript" src="./js/e256_draw_matrix.js"></script>
+  <script type="text/javascript" src="./js/e256_midi_io.js"></script>
+
   <script type="text/javascript" src="./js/e256_draw_blobs.js"></script>
   <script type="text/javascript" src="./js/e256_draw_mappings.js"></script>
   <script type="importmap">
@@ -48,8 +50,8 @@
 
         <div id="startMenu" class="collapse">
           <div class="btn-group input-group" role="group">
-            <button id="matrixMode" class="setMode btn btn-outline-primary" type="button">MATRIX</button>
-            <button id="mappingMode" class="setMode btn btn-outline-primary" type="button">MAPPING</button>
+            <button id="matrixMode" class="e256_setMode btn btn-outline-primary" type="button">MATRIX</button>
+            <button id="mappingMode" class="e256_setMode btn btn-outline-primary" type="button">MAPPING</button>
           </div>
         </div>
 
@@ -58,13 +60,13 @@
         </div>
 
         <div id="calibrateMenu" class="collapse w-100">
-          <button id="calibrate" class="sendMidi btn btn-outline-primary input-group" type="button">CALIBRATE</button>
+          <button id="calibrate" class="btn btn-outline-primary input-group" type="button">CALIBRATE</button>
         </div>
 
         <div id="mappingMenu" class="collapse w-100">
           <div class="btn-group input-group" role="group">
-            <button id="editMode" class="setMode btn btn-outline-primary" type="button">EDIT</button>
-            <button id="playMode" class="setMode btn btn-outline-primary" type="button">PLAY</button>
+            <button id="editMode" class="e256_setMode btn btn-outline-primary" type="button">EDIT</button>
+            <button id="playMode" class="e256_setMode btn btn-outline-primary" type="button">PLAY</button>
           </div>
 
           <div id="editMenu" class="collapse">
@@ -81,17 +83,14 @@
 
           <div id="playMenu" class="collapse">
             <div class="btn-group input-group" role="group">
-              <button id="getConfig" class="getParams btn btn-outline-primary" type="button">GET</button>
-              <button id="getConfigDoc" class="btn btn-outline-primary" type="button">CONFIG</button>
-              <button id="setConfig" class="setParams btn btn-outline-primary" type="button">SET</button>
+              <button id="setConfig" class="btn btn-outline-primary" type="button">SET</button>
             </div>
           </div>
 
           <div id="loadMenu" class="collapse">
-            <input id="config" class="loadConfig form-control form-control-sm" type="file" accept=".json, .wav">
-            <label for="formFileSm" class="form-label"></label>
+            <input id="loadConfigFile" class="form-control form-control-sm" type="file" accept=".json, .wav">
           </div>
-
+        
         </div>
 
       </section>
@@ -118,10 +117,10 @@
 
           <div class="card-body">
             <h5 id="summary_title" class="card-title">eTextile - Synthesizer</h5>
-            <p>
-              <li id="summaryAction" class="text list-group-item list-group-item-secondary text-danger"></li>
+              <span id="summaryAction" class="badge badge-pill badge-danger">DISCONNECTED</span>
+            <p id="summaryContent" class="text card-text">
+              This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.
             </p>
-            <p id="summaryContent" class="text card-text"></p>
           </div>
 
           <div id="params"></div>
@@ -184,7 +183,6 @@
   <footer class="col-12">Electronic textile interfaces - Creative use of technologies - <a
       href="https://etextile.org/">www.eTextile.org</a></footer>
 
-
   <script type="text/javascript">
 
     $(".btn").addClass("shadow-none");
@@ -200,6 +198,7 @@
       function () {
         if ($(this).is(":checked")) {
           $("#startMenu").collapse("show");
+          $("#summaryAction").html("CONNECTED").removeClass("badge-danger").addClass("badge-success");
           MIDIConnect();
         } else {
           $("#startMenu").collapse("hide");
@@ -213,15 +212,15 @@
 
           $("#matrixCanvas").collapse("hide");
           $("#mappingCanvas").collapse("hide");
-          $("#summaryAction").html("Disconnected!").removeClass("text-success").addClass("text-danger");
-          $("#summaryContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer!");
+          $("#summaryAction").html("DISCONNECTED").removeClass("badge-success").addClass("badge-danger");
+          $("#summaryContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
           $(".param").collapse("hide");
         }
       }
     );
 
     $("#calibrate").on("click", function () {
-      $("#summaryAction").html("Calibrate DONE!").removeClass("text-danger").addClass("text-success");
+      $("#summaryAction").html("CALIBRATED").removeClass("badge-danger").addClass("badge-success");
     });
 
     $("#matrixMode").on("click", function () {
@@ -233,7 +232,7 @@
       $("#matrixMenu").collapse("show");
       $("#matrixCanvas").collapse("show");
 
-      $("#summaryAction").html("3D graphic - visualisation").addClass("text-success");
+      $("#summaryAction").html("3D-VISUALISATION").removeClass("badge-danger").addClass("badge-success");
       $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
       $(".param").collapse("hide");
     });
@@ -247,7 +246,7 @@
       $("#mappingMenu").collapse("show");
       $("#mappingCanvas").collapse("show");
 
-      $("#summaryAction").html("2D mapping app").addClass("text-success");
+      $("#summaryAction").html("2D MAPPING-APP").removeClass("badge-danger").addClass("badge-success");
       $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces!");
       $(".param").collapse("hide");
     });
@@ -257,7 +256,7 @@
       $("#playMenu").collapse("hide");
       $("#loadMenu").collapse("hide");
 
-      $("#summaryAction").html("EDIT-MODE").removeClass("text-success").addClass("text-danger");
+      $("#summaryAction").html("EDIT-MODE").removeClass("badge-danger").addClass("badge-success");
       $("#summaryContent").html("Add new components");
     });
 
@@ -266,25 +265,29 @@
       $("#playMenu").collapse("show");
       $("#loadMenu").collapse("show");
 
-      $("#summaryAction").html("PLAY-MODE").removeClass("text-danger").addClass("text-success");
+      $("#summaryAction").html("PLAY-MODE").removeClass("badge-danger").addClass("badge-success");
       $("#summaryContent").html("Evaluate what you have made");
       $(".param").collapse("hide");
     });
 
-    $(".setMode").click(function () {
-      setMode(event.target.id);
+    $(".e256_setMode").click(function () {
+      e256_setMode(event.target.id);
     });
 
-    $(".getParams").click(function () {
-      getParams(event.target.id);
+    $("#calibrate").click(function () {
+      calibrate();
     });
 
-    $(".setParams").click(function () {
-      setParams(event.target.id);
+    $("#getConfig").click(function () {
+      // TODO
     });
 
-    $(".loadConfig").click(function () {
-      loadConfig(event.target.id);
+    $("#loadConfigFile").change(function () {
+      loadFile(event);
+    });
+
+    $("#setConfig").click(function () {
+      setConfig();
     });
 
     $(".mapingTool").click(function () {

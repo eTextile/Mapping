@@ -12,7 +12,7 @@ var myHeight;
 var x_scaleFactor;
 var y_scaleFactor;
 
-let currentMode = "editMode";
+var currentMode = EDIT_MODE;
 var shapeMode = "";
 
 var selectedItem = "";
@@ -51,16 +51,14 @@ window.onload = function () {
 
   tool.onMouseDown = function (event) {
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (currentMode == "editMode") {
+    if (currentMode === EDIT_MODE) {
       if (!hitResult) {
         drawShape(event);
       } else {
-        //console.log("ITEM: " + event.item.className);
-        //console.log("ITEM_ID: " + event.item.id);
-        //console.log("ITEM_LAYER: " + event.item.layer.id);
+        // NA
       }
     }
-    if (currentMode == "playMode") {
+    if (currentMode === PLAY_MODE) {
       if (!hitResult) {
         // TODO
       } else {

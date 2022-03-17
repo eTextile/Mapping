@@ -31,13 +31,14 @@ function triggerFactory(event) {
     },
     onMouseDown: function (event) {
       setMenuParams(this);
-      if (currentMode == "editMode") {
+      if (currentMode == EDIT_MODE) {
         var hitResult = this.hitTest(event.point, hitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
       }
-      else if (currentMode == "playMode") {
-        this.children[1].visible = true;
+      else if (currentMode == PLAY_MODE) {
+        this.children[1].fillColor = "red";
+        console.log("Trigger: " + trigger.data.note + " bang");
         timer = 0;
         state = true;
       }
@@ -46,13 +47,13 @@ function triggerFactory(event) {
       setMenuParams(this);
     },
     onMouseDrag: function (event) {
-      if (currentMode == "editMode") {
-        console.log(selectedtPath);
+      if (currentMode === EDIT_MODE) {
+        //console.log(selectedtPath);
         switch (selectedtPath) {
           case "fill":
             moveItem(this, event);
             break;
-          case "stroke":
+          case "stroke" || "segment":
             if (selectedtPathName == "square") {
               scale2d(this, event);
             } else if (selectedtPathName == "trigg") {
@@ -60,7 +61,7 @@ function triggerFactory(event) {
             }
             break;
         }
-      } else if (currentMode == "playMode") {
+      } else if (currentMode === PLAY_MODE) {
         // TODO
       }
     },
@@ -70,11 +71,11 @@ function triggerFactory(event) {
       }
       if (state && timer > 10) {
         state = false;
-        this.children[1].visible = false;
+        this.children[1].fillColor = "green";
       }
     },
     onKeyDown: function (event) {
-      if (currentMode == "editMode") {
+      if (currentMode == EDIT_MODE) {
         if (event.modifiers.shift) {
           if (Key.isDown("backspace")) {
             this.remove();
@@ -95,9 +96,9 @@ function triggerFactory(event) {
   trigger.addChild(square);
   var circle = new Path.Circle({
     name: "circle",
-    fillColor: "red",
+    fillColor: "green",
     center: new Point(trigger.data.x, trigger.data.y),
-    radius: trigger.data.size / 2.5
+    radius: trigger.data.size / 2.2
   });
   trigger.addChild(circle);
   return trigger;
@@ -119,17 +120,19 @@ function toggleFactory(event) {
     },
     onMouseDown: function (event) {
       setMenuParams(this);
-      if (currentMode == "editMode") {
+      if (currentMode == EDIT_MODE) {
         var hitResult = this.hitTest(event.point, hitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
       }
-      else if (currentMode == "playMode") {
+      else if (currentMode == PLAY_MODE) {
         this.state = !this.state;
         if (this.state) {
           this.children[1].visible = true;
+          console.log("Toggle: " + toggle.data.note + "  on");
         } else {
           this.children[1].visible = false;
+          console.log("Toggle: " + toggle.data.note + "  off");
         }
       }
     },
@@ -137,7 +140,7 @@ function toggleFactory(event) {
       setMenuParams(this);
     },
     onMouseDrag: function (event) {
-      if (currentMode == "editMode") {
+      if (currentMode == EDIT_MODE) {
         switch (selectedtPath) {
           case "fill":
             moveItem(this, event);
@@ -151,7 +154,7 @@ function toggleFactory(event) {
             break;
         }
       }
-      else if (currentMode == "playMode") {
+      else if (currentMode == PLAY_MODE) {
         // TODO
       }
     }
@@ -214,13 +217,13 @@ function sliderFactory(event) {
     },
     onMouseDown: function (event) {
       setMenuParams(this);
-      if (currentMode == "editMode") {
+      if (currentMode == EDIT_MODE) {
         var hitResult = this.hitTest(event.point, sliderHitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
         if (selectedtPath == "stroke") selectedSegment = hitResult.location.index;
       }
-      else if (currentMode == "playMode") {
+      else if (currentMode == PLAY_MODE) {
         this.children[1].data.y = event.point.y;
       }
     },
@@ -228,7 +231,7 @@ function sliderFactory(event) {
       setMenuParams(this);
     },
     onMouseDrag: function (event) {
-      if (currentMode == "editMode") {
+      if (currentMode == EDIT_MODE) {
         switch (selectedtPath) {
           case "fill":
             moveItem(this, event);
@@ -262,7 +265,7 @@ function sliderFactory(event) {
                 break;
             }
         }
-      } else if (currentMode == "playMode") {
+      } else if (currentMode == PLAY_MODE) {
         this.children[1].data.y = event.point.y;
       }
     }
@@ -310,12 +313,12 @@ function knobFactory(event) {
       "rMax": 127
     },
     onMouseDown: function (event) {
-      if (currentMode == "editMode") {
+      if (currentMode == EDIT_MODE) {
         var hitResult = this.hitTest(event.point, hitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
       }
-      else if (currentMode == "playMode") {
+      else if (currentMode == PLAY_MODE) {
         var p = getPolar(event);
         this.children[1].segments[1].point = radians_to_cartesian(p.radius, p.theta);
         knob.data.radius = p.radius;
@@ -327,7 +330,7 @@ function knobFactory(event) {
       setMenuParams(this);
     },
     onMouseDrag: function (event) {
-      if (currentMode == "editMode") {
+      if (currentMode == EDIT_MODE) {
         switch (selectedtPath) {
           case "fill":
             moveItem(this, event);
@@ -343,7 +346,7 @@ function knobFactory(event) {
             }
         }
       }
-      else if (currentMode == "playMode") {
+      else if (currentMode == PLAY_MODE) {
         var p = getPolar(event);
         this.children[1].segments[1].point = radians_to_cartesian(p.radius, p.theta);
         knob.data.radius = p.radius;

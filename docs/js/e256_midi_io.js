@@ -1,6 +1,6 @@
 /*
   **Mapping-app V0.1**
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  This file is part of the e256 project - http://synth.eTextile.org
   Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
@@ -11,14 +11,16 @@ const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
 // E256 MODES CONSTANTS (MIDI_CHANNEL 1)
-const MATRIX_MODE_RAW = 0; // Get matrix analog sensor values (16x16) over USB using MIDI format
-const MATRIX_MODE_INTERP = 1; // Get matrix analog sensor values (16x16) over USB using MIDI format
-const MAPPING_MODE = 2; //
+const STANDALONE_MODE = 0; // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
+const MATRIX_MODE_RAW = 1; // Get matrix analog sensor values (16x16) over USB using MIDI format
+const MATRIX_MODE_INTERP = 2; // Get matrix analog sensor values (16x16) over USB using MIDI format
 const EDIT_MODE = 3; // Get all blobs values over USB using MIDI format
 const PLAY_MODE = 4; // Get mappings values over USB using MIDI format
+
+const GET_CONFIG = 5;
+
 // STATES (MIDI_CHANNEL 2)
 const CALIBRATE = 0;
-const CONFIG = 1;
 const DONE_ACTION = 2;
 const ERROR = 3;
 // LEVELS
@@ -39,14 +41,14 @@ const SYSEX_END = 0xF7; // 247
 const SYSEX_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
 const SYSEX_CONF = 0x7C; // 124
 const SYSEX_SOUND = 0x6C; // 108
-// VERBOSITY
+// VERBOSITY CONSTANTS
 const DONE_FLASH_CONFIG_ALLOC = 16;
 const DONE_FLASH_CONFIG_LOAD = 17;
 const DONE_FLASH_CONFIG_WRITE = 18;
 const DONE_USBMIDI_CONFIG_ALLOC = 19;
 const DONE_USBMIDI_CONFIG_LOAD = 20;
 const DONE_USBMIDI_SOUND_LOAD = 21;
-// ERROR CODES
+// ERROR CODES CONSTANTS
 const ERROR_WAITING_FOR_GONFIG = 33;
 const ERROR_LOADING_GONFIG_FAILED = 34;
 const ERROR_CONNECTING_FLASH = 35;
@@ -69,7 +71,8 @@ var MIDIInput
 var MIDIIoutput;
 var connected = false;
 var fileType = "";
-var config = "";
+
+let config = "";
 
 async function MIDIConnect() {
   if (navigator.requestMIDIAccess) {
@@ -94,16 +97,16 @@ function onMIDISuccess(midiAccess) {
       MIDIIoutput = entry;
     }
   }
-  if (!connected) {
-    connect.checked = false;
-    $('#summary_action').html("Connected!").removeClass("text-danger").addClass("text-success");
+  if (connected) {
+    $("#summaryAction").html("CONNECTED").removeClass("badge-danger").addClass("badge-success");
   } else {
-    $('#summary_action').html("Connected!").removeClass("text-danger").addClass("text-success");
+    $("#summaryAction").html("DISCONNECTED").removeClass("badge-success").addClass("badge-danger");
+    connect.checked = false;
   }
 }
 
 function onMIDIFailure(error) {
-  alert("eTextile-Synthesizer NOT CONNECTED! " + error);
+  alert("e256 NOT CONNECTED! " + error);
   connect.checked = false;
 }
 
@@ -138,33 +141,70 @@ function onMIDIMessage(midiMsg) {
       break;
     case PROGRAM_CHANGE:
       switch (midiMsg.data[1]) {
+        // VERBOSITY CONSTANTS
+        case DONE_FLASH_CONFIG_ALLOC:
+          console.log("e256: DONE_FLASH_CONFIG_ALLOC: " + midiMsg.data[1]);
+          break;
+        case DONE_FLASH_CONFIG_LOAD:
+          console.log("e256: DONE_FLASH_CONFIG_LOAD: " + midiMsg.data[1]);
+          break;
+        case DONE_FLASH_CONFIG_WRITE:
+          console.log("e256: DONE_FLASH_CONFIG_WRITE: " + midiMsg.data[1]);
+          break;
         case DONE_USBMIDI_CONFIG_ALLOC:
           sysex_load(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           break;
         case DONE_USBMIDI_CONFIG_LOAD:
-          alert("eTextile-Synthesizer: LOAD CONFIG DONE!");
+          console.log("e256: LOAD CONFIG DONE!");
+          break;
+        case DONE_USBMIDI_SOUND_LOAD:
+          break;
+        // ERROR CODES CONSTANTS
+        case ERROR_WAITING_FOR_GONFIG:
+          alert("e256: ERROR_WAITING_FOR_GONFIG: " + midiMsg.data[1]);
+          break;
+        case ERROR_LOADING_GONFIG_FAILED:
+          alert("e256: ERROR_LOADING_GONFIG_FAILED: " + midiMsg.data[1]);
+          break;
+        case ERROR_CONNECTING_FLASH:
+          alert("e256: ERROR_CONNECTING_FLASH: " + midiMsg.data[1]);
+          break;
+        case ERROR_WHILE_OPEN_FLASH_FILE:
+          alert("e256: ERROR_WHILE_OPEN_FLASH_FILE: " + midiMsg.data[1]);
+          break;
+        case ERROR_FLASH_FULL:
+          alert("e256: ERROR_FLASH_FULL: " + midiMsg.data[1]);
+          break;
+        case ERROR_FILE_TO_BIG:
+          alert("e256: ERROR_FILE_TO_BIG: " + midiMsg.data[1]);
+          break;
+        case ERROR_NO_CONFIG_FILE:
+          alert("e256: ERROR_NO_CONFIG_FILE: " + midiMsg.data[1]);
+          break;
+        case ERROR_UNKNOWN_SYSEX:
+          alert("e256: ERROR_UNKNOWN_SYSEX: " + midiMsg.data[1]);
           break;
         default:
-          //console.log("midiMsg: " + midiMsg.data[1]);
+          alert("e256: UNKNOW MIDI-MSSGAGE: " + midiMsg.data[1]);
           break;
       }
       break;
     case SYSTEM_EXCLUSIVE:
       switch (currentMode) {
-        case "matrixMode":
+        case MATRIX_MODE_RAW:
           e256_matrix.update(midiMsg.data);
           break;
-        case "matrixMode":
-          e256_matrix.update(midiMsg.data);
+        case MATRIX_MODE_INTERP:
+          // TODO
           break;
-        case "playMode":
+        case PLAY_MODE:
           e256_blobs.update(midiMsg.data, onBlobUpdate);
           break;
-        case "editMode":
+        case EDIT_MODE:
           e256_blobs.update(midiMsg.data, onBlobUpdate);
           break;
-        case "getConfig":
-          // TODO: fetch config file
+        case GET_CONFIG:
+          // TODO: fetch the e256 CONFIG file
           break;
       }
       break;
@@ -175,20 +215,24 @@ function onMIDIMessage(midiMsg) {
 
 function noteOn(note, volume) {
   MIDIIoutput.send([NOTE_ON, note, volume]);
+  console.log("MIDIIoutput.send noteOn: " + note + " volume: " + volume);
 }
 
 function noteOff(note) {
   MIDIIoutput.send([NOTE_OFF, note, 0]);
+  console.log("MIDIIoutput.send noteOff: " + note + " volume: " + 0);
 }
 
 function controlChange(value) {
   MIDIIoutput.send([CONTROL_CHANGE, value]);
+  console.log("MIDIIoutput.send controlChange: " + value);
 }
 
-function programChange(value, channel) {
+function programChange(value) {
   //var status = PROGRAM_CHANGE | channel; // FIXME! bug is on the Arduino side! Open issue: https://github.com/PaulStoffregen/cores/issues/636
   //MIDIIoutput.send([status, value]);
   MIDIIoutput.send([PROGRAM_CHANGE, value]); // Quick FIX
+  console.log("MIDIIoutput.send programChange: " + value);
 }
 
 // Send data via MIDI system exclusive message
@@ -210,92 +254,80 @@ function sysex_load(data) {
   MIDIIoutput.send(midiMsg);
 }
 
-function setMode(event) {
-  currentMode = event;
-  if (connected) {
-    switch (currentMode) {
-      case "matrixMode":
-        programChange(MATRIX_MODE_RAW, 1);
-        //programChange(MATRIX_MODE_INTERP, 1); // TODO
-        break;
-      case "mappingMode":
-        programChange(MAPPING_MODE, 1);
-        break;
-      case "editMode":
-        programChange(EDIT_MODE, 1);
-        break;
-      case "playMode":
-        programChange(PLAY_MODE, 1);
-        break;
-    }
-  } else {
-    alert("NOT_CONNECTED!");
+function e256_setMode(event) {
+  switch (event) {
+    case "matrixMode":
+      currentMode = MATRIX_MODE_RAW;
+      if (connected) programChange(MATRIX_MODE_RAW, 1);
+      //programChange(MATRIX_MODE_INTERP, 1); // TODO
+      //currentMode = MATRIX_MODE_INTERP;
+      break;
+    case "mappingMode":
+      // Look if a CONFIG file is already existing on the e256
+      if (connected) programChange(GET_CONFIG, 1);
+      break;
+    case "editMode":
+      currentMode = EDIT_MODE;
+      if (connected) programChange(EDIT_MODE, 1);
+      break;
+    case "playMode":
+      currentMode = PLAY_MODE;
+      if (connected) programChange(PLAY_MODE, 1);
+      break;
   }
 }
 
-function setParams(event) {
+function setConfig() {
   if (connected) {
-    switch (event) {
-      case "Calibrate":
-        programChange(CALIBRATE, 2);
-        break;
-      case "setConfig":
-        sendFile();
-        break;
-    }
+    e256_alocate_memory();
   } else {
-    alert("NOT_CONNECTED!");
+    alert("e256 NOT CONNECTED!");
   }
 }
 
-function getParams(event) {
+function calibrate() {
   if (connected) {
-    switch (event) {
-      case "getConfig":
-        programChange(GET_CONFIG, 2);
-        break;
-    }
+    programChange(CALIBRATE, 2);
   } else {
-    alert("NOT_CONNECTED!");
+    alert("e256 NOT CONNECTED!");
   }
 }
 
 function loadFile(event) {
-  var uploadedFile = event.target.files[0];
-  if (uploadedFile.type === "application/json") {
-    fileType = 'json';
+  var file = event.target.files[0];
+  if (file.type === "application/json") {
+    fileType = "json";
     var reader = new FileReader();
     reader.onload = onReaderLoad;
     reader.readAsText(event.target.files[0]);
   }
-  else if (uploadedFile.type === "application/wav") {
-    fileType = 'wav';
+  else if (file.type === "application/wav") {
+    fileType = "wav";
     //TODO
-  } else {
-    alert("Wrong file type!");
+  }
+  else {
+    alert("WRONG FILE TYPE!");
   }
 }
 
 function onReaderLoad(event) {
   try {
-    config = JSON.parse(event.target.result);
-    //console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
+    config = JSON.stringify(JSON.parse(event.target.result)); // FIXME!!
+    console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
   } catch (e) {
-    alert(e); // error in the above string!
+    alert(e);
   }
 }
 
-function sendFile() {
-  if (connected) {
-    if (fileType === 'json') {
-      sysex_alloc(SYSEX_CONF, Object.keys(JSON.midiMsg(config)).length);
-    }
-    else if (fileType === 'wav') {
-      //sysex_alloc(SYSEX_SOUND, sound.length);
-    } else {
-      alert("CONFIG FILE MISSING!");
-    }
+function e256_alocate_memory() {
+  if (fileType == "json") {
+    var confSize = Object.keys(config).length;
+    console.log(confSize);
+    //sysex_alloc(SYSEX_CONF, confSize);
+  }
+  else if (fileType == "wav") {
+    //sysex_alloc(SYSEX_SOUND, sound.length); // TODO
   } else {
-    alert("eTextile-Synthesizer NOT CONNECTED!");
+    alert("CONFIG FILE MISSING!");
   }
 }

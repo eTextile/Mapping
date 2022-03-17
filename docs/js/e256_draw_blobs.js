@@ -4,6 +4,7 @@
   Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
+
 let blobTouch = [];
 let blobPath = [];
 let blobPathSmooth = [];
@@ -77,7 +78,7 @@ Blobs.prototype.add = function (noteOn, callback) {
     this.blobs.push(blob);
     callback();
   } else {
-    //console.log("BLOB_EXIST: " + noteOn[1]);
+    console.log("BLOB_EXIST: " + noteOn[1]);
     return;
   }
 }
@@ -88,7 +89,7 @@ Blobs.prototype.remove = function (noteOff, callback) {
     this.blobs.splice(index, 1);
     callback(index);
   } else {
-    //console.log("BLOB_NOT_FOUND: " + noteOff[1]);
+    console.log("BLOB_NOT_FOUND: " + noteOff[1]);
     return;
   }
 }
@@ -99,7 +100,7 @@ Blobs.prototype.update = function (sysExMsg, callback) {
     this.blobs[index].update(sysExMsg);
     callback(index);
   } else {
-    //console.log("BLOB_NOT_FOUND: " + sysExMsg[1]);
+    console.log("BLOB_NOT_FOUND: " + sysExMsg[1]);
     return;
   }
 }
