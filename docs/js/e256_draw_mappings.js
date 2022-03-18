@@ -54,9 +54,9 @@ function triggerFactory(event) {
             moveItem(this, event);
             break;
           case "stroke" || "segment":
-            if (selectedtPathName == "square") {
+            if (selectedtPathName === "square") {
               scale2d(this, event);
-            } else if (selectedtPathName == "trigg") {
+            } else if (selectedtPathName === "trigg") {
               moveItem(this, event);
             }
             break;
@@ -146,9 +146,9 @@ function toggleFactory(event) {
             moveItem(this, event);
             break;
           case "stroke":
-            if (selectedtPathName == "square") {
+            if (selectedtPathName === "square") {
               scale2d(this, event);
-            } else if (selectedtPathName == "cross") {
+            } else if (selectedtPathName === "cross") {
               moveItem(this, event);
             }
             break;
@@ -194,6 +194,10 @@ function toggleFactory(event) {
 
 /////////// SLIDER Factory
 function sliderFactory(event) {
+  var topPos = 0;
+  var bottomPos = 0;
+  var rightPos = 0;
+  var leftPos = 0;
   var sliderHitOptions = {
     "stroke": true,
     "segment": true,
@@ -222,10 +226,13 @@ function sliderFactory(event) {
         var hitResult = this.hitTest(event.point, sliderHitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
-        if (selectedtPath == "stroke") selectedSegment = hitResult.location.index;
+        if (selectedtPath === "stroke") selectedSegment = hitResult.location.index;
       }
       else if (currentMode === PLAY_MODE) {
-        this.children[1].data.y = event.point.y;
+        var bottomPos = slider.data.y + (slider.data.height / 2);
+        slider.data.val = mapp(bottomPos - event.point.y, 0, slider.data.height, 0, 127);
+        this.children[1].segments[0].point.y = event.point.y;
+        this.children[1].segments[1].point.y = event.point.y;
       }
     },
     onMouseDrag: function (event) {
@@ -239,7 +246,6 @@ function sliderFactory(event) {
               case "rect":
                 switch (selectedSegment) {
                   case 0: // Update left segment
-                    var rightPos = slider.data.x + (slider.data.width / 2);
                     slider.data.x = rightPos - ((rightPos - event.point.x) / 2);
                     slider.data.width = (rightPos - slider.data.x) * 2;
                     this.children[0].segments[0].point.x = event.point.x;
@@ -247,14 +253,12 @@ function sliderFactory(event) {
                     this.children[1].segments[0].point.x = event.point.x;
                     break;
                   case 1: // Update top segment
-                    var bottomPos = slider.data.y + (slider.data.height / 2);
                     slider.data.y = bottomPos - ((bottomPos - event.point.y) / 2);
                     slider.data.height = (bottomPos - slider.data.y) * 2;
                     this.children[0].segments[1].point.y = event.point.y;
                     this.children[0].segments[2].point.y = event.point.y;
                     break;
                   case 2: // Update right segment
-                    var leftPos = slider.data.x - (slider.data.width / 2);
                     slider.data.x = leftPos + ((event.point.x - leftPos) / 2);
                     slider.data.width = (slider.data.x - leftPos) * 2;
                     this.children[0].segments[2].point.x = event.point.x;
@@ -262,7 +266,6 @@ function sliderFactory(event) {
                     this.children[1].segments[1].point.x = event.point.x;
                     break;
                   case 3: // Update bottom segment
-                    var topPos = slider.data.y - (slider.data.height / 2);
                     slider.data.y = topPos + ((event.point.y - topPos) / 2);
                     slider.data.height = (slider.data.y - topPos) * 2;
                     this.children[0].segments[3].point.y = event.point.y;
@@ -277,18 +280,20 @@ function sliderFactory(event) {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        var top = slider.data.y - (slider.data.height / 2);
-        var bott = slider.data.y + (slider.data.height / 2);
-        if (event.point.y > top && event.point.y < bott) {
+        if (event.point.y > topPos && event.point.y < bottomPos) {
+          slider.data.val = mapp(bottomPos - event.point.y, 0, slider.data.height, 0, 127);
           this.children[1].segments[0].point.y = event.point.y;
           this.children[1].segments[1].point.y = event.point.y;
-          var bottomPos = slider.data.y + (slider.data.height / 2);
-          slider.data.val =  mapp(bottomPos - event.point.y, 0, slider.data.height, 0, 127);
         }
       }
     },
     onMouseUp: function (event) {
       setMenuParams(this);
+      topPos = slider.data.y - (slider.data.height / 2);
+      bottomPos = slider.data.y + (slider.data.height / 2);
+      leftPos = slider.data.x - (slider.data.width / 2);
+      rightPos = slider.data.x + (slider.data.width / 2);
+      //console.log("INIT");
     }
 
   });
@@ -401,8 +406,8 @@ function knobFactory(event) {
 
 function moveItem(item, event) {
   item.translate(event.delta);
-  item.data.x = event.point.x;
-  item.data.y = event.point.y;
+  item.data.x += event.delta.x;
+  item.data.y += event.delta.y;
 }
 
 function scale2d(item, event) {
