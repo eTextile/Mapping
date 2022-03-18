@@ -155,7 +155,7 @@ function toggleFactory(event) {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        // TODO
+        // NA
       }
     }
   });
@@ -284,18 +284,22 @@ function sliderFactory(event) {
           slider.data.val = mapp(bottomPos - event.point.y, 0, slider.data.height, 0, 127);
           this.children[1].segments[0].point.y = event.point.y;
           this.children[1].segments[1].point.y = event.point.y;
+          setMenuParams(this);
         }
       }
     },
     onMouseUp: function (event) {
-      setMenuParams(this);
-      topPos = slider.data.y - (slider.data.height / 2);
-      bottomPos = slider.data.y + (slider.data.height / 2);
-      leftPos = slider.data.x - (slider.data.width / 2);
-      rightPos = slider.data.x + (slider.data.width / 2);
-      //console.log("INIT");
+      if (currentMode === EDIT_MODE) {
+        topPos = slider.data.y - (slider.data.height / 2);
+        bottomPos = slider.data.y + (slider.data.height / 2);
+        leftPos = slider.data.x - (slider.data.width / 2);
+        rightPos = slider.data.x + (slider.data.width / 2);
+        setMenuParams(this);
+      }
+      else if (currentMode === PLAY_MODE) {
+        setMenuParams(this);
+      }
     }
-
   });
   var rect = new Path.Rectangle({
     name: "rect",
@@ -329,7 +333,8 @@ function knobFactory(event) {
       "x": event.point.x,
       "y": event.point.y,
       "radius": 50,
-      "theta": 0,
+      "rVal": 0,
+      "tVal": 0,
       "offset": 0,
       "chan": 1,
       "ccTeta": 1,
@@ -346,10 +351,12 @@ function knobFactory(event) {
         selectedtPathName = hitResult.item.name;
       }
       else if (currentMode === PLAY_MODE) {
-        var p = getPolar(event);
-        this.children[1].segments[1].point = radians_to_cartesian(p.radius, p.theta);
-        knob.data.radius = p.radius;
-        knob.data.theta = radian_to_degree(p.theta);
+        var p = getPolar(this, event);
+        this.children[1].segments[1].point = radians_to_cartesian(this, p.radius, p.theta);
+
+        knob.data.rVal = mapp(p.radius, 0, knob.data.radius, 0, 127);
+        knob.data.tVal = mapp(radian_to_degree(this, event), 0, 380, 0, 127);
+
         setMenuParams(this);
       }
     },
@@ -362,10 +369,14 @@ function knobFactory(event) {
           case "fill":
             moveItem(this, event);
             break;
-          case "segment":
+          case "stroke":
             switch (selectedtPathName) {
               case "knob":
-                // TODO
+                var x = event.point.x - knob.data.x;
+                var y = event.point.y - knob.data.y;
+                var radius = Math.sqrt((x * x) + (y * y));
+                knob.scale(radius / knob.data.radius);
+                knob.data.radius = radius;
                 break;
               case "needle":
                 moveItem(this, event);
@@ -374,11 +385,15 @@ function knobFactory(event) {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        var p = getPolar(event);
-        this.children[1].segments[1].point = radians_to_cartesian(p.radius, p.theta);
-        knob.data.radius = p.radius;
-        knob.data.theta = radian_to_degree(p.theta);
-        setMenuParams(this);
+        var p = getPolar(this, event);
+        if (p.radius < knob.data.radius) {
+          this.children[1].segments[1].point = radians_to_cartesian(this, p.radius, p.theta);
+  
+          knob.data.rVal = mapp(p.radius, 0, knob.data.radius, 0, 127);
+          knob.data.tVal = mapp(radian_to_degree(this, event), 0, 380, 0, 127);
+  
+          setMenuParams(this);
+        }
       }
     }
   });
@@ -398,7 +413,7 @@ function knobFactory(event) {
     strokeColor: "black",
     strokeWidth: 5,
     from: new Point(knob.data.x, knob.data.y),
-    to: new Point(knob.data.x + knob.data.radius, knob.data.y)
+    to: new Point(knob.data.x + knob.data.rVal, knob.data.y)
   });
   knob.addChild(needle);
   return knob;
@@ -414,7 +429,7 @@ function scale2d(item, event) {
   var x = event.point.x - item.data.x;
   var y = event.point.y - item.data.y;
   var radius = Math.sqrt((x * x) + (y * y));
-  var newRadius = radius - item.children[0].strokeWidth / 2;
+  var newRadius = radius - (item.children[0].strokeWidth / 2);
   var oldRadius = item.data.size / 2;
   item.scale(newRadius / oldRadius);
   item.data.size = item.children[0].bounds.width;
@@ -435,44 +450,44 @@ function setMenuParams(item) {
   }
 }
 
-function getPolar(event) {
-  var r = Math.pow((Math.pow(event.point.x, 2) + Math.pow(event.point.y, 2)), 0.5);
-  var theta = Math.atan2(event.point.y, event.point.x);
+function getPolar(item, event) {
+  var x = event.point.x - item.data.x; // Place the x origin to the circle center
+  var y = event.point.y - item.data.y; // Place the y origin to the circle center
+  var radius = Math.sqrt(x * x + y * y);
+  var theta = Math.atan2(y, x);
   return {
-    "radius": r,
+    "radius": radius,
     "theta": theta
   }
 }
 
-function radian_to_degree(radians) {
-  return radians * (180 / Math.PI);
+function radian_to_degree(item, event) {
+  var degree = 0;
+
+  var posX = event.point.x - item.data.x; // Place the x origin to the circle center
+  var posY = event.point.y - item.data.y; // Place the y origin to the circle center
+  // Rotation of Axes through an angle without shifting Origin 
+  //var posX = x * Math.cos(item.data.offset) + y * Math.sin(item.data.offset);
+  //var posY = -x * Math.sin(item.data.offset) + y * Math.cos(item.data.offset);
+
+  if (posX == 0 && 0 < posY) {
+    degree = (Math.PI / 2);
+  } else if (posX == 0 && posY < 0) {
+    degree = (3 * Math.PI) / 2;
+  } else if (posX < 0) {
+    degree = Math.atan(posY / posX) + Math.PI;
+  } else if (posY < 0) {
+    degree = Math.atan(posY / posX) + (2 * Math.PI);
+  } else {
+    degree = Math.atan(posY / posX);
+  }
+  return degree * 180 / Math.PI;
 }
 
-function radians_to_cartesian(radius, theta) {
+function radians_to_cartesian(item, radius, theta) {
   var x = radius * Math.cos(theta);
   var y = radius * Math.sin(theta);
-  return new Point(x, y);
-}
-
-function polar_to_midi(radians) {
-  /*
-  if (radius < mapp_circlesParams[i].radius) {
-  // Rotation of Axes through an angle without shifting Origin
-  float posX = x * cos(mapp_circlesParams[i].offset) + y * sin(mapp_circlesParams[i].offset);
-  float posY = -x * sin(mapp_circlesParams[i].offset) + y * cos(mapp_circlesParams[i].offset);
-    if (posX == 0 && 0 < posY) {
-      theta = PiII;
-    } else if (posX == 0 && posY < 0) {
-      theta = IIIPiII;
-    } else if (posX < 0) {
-      theta = atanf(posY / posX) + PI;
-    } else if (posY < 0) {
-      theta = atanf(posY / posX) + IIPi;
-    } else {
-      theta = atanf(posY / posX);
-    }
-  };
-  */
+  return new Point(x + item.data.x, y + item.data.y);
 }
 
 function mapp(value, low1, high1, low2, high2) {
