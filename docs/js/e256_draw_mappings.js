@@ -31,12 +31,12 @@ function triggerFactory(event) {
     },
     onMouseDown: function (event) {
       setMenuParams(this);
-      if (currentMode == EDIT_MODE) {
+      if (currentMode === EDIT_MODE) {
         var hitResult = this.hitTest(event.point, hitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
       }
-      else if (currentMode == PLAY_MODE) {
+      else if (currentMode === PLAY_MODE) {
         this.children[1].fillColor = "red";
         console.log("Trigger: " + trigger.data.note + " bang");
         timer = 0;
@@ -75,7 +75,7 @@ function triggerFactory(event) {
       }
     },
     onKeyDown: function (event) {
-      if (currentMode == EDIT_MODE) {
+      if (currentMode === EDIT_MODE) {
         if (event.modifiers.shift) {
           if (Key.isDown("backspace")) {
             this.remove();
@@ -120,12 +120,12 @@ function toggleFactory(event) {
     },
     onMouseDown: function (event) {
       setMenuParams(this);
-      if (currentMode == EDIT_MODE) {
+      if (currentMode === EDIT_MODE) {
         var hitResult = this.hitTest(event.point, hitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
       }
-      else if (currentMode == PLAY_MODE) {
+      else if (currentMode === PLAY_MODE) {
         this.state = !this.state;
         if (this.state) {
           this.children[1].visible = true;
@@ -140,7 +140,7 @@ function toggleFactory(event) {
       setMenuParams(this);
     },
     onMouseDrag: function (event) {
-      if (currentMode == EDIT_MODE) {
+      if (currentMode === EDIT_MODE) {
         switch (selectedtPath) {
           case "fill":
             moveItem(this, event);
@@ -154,7 +154,7 @@ function toggleFactory(event) {
             break;
         }
       }
-      else if (currentMode == PLAY_MODE) {
+      else if (currentMode === PLAY_MODE) {
         // TODO
       }
     }
@@ -217,13 +217,13 @@ function sliderFactory(event) {
     },
     onMouseDown: function (event) {
       setMenuParams(this);
-      if (currentMode == EDIT_MODE) {
+      if (currentMode === EDIT_MODE) {
         var hitResult = this.hitTest(event.point, sliderHitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
         if (selectedtPath == "stroke") selectedSegment = hitResult.location.index;
       }
-      else if (currentMode == PLAY_MODE) {
+      else if (currentMode === PLAY_MODE) {
         this.children[1].data.y = event.point.y;
       }
     },
@@ -231,7 +231,7 @@ function sliderFactory(event) {
       setMenuParams(this);
     },
     onMouseDrag: function (event) {
-      if (currentMode == EDIT_MODE) {
+      if (currentMode === EDIT_MODE) {
         switch (selectedtPath) {
           case "fill":
             moveItem(this, event);
@@ -265,7 +265,7 @@ function sliderFactory(event) {
                 break;
             }
         }
-      } else if (currentMode == PLAY_MODE) {
+      } else if (currentMode === PLAY_MODE) {
         this.children[1].data.y = event.point.y;
       }
     }
@@ -313,12 +313,12 @@ function knobFactory(event) {
       "rMax": 127
     },
     onMouseDown: function (event) {
-      if (currentMode == EDIT_MODE) {
+      if (currentMode === EDIT_MODE) {
         var hitResult = this.hitTest(event.point, hitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
       }
-      else if (currentMode == PLAY_MODE) {
+      else if (currentMode === PLAY_MODE) {
         var p = getPolar(event);
         this.children[1].segments[1].point = radians_to_cartesian(p.radius, p.theta);
         knob.data.radius = p.radius;
@@ -330,7 +330,7 @@ function knobFactory(event) {
       setMenuParams(this);
     },
     onMouseDrag: function (event) {
-      if (currentMode == EDIT_MODE) {
+      if (currentMode === EDIT_MODE) {
         switch (selectedtPath) {
           case "fill":
             moveItem(this, event);
@@ -346,7 +346,7 @@ function knobFactory(event) {
             }
         }
       }
-      else if (currentMode == PLAY_MODE) {
+      else if (currentMode === PLAY_MODE) {
         var p = getPolar(event);
         this.children[1].segments[1].point = radians_to_cartesian(p.radius, p.theta);
         knob.data.radius = p.radius;
