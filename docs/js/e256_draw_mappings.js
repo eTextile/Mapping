@@ -228,9 +228,6 @@ function sliderFactory(event) {
         this.children[1].data.y = event.point.y;
       }
     },
-    onMouseUp: function (event) {
-      setMenuParams(this);
-    },
     onMouseDrag: function (event) {
       if (currentMode === EDIT_MODE) {
         switch (selectedtPath) {
@@ -241,21 +238,33 @@ function sliderFactory(event) {
             switch (selectedtPathName) {
               case "rect":
                 switch (selectedSegment) {
-                  case 0:
+                  case 0: // Update left segment
+                    var rightPos = slider.data.x + (slider.data.width / 2);
+                    slider.data.x = rightPos - ((rightPos - event.point.x) / 2);
+                    slider.data.width = (rightPos - slider.data.x) * 2;
                     this.children[0].segments[0].point.x = event.point.x;
                     this.children[0].segments[1].point.x = event.point.x;
                     this.children[1].segments[0].point.x = event.point.x;
                     break;
-                  case 1:
+                  case 1: // Update top segment
+                    var bottomPos = slider.data.y + (slider.data.height / 2);
+                    slider.data.y = bottomPos - ((bottomPos - event.point.y) / 2);
+                    slider.data.height = (bottomPos - slider.data.y) * 2;
                     this.children[0].segments[1].point.y = event.point.y;
                     this.children[0].segments[2].point.y = event.point.y;
                     break;
-                  case 2:
+                  case 2: // Update right segment
+                    var leftPos = slider.data.x - (slider.data.width / 2);
+                    slider.data.x = leftPos + ((event.point.x - leftPos) / 2);
+                    slider.data.width = (slider.data.x - leftPos) * 2;
                     this.children[0].segments[2].point.x = event.point.x;
                     this.children[0].segments[3].point.x = event.point.x;
                     this.children[1].segments[1].point.x = event.point.x;
                     break;
-                  case 3:
+                  case 3: // Update bottom segment
+                    var topPos = slider.data.y - (slider.data.height / 2);
+                    slider.data.y = topPos + ((event.point.y - topPos) / 2);
+                    slider.data.height = (slider.data.y - topPos) * 2;
                     this.children[0].segments[3].point.y = event.point.y;
                     this.children[0].segments[0].point.y = event.point.y;
                     break;
@@ -273,10 +282,15 @@ function sliderFactory(event) {
         if (event.point.y > top && event.point.y < bott) {
           this.children[1].segments[0].point.y = event.point.y;
           this.children[1].segments[1].point.y = event.point.y;
-          slider.data.val = Math.abs(127 - (event.point.y - (slider.data.y - slider.data.height / 2)));
+          var bottomPos = slider.data.y + (slider.data.height / 2);
+          slider.data.val =  mapp(bottomPos - event.point.y, 0, slider.data.height, 0, 127);
         }
       }
+    },
+    onMouseUp: function (event) {
+      setMenuParams(this);
     }
+
   });
   var rect = new Path.Rectangle({
     name: "rect",
@@ -454,4 +468,8 @@ function polar_to_midi(radians) {
     }
   };
   */
+}
+
+function mapp(value, low1, high1, low2, high2) {
+  return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
