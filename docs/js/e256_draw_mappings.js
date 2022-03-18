@@ -213,7 +213,8 @@ function sliderFactory(event) {
       "chan": 1,
       "cChange": 0,
       "min": 0,
-      "max": 127
+      "max": 127,
+      "val": 0
     },
     onMouseDown: function (event) {
       setMenuParams(this);
@@ -265,8 +266,15 @@ function sliderFactory(event) {
                 break;
             }
         }
-      } else if (currentMode === PLAY_MODE) {
-        this.children[1].data.y = event.point.y;
+      }
+      else if (currentMode === PLAY_MODE) {
+        var top = slider.data.y - (slider.data.height / 2);
+        var bott = slider.data.y + (slider.data.height / 2);
+        if (event.point.y > top && event.point.y < bott) {
+          this.children[1].segments[0].point.y = event.point.y;
+          this.children[1].segments[1].point.y = event.point.y;
+          slider.data.val = Math.abs(127 - (event.point.y - (slider.data.y - slider.data.height / 2)));
+        }
       }
     }
   });
