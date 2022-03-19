@@ -34,8 +34,8 @@ function touchpadFactory(event) {
       "name": "Touchpad",
       "width": 300,
       "height": 300,
-      "x": event.point.x,
-      "y": event.point.y,
+      "x": Math.round(event.point.x),
+      "y": Math.round(event.point.y),
       "Xchan": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }],
       "Ychan": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }],
       "cChange": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }],
@@ -198,8 +198,8 @@ function triggerFactory(event) {
     data: {
       "name": "Trigger",
       "size": 40,
-      "x": event.point.x,
-      "y": event.point.y,
+      "x": Math.round(event.point.x),
+      "y": Math.round(event.point.y),
       "chan": 1,
       "note": 33,
       "velocity": 33
@@ -291,8 +291,8 @@ function toggleFactory(event) {
     data: {
       "name": "Toggle",
       "size": 40,
-      "x": event.point.x,
-      "y": event.point.y,
+      "x": Math.round(event.point.x),
+      "y": Math.round(event.point.y),
       "chan": 1,
       "note": 64,
       "velocity": 127
@@ -525,18 +525,16 @@ function knobFactory(event) {
   var knob = new Group({
     data: {
       "name": "Knob",
-      "x": event.point.x,
-      "y": event.point.y,
+      "x": Math.round(event.point.x),
+      "y": Math.round(event.point.y),
       "radius": 50,
       "rVal": 0,
       "tVal": 0,
       "offset": 60,
-
       "tChan": 1,
       "tCc": 1,
       "tMin": 0,
       "tMax": 127,
-
       "rChan": 1,
       "rCc": 2,
       "rMin": 0,
@@ -578,7 +576,7 @@ function knobFactory(event) {
               var x = event.point.x - knob.data.x; // Place the x origin to the circle center
               var y = event.point.y - knob.data.y; // Place the x origin to the circle center
               knob.data.offset = offset;
-              offset = rad_to_deg(cart_to_pol(x, y).theta);
+              offset = Math.round(rad_to_deg(cart_to_pol(x, y).theta));
               var delta = offset - knob.data.offset;
               this.children[2].rotate(delta, new Point(knob.data.x, knob.data.y));
               setMenuParams(this);
@@ -593,7 +591,7 @@ function knobFactory(event) {
                 var y = event.point.y - knob.data.y;
                 var polar = cart_to_pol(x, y);
                 knob.scale(polar.radius / knob.data.radius);
-                knob.data.radius = polar.radius;
+                knob.data.radius = Math.round(polar.radius);
                 break;
               case "needle" || "head":
                 moveItem(this, event);
@@ -685,8 +683,8 @@ function knobFactory(event) {
 
 function moveItem(item, event) {
   item.translate(event.delta);
-  item.data.x += event.delta.x;
-  item.data.y += event.delta.y;
+  item.data.x += Math.round(event.delta.x);
+  item.data.y += Math.round(event.delta.y);
 }
 
 function scale2d(item, event) {
@@ -696,7 +694,7 @@ function scale2d(item, event) {
   var newRadius = radius - (item.children[0].strokeWidth / 2);
   var oldRadius = item.data.size / 2;
   item.scale(newRadius / oldRadius);
-  item.data.size = item.children[0].bounds.width;
+  item.data.size = Math.round(item.children[0].bounds.width);
 }
 
 function deg_to_rad(degree) {
