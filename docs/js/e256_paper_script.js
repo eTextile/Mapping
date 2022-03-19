@@ -44,6 +44,7 @@ window.onload = function () {
   tool.activate();
   tool.minDistance = 5;
 
+  var touchpadLayer = new Layer();
   var triggerLayer = new Layer();
   var toggleLayer = new Layer();
   var sliderLayer = new Layer();
@@ -75,6 +76,11 @@ window.onload = function () {
   // TODO: create the shapes using the mouse point (event.point)
   function drawShape(event) {
     switch (shapeMode) {
+      case "Touchpad":
+        touchpadLayer.activate();
+        var e256_touchpad = touchpadFactory(event);
+        touchpadLayer.addChild(e256_touchpad);
+        break;
       case "Trigger":
         triggerLayer.activate();
         var e256_trigger = triggerFactory(event);

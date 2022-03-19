@@ -14,6 +14,173 @@ var hitOptions = {
   "tolerance": 5
 };
 
+/////////// SLIDER Factory
+function touchpadFactory(event) {
+  var maxTop = 0;
+  var maxBott = 0;
+  var maxRight = 0;
+  var maxLeft = 0;
+  var touchpadHitOptions = {
+    "stroke": true,
+    "segment": true,
+    "fill": true,
+    "tolerance": 5
+  };
+  var selectedtPath = "";
+  var selectedtPathName = "";
+  var selectedSegment = "";
+  var touchpad = new Group({
+    data: {
+      "name": "Touchpad",
+      "width": 300,
+      "height": 300,
+      "x": event.point.x,
+      "y": event.point.y,
+      "chan": 1,
+      "cChange": [0, 1, 2, 3, 4, 5, 6, 7],
+      "min": 0,
+      "max": 127,
+      "val": [0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    onMouseDown: function (event) {
+      setMenuParams(this);
+      if (currentMode === EDIT_MODE) {
+        var hitResult = this.hitTest(event.point, touchpadHitOptions);
+        selectedtPath = hitResult.type;
+        selectedtPathName = hitResult.item.name;
+        if (selectedtPath === "stroke") selectedSegment = hitResult.location.index;
+      }
+      else if (currentMode === PLAY_MODE) {
+        //var maxBott = touchpad.data.y + (touchpad.data.height / 2);
+        //touchpad.data.val = mapp(maxBott - event.point.y, 0, touchpad.data.height, 0, 127);
+
+        this.children[1].children[0].segments[0].point.y = event.point.y;
+        this.children[1].children[0].segments[1].point.y = event.point.y;
+        this.children[1].children[1].segments[0].point.x = event.point.x;
+        this.children[1].children[1].segments[1].point.x = event.point.x;
+      }
+    },
+    onMouseDrag: function (event) {
+      if (currentMode === EDIT_MODE) {
+        switch (selectedtPath) {
+          case "fill":
+            moveItem(this, event);
+            break;
+          case "stroke":
+            switch (selectedtPathName) {
+              case "rect":
+                switch (selectedSegment) {
+                  case 0: // Update left segment
+                    this.children[0].segments[0].point.x = event.point.x;
+                    this.children[0].segments[1].point.x = event.point.x;
+                    this.children[1].children[0].segments[0].point.x = event.point.x;
+
+                    touchpad.data.x = maxRight - ((maxRight - event.point.x) / 2);
+                    touchpad.data.width = (maxRight - touchpad.data.x) * 2;
+                    this.children[1].children[1].segments[0].point.x = touchpad.data.x;
+                    this.children[1].children[1].segments[1].point.x = touchpad.data.x;
+                    break;
+
+                  case 1: // Update top segment
+                    this.children[0].segments[1].point.y = event.point.y;
+                    this.children[0].segments[2].point.y = event.point.y;
+                    this.children[1].children[1].segments[0].point.y = event.point.y;
+
+                    touchpad.data.y = maxBott - ((maxBott - event.point.y) / 2);
+                    touchpad.data.height = (maxBott - touchpad.data.y) * 2;
+                    this.children[1].children[0].segments[0].point.y = touchpad.data.y;
+                    this.children[1].children[0].segments[1].point.y = touchpad.data.y;
+                    break;
+
+                  case 2: // Update right segment
+                    this.children[0].segments[2].point.x = event.point.x;
+                    this.children[0].segments[3].point.x = event.point.x;
+                    this.children[1].children[0].segments[1].point.x = event.point.x;
+
+                    touchpad.data.x = maxLeft + ((event.point.x - maxLeft) / 2);
+                    touchpad.data.width = (touchpad.data.x - maxLeft) * 2;
+                    this.children[1].children[1].segments[0].point.x = touchpad.data.x ;
+                    this.children[1].children[1].segments[1].point.x = touchpad.data.x ;
+                    break;
+
+                  case 3: // Update bottom segment
+                    this.children[0].segments[3].point.y = event.point.y;
+                    this.children[0].segments[0].point.y = event.point.y;
+                    this.children[1].children[1].segments[1].point.y = event.point.y;
+
+                    touchpad.data.y = maxTop + ((event.point.y - maxTop) / 2);
+                    touchpad.data.height = (touchpad.data.y - maxTop) * 2;
+                    this.children[1].children[0].segments[0].point.y = touchpad.data.y;
+                    this.children[1].children[0].segments[1].point.y = touchpad.data.y;
+                    break;
+                }
+                break;
+              case "handle":
+                moveItem(this, event);
+                break;
+            }
+        }
+      }
+      else if (currentMode === PLAY_MODE) {
+        if (event.point.y > maxTop && event.point.y < maxBott) {
+          if (event.point.x > maxLeft && event.point.x < maxRight) {
+            //touchpad.data.val = mapp(maxBott - event.point.y, 0, touchpad.data.height, 0, 127);
+            this.children[1].children[0].segments[0].point.y = event.point.y;
+            this.children[1].children[0].segments[1].point.y = event.point.y;
+            this.children[1].children[1].segments[0].point.x = event.point.x;
+            this.children[1].children[1].segments[1].point.x = event.point.x;
+            setMenuParams(this);
+          }
+        }
+      }
+    },
+    onMouseUp: function (event) {
+      if (currentMode === EDIT_MODE) {
+        maxTop = touchpad.data.y - (touchpad.data.height / 2);
+        maxBott = touchpad.data.y + (touchpad.data.height / 2);
+        maxLeft = touchpad.data.x - (touchpad.data.width / 2);
+        maxRight = touchpad.data.x + (touchpad.data.width / 2);
+        setMenuParams(this);
+      }
+      else if (currentMode === PLAY_MODE) {
+        setMenuParams(this);
+      }
+    }
+  });
+
+  var rect = new Path.Rectangle({
+    name: "rect",
+    strokeColor: "lightblue",
+    fillColor: "purple",
+    strokeWidth: 8,
+    fillColor: "white",
+    from: new Point(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.y - (touchpad.data.height / 2)),
+    to: new Point(touchpad.data.x + (touchpad.data.width / 2), touchpad.data.y + (touchpad.data.height / 2))
+  });
+  touchpad.addChild(rect);
+
+  var coord = new Group(
+    axis_x = Path.Line({
+      name: "axis_x",
+      strokeColor: "black",
+      strokeWidth: 3,
+      from: new Point(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.y),
+      to: new Point(touchpad.data.x + (touchpad.data.width / 2), touchpad.data.y),
+    }),
+    axis_y = Path.Line({
+      name: "axis_y",
+      strokeCap: "round",
+      strokeColor: "black",
+      strokeWidth: 3,
+      from: new Point(touchpad.data.x, touchpad.data.y - (touchpad.data.height / 2)),
+      to: new Point(touchpad.data.x, touchpad.data.y + (touchpad.data.height / 2)),
+    })
+  );
+  touchpad.addChild(coord);
+
+  return touchpad;
+}
+
 /////////// TRIGGER Factory
 function triggerFactory(event) {
   var selectedtPath = "";
@@ -194,10 +361,10 @@ function toggleFactory(event) {
 
 /////////// SLIDER Factory
 function sliderFactory(event) {
-  var topPos = 0;
-  var bottomPos = 0;
-  var rightPos = 0;
-  var leftPos = 0;
+  var maxTop = 0;
+  var maxBott = 0;
+  var maxRight = 0;
+  var maxLeft = 0;
   var sliderHitOptions = {
     "stroke": true,
     "segment": true,
@@ -229,8 +396,8 @@ function sliderFactory(event) {
         if (selectedtPath === "stroke") selectedSegment = hitResult.location.index;
       }
       else if (currentMode === PLAY_MODE) {
-        var bottomPos = slider.data.y + (slider.data.height / 2);
-        slider.data.val = mapp(bottomPos - event.point.y, 0, slider.data.height, 0, 127);
+        var maxBott = slider.data.y + (slider.data.height / 2);
+        slider.data.val = mapp(maxBott - event.point.y, 0, slider.data.height, 0, 127);
         this.children[1].segments[0].point.y = event.point.y;
         this.children[1].segments[1].point.y = event.point.y;
       }
@@ -246,30 +413,35 @@ function sliderFactory(event) {
               case "rect":
                 switch (selectedSegment) {
                   case 0: // Update left segment
-                    slider.data.x = rightPos - ((rightPos - event.point.x) / 2);
-                    slider.data.width = (rightPos - slider.data.x) * 2;
+                    slider.data.x = maxRight - ((maxRight - event.point.x) / 2);
+                    slider.data.width = (maxRight - slider.data.x) * 2;
                     this.children[0].segments[0].point.x = event.point.x;
                     this.children[0].segments[1].point.x = event.point.x;
                     this.children[1].segments[0].point.x = event.point.x;
                     break;
                   case 1: // Update top segment
-                    slider.data.y = bottomPos - ((bottomPos - event.point.y) / 2);
-                    slider.data.height = (bottomPos - slider.data.y) * 2;
+                    slider.data.y = maxBott - ((maxBott - event.point.y) / 2);
+                    slider.data.height = (maxBott - slider.data.y) * 2;
                     this.children[0].segments[1].point.y = event.point.y;
                     this.children[0].segments[2].point.y = event.point.y;
+                    this.children[1].segments[0].point.y = slider.data.y;
+                    this.children[1].segments[1].point.y = slider.data.y;
+
                     break;
                   case 2: // Update right segment
-                    slider.data.x = leftPos + ((event.point.x - leftPos) / 2);
-                    slider.data.width = (slider.data.x - leftPos) * 2;
+                    slider.data.x = maxLeft + ((event.point.x - maxLeft) / 2);
+                    slider.data.width = (slider.data.x - maxLeft) * 2;
                     this.children[0].segments[2].point.x = event.point.x;
                     this.children[0].segments[3].point.x = event.point.x;
                     this.children[1].segments[1].point.x = event.point.x;
                     break;
                   case 3: // Update bottom segment
-                    slider.data.y = topPos + ((event.point.y - topPos) / 2);
-                    slider.data.height = (slider.data.y - topPos) * 2;
+                    slider.data.y = maxTop + ((event.point.y - maxTop) / 2);
+                    slider.data.height = (slider.data.y - maxTop) * 2;
                     this.children[0].segments[3].point.y = event.point.y;
                     this.children[0].segments[0].point.y = event.point.y;
+                    this.children[1].segments[0].point.y = slider.data.y;
+                    this.children[1].segments[1].point.y = slider.data.y;
                     break;
                 }
                 break;
@@ -280,8 +452,8 @@ function sliderFactory(event) {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        if (event.point.y > topPos && event.point.y < bottomPos) {
-          slider.data.val = mapp(bottomPos - event.point.y, 0, slider.data.height, 0, 127);
+        if (event.point.y > maxTop && event.point.y < maxBott) {
+          slider.data.val = mapp(maxBott - event.point.y, 0, slider.data.height, 0, 127);
           this.children[1].segments[0].point.y = event.point.y;
           this.children[1].segments[1].point.y = event.point.y;
           setMenuParams(this);
@@ -290,10 +462,10 @@ function sliderFactory(event) {
     },
     onMouseUp: function (event) {
       if (currentMode === EDIT_MODE) {
-        topPos = slider.data.y - (slider.data.height / 2);
-        bottomPos = slider.data.y + (slider.data.height / 2);
-        leftPos = slider.data.x - (slider.data.width / 2);
-        rightPos = slider.data.x + (slider.data.width / 2);
+        maxTop = slider.data.y - (slider.data.height / 2);
+        maxBott = slider.data.y + (slider.data.height / 2);
+        maxLeft = slider.data.x - (slider.data.width / 2);
+        maxRight = slider.data.x + (slider.data.width / 2);
         setMenuParams(this);
       }
       else if (currentMode === PLAY_MODE) {
