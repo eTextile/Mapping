@@ -355,13 +355,16 @@ function knobFactory(event) {
         var x = event.point.x - knob.data.x; // Place the x origin to the circle center
         var y = event.point.y - knob.data.y; // Place the x origin to the circle center
         var polar = cart_to_pol(x, y);
-        var cart = pol_to_cart(polar.radius, polar.theta);
-        this.children[1].segments[1].point = new Point(cart.x + knob.data.x, cart.y + knob.data.y);
+
+        var headPos = pol_to_cart(polar.radius - 10, polar.theta);
+        var footPos = pol_to_cart(polar.radius - this.children[1].children[0].bounds.width - 1, polar.theta);
+
+        this.children[1].children[0].position = new Point(knob.data.x + headPos.x, knob.data.y + headPos.y);
+        this.children[1].children[1].segments[1].point = new Point(knob.data.x + footPos.x, knob.data.y + footPos.y);
+
         knob.data.rVal = mapp(polar.radius, 0, knob.data.radius, knob.data.rMin, knob.data.rMax);
-        
         var newPolar = rotatePolar(this, rad_to_deg(polar.theta));
         knob.data.tVal = mapp(newPolar, 0, 380, knob.data.tMin, knob.data.tMax);
-        knob.data.tVal = mapp(rad_to_deg(polar.theta), 0, 380, knob.data.tMin, knob.data.tMax);
         setMenuParams(this);
       }
     },
@@ -394,7 +397,7 @@ function knobFactory(event) {
                 knob.scale(polar.radius / knob.data.radius);
                 knob.data.radius = polar.radius;
                 break;
-              case "needle":
+              case "needle" || "head":
                 moveItem(this, event);
                 break;
             }
@@ -403,18 +406,25 @@ function knobFactory(event) {
       else if (currentMode === PLAY_MODE) {
         var x = event.point.x - knob.data.x; // Place the x origin to the circle center
         var y = event.point.y - knob.data.y; // Place the y origin to the circle center
-        var polar = cart_to_pol(x,y);
-        var cart = 0;
+        var polar = cart_to_pol(x, y);
+
+        var headPos;
+        var footPos;
         if (polar.radius > knob.data.radius) {
-          cart = pol_to_cart(knob.data.radius, polar.theta);
+          headPos = pol_to_cart(knob.data.radius - 10, polar.theta);
+          footPos = pol_to_cart(knob.data.radius - this.children[1].children[0].bounds.width - 1, polar.theta);
           knob.data.rVal = mapp(knob.data.radius, 0, knob.data.radius, knob.data.rMin, knob.data.rMax);
         } else {
-          cart = pol_to_cart(polar.radius, polar.theta);
+          headPos = pol_to_cart(polar.radius - 10, polar.theta);
+          footPos = pol_to_cart(polar.radius - this.children[1].children[0].bounds.width - 1, polar.theta);
           knob.data.rVal = mapp(polar.radius, 0, knob.data.radius, knob.data.rMin, knob.data.rMax);
         }
         var newPolar = rotatePolar(this, rad_to_deg(polar.theta));
         knob.data.tVal = mapp(newPolar, 0, 380, knob.data.tMin, knob.data.tMax);
-        this.children[1].segments[1].point = new Point(cart.x + knob.data.x, cart.y + knob.data.y);
+
+        this.children[1].children[0].position = new Point(knob.data.x + headPos.x, knob.data.y + headPos.y);
+        this.children[1].children[1].segments[1].point = new Point(knob.data.x + footPos.x, knob.data.y + footPos.y);
+
         setMenuParams(this);
       }
     }
@@ -423,29 +433,40 @@ function knobFactory(event) {
     name: "knob",
     strokeColor: "lightblue",
     fillColor: "blue",
-    opacity: 0.5,
+    //opacity: 0.5,
     strokeWidth: 10,
     center: new Point(knob.data.x, knob.data.y),
     radius: knob.data.radius
   });
   knob.addChild(circle);
 
-  var pos = pol_to_cart(knob.data.radius, deg_to_rad(knob.data.offset));
+  var headPos = pol_to_cart(knob.data.radius - 10, deg_to_rad(knob.data.offset));
+  var footPos = pol_to_cart(knob.data.radius - 20, deg_to_rad(knob.data.offset));
+  var offsetPos = pol_to_cart(knob.data.radius + 15, deg_to_rad(knob.data.offset));
 
-  var needle = new Path.Line({
-    name: "needle",
-    strokeCap: "round",
-    strokeColor: "black",
-    strokeWidth: 5,
-    from: new Point(knob.data.x, knob.data.y),
-    to: new Point(knob.data.x + pos.x, knob.data.y + pos.y),
-  });
+  var needle = new Group(
+    head = Path.Circle({
+      name: "head",
+      strokeColor: "black",
+      strokeWidth: 5,
+      center: new Point(knob.data.x + headPos.x, knob.data.y + headPos.y),
+      radius: 6
+    }),
+    foot = Path.Line({
+      name: "foot",
+      strokeCap: "round",
+      strokeColor: "black",
+      strokeWidth: 5,
+      from: new Point(knob.data.x, knob.data.y),
+      to: new Point((knob.data.x + footPos.x), knob.data.y + footPos.y),
+    })
+  );
   knob.addChild(needle);
 
   var offset = new Path.RegularPolygon({
     name: "offset",
     fillColor: "red",
-    center: new Point(knob.data.x + pos.x, knob.data.y + pos.y),
+    center: new Point(knob.data.x + offsetPos.x, knob.data.y + offsetPos.y),
     sides: 3,
     radius: 10
   });
