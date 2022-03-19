@@ -46,6 +46,7 @@ const FLASH_CONFIG_WRITE_DONE = 18;
 const USBMIDI_CONFIG_ALLOC_DONE = 19;
 const USBMIDI_CONFIG_UPLOAD_DONE = 20;
 const USBMIDI_SOUND_UPLOAD_DONE = 21;
+const USBMIDI_SET_LEVEL_DONE = 22;
 // ERROR_CODES CONSTANTS
 const ERROR_WAITING_FOR_GONFIG = 33;
 const ERROR_LOADING_GONFIG_FAILED = 34;
@@ -55,6 +56,15 @@ const ERROR_FLASH_FULL = 37;
 const ERROR_FILE_TO_BIG = 38;
 const ERROR_NO_CONFIG_FILE = 39;
 const ERROR_UNKNOWN_SYSEX = 40;
+
+const CHAN1 = 0;
+const CHAN2 = 1;
+const CHAN3 = 2;
+const CHAN4 = 3;
+const CHAN5 = 4;
+const CHAN6 = 5;
+const CHAN7 = 6;
+const CHAN8 = 7;
 
 const BI = 0; // [0] Blob UID
 const BS = 1; // [1] Blob State
@@ -100,12 +110,14 @@ function onMIDISuccess(midiAccess) {
   } else {
     $("#summaryAction").html("DISCONNECTED").removeClass("badge-success").addClass("badge-danger");
     connect.checked = false;
+    connected = false;
   }
 }
 
 function onMIDIFailure(error) {
   alert("e256 NOT CONNECTED! " + error);
   connect.checked = false;
+  connected = false;
 }
 
 // TODO: need a drop down menu!
@@ -158,6 +170,9 @@ function onMIDIMessage(midiMsg) {
           break;
         case USBMIDI_SOUND_UPLOAD_DONE:
           console.log("e256: USBMIDI_SOUND_UPLOAD_DONE");
+          break;
+        case USBMIDI_SET_LEVEL_DONE:
+          console.log("e256: USBMIDI_SET_LEVEL_DONE");
           break;
         // ERROR CODES CONSTANTS
         case ERROR_WAITING_FOR_GONFIG:
@@ -213,26 +228,29 @@ function onMIDIMessage(midiMsg) {
   }
 }
 
-function noteOn(note, volume) {
-  MIDIIoutput.send([NOTE_ON, note, volume]);
-  console.log("MIDIIoutput.send noteOn: " + note + " volume: " + volume);
+function noteOn(note, velocity, channel) {
+  var status = NOTE_ON | channel;
+  MIDIIoutput.send([status, note, velocity]);  
+  //console.log("SEND_NOTEON: " + note + " " + velocity + " " + channel);
 }
 
-function noteOff(note) {
-  MIDIIoutput.send([NOTE_OFF, note, 0]);
-  console.log("MIDIIoutput.send noteOff: " + note + " volume: " + 0);
+function noteOff(note, velocity, channel) {
+  var status = NOTE_OFF | channel;
+  MIDIIoutput.send([status, note, velocity]);
+  //console.log("SEND_NOTEOFF: " + note + " " + velocity + " " + channel);
 }
 
-function controlChange(value) {
-  MIDIIoutput.send([CONTROL_CHANGE, value]);
-  console.log("MIDIIoutput.send controlChange: " + value);
+//sendControlChange(control, value, channel);
+function controlChange(control, value, channel) {
+  var status = CONTROL_CHANGE | channel;
+  MIDIIoutput.send([status, control, value]);
+  //console.log("SEND_CONTROL_CHANGE: " + control + " " + value + " " + channel);
 }
 
-function programChange(value) {
-  //var status = PROGRAM_CHANGE | channel; // FIXME! bug is on the Arduino side! Open issue: https://github.com/PaulStoffregen/cores/issues/636
-  //MIDIIoutput.send([status, value]);
-  MIDIIoutput.send([PROGRAM_CHANGE, value]); // Quick FIX
-  console.log("MIDIIoutput.send programChange: " + value);
+function programChange(program, channel) {
+  var status = PROGRAM_CHANGE | channel; // FIXME! bug is on the Arduino side! Open issue: https://github.com/PaulStoffregen/cores/issues/636
+  MIDIIoutput.send([status, program]);
+  console.log("SEND_PROGRAM_CHANGE: " + program + " " + channel);
 }
 
 // Send data via MIDI system exclusive message
@@ -258,21 +276,21 @@ function e256_setMode(event) {
   switch (event) {
     case "matrixMode":
       currentMode = MATRIX_MODE_RAW;
-      if (connected) programChange(MATRIX_MODE_RAW, 1);
+      if (connected) programChange(MATRIX_MODE_RAW, CHAN1);
       //programChange(MATRIX_MODE_INTERP, 1); // TODO
       //currentMode = MATRIX_MODE_INTERP;
       break;
     case "mappingMode":
       // Look if a CONFIG file is already existing on the e256
-      if (connected) programChange(GET_CONFIG, 1);
+      if (connected) programChange(GET_CONFIG, CHAN1);
       break;
     case "editMode":
       currentMode = EDIT_MODE;
-      if (connected) programChange(EDIT_MODE, 1);
+      if (connected) programChange(EDIT_MODE, CHAN1);
       break;
     case "playMode":
       currentMode = PLAY_MODE;
-      if (connected) programChange(PLAY_MODE, 1);
+      if (connected) programChange(PLAY_MODE, CHAN1);
       break;
   }
 }
@@ -287,7 +305,7 @@ function setConfig() {
 
 function calibrate() {
   if (connected) {
-    programChange(CALIBRATE, 2);
+    programChange(CALIBRATE, CHAN2);
   } else {
     alert("e256 NOT CONNECTED!");
   }

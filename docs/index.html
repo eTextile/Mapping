@@ -17,7 +17,6 @@
   <script type="text/javascript" src="./js/lib/bootstrap.min.js"></script>
 
   <script type="text/javascript" src="./js/e256_draw_matrix.js"></script>
-  <script type="text/javascript" src="./js/e256_midi_io.js"></script>
 
   <script type="text/javascript" src="./js/e256_draw_blobs.js"></script>
   <script type="text/javascript" src="./js/e256_draw_mappings.js"></script>
@@ -28,7 +27,9 @@
       }
     }
     </script>
-  <script type="text/javascript" src="./js/e256_paper_script.js" canvas="canvas-2D"></script>
+    <script type="text/javascript" src="./js/e256_midi_io.js"></script>
+    <script type="text/javascript" src="./js/e256_paper_script.js" canvas="canvas-2D"></script>
+
 </head>
 
 <body>
@@ -72,11 +73,11 @@
           <div id="editMenu" class="collapse">
             <div id="mappingToolsMenu">
               <div class="btn-group input-group" role="group">
+                <button id="Touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
                 <button id="Trigger" class="mapingTool btn btn-outline-primary" type="button">Trigger</button>
                 <button id="Toggle" class="mapingTool btn btn-outline-primary" type="button">Toggle</button>
                 <button id="Slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
                 <button id="Knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
-                <button id="Touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
               </div>
             </div>
           </div>
