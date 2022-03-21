@@ -71,15 +71,15 @@ function touchpadFactory(event) {
       if (currentMode === EDIT_MODE) {
         switch (selectedtPath) {
           case "stroke":
+            selectedtPathName = hitResult.item.name;
             selectedSegment = hitResult.location.index;
             break;
           case "fill":
-            // NA
+            selectedItem = hitResult.item;
             break;
         }
       }
       else if (currentMode === PLAY_MODE) {
-        //selectedtPathName = hitResult.item.name;
         switch (selectedtPath) {
           case "stroke":
             // NA
@@ -170,22 +170,24 @@ function touchpadFactory(event) {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        if (event.point.y > topPos && event.point.y < bottPos) {
-          if (event.point.x > leftPos && event.point.x < rightPos) {
-            for (var i = 0; i < this.data.blob; i++) {
-              selectedItem.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
-              selectedItem.data.Yval = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
-              // SEND MIDI CONTROL_CHANGE
-              //controlChange(selectedItem.data.Xcc, selectedItem.data.Xval, selectedItem.data.Xchan - 1);
-              //controlChange(selectedItem.data.Ycc, selectedItem.data.Yval, selectedItem.data.Ychan - 1);
-              selectedItem.children[0].segments[0].point.y = event.point.y;
-              selectedItem.children[0].segments[1].point.y = event.point.y;
-              selectedItem.children[1].segments[0].point.x = event.point.x;
-              selectedItem.children[1].segments[1].point.x = event.point.x;
-              selectedItem.children[2].position = event.point;
+        if (selectedItem != "pad") {
+          if (event.point.y > topPos && event.point.y < bottPos) {
+            if (event.point.x > leftPos && event.point.x < rightPos) {
+              for (var i = 0; i < this.data.blob; i++) {
+                selectedItem.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
+                selectedItem.data.Yval = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
+                // SEND MIDI CONTROL_CHANGE
+                //controlChange(selectedItem.data.Xcc, selectedItem.data.Xval, selectedItem.data.Xchan - 1);
+                //controlChange(selectedItem.data.Ycc, selectedItem.data.Yval, selectedItem.data.Ychan - 1);
+                selectedItem.children[0].segments[0].point.y = event.point.y;
+                selectedItem.children[0].segments[1].point.y = event.point.y;
+                selectedItem.children[1].segments[0].point.x = event.point.x;
+                selectedItem.children[1].segments[1].point.x = event.point.x;
+                selectedItem.children[2].position = event.point;
 
+              }
+              setMenuParams(this);
             }
-            setMenuParams(this);
           }
         }
       }
@@ -200,6 +202,15 @@ function touchpadFactory(event) {
       }
       else if (currentMode === PLAY_MODE) {
         setMenuParams(this);
+      }
+    },
+    onKeyDown: function (event) {
+      if (currentMode === EDIT_MODE) {
+        if (event.modifiers.shift) {
+          if (Key.isDown("backspace")) {
+            selectedItem.remove();
+          }
+        }
       }
     }
   });
