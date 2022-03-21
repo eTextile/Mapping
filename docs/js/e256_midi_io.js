@@ -88,6 +88,7 @@ async function MIDIConnect() {
   } else {
     alert("No MIDI support in your browser!");
     connect.checked = false;
+    connected = false;
   }
 }
 
@@ -105,19 +106,14 @@ function onMIDISuccess(midiAccess) {
       MIDIIoutput = entry;
     }
   }
-  if (connected) {
-    $("#summaryAction").html("CONNECTED").removeClass("badge-danger").addClass("badge-success");
-  } else {
-    $("#summaryAction").html("DISCONNECTED").removeClass("badge-success").addClass("badge-danger");
-    connect.checked = false;
-    connected = false;
-  }
+  $("#summaryAction").html("CONNECTED").removeClass("badge-danger").addClass("badge-success");
 }
 
 function onMIDIFailure(error) {
-  alert("e256 NOT CONNECTED! " + error);
   connect.checked = false;
   connected = false;
+  $("#summaryAction").html("DISCONNECTED").removeClass("badge-success").addClass("badge-danger");
+  alert("e256 NOT CONNECTED! " + error);
 }
 
 // TODO: need a drop down menu!
@@ -276,23 +272,20 @@ function e256_setMode(event) {
   switch (event) {
     case "matrixMode":
       currentMode = MATRIX_MODE_RAW;
-      if (connected) programChange(MATRIX_MODE_RAW, CHAN1);
-      //programChange(MATRIX_MODE_INTERP, 1); // TODO
-      //currentMode = MATRIX_MODE_INTERP;
+      //currentMode = MATRIX_MODE_INTERP; // TODO
       break;
     case "mappingMode":
-      // Look if a CONFIG file is already existing on the e256
-      if (connected) programChange(GET_CONFIG, CHAN1);
+      // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
+      currentMode = GET_CONFIG;
       break;
     case "editMode":
       currentMode = EDIT_MODE;
-      if (connected) programChange(EDIT_MODE, CHAN1);
       break;
     case "playMode":
       currentMode = PLAY_MODE;
-      if (connected) programChange(PLAY_MODE, CHAN1);
       break;
   }
+  if (connected) programChange(currentMode, CHAN1);
 }
 
 function setConfig() {

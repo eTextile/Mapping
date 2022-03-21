@@ -22,6 +22,8 @@ function touchpadFactory(event) {
   var bottPos = 0;
   var rightPos = 0;
   var leftPos = 0;
+  var blob = "";
+  var currentItem = "";
   var touchpadHitOptions = {
     "stroke": true,
     "segment": true,
@@ -43,16 +45,27 @@ function touchpadFactory(event) {
       "max": 127,
       "blob": 5
     },
-    //function onCreate() {
     onCreate: function () {
       touchpad.addChild(pad);
       for (var i = 0; i < this.data.blob; i++) {
-        this.insertChild(i, Blob);
-        console.log(i);
+        blob = blob.clone();
+        blob.name = ('blob-' + i);
+        blob.Xval = getRandomInt(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.x + (touchpad.data.width / 2));
+        blob.Yval = getRandomInt(touchpad.data.y - (touchpad.data.height / 2), touchpad.data.y + (touchpad.data.height / 2));
+        blob.children[0].segments[0].point = new Point(touchpad.data.x - (touchpad.data.width / 2), blob.Yval);
+        blob.children[0].segments[1].point = new Point(touchpad.data.x + (touchpad.data.width / 2), blob.Yval);
+        blob.children[1].segments[0].point = new Point(blob.Xval, touchpad.data.y - (touchpad.data.height / 2));
+        blob.children[1].segments[1].point = new Point(blob.Xval, touchpad.data.y + (touchpad.data.height / 2));
+        blob.children[2].position.x = blob.Xval;
+        blob.children[2].position.y = blob.Yval;
+        touchpad.addChild(blob);
+        //console.log(i);
       }
     },
     onMouseDown: function (event) {
       setMenuParams(this);
+      currentItem = touchpad.getItem({ name: "blob-0" });
+
       if (currentMode === EDIT_MODE) {
         var hitResult = this.hitTest(event.point, touchpadHitOptions);
         selectedtPath = hitResult.type;
@@ -60,19 +73,13 @@ function touchpadFactory(event) {
         if (selectedtPath === "stroke") selectedSegment = hitResult.location.index;
       }
       else if (currentMode === PLAY_MODE) {
-
-        //this.children[1].data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
-        //this.children[1].data.Yval = Math.round(mapp(event.point.y - bottPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
-
-        console.log(this.children[2].data.Xval);
-
-        /*
-        this.children[1].children[0].segments[0].point.y = event.point.y;
-        this.children[1].children[0].segments[1].point.y = event.point.y;
-        this.children[1].children[1].segments[0].point.x = event.point.x;
-        this.children[1].children[1].segments[1].point.x = event.point.x;
-        this.children[1].children[2].position = event.point;
-        */
+        currentItem.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
+        currentItem.data.Yval = Math.round(mapp(event.point.y - bottPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
+        currentItem.children["lineX 1"].segments[0].point.y = event.point.y;
+        currentItem.children["lineX 1"].segments[1].point.y = event.point.y;
+        currentItem.children["lineY 1"].segments[0].point.x = event.point.x;
+        currentItem.children["lineY 1"].segments[1].point.x = event.point.x;
+        currentItem.children["touch 1"].position = event.point;
       }
     },
     onMouseDrag: function (event) {
@@ -83,50 +90,76 @@ function touchpadFactory(event) {
             break;
           case "stroke":
             switch (selectedtPathName) {
-              case "rect":
+              case "pad":
                 switch (selectedSegment) {
                   case 0: // Update left segment
-                    this.children[0].segments[0].point.x = event.point.x;
-                    this.children[0].segments[1].point.x = event.point.x;
-                    this.children[1].children[0].segments[0].point.x = event.point.x;
+                    this.children["pad"].segments[0].point.x = event.point.x;
+                    this.children["pad"].segments[1].point.x = event.point.x;
+                    var lastWidth = touchpad.data.width;
                     touchpad.data.x = rightPos - ((rightPos - event.point.x) / 2);
                     touchpad.data.width = (rightPos - touchpad.data.x) * 2;
-                    this.children[1].children[1].segments[0].point.x = touchpad.data.x;
-                    this.children[1].children[1].segments[1].point.x = touchpad.data.x;
-                    this.children[1].children[2].position.x = touchpad.data.x;
-                    break;
+                    for (var i = 0; i < this.data.blob; i++) {
+                      var item = touchpad.getItem({ name: "blob-" + i });
+                      item.children[0].segments[0].point.x = event.point.x;
 
-                  case 1: // Update top segment
-                    this.children[0].segments[1].point.y = event.point.y;
-                    this.children[0].segments[2].point.y = event.point.y;
-                    this.children[1].children[1].segments[0].point.y = event.point.y;
+                      var newWidth = ((rightPos - item.children[1].segments[0].point.x) * touchpad.data.width) / lastWidth;
+                      
+                      item.children[1].segments[0].point.x = rightPos - newWidth; 
+                      item.children[1].segments[1].point.x = rightPos - newWidth;
+                      item.children[2].position.x = rightPos - newWidth;
+                    }
+                    break;
+                  case 1: // Update top segment //////////////////////////////////////// FIXME
+                    this.children["pad"].segments[1].point.y = event.point.y;
+                    this.children["pad"].segments[2].point.y = event.point.y;
+                    var lastHeight = touchpad.data.height;
                     touchpad.data.y = bottPos - ((bottPos - event.point.y) / 2);
                     touchpad.data.height = (bottPos - touchpad.data.y) * 2;
-                    this.children[1].children[0].segments[0].point.y = touchpad.data.y;
-                    this.children[1].children[0].segments[1].point.y = touchpad.data.y;
-                    this.children[1].children[2].position.y = touchpad.data.y;
-                    break;
+                    for (var i = 0; i < this.data.blob; i++) {
+                      var item = touchpad.getItem({ name: "blob-" + i });
+                      item.children[1].segments[0].point.y = event.point.y;
 
+                      var newHeight = ((bottPos - item.children[0].segments[0].point.y) * touchpad.data.height) / lastHeight;
+                      
+                      item.children[0].segments[0].point.y = bottPos - newHeight;
+                      item.children[0].segments[1].point.y = bottPos - newHeight;
+                      item.children[2].position.y = bottPos - newHeight;
+                    }
+                    break;
                   case 2: // Update right segment
-                    this.children[0].segments[2].point.x = event.point.x;
-                    this.children[0].segments[3].point.x = event.point.x;
-                    this.children[1].children[0].segments[1].point.x = event.point.x;
+                    this.children["pad"].segments[2].point.x = event.point.x;
+                    this.children["pad"].segments[3].point.x = event.point.x;
+                    var lastWidth = touchpad.data.width;
                     touchpad.data.x = leftPos + ((event.point.x - leftPos) / 2);
                     touchpad.data.width = (touchpad.data.x - leftPos) * 2;
-                    this.children[1].children[1].segments[0].point.x = touchpad.data.x;
-                    this.children[1].children[1].segments[1].point.x = touchpad.data.x;
-                    this.children[1].children[2].position.x = touchpad.data.x;
-                    break;
+                    for (var i = 0; i < this.data.blob; i++) {
+                      var item = touchpad.getItem({ name: "blob-" + i });
+                      item.children[0].segments[1].point.x = event.point.x;
 
+                      var newWidth = ((item.children[1].segments[0].point.x - leftPos) * touchpad.data.width) / lastWidth;
+
+                      item.children[1].segments[0].point.x = leftPos + newWidth; 
+                      item.children[1].segments[1].point.x = leftPos + newWidth;
+                      item.children[2].position.x = leftPos + newWidth;
+                    }
+                    break;
                   case 3: // Update bottom segment
-                    this.children[0].segments[3].point.y = event.point.y;
-                    this.children[0].segments[0].point.y = event.point.y;
-                    this.children[1].children[1].segments[1].point.y = event.point.y;
+                    this.children["pad"].segments[3].point.y = event.point.y;
+                    this.children["pad"].segments[0].point.y = event.point.y;
+                    var lastHeight = touchpad.data.height;
                     touchpad.data.y = topPos + ((event.point.y - topPos) / 2);
                     touchpad.data.height = (touchpad.data.y - topPos) * 2;
-                    this.children[1].children[0].segments[0].point.y = touchpad.data.y;
-                    this.children[1].children[0].segments[1].point.y = touchpad.data.y;
-                    this.children[1].children[2].position.y = touchpad.data.y;
+
+                    for (var i = 0; i < this.data.blob; i++) {
+                      var item = touchpad.getItem({ name: "blob-" + i });
+                      item.children[1].segments[1].point.y = event.point.y;
+
+                      var newHeight = ((item.children[0].segments[0].point.y - topPos) * touchpad.data.height) / lastHeight;
+
+                      item.children[0].segments[0].point.y = topPos + newHeight;
+                      item.children[0].segments[1].point.y = topPos + newHeight;
+                      item.children[2].position.y = topPos + newHeight;
+                    }
                     break;
                 }
                 break;
@@ -139,16 +172,16 @@ function touchpadFactory(event) {
       else if (currentMode === PLAY_MODE) {
         if (event.point.y > topPos && event.point.y < bottPos) {
           if (event.point.x > leftPos && event.point.x < rightPos) {
-            touchpad.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
-            touchpad.data.Yval = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
+            currentItem.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
+            currentItem.data.Yval = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
             // SEND MIDI CONTROL_CHANGE
             //controlChange(touchpad.data.Xcc, touchpad.data.Xval, touchpad.data.Xchan - 1);
             //controlChange(touchpad.data.Ycc, touchpad.data.Yval, touchpad.data.Ychan - 1);
-            this.children[1].children[0].segments[0].point.y = event.point.y;
-            this.children[1].children[0].segments[1].point.y = event.point.y;
-            this.children[1].children[1].segments[0].point.x = event.point.x;
-            this.children[1].children[1].segments[1].point.x = event.point.x;
-            this.children[1].children[2].position = event.point;
+            currentItem.children["lineX 1"].segments[0].point.y = event.point.y;
+            currentItem.children["lineX 1"].segments[1].point.y = event.point.y;
+            currentItem.children["lineY 1"].segments[0].point.x = event.point.x;
+            currentItem.children["lineY 1"].segments[1].point.x = event.point.x;
+            currentItem.children["touch 1"].position = event.point;
             setMenuParams(this);
           }
         }
@@ -156,10 +189,10 @@ function touchpadFactory(event) {
     },
     onMouseUp: function () {
       if (currentMode === EDIT_MODE) {
-        topPos = touchpad.data.y - (touchpad.data.height / 2);
-        bottPos = touchpad.data.y + (touchpad.data.height / 2);
         leftPos = touchpad.data.x - (touchpad.data.width / 2);
         rightPos = touchpad.data.x + (touchpad.data.width / 2);
+        topPos = touchpad.data.y - (touchpad.data.height / 2);
+        bottPos = touchpad.data.y + (touchpad.data.height / 2);
         setMenuParams(this);
       }
       else if (currentMode === PLAY_MODE) {
@@ -178,39 +211,43 @@ function touchpadFactory(event) {
     to: new Point(touchpad.data.x + (touchpad.data.width / 2), touchpad.data.y + (touchpad.data.height / 2))
   });
 
-  var Blob = new Group(
+  var blob = new Group(
     data = {
-      "name": "blob",
+      "name": "",
       "Xchan": 0,
       "Xcc": 0,
-      "Xval": getRandomInt(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.x + (touchpad.data.width / 2)),
+      "Xval": 0,
       "Ychan": 0,
       "Ycc": 0,
-      "Yval": getRandomInt(touchpad.data.y - (touchpad.data.height / 2), touchpad.data.y + (touchpad.data.height / 2)),
+      "Yval": 0,
     },
     lineX = new Path.Line({
       name: "lineX",
       strokeColor: "black",
       strokeWidth: 1,
-      from: new Point(touchpad.data.x - (touchpad.data.width / 2), this.data.Yval),
-      to: new Point(touchpad.data.x + (touchpad.data.width / 2), this.data.Yval),
+      from: 0,
+      to: 0,
     }),
     lineY = new Path.Line({
       name: "lineY",
       strokeCap: "round",
       strokeColor: "black",
       strokeWidth: 1,
-      from: new Point(this.data.Xval, touchpad.data.y - (touchpad.data.height / 2)),
-      to: new Point(this.data.Xval, touchpad.data.y + (touchpad.data.height / 2)),
+      from: 0,
+      to: 0,
     }),
     touch = new Path.Circle({
       name: "touch",
       strokeColor: "red",
       strokeWidth: 4,
-      center: new Point(touchpad.data.x, touchpad.data.y),
+      center: new Point(lineY.position.x, lineX.position.y),
       radius: 15
-    }),
+    })
   );
+  blob.addChild(lineX);
+  blob.addChild(lineY);
+  blob.addChild(touch);
+
   return touchpad;
 }
 
@@ -500,7 +537,7 @@ function sliderFactory(event) {
           slider.data.val = Math.round(mapp(bottPos - event.point.y, 0, slider.data.height, slider.data.min, slider.data.max));
           // SEND MIDI CONTROL_CHANGE
           if (slider.data.val != last_val) {
-            if (connected)  controlChange(slider.data.cc, slider.data.val, slider.data.chan - 1);
+            if (connected) controlChange(slider.data.cc, slider.data.val, slider.data.chan - 1);
             setMenuParams(this);
           }
           this.children[1].segments[0].point.y = event.point.y;
@@ -773,10 +810,11 @@ function mapp(value, low1, high1, low2, high2) {
   return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
+// Max is exclusive and min is inclusive
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 
