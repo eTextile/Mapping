@@ -8,6 +8,8 @@
 // Paper.js cant extend subclasses!
 // See: https://github.com/paperjs/paper.js/issues/1335
 
+const MAX_PARAM = 16;
+
 var hitOptions = {
   "stroke": true,
   "fill": true,
@@ -29,6 +31,7 @@ function touchpadFactory(event) {
   var selectedtPath = "";
   var selectedtPathName = "";
   var selectedSegment = "";
+
   var touchpad = new Group({
     data: {
       "name": "Touchpad",
@@ -36,13 +39,17 @@ function touchpadFactory(event) {
       "height": 300,
       "x": Math.round(event.point.x),
       "y": Math.round(event.point.y),
-      "Xchan": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }],
-      "Ychan": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }],
-      "cChange": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }],
-      "Xmin": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }],
-      "Ymax": [{ 0: 127 }, { 1: 127 }, { 2: 127 }, { 3: 127 }],
-      "Xval": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }],
-      "Yval": [{ 0: 0 }, { 1: 0 }, { 2: 0 }, { 3: 0 }]
+      "min": 0,
+      "max": 127,
+      "blob": 5
+    },
+    //function onCreate() {
+    onCreate: function () {
+      touchpad.addChild(pad);
+      for (var i = 0; i < this.data.blob; i++) {
+        this.insertChild(i, Blob);
+        console.log(i);
+      }
     },
     onMouseDown: function (event) {
       setMenuParams(this);
@@ -53,13 +60,19 @@ function touchpadFactory(event) {
         if (selectedtPath === "stroke") selectedSegment = hitResult.location.index;
       }
       else if (currentMode === PLAY_MODE) {
-        //var bottPos = touchpad.data.y + (touchpad.data.height / 2);
-        //touchpad.data.val = mapp(bottPos - event.point.y, 0, touchpad.data.height, 0, 127);
 
+        //this.children[1].data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
+        //this.children[1].data.Yval = Math.round(mapp(event.point.y - bottPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
+
+        console.log(this.children[2].data.Xval);
+
+        /*
         this.children[1].children[0].segments[0].point.y = event.point.y;
         this.children[1].children[0].segments[1].point.y = event.point.y;
         this.children[1].children[1].segments[0].point.x = event.point.x;
         this.children[1].children[1].segments[1].point.x = event.point.x;
+        this.children[1].children[2].position = event.point;
+        */
       }
     },
     onMouseDrag: function (event) {
@@ -76,44 +89,44 @@ function touchpadFactory(event) {
                     this.children[0].segments[0].point.x = event.point.x;
                     this.children[0].segments[1].point.x = event.point.x;
                     this.children[1].children[0].segments[0].point.x = event.point.x;
-
                     touchpad.data.x = rightPos - ((rightPos - event.point.x) / 2);
                     touchpad.data.width = (rightPos - touchpad.data.x) * 2;
                     this.children[1].children[1].segments[0].point.x = touchpad.data.x;
                     this.children[1].children[1].segments[1].point.x = touchpad.data.x;
+                    this.children[1].children[2].position.x = touchpad.data.x;
                     break;
 
                   case 1: // Update top segment
                     this.children[0].segments[1].point.y = event.point.y;
                     this.children[0].segments[2].point.y = event.point.y;
                     this.children[1].children[1].segments[0].point.y = event.point.y;
-
                     touchpad.data.y = bottPos - ((bottPos - event.point.y) / 2);
                     touchpad.data.height = (bottPos - touchpad.data.y) * 2;
                     this.children[1].children[0].segments[0].point.y = touchpad.data.y;
                     this.children[1].children[0].segments[1].point.y = touchpad.data.y;
+                    this.children[1].children[2].position.y = touchpad.data.y;
                     break;
 
                   case 2: // Update right segment
                     this.children[0].segments[2].point.x = event.point.x;
                     this.children[0].segments[3].point.x = event.point.x;
                     this.children[1].children[0].segments[1].point.x = event.point.x;
-
                     touchpad.data.x = leftPos + ((event.point.x - leftPos) / 2);
                     touchpad.data.width = (touchpad.data.x - leftPos) * 2;
                     this.children[1].children[1].segments[0].point.x = touchpad.data.x;
                     this.children[1].children[1].segments[1].point.x = touchpad.data.x;
+                    this.children[1].children[2].position.x = touchpad.data.x;
                     break;
 
                   case 3: // Update bottom segment
                     this.children[0].segments[3].point.y = event.point.y;
                     this.children[0].segments[0].point.y = event.point.y;
                     this.children[1].children[1].segments[1].point.y = event.point.y;
-
                     touchpad.data.y = topPos + ((event.point.y - topPos) / 2);
                     touchpad.data.height = (touchpad.data.y - topPos) * 2;
                     this.children[1].children[0].segments[0].point.y = touchpad.data.y;
                     this.children[1].children[0].segments[1].point.y = touchpad.data.y;
+                    this.children[1].children[2].position.y = touchpad.data.y;
                     break;
                 }
                 break;
@@ -126,22 +139,22 @@ function touchpadFactory(event) {
       else if (currentMode === PLAY_MODE) {
         if (event.point.y > topPos && event.point.y < bottPos) {
           if (event.point.x > leftPos && event.point.x < rightPos) {
-            //touchpad.data.Xval[0] = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min[0], touchpad.data.max[0]));
-            //touchpad.data.Yval[0] = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min[0], touchpad.data.max[0]));
+            touchpad.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
+            touchpad.data.Yval = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
             // SEND MIDI CONTROL_CHANGE
-            //controlChange(touchpad.data.Xcc[0], touchpad.data.Xval[0], touchpad.data.Xchan[0] - 1);
-            //controlChange(touchpad.data.Ycc[0], touchpad.data.Yval[0], touchpad.data.Ychan[0] - 1);
-
+            //controlChange(touchpad.data.Xcc, touchpad.data.Xval, touchpad.data.Xchan - 1);
+            //controlChange(touchpad.data.Ycc, touchpad.data.Yval, touchpad.data.Ychan - 1);
             this.children[1].children[0].segments[0].point.y = event.point.y;
             this.children[1].children[0].segments[1].point.y = event.point.y;
             this.children[1].children[1].segments[0].point.x = event.point.x;
             this.children[1].children[1].segments[1].point.x = event.point.x;
+            this.children[1].children[2].position = event.point;
             setMenuParams(this);
           }
         }
       }
     },
-    onMouseUp: function (event) {
+    onMouseUp: function () {
       if (currentMode === EDIT_MODE) {
         topPos = touchpad.data.y - (touchpad.data.height / 2);
         bottPos = touchpad.data.y + (touchpad.data.height / 2);
@@ -155,8 +168,8 @@ function touchpadFactory(event) {
     }
   });
 
-  var rect = new Path.Rectangle({
-    name: "rect",
+  var pad = new Path.Rectangle({
+    name: "pad",
     strokeColor: "lightblue",
     fillColor: "purple",
     strokeWidth: 8,
@@ -164,27 +177,40 @@ function touchpadFactory(event) {
     from: new Point(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.y - (touchpad.data.height / 2)),
     to: new Point(touchpad.data.x + (touchpad.data.width / 2), touchpad.data.y + (touchpad.data.height / 2))
   });
-  touchpad.addChild(rect);
 
-  var coord = new Group(
-    axis_x = Path.Line({
-      name: "axis_x",
+  var Blob = new Group(
+    data = {
+      "name": "blob",
+      "Xchan": 0,
+      "Xcc": 0,
+      "Xval": getRandomInt(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.x + (touchpad.data.width / 2)),
+      "Ychan": 0,
+      "Ycc": 0,
+      "Yval": getRandomInt(touchpad.data.y - (touchpad.data.height / 2), touchpad.data.y + (touchpad.data.height / 2)),
+    },
+    lineX = new Path.Line({
+      name: "lineX",
       strokeColor: "black",
-      strokeWidth: 3,
-      from: new Point(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.y),
-      to: new Point(touchpad.data.x + (touchpad.data.width / 2), touchpad.data.y),
+      strokeWidth: 1,
+      from: new Point(touchpad.data.x - (touchpad.data.width / 2), this.data.Yval),
+      to: new Point(touchpad.data.x + (touchpad.data.width / 2), this.data.Yval),
     }),
-    axis_y = Path.Line({
-      name: "axis_y",
+    lineY = new Path.Line({
+      name: "lineY",
       strokeCap: "round",
       strokeColor: "black",
-      strokeWidth: 3,
-      from: new Point(touchpad.data.x, touchpad.data.y - (touchpad.data.height / 2)),
-      to: new Point(touchpad.data.x, touchpad.data.y + (touchpad.data.height / 2)),
-    })
+      strokeWidth: 1,
+      from: new Point(this.data.Xval, touchpad.data.y - (touchpad.data.height / 2)),
+      to: new Point(this.data.Xval, touchpad.data.y + (touchpad.data.height / 2)),
+    }),
+    touch = new Path.Circle({
+      name: "touch",
+      strokeColor: "red",
+      strokeWidth: 4,
+      center: new Point(touchpad.data.x, touchpad.data.y),
+      radius: 15
+    }),
   );
-  touchpad.addChild(coord);
-
   return touchpad;
 }
 
@@ -214,7 +240,7 @@ function triggerFactory(event) {
       else if (currentMode === PLAY_MODE) {
         this.children[1].fillColor = "red";
         // SEND MIDI NOTE_ON
-        noteOn(trigger.data.note, trigger.data.velocity, trigger.data.chan - 1);
+        if (connected) noteOn(trigger.data.note, trigger.data.velocity, trigger.data.chan - 1);
         timer = 0;
         state = true;
       }
@@ -241,7 +267,7 @@ function triggerFactory(event) {
         // TODO
       }
     },
-    onFrame: function (event) {
+    onFrame: function () {
       if (state) {
         timer++;
       }
@@ -249,7 +275,7 @@ function triggerFactory(event) {
         state = false;
         this.children[1].fillColor = "green";
         // SEND MIDI NOTE_OFF
-        noteOff(trigger.data.note, 0, trigger.data.chan - 1);
+        if (connected) noteOff(trigger.data.note, 0, trigger.data.chan - 1);
       }
     },
     onKeyDown: function (event) {
@@ -309,11 +335,11 @@ function toggleFactory(event) {
         if (this.state) {
           this.children[1].visible = true;
           // SEND MIDI NOTE_ON
-          noteOn(toggle.data.note, toggle.data.velocity, toggle.data.chan - 1);
+          if (connected) noteOn(toggle.data.note, toggle.data.velocity, toggle.data.chan - 1);
         } else {
           this.children[1].visible = false;
           // SEND MIDI NOTE_OFF
-          noteOff(toggle.data.note, 0, toggle.data.chan - 1);
+          if (connected) noteOff(toggle.data.note, 0, toggle.data.chan - 1);
         }
       }
     },
@@ -340,6 +366,7 @@ function toggleFactory(event) {
       }
     }
   });
+
   var square = new Path.Rectangle({
     name: "square",
     strokeWidth: 8,
@@ -350,26 +377,27 @@ function toggleFactory(event) {
     to: new Point(toggle.data.x + (toggle.data.size / 2), toggle.data.y + (toggle.data.size / 2))
   });
   toggle.addChild(square);
-  var cross = new Group();
-  var lineA = new Path.Line({
-    name: "cross",
-    strokeWidth: 7,
-    strokeColor: "black",
-    strokeCap: "round",
-    from: new Point(toggle.data.x - (toggle.data.size / 3), toggle.data.y - (toggle.data.size / 3)),
-    to: new Point(toggle.data.x + (toggle.data.size / 3), toggle.data.y + (toggle.data.size / 3))
-  });
-  cross.addChild(lineA);
-  var lineB = new Path.Line({
-    name: "cross",
-    strokeCap: "round",
-    strokeColor: "black",
-    strokeWidth: 7,
-    from: new Point(toggle.data.x + (toggle.data.size / 3), toggle.data.y - (toggle.data.size / 3)),
-    to: new Point(toggle.data.x - (toggle.data.size / 3), toggle.data.y + (toggle.data.size / 3))
-  });
-  cross.addChild(lineB);
+
+  var cross = new Group(
+    lineX = new Path.Line({
+      name: "lineX",
+      strokeWidth: 7,
+      strokeColor: "black",
+      strokeCap: "round",
+      from: new Point(toggle.data.x - (toggle.data.size / 3), toggle.data.y - (toggle.data.size / 3)),
+      to: new Point(toggle.data.x + (toggle.data.size / 3), toggle.data.y + (toggle.data.size / 3))
+    }),
+    lineY = new Path.Line({
+      name: "lineY",
+      strokeCap: "round",
+      strokeColor: "black",
+      strokeWidth: 7,
+      from: new Point(toggle.data.x + (toggle.data.size / 3), toggle.data.y - (toggle.data.size / 3)),
+      to: new Point(toggle.data.x - (toggle.data.size / 3), toggle.data.y + (toggle.data.size / 3))
+    })
+  );
   toggle.addChild(cross);
+
   return toggle;
 }
 
@@ -379,7 +407,7 @@ function sliderFactory(event) {
   var bottPos = 0;
   var rightPos = 0;
   var leftPos = 0;
-  var lastVal = 0;
+  var last_val = 0;
   var sliderHitOptions = {
     "stroke": true,
     "segment": true,
@@ -412,7 +440,7 @@ function sliderFactory(event) {
       }
       else if (currentMode === PLAY_MODE) {
         slider.data.val = Math.round(mapp(bottPos - event.point.y, 0, slider.data.height, slider.data.min, slider.data.max));
-        lastVal = slider.data.val;
+        last_val = slider.data.val;
         this.children[1].segments[0].point.y = event.point.y;
         this.children[1].segments[1].point.y = event.point.y;
       }
@@ -468,15 +496,15 @@ function sliderFactory(event) {
       }
       else if (currentMode === PLAY_MODE) {
         if (event.point.y > topPos && event.point.y < bottPos) {
-          lastVal = slider.data.val;
+          last_val = slider.data.val;
           slider.data.val = Math.round(mapp(bottPos - event.point.y, 0, slider.data.height, slider.data.min, slider.data.max));
           // SEND MIDI CONTROL_CHANGE
-          if (slider.data.val != lastVal) {
-            controlChange(slider.data.cc, slider.data.val, slider.data.chan - 1);
-            this.children[1].segments[0].point.y = event.point.y;
-            this.children[1].segments[1].point.y = event.point.y;
+          if (slider.data.val != last_val) {
+            if (connected)  controlChange(slider.data.cc, slider.data.val, slider.data.chan - 1);
             setMenuParams(this);
           }
+          this.children[1].segments[0].point.y = event.point.y;
+          this.children[1].segments[1].point.y = event.point.y;
         }
       }
     },
@@ -620,10 +648,10 @@ function knobFactory(event) {
         last_tVal = knob.data.tVal;
         knob.data.tVal = Math.round(mapp(newPolar, 0, 380, knob.data.tMin, knob.data.tMax));
         // SEND MIDI CONTROL_CHANGE
-        if (knob.data.tVal != last_tVal) {
+        if (connected && knob.data.tVal != last_tVal) {
           controlChange(knob.data.tCc, knob.data.tVal, knob.data.tChan - 1);
         }
-        if (knob.data.rVal != last_rVal) {
+        if (connected && knob.data.rVal != last_rVal) {
           controlChange(knob.data.rCc, knob.data.rVal, knob.data.rChan - 1);
         }
 
@@ -745,6 +773,13 @@ function mapp(value, low1, high1, low2, high2) {
   return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
+}
+
+
 function setMenuParams(item) {
   selectedItem = item;
   $('#summaryContent').html("Parameters");
@@ -755,7 +790,7 @@ function setMenuParams(item) {
     $("#param-" + paramsIndex).collapse("show");
     paramsIndex++;
   }
-  for (var i = 15; i >= paramsIndex; i--) {
+  for (var i = MAX_PARAM; i >= paramsIndex; i--) {
     $("#param-" + i).collapse("hide");
   }
 }
