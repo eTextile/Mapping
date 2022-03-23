@@ -29,7 +29,7 @@ var hitOptions = {
 window.onload = function () {
   'use strict';
   paper.install(window);
-
+  
   paper.setup(document.getElementById('canvas-2D'));
 
   myWidth = window.innerWidth;

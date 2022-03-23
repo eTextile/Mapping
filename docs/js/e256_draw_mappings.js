@@ -68,6 +68,7 @@ function touchpadFactory(event) {
     onMouseDown: function (event) {
       var hitResult = this.hitTest(event.point, touchpadHitOptions);
       selectedtPath = hitResult.type;
+
       if (currentMode === EDIT_MODE) {
         switch (selectedtPath) {
           case "stroke":
@@ -85,8 +86,11 @@ function touchpadFactory(event) {
             // NA
             break;
           case "fill":
-            selectedItem = hitResult.item.parent;
-            setMenuParams(selectedItem);
+            selectedtPathName = hitResult.item.name;
+            if (selectedtPathName != "pad") {
+              selectedItem = hitResult.item.parent;
+              setMenuParams(selectedItem);
+            }
             break;
         }
       }
@@ -105,8 +109,8 @@ function touchpadFactory(event) {
                     this.children["pad"].segments[0].point.x = event.point.x;
                     this.children["pad"].segments[1].point.x = event.point.x;
                     var lastWidth = touchpad.data.width;
-                    touchpad.data.x = rightPos - ((rightPos - event.point.x) / 2);
-                    touchpad.data.width = (rightPos - touchpad.data.x) * 2;
+                    touchpad.data.x = Math.round(rightPos - ((rightPos - event.point.x) / 2));
+                    touchpad.data.width = Math.round((rightPos - touchpad.data.x) * 2);
                     for (var i = 0; i < this.data.blob; i++) {
                       var item = touchpad.getItem({ name: "blob-" + i });
                       item.children[0].segments[0].point.x = event.point.x;
@@ -116,12 +120,12 @@ function touchpadFactory(event) {
                       item.children[2].position.x = rightPos - newWidth;
                     }
                     break;
-                  case 1: // Update top segment //////////////////////////////////////// FIXME
+                  case 1: // Update top segment
                     this.children["pad"].segments[1].point.y = event.point.y;
                     this.children["pad"].segments[2].point.y = event.point.y;
                     var lastHeight = touchpad.data.height;
-                    touchpad.data.y = bottPos - ((bottPos - event.point.y) / 2);
-                    touchpad.data.height = (bottPos - touchpad.data.y) * 2;
+                    touchpad.data.y = Math.round(bottPos - ((bottPos - event.point.y) / 2));
+                    touchpad.data.height = Math.round((bottPos - touchpad.data.y) * 2);
                     for (var i = 0; i < this.data.blob; i++) {
                       var item = touchpad.getItem({ name: "blob-" + i });
                       item.children[1].segments[0].point.y = event.point.y;
@@ -135,8 +139,8 @@ function touchpadFactory(event) {
                     this.children["pad"].segments[2].point.x = event.point.x;
                     this.children["pad"].segments[3].point.x = event.point.x;
                     var lastWidth = touchpad.data.width;
-                    touchpad.data.x = leftPos + ((event.point.x - leftPos) / 2);
-                    touchpad.data.width = (touchpad.data.x - leftPos) * 2;
+                    touchpad.data.x = Math.round(leftPos + ((event.point.x - leftPos) / 2));
+                    touchpad.data.width = Math.round((touchpad.data.x - leftPos) * 2);
                     for (var i = 0; i < this.data.blob; i++) {
                       var item = touchpad.getItem({ name: "blob-" + i });
                       item.children[0].segments[1].point.x = event.point.x;
@@ -150,8 +154,8 @@ function touchpadFactory(event) {
                     this.children["pad"].segments[3].point.y = event.point.y;
                     this.children["pad"].segments[0].point.y = event.point.y;
                     var lastHeight = touchpad.data.height;
-                    touchpad.data.y = topPos + ((event.point.y - topPos) / 2);
-                    touchpad.data.height = (touchpad.data.y - topPos) * 2;
+                    touchpad.data.y = Math.round(topPos + ((event.point.y - topPos) / 2));
+                    touchpad.data.height = Math.round((touchpad.data.y - topPos) * 2);
                     for (var i = 0; i < this.data.blob; i++) {
                       var item = touchpad.getItem({ name: "blob-" + i });
                       item.children[1].segments[1].point.y = event.point.y;
@@ -170,24 +174,22 @@ function touchpadFactory(event) {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        if (selectedItem != "pad") {
-          if (event.point.y > topPos && event.point.y < bottPos) {
-            if (event.point.x > leftPos && event.point.x < rightPos) {
-              for (var i = 0; i < this.data.blob; i++) {
-                selectedItem.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
-                selectedItem.data.Yval = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
-                // SEND MIDI CONTROL_CHANGE
-                //controlChange(selectedItem.data.Xcc, selectedItem.data.Xval, selectedItem.data.Xchan - 1);
-                //controlChange(selectedItem.data.Ycc, selectedItem.data.Yval, selectedItem.data.Ychan - 1);
-                selectedItem.children[0].segments[0].point.y = event.point.y;
-                selectedItem.children[0].segments[1].point.y = event.point.y;
-                selectedItem.children[1].segments[0].point.x = event.point.x;
-                selectedItem.children[1].segments[1].point.x = event.point.x;
-                selectedItem.children[2].position = event.point;
+        if (event.point.y > topPos && event.point.y < bottPos) {
+          if (event.point.x > leftPos && event.point.x < rightPos) {
+            for (var i = 0; i < this.data.blob; i++) {
+              selectedItem.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
+              selectedItem.data.Yval = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
+              // SEND MIDI CONTROL_CHANGE
+              //controlChange(selectedItem.data.Xcc, selectedItem.data.Xval, selectedItem.data.Xchan - 1);
+              //controlChange(selectedItem.data.Ycc, selectedItem.data.Yval, selectedItem.data.Ychan - 1);
+              selectedItem.children[0].segments[0].point.y = event.point.y;
+              selectedItem.children[0].segments[1].point.y = event.point.y;
+              selectedItem.children[1].segments[0].point.x = event.point.x;
+              selectedItem.children[1].segments[1].point.x = event.point.x;
+              selectedItem.children[2].position = event.point;
 
-              }
-              setMenuParams(this);
             }
+            setMenuParams(this);
           }
         }
       }
@@ -829,7 +831,6 @@ function getRandomInt(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min) + min);
 }
-
 
 function setMenuParams(item) {
   selectedItem = item;
