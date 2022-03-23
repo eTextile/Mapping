@@ -79,6 +79,7 @@ window.onload = function () {
       case "Touchpad":
         touchpadLayer.activate();
         var e256_touchpad = touchpadFactory(event).onCreate();
+        //var e256_touchpad = touchpadFactory(event);
         touchpadLayer.addChild(e256_touchpad);
         break;
       case "Trigger":
