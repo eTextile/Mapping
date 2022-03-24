@@ -13,9 +13,9 @@ var x_scaleFactor;
 var y_scaleFactor;
 
 var currentMode = EDIT_MODE;
-var shapeMode = "";
-
-var selectedItem = "";
+var shapeMode = null;
+var selectedItem = null;
+var popupWindow = null;
 
 e256_blobs = new Blobs();
 
@@ -29,7 +29,7 @@ var hitOptions = {
 window.onload = function () {
   'use strict';
   paper.install(window);
-  
+
   paper.setup(document.getElementById('canvas-2D'));
 
   myWidth = window.innerWidth;
@@ -77,29 +77,34 @@ window.onload = function () {
   function drawShape(event) {
     switch (shapeMode) {
       case "Touchpad":
-        touchpadLayer.activate();
+
+        var url = "../setup.html"
+
+
+        positionedPopup(url, "Touchpad", 300, 100, scroll)
+
         var e256_touchpad = touchpadFactory(event).onCreate();
-        //var e256_touchpad = touchpadFactory(event);
+        touchpadLayer.activate();
         touchpadLayer.addChild(e256_touchpad);
         break;
       case "Trigger":
-        triggerLayer.activate();
         var e256_trigger = triggerFactory(event);
+        triggerLayer.activate();
         triggerLayer.addChild(e256_trigger);
         break;
       case "Toggle":
-        toggleLayer.activate();
         var e256_toggle = toggleFactory(event);
+        toggleLayer.activate();
         toggleLayer.addChild(e256_toggle);
         break;
       case "Slider":
-        sliderLayer.activate();
         var e256_slider = sliderFactory(event);
+        sliderLayer.activate();
         sliderLayer.addChild(e256_slider);
         break;
       case "Knob":
-        knobLayer.activate();
         var e256_knob = knobFactory(event);
+        knobLayer.activate();
         knobLayer.addChild(e256_knob);
         break;
     }
@@ -117,4 +122,11 @@ function updateParams(event) {
     if (event == "btnSet-" + paramsIndex) selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
     paramsIndex++;
   }
+}
+
+function positionedPopup(url, winName, width, height, scroll) {
+  var paddingLeft = (screen.width) ? (screen.width - width) / 2 : 0;
+  var paddingTop = (screen.height) ? (screen.height - height) / 2 : 0;
+  settings = "height=" + height + ", width = " + width + ", top=" + paddingTop + ", left=" + paddingLeft + ", scrollbars=" + scroll + ", resizable"
+  popupWindow = window.open(url, winName, settings)
 }

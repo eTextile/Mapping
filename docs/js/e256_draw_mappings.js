@@ -48,27 +48,28 @@ function touchpadFactory(event) {
       touchpad.addChild(pad);
       for (var i = 0; i < this.data.blobs; i++) {
         var item = touch.clone({ insert: false, deep: true });
-        console.log(item.data);
-        item.name = ("blob-" + i);
+        item.data.name = ("Touch-" + i);
         item.data.Xval = getRandomInt(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.x + (touchpad.data.width / 2));
         item.data.Yval = getRandomInt(touchpad.data.y - (touchpad.data.height / 2), touchpad.data.y + (touchpad.data.height / 2));
-        item.children[0].data.name = ("lineX-" + i);
+        item.children[0].data.name = ("LineX-" + i);
         item.children[0].segments[0].point = new Point(touchpad.data.x - (touchpad.data.width / 2), item.data.Yval);
         item.children[0].segments[1].point = new Point(touchpad.data.x + (touchpad.data.width / 2), item.data.Yval);
-        item.children[1].data.name = ("lineY-" + i);
+        item.children[1].data.name = ("LineY-" + i);
         item.children[1].segments[0].point = new Point(item.data.Xval, touchpad.data.y - (touchpad.data.height / 2));
         item.children[1].segments[1].point = new Point(item.data.Xval, touchpad.data.y + (touchpad.data.height / 2));
-        item.children[2].data.name = ("touch-" + i);
+        item.children[2].data.name = ("Circle-" + i);
         item.children[2].position.x = item.data.Xval;
         item.children[2].position.y = item.data.Yval;
+        console.log(item.data);
+        //console.log(item.children[0].data);
+        //console.log(item.children[1].data);
+        //console.log(item.children[2].data);
         touchpad.addChild(item);
       }
     },
     onMouseDown: function (event) {
       var hitResult = this.hitTest(event.point, touchpadHitOptions);
       selectedtPath = hitResult.type;
-      console.log(selectedtPath);
-
       if (currentMode === EDIT_MODE) {
         if (selectedtPath != null) {
           switch (selectedtPath) {
@@ -88,18 +89,17 @@ function touchpadFactory(event) {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        switch (selectedtPath) {
-          case "stroke":
-            // NA
-            break;
-          case "fill":
-            selectedtPathName = hitResult.item.name;
-            if (selectedtPathName != "pad") {
+        if (selectedtPath != null) {
+          switch (selectedtPath) {
+            case "fill":
+              selectedtPathName = hitResult.item.name;
               selectedItem = hitResult.item.parent;
-              console.log(selectedItem.data);
               setMenuParams(selectedItem);
-            }
-            break;
+              break;
+            case "stroke":
+              // NA
+              break;
+          }
         }
       }
     },
@@ -110,81 +110,81 @@ function touchpadFactory(event) {
             moveItem(this, event);
             break;
           case "stroke":
-            switch (selectedtPathName) {
-              case "pad":
-                switch (selectedSegment) {
-                  case 0: // Update left segment
-                    this.children["pad"].segments[0].point.x = event.point.x;
-                    this.children["pad"].segments[1].point.x = event.point.x;
-                    var lastWidth = touchpad.data.width;
-                    touchpad.data.x = Math.round(rightPos - ((rightPos - event.point.x) / 2));
-                    touchpad.data.width = Math.round((rightPos - touchpad.data.x) * 2);
-                    for (var i = 0; i < this.data.blobs; i++) {
-                      var item = touchpad.getItem({ name: "blob-" + i });
-                      item.children[0].segments[0].point.x = event.point.x;
-                      var newWidth = ((rightPos - item.children[1].segments[0].point.x) * touchpad.data.width) / lastWidth;
-                      item.children[1].segments[0].point.x = rightPos - newWidth;
-                      item.children[1].segments[1].point.x = rightPos - newWidth;
-                      item.children[2].position.x = rightPos - newWidth;
-                    }
-                    break;
-                  case 1: // Update top segment
-                    this.children["pad"].segments[1].point.y = event.point.y;
-                    this.children["pad"].segments[2].point.y = event.point.y;
-                    var lastHeight = touchpad.data.height;
-                    touchpad.data.y = Math.round(bottPos - ((bottPos - event.point.y) / 2));
-                    touchpad.data.height = Math.round((bottPos - touchpad.data.y) * 2);
-                    for (var i = 0; i < this.data.blobs; i++) {
-                      var item = touchpad.getItem({ name: "blob-" + i });
-                      item.children[1].segments[0].point.y = event.point.y;
-                      var newHeight = ((bottPos - item.children[0].segments[0].point.y) * touchpad.data.height) / lastHeight;
-                      item.children[0].segments[0].point.y = bottPos - newHeight;
-                      item.children[0].segments[1].point.y = bottPos - newHeight;
-                      item.children[2].position.y = bottPos - newHeight;
-                    }
-                    break;
-                  case 2: // Update right segment
-                    this.children["pad"].segments[2].point.x = event.point.x;
-                    this.children["pad"].segments[3].point.x = event.point.x;
-                    var lastWidth = touchpad.data.width;
-                    touchpad.data.x = Math.round(leftPos + ((event.point.x - leftPos) / 2));
-                    touchpad.data.width = Math.round((touchpad.data.x - leftPos) * 2);
-                    for (var i = 0; i < this.data.blobs; i++) {
-                      var item = touchpad.getItem({ name: "blob-" + i });
-                      item.children[0].segments[1].point.x = event.point.x;
-                      var newWidth = ((item.children[1].segments[0].point.x - leftPos) * touchpad.data.width) / lastWidth;
-                      item.children[1].segments[0].point.x = leftPos + newWidth;
-                      item.children[1].segments[1].point.x = leftPos + newWidth;
-                      item.children[2].position.x = leftPos + newWidth;
-                    }
-                    break;
-                  case 3: // Update bottom segment
-                    this.children["pad"].segments[3].point.y = event.point.y;
-                    this.children["pad"].segments[0].point.y = event.point.y;
-                    var lastHeight = touchpad.data.height;
-                    touchpad.data.y = Math.round(topPos + ((event.point.y - topPos) / 2));
-                    touchpad.data.height = Math.round((touchpad.data.y - topPos) * 2);
-                    for (var i = 0; i < this.data.blobs; i++) {
-                      var item = touchpad.getItem({ name: "blob-" + i });
-                      item.children[1].segments[1].point.y = event.point.y;
-                      var newHeight = ((item.children[0].segments[0].point.y - topPos) * touchpad.data.height) / lastHeight;
-                      item.children[0].segments[0].point.y = topPos + newHeight;
-                      item.children[0].segments[1].point.y = topPos + newHeight;
-                      item.children[2].position.y = topPos + newHeight;
-                    }
-                    break;
-                }
-                break;
-              case "handle":
-                moveItem(this, event);
-                break;
+            if (selectedtPathName === "Pad") {
+              switch (selectedSegment) {
+                case 0: // Update left segment
+                  this.children["Pad"].segments[0].point.x = event.point.x;
+                  this.children["Pad"].segments[1].point.x = event.point.x;
+                  var lastWidth = touchpad.data.width;
+                  touchpad.data.x = Math.round(rightPos - ((rightPos - event.point.x) / 2));
+                  touchpad.data.width = Math.round((rightPos - touchpad.data.x) * 2);
+                  for (var i = 1; i < this.data.blobs + 1; i++) {
+                    var item = touchpad.children[i];
+                    item.children[0].segments[0].point.x = event.point.x;
+                    var newWidth = ((rightPos - item.children[1].segments[0].point.x) * touchpad.data.width) / lastWidth;
+                    item.children[1].segments[0].point.x = rightPos - newWidth;
+                    item.children[1].segments[1].point.x = rightPos - newWidth;
+                    item.children[2].position.x = rightPos - newWidth;
+                  }
+                  break;
+                case 1: // Update top segment
+                  this.children["Pad"].segments[1].point.y = event.point.y;
+                  this.children["Pad"].segments[2].point.y = event.point.y;
+                  var lastHeight = touchpad.data.height;
+                  touchpad.data.y = Math.round(bottPos - ((bottPos - event.point.y) / 2));
+                  touchpad.data.height = Math.round((bottPos - touchpad.data.y) * 2);
+                  for (var i = 1; i < this.data.blobs + 1; i++) {
+                    var item = touchpad.children[i];
+                    item.children[1].segments[0].point.y = event.point.y;
+                    var newHeight = ((bottPos - item.children[0].segments[0].point.y) * touchpad.data.height) / lastHeight;
+                    item.children[0].segments[0].point.y = bottPos - newHeight;
+                    item.children[0].segments[1].point.y = bottPos - newHeight;
+                    item.children[2].position.y = bottPos - newHeight;
+                  }
+                  break;
+                case 2: // Update right segment
+                  this.children["Pad"].segments[2].point.x = event.point.x;
+                  this.children["Pad"].segments[3].point.x = event.point.x;
+                  var lastWidth = touchpad.data.width;
+                  touchpad.data.x = Math.round(leftPos + ((event.point.x - leftPos) / 2));
+                  touchpad.data.width = Math.round((touchpad.data.x - leftPos) * 2);
+                  for (var i = 1; i < this.data.blobs + 1; i++) {
+                    var item = touchpad.children[i];
+                    item.children[0].segments[1].point.x = event.point.x;
+                    var newWidth = ((item.children[1].segments[0].point.x - leftPos) * touchpad.data.width) / lastWidth;
+                    item.children[1].segments[0].point.x = leftPos + newWidth;
+                    item.children[1].segments[1].point.x = leftPos + newWidth;
+                    item.children[2].position.x = leftPos + newWidth;
+                  }
+                  break;
+                case 3: // Update bottom segment
+                  this.children["Pad"].segments[3].point.y = event.point.y;
+                  this.children["Pad"].segments[0].point.y = event.point.y;
+                  var lastHeight = touchpad.data.height;
+                  touchpad.data.y = Math.round(topPos + ((event.point.y - topPos) / 2));
+                  touchpad.data.height = Math.round((touchpad.data.y - topPos) * 2);
+                  for (var i = 1; i < this.data.blobs + 1; i++) {
+                    var item = touchpad.children[i];
+                    item.children[1].segments[1].point.y = event.point.y;
+                    var newHeight = ((item.children[0].segments[0].point.y - topPos) * touchpad.data.height) / lastHeight;
+                    item.children[0].segments[0].point.y = topPos + newHeight;
+                    item.children[0].segments[1].point.y = topPos + newHeight;
+                    item.children[2].position.y = topPos + newHeight;
+                  }
+                  break;
+              }
+              break;
+
             }
         }
       }
       else if (currentMode === PLAY_MODE) {
-        if (event.point.y > topPos && event.point.y < bottPos) {
-          if (event.point.x > leftPos && event.point.x < rightPos) {
-            for (var i = 0; i < this.data.blobs; i++) {
+        if (selectedtPathName === "Pad") {
+          // NA
+        } else {
+          if (event.point.y > topPos && event.point.y < bottPos) {
+            if (event.point.x > leftPos && event.point.x < rightPos) {
+
               selectedItem.data.Xval = Math.round(mapp(event.point.x - leftPos, 0, touchpad.data.width, touchpad.data.min, touchpad.data.max));
               selectedItem.data.Yval = Math.round(mapp(event.point.y - topPos, 0, touchpad.data.height, touchpad.data.min, touchpad.data.max));
               // SEND MIDI CONTROL_CHANGE
@@ -195,8 +195,9 @@ function touchpadFactory(event) {
               selectedItem.children[1].segments[0].point.x = event.point.x;
               selectedItem.children[1].segments[1].point.x = event.point.x;
               selectedItem.children[2].position = event.point;
+
+              setMenuParams(selectedItem);
             }
-            setMenuParams(selectedItem);
           }
         }
       }
@@ -225,7 +226,7 @@ function touchpadFactory(event) {
   });
 
   var pad = new Path.Rectangle({
-    name: "pad",
+    name: "Pad",
     strokeColor: "lightblue",
     fillColor: "purple",
     strokeWidth: 8,
@@ -236,7 +237,7 @@ function touchpadFactory(event) {
 
   var touch = new Group({
     data: {
-      "name": "Touch",
+      "name": null,
       "Xchan": 1,
       "Xcc": 32,
       "Xval": 0,
@@ -245,39 +246,39 @@ function touchpadFactory(event) {
       "Yval": 0
     }
   });
-  
+
   lineX = new Path.Line({
-    name: "",
+    name: null,
     strokeColor: "black",
     strokeWidth: 1,
-    from: 0,
-    to: 0
+    from: null,
+    to: null
   });
   lineY = new Path.Line({
-    name: "",
+    name: null,
     strokeCap: "round",
     strokeColor: "black",
     strokeWidth: 1,
-    from: 0,
-    to: 0
+    from: null,
+    to: null
   });
-  point = new Path.Circle({
-    name: "",
+  circle = new Path.Circle({
+    name: null,
     fillColor: "red",
-    center: 0,
+    center: null,
     radius: 10
   });
   touch.addChild(lineX);
   touch.addChild(lineY);
-  touch.addChild(point);
+  touch.addChild(circle);
 
   return touchpad;
 }
 
 /////////// TRIGGER Factory
 function triggerFactory(event) {
-  var selectedtPath = "";
-  var selectedtPathName = "";
+  var selectedtPath = null;
+  var selectedtPathName = null;
   var state = false;
   var timer = 0;
   var trigger = new Group({
@@ -548,7 +549,7 @@ function sliderFactory(event) {
                     break;
                 }
                 break;
-              case "handle":
+              case "Handle":
                 moveItem(this, event);
                 break;
             }
@@ -592,7 +593,7 @@ function sliderFactory(event) {
   });
   slider.addChild(rect);
   var handle = new Path.Line({
-    name: "handle",
+    name: "Handle",
     strokeCap: "round",
     strokeColor: "black",
     strokeWidth: 10,

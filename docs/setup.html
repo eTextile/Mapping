@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <meta name="description" content="Mapping Toolkit for the e256 eTextile-Synthesizer">
+  <meta name="keywords"
+    content="eTextile, e-textile, smart textiles, intelligent textiles, electronic textiles, opensource, open hardware" />
+  <meta name="author" content="Maurin Donneaud">
+  <link rel="icon" href="./assets/img/favicon.ico">
+  <title>Mapping-app</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/bootstrap.css">
+</head>
+<body>
+  
+  <div class="container-fluid">
+    <div class="row content">
+      <div id="params"></div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    /*
+    <div id="param-1" class="param collapse">
+      <div class="input-group">
+        <span id="paramInputAtribute-1" class="input-group-text"></span>
+        <button id="btnSet-1" class="btnSet btn btn-outline-secondary" type="button">set</button>
+        <input id="paramInputValue-1" type="text" class="form-control" aria-label="Small"
+          aria-describedby="paramInputAtribute-2">
+      </div>
+    </div>
+    */
+
+    const MAX_PARAMS = 15;
+    container = document.getElementById("params");
+
+    for (i = 0; i < MAX_PARAMS; i++) {
+      var divParam = document.createElement("div");
+      divParam.setAttribute("id", "param-" + i);
+      divParam.classList.add("param", "collapse");
+
+      var divGroupe = document.createElement("div");
+      divGroupe.className = "input-group";
+
+      var spanParam = document.createElement("span");
+      spanParam.setAttribute("id", "paramInputAtribute-" + i);
+      spanParam.className = "input-group-text";
+      divGroupe.appendChild(spanParam);
+
+      var buttonParam = document.createElement("button");
+      buttonName = document.createTextNode("set");
+      buttonParam.appendChild(buttonName);
+      buttonParam.setAttribute("id", "btnSet-" + i);
+      buttonParam.classList.add("btnSet", "btn", "btn-outline-secondary");
+      buttonParam.setAttribute("type", "button");
+      divGroupe.appendChild(buttonParam);
+
+      var inputValue = document.createElement("input");
+      inputValue.setAttribute("id", "paramInputValue-" + i);
+      inputValue.setAttribute("type", "text");
+      inputValue.className = "form-control";
+      inputValue.setAttribute("aria-label", "Small");
+      inputValue.setAttribute("aria-describedby", "paramInputAtribute-" + i);
+      divGroupe.appendChild(inputValue);
+
+      divParam.appendChild(divGroupe);
+      container.appendChild(divParam);
+    }
+  </script>
+
+</body>
+
+</html>
