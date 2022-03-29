@@ -25,3 +25,5 @@ Matrix.prototype.getZ = function (index) {
     return 0;
   }
 }
+
+let e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);

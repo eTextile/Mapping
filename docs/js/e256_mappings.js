@@ -33,11 +33,11 @@ function touchpadFactory(event) {
     "tolerance": 5
   };
 
-  var touchpad = new Group({
+  var touchpad = new paper.Group({
     data: {
       "name": "Touchpad",
-      "width": 300,
-      "height": 300,
+      "width": 400,
+      "height": 400,
       "x": Math.round(event.point.x),
       "y": Math.round(event.point.y),
       "min": 0,
@@ -52,15 +52,15 @@ function touchpadFactory(event) {
         item.data.Xval = getRandomInt(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.x + (touchpad.data.width / 2));
         item.data.Yval = getRandomInt(touchpad.data.y - (touchpad.data.height / 2), touchpad.data.y + (touchpad.data.height / 2));
         item.children[0].data.name = ("LineX-" + i);
-        item.children[0].segments[0].point = new Point(touchpad.data.x - (touchpad.data.width / 2), item.data.Yval);
-        item.children[0].segments[1].point = new Point(touchpad.data.x + (touchpad.data.width / 2), item.data.Yval);
+        item.children[0].segments[0].point = new paper.Point(touchpad.data.x - (touchpad.data.width / 2), item.data.Yval);
+        item.children[0].segments[1].point = new paper.Point(touchpad.data.x + (touchpad.data.width / 2), item.data.Yval);
         item.children[1].data.name = ("LineY-" + i);
-        item.children[1].segments[0].point = new Point(item.data.Xval, touchpad.data.y - (touchpad.data.height / 2));
-        item.children[1].segments[1].point = new Point(item.data.Xval, touchpad.data.y + (touchpad.data.height / 2));
+        item.children[1].segments[0].point = new paper.Point(item.data.Xval, touchpad.data.y - (touchpad.data.height / 2));
+        item.children[1].segments[1].point = new paper.Point(item.data.Xval, touchpad.data.y + (touchpad.data.height / 2));
         item.children[2].data.name = ("Circle-" + i);
         item.children[2].position.x = item.data.Xval;
         item.children[2].position.y = item.data.Yval;
-        console.log(item.data);
+        //console.log(item.data);
         //console.log(item.children[0].data);
         //console.log(item.children[1].data);
         //console.log(item.children[2].data);
@@ -195,7 +195,6 @@ function touchpadFactory(event) {
               selectedItem.children[1].segments[0].point.x = event.point.x;
               selectedItem.children[1].segments[1].point.x = event.point.x;
               selectedItem.children[2].position = event.point;
-
               setMenuParams(selectedItem);
             }
           }
@@ -225,17 +224,17 @@ function touchpadFactory(event) {
     }
   });
 
-  var pad = new Path.Rectangle({
+  var pad = new paper.Path.Rectangle({
     name: "Pad",
     strokeColor: "lightblue",
     fillColor: "purple",
     strokeWidth: 8,
     fillColor: "white",
-    from: new Point(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.y - (touchpad.data.height / 2)),
-    to: new Point(touchpad.data.x + (touchpad.data.width / 2), touchpad.data.y + (touchpad.data.height / 2))
+    from: new paper.Point(touchpad.data.x - (touchpad.data.width / 2), touchpad.data.y - (touchpad.data.height / 2)),
+    to: new paper.Point(touchpad.data.x + (touchpad.data.width / 2), touchpad.data.y + (touchpad.data.height / 2))
   });
 
-  var touch = new Group({
+  var touch = new paper.Group({
     data: {
       "name": null,
       "Xchan": 1,
@@ -247,14 +246,14 @@ function touchpadFactory(event) {
     }
   });
 
-  lineX = new Path.Line({
+  lineX = new paper.Path.Line({
     name: null,
     strokeColor: "black",
     strokeWidth: 1,
     from: null,
     to: null
   });
-  lineY = new Path.Line({
+  lineY = new paper.Path.Line({
     name: null,
     strokeCap: "round",
     strokeColor: "black",
@@ -262,7 +261,7 @@ function touchpadFactory(event) {
     from: null,
     to: null
   });
-  circle = new Path.Circle({
+  circle = new paper.Path.Circle({
     name: null,
     fillColor: "red",
     center: null,
@@ -281,7 +280,7 @@ function triggerFactory(event) {
   var selectedtPathName = null;
   var state = false;
   var timer = 0;
-  var trigger = new Group({
+  var trigger = new paper.Group({
     data: {
       "name": "Trigger",
       "size": 40,
@@ -297,6 +296,7 @@ function triggerFactory(event) {
         var hitResult = this.hitTest(event.point, hitOptions);
         selectedtPath = hitResult.type;
         selectedtPathName = hitResult.item.name;
+        //hitResult.sendToFront()
       }
       else if (currentMode === PLAY_MODE) {
         this.children[1].fillColor = "red";
@@ -350,33 +350,33 @@ function triggerFactory(event) {
     }
   });
 
-  var square = new Path.Rectangle({
+  var square = new paper.Path.Rectangle({
     name: "square",
     strokeWidth: 8,
     strokeColor: "lightblue",
     fillColor: "lightblue",
-    from: new Point(trigger.data.x - (trigger.data.size / 2), trigger.data.y - (trigger.data.size / 2)),
-    to: new Point(trigger.data.x + (trigger.data.size / 2), trigger.data.y + (trigger.data.size / 2))
+    from: new paper.Point(trigger.data.x - (trigger.data.size / 2), trigger.data.y - (trigger.data.size / 2)),
+    to: new paper.Point(trigger.data.x + (trigger.data.size / 2), trigger.data.y + (trigger.data.size / 2))
   });
   trigger.addChild(square);
-  var circle = new Path.Circle({
+  var circle = new paper.Path.Circle({
     name: "circle",
     fillColor: "green",
-    center: new Point(trigger.data.x, trigger.data.y),
+    center: new paper.Point(trigger.data.x, trigger.data.y),
     radius: trigger.data.size / 2.2
   });
   trigger.addChild(circle);
   return trigger;
 }
 
-/////////// TOGGLE Factory
-function toggleFactory(event) {
-  var selectedtPath = "";
-  var selectedtPathName = "";
+/////////// SWITCH Factory
+function switchFactory(event) {
+  var selectedtPath = null;
+  var selectedtPathName = null;
   var state = false;
-  var toggle = new Group({
+  var e256_switch = new paper.Group({
     data: {
-      "name": "Toggle",
+      "name": "Switch",
       "size": 40,
       "x": Math.round(event.point.x),
       "y": Math.round(event.point.y),
@@ -396,11 +396,11 @@ function toggleFactory(event) {
         if (this.state) {
           this.children[1].visible = true;
           // SEND MIDI NOTE_ON
-          if (connected) noteOn(toggle.data.note, toggle.data.velocity, toggle.data.chan - 1);
+          if (connected) noteOn(e256_switch.data.note, e256_switch.data.velocity, e256_switch.data.chan - 1);
         } else {
           this.children[1].visible = false;
           // SEND MIDI NOTE_OFF
-          if (connected) noteOff(toggle.data.note, 0, toggle.data.chan - 1);
+          if (connected) noteOff(e256_switch.data.note, 0, e256_switch.data.chan - 1);
         }
       }
     },
@@ -416,7 +416,7 @@ function toggleFactory(event) {
           case "stroke":
             if (selectedtPathName === "square") {
               scale2d(this, event);
-            } else if (selectedtPathName === "cross") {
+            } else if (selectedtPathName === "lineX" || selectedtPathName === "lineY" ) {
               moveItem(this, event);
             }
             break;
@@ -428,38 +428,38 @@ function toggleFactory(event) {
     }
   });
 
-  var square = new Path.Rectangle({
+  var square = new paper.Path.Rectangle({
     name: "square",
     strokeWidth: 8,
     strokeColor: "lightblue",
     fillColor: "white",
     //opacity: 0.5,
-    from: new Point(toggle.data.x - (toggle.data.size / 2), toggle.data.y - (toggle.data.size / 2)),
-    to: new Point(toggle.data.x + (toggle.data.size / 2), toggle.data.y + (toggle.data.size / 2))
+    from: new paper.Point(e256_switch.data.x - (e256_switch.data.size / 2), e256_switch.data.y - (e256_switch.data.size / 2)),
+    to: new paper.Point(e256_switch.data.x + (e256_switch.data.size / 2), e256_switch.data.y + (e256_switch.data.size / 2))
   });
-  toggle.addChild(square);
+  e256_switch.addChild(square);
 
-  var cross = new Group(
-    lineX = new Path.Line({
+  var cross = new paper.Group(
+    lineX = new paper.Path.Line({
       name: "lineX",
       strokeWidth: 7,
       strokeColor: "black",
       strokeCap: "round",
-      from: new Point(toggle.data.x - (toggle.data.size / 3), toggle.data.y - (toggle.data.size / 3)),
-      to: new Point(toggle.data.x + (toggle.data.size / 3), toggle.data.y + (toggle.data.size / 3))
+      from: new paper.Point(e256_switch.data.x - (e256_switch.data.size / 3), e256_switch.data.y - (e256_switch.data.size / 3)),
+      to: new paper.Point(e256_switch.data.x + (e256_switch.data.size / 3), e256_switch.data.y + (e256_switch.data.size / 3))
     }),
-    lineY = new Path.Line({
+    lineY = new paper.Path.Line({
       name: "lineY",
       strokeCap: "round",
       strokeColor: "black",
       strokeWidth: 7,
-      from: new Point(toggle.data.x + (toggle.data.size / 3), toggle.data.y - (toggle.data.size / 3)),
-      to: new Point(toggle.data.x - (toggle.data.size / 3), toggle.data.y + (toggle.data.size / 3))
+      from: new paper.Point(e256_switch.data.x + (e256_switch.data.size / 3), e256_switch.data.y - (e256_switch.data.size / 3)),
+      to: new paper.Point(e256_switch.data.x - (e256_switch.data.size / 3), e256_switch.data.y + (e256_switch.data.size / 3))
     })
   );
-  toggle.addChild(cross);
+  e256_switch.addChild(cross);
 
-  return toggle;
+  return e256_switch;
 }
 
 /////////// SLIDER Factory
@@ -478,7 +478,7 @@ function sliderFactory(event) {
   var selectedtPath = "";
   var selectedtPathName = "";
   var selectedSegment = "";
-  var slider = new Group({
+  var slider = new paper.Group({
     data: {
       "name": "Slider",
       "width": 40,
@@ -582,23 +582,23 @@ function sliderFactory(event) {
       }
     }
   });
-  var rect = new Path.Rectangle({
+  var rect = new paper.Path.Rectangle({
     name: "rect",
     strokeColor: "lightblue",
     fillColor: "yellow",
     strokeWidth: 8,
     fillColor: "white",
-    from: new Point(slider.data.x - (slider.data.width / 2), slider.data.y - (slider.data.height / 2)),
-    to: new Point(slider.data.x + (slider.data.width / 2), slider.data.y + (slider.data.height / 2))
+    from: new paper.Point(slider.data.x - (slider.data.width / 2), slider.data.y - (slider.data.height / 2)),
+    to: new paper.Point(slider.data.x + (slider.data.width / 2), slider.data.y + (slider.data.height / 2))
   });
   slider.addChild(rect);
-  var handle = new Path.Line({
+  var handle = new paper.Path.Line({
     name: "Handle",
     strokeCap: "round",
     strokeColor: "black",
     strokeWidth: 10,
-    from: new Point(slider.data.x - (slider.data.width / 2) - 2, slider.data.y),
-    to: new Point(slider.data.x + (slider.data.width / 2) + 2, slider.data.y)
+    from: new paper.Point(slider.data.x - (slider.data.width / 2) - 2, slider.data.y),
+    to: new paper.Point(slider.data.x + (slider.data.width / 2) + 2, slider.data.y)
   });
   slider.addChild(handle);
   return slider;
@@ -611,7 +611,7 @@ function knobFactory(event) {
   var selectedtPathName = "";
   var last_rVal = 0;
   var last_tVal = 0;
-  var knob = new Group({
+  var knob = new paper.Group({
     data: {
       "name": "Knob",
       "x": Math.round(event.point.x),
@@ -641,22 +641,31 @@ function knobFactory(event) {
         var polar = cart_to_pol(x, y);
         var headPos = pol_to_cart(polar.radius - 10, polar.theta);
         var footPos = pol_to_cart(polar.radius - this.children[1].children[0].bounds.width - 1, polar.theta);
-        this.children[1].children[0].position = new Point(knob.data.x + headPos.x, knob.data.y + headPos.y);
-        this.children[1].children[1].segments[1].point = new Point(knob.data.x + footPos.x, knob.data.y + footPos.y);
-        knob.data.rVal = Math.round(mapp(polar.radius, 0, knob.data.radius, knob.data.rMin, knob.data.rMax));
+        this.children[1].children[0].position = new paper.Point(knob.data.x + headPos.x, knob.data.y + headPos.y);
+        this.children[1].children[1].segments[1].point = new paper.Point(knob.data.x + footPos.x, knob.data.y + footPos.y);
+
         last_rVal = knob.data.rVal;
-        controlChange(knob.data.rCc, knob.data.rVal, knob.data.rChan - 1);
+        knob.data.rVal = Math.round(mapp(polar.radius, 0, knob.data.radius, knob.data.rMin, knob.data.rMax));
+        if (connected && knob.data.rVal != last_rVal) {
+          controlChange(knob.data.rCc, knob.data.rVal, knob.data.rChan - 1);
+        }
+
+        last_tVal = knob.data.tVal;
         var newPolar = rotatePolar(this, rad_to_deg(polar.theta));
         knob.data.tVal = Math.round(mapp(newPolar, 0, 380, knob.data.tMin, knob.data.tMax));
-        last_tVal = knob.data.rVal;
-        controlChange(knob.data.tCc, knob.data.tVal, knob.data.tChan - 1);
+        if (connected && knob.data.tVal != last_tVal) {
+          controlChange(knob.data.tCc, knob.data.tVal, knob.data.tChan - 1);
+        }
+
         setMenuParams(this);
       }
     },
+    
     onMouseUp: function (event) {
       offset = knob.data.offset;
       setMenuParams(this);
     },
+
     onMouseDrag: function (event) {
       if (currentMode === EDIT_MODE) {
         switch (selectedtPath) {
@@ -667,7 +676,7 @@ function knobFactory(event) {
               knob.data.offset = offset;
               offset = Math.round(rad_to_deg(cart_to_pol(x, y).theta));
               var delta = offset - knob.data.offset;
-              this.children[2].rotate(delta, new Point(knob.data.x, knob.data.y));
+              this.children[2].rotate(delta, new paper.Point(knob.data.x, knob.data.y));
               setMenuParams(this);
             } else {
               moveItem(this, event);
@@ -716,20 +725,20 @@ function knobFactory(event) {
           controlChange(knob.data.rCc, knob.data.rVal, knob.data.rChan - 1);
         }
 
-        this.children[1].children[0].position = new Point(knob.data.x + headPos.x, knob.data.y + headPos.y);
-        this.children[1].children[1].segments[1].point = new Point(knob.data.x + footPos.x, knob.data.y + footPos.y);
+        this.children[1].children[0].position = new paper.Point(knob.data.x + headPos.x, knob.data.y + headPos.y);
+        this.children[1].children[1].segments[1].point = new paper.Point(knob.data.x + footPos.x, knob.data.y + footPos.y);
 
         setMenuParams(this);
       }
     }
   });
-  var circle = new Path.Circle({
+  var circle = new paper.Path.Circle({
     name: "knob",
     strokeColor: "lightblue",
     fillColor: "blue",
     //opacity: 0.5,
     strokeWidth: 10,
-    center: new Point(knob.data.x, knob.data.y),
+    center: new paper.Point(knob.data.x, knob.data.y),
     radius: knob.data.radius
   });
   knob.addChild(circle);
@@ -738,29 +747,29 @@ function knobFactory(event) {
   var footPos = pol_to_cart(knob.data.radius - 20, deg_to_rad(knob.data.offset));
   var offsetPos = pol_to_cart(knob.data.radius + 15, deg_to_rad(knob.data.offset));
 
-  var needle = new Group(
-    head = Path.Circle({
+  var needle = new paper.Group(
+    head = paper.Path.Circle({
       name: "head",
       strokeColor: "black",
       strokeWidth: 5,
-      center: new Point(knob.data.x + headPos.x, knob.data.y + headPos.y),
+      center: new paper.Point(knob.data.x + headPos.x, knob.data.y + headPos.y),
       radius: 6
     }),
-    foot = Path.Line({
+    foot = paper.Path.Line({
       name: "foot",
       strokeCap: "round",
       strokeColor: "black",
       strokeWidth: 5,
-      from: new Point(knob.data.x, knob.data.y),
-      to: new Point((knob.data.x + footPos.x), knob.data.y + footPos.y),
+      from: new paper.Point(knob.data.x, knob.data.y),
+      to: new paper.Point((knob.data.x + footPos.x), knob.data.y + footPos.y),
     })
   );
   knob.addChild(needle);
 
-  var offset = new Path.RegularPolygon({
+  var offset = new paper.Path.RegularPolygon({
     name: "offset",
     fillColor: "red",
-    center: new Point(knob.data.x + offsetPos.x, knob.data.y + offsetPos.y),
+    center: new paper.Point(knob.data.x + offsetPos.x, knob.data.y + offsetPos.y),
     sides: 3,
     radius: 10
   });

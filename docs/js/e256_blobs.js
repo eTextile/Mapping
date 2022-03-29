@@ -10,13 +10,13 @@ let blobPath = [];
 let blobPathSmooth = [];
 
 function onBlobDown() {
-  let circle = new Path.Circle({
+  let circle = new paper.Path.Circle({
     center: [0, 0],
     radius: 10,
     fillColor: "red"
   });
   blobTouch.push(circle);
-  path = new Path();
+  path = new paper.Path();
   path.strokeColor = "#00000";
   blobPath.push(path);
 }
@@ -24,7 +24,7 @@ function onBlobDown() {
 function onBlobUpdate(event) {
   let blob = new Blob;
   blob = e256_blobs.get(event);
-  let pos = new Point(blob.x * x_scaleFactor, blob.y * y_scaleFactor);
+  let pos = new paper.Point(blob.x * scaleFactorX, blob.y * scaleFactorY);
   blobTouch[event].position = pos;
   //blobTouch[event].radius = blob.z; // FIXME!
   blobPath[event].add(pos);
@@ -112,3 +112,5 @@ Blobs.prototype.get = function (index) {
 Blobs.prototype.size = function () {
   return this.blobs.length;
 }
+
+e256_blobs = new Blobs();

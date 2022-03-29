@@ -10,25 +10,32 @@
   <meta name="author" content="Maurin Donneaud">
   <link rel="icon" href="./assets/img/favicon.ico">
   <title>Mapping-app</title>
+
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/bootstrap.css">
+  
   <script type="text/javascript" src="./js/lib/jquery.js"></script>
-  <script type="text/javascript" src="./js/lib/paper-full.js"></script>
   <script type="text/javascript" src="./js/lib/bootstrap.min.js"></script>
 
-  <script type="text/javascript" src="./js/e256_draw_matrix.js"></script>
-
-  <script type="text/javascript" src="./js/e256_draw_blobs.js"></script>
-  <script type="text/javascript" src="./js/e256_draw_mappings.js"></script>
   <script type="importmap">
     {
       "imports": {
         "three": "./js/lib/three.module.js"
       }
     }
-    </script>
-    <script type="text/javascript" src="./js/e256_midi_io.js"></script>
-    <script type="text/javascript" src="./js/e256_paper_script.js" canvas="canvas-2D"></script>
+  </script>
+  <script type="text/javascript" src="./js/e256_config.js"></script>
+  <script type="text/javascript" src="./js/e256_matrix.js"></script>
+  <script type="module" src="./js/e256_three_script.js"></script>
+
+  <script type="text/javascript" src="./js/lib/paper-core.min.js"></script>
+  <script type="text/javascript" src="./js/e256_paper_script.js"></script>
+  <script type="text/javascript" src="./js/e256_blobs.js"></script>
+  <script type="text/javascript" src="./js/e256_mappings.js"></script>
+
+  <script type="text/javascript" src="./js/e256_midi_io.js"></script>
+
+  <script type="text/javascript" src="./js/e256_menu.js"></script>
 
 </head>
 
@@ -44,14 +51,14 @@
           <p>
             <a class="navbar-brand fs-4" href="http://mapping.etextile.org/">Mapping-app</a>
           <div class="form-check form-switch">
-            <input id="connect" class="form-check-input" type="checkbox" role="button" />
+            <input id="connectSwitch" class="form-check-input" type="checkbox" role="button" />
           </div>
           </p>
         </div>
 
         <div id="startMenu" class="collapse">
           <div class="btn-group input-group" role="group">
-            <button id="matrixMode" class="e256_setMode btn btn-outline-primary" type="button">MATRIX</button>
+            <button id="matrixMode" class="e256_setMode btn btn-outline-primary"  type="button">MATRIX</button>
             <button id="mappingMode" class="e256_setMode btn btn-outline-primary" type="button">MAPPING</button>
           </div>
         </div>
@@ -75,7 +82,7 @@
               <div class="btn-group input-group" role="group">
                 <button id="Touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
                 <button id="Trigger" class="mapingTool btn btn-outline-primary" type="button">Trigger</button>
-                <button id="Toggle" class="mapingTool btn btn-outline-primary" type="button">Toggle</button>
+                <button id="Switch" class="mapingTool btn btn-outline-primary" type="button">Switch</button>
                 <button id="Slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
                 <button id="Knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
               </div>
@@ -91,34 +98,33 @@
           <div id="loadMenu" class="collapse">
             <input id="loadConfigFile" class="form-control form-control-sm" type="file" accept=".json, .wav">
           </div>
-        
+
         </div>
 
       </section>
 
       <!--///////////////////////////////////////////////////////////////////////-->
+
       <section id="page" class="col-sm-8">
 
         <body>
           <div id="mappingCanvas" class="collapse">
-            <canvas id="canvas-2D"></canvas>
+            <canvas id="canvas-2D" resize></canvas>
           </div>
-
-          <script type="module" src="./js/e256_three_script.js"></script>
           <div id="matrixCanvas" class="collapse">
             <div id="canvas-3D"></div>
           </div>
-
         </body>
       </section>
 
       <!--///////////////////////////////////////////////////////////////////////-->
+
       <section class="col-sm-2 sidenav">
         <div class="card" style="width: 100%">
 
           <div class="card-body">
             <h5 id="summary_title" class="card-title">eTextile - Synthesizer</h5>
-              <span id="summaryAction" class="badge badge-pill badge-danger">DISCONNECTED</span>
+            <span id="summaryAction" class="badge badge-pill badge-danger">DISCONNECTED</span>
             <p id="summaryContent" class="text card-text">
               This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.
             </p>
@@ -180,129 +186,9 @@
 
   </div>
 
-  <!--///////////////////////////////////////////////////////////////////////-->
   <footer class="col-12">Electronic textile interfaces - Creative use of technologies - <a
-      href="https://etextile.org/">www.eTextile.org</a></footer>
-
-  <script type="text/javascript">
-
-    $(".btn").addClass("shadow-none");
-    $(".input-group").addClass("input-group-sm");
-    $(".form-control").addClass("shadow-none");
-    $(".btn-group").addClass("btn-group-sm");
-    $(".btn").addClass("btn-sm");
-    $(".btn-group > .btn").click(function () {
-      $(this).addClass("active").siblings().removeClass("active");
-    });
-
-    $("#connect").change(
-      function () {
-        if ($(this).is(":checked")) {
-          $("#startMenu").collapse("show");
-          $("#summaryAction").html("CONNECTED").removeClass("badge-danger").addClass("badge-success");
-          MIDIConnect();
-        } else {
-          $("#startMenu").collapse("hide");
-          $("#calibrateMenu").collapse("hide");
-          $("#matrixMenu").collapse("hide");
-          $("#mappingMenu").collapse("hide");
-
-          //$("#editMenu").collapse("hide");
-          //$("#playMenu").collapse("hide");
-          //$("#loadMenu").collapse("hide");
-
-          $("#matrixCanvas").collapse("hide");
-          $("#mappingCanvas").collapse("hide");
-          $("#summaryAction").html("DISCONNECTED").removeClass("badge-success").addClass("badge-danger");
-          $("#summaryContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
-          $(".param").collapse("hide");
-        }
-      }
-    );
-
-    $("#calibrate").on("click", function () {
-      $("#summaryAction").html("CALIBRATED").removeClass("badge-danger").addClass("badge-success");
-    });
-
-    $("#matrixMode").on("click", function () {
-      $("#calibrateMenu").collapse("show");
-
-      $("#mappingMenu").collapse("hide");
-      $("#mappingCanvas").collapse("hide");
-
-      $("#matrixMenu").collapse("show");
-      $("#matrixCanvas").collapse("show");
-
-      $("#summaryAction").html("3D-VISUALISATION").removeClass("badge-danger").addClass("badge-success");
-      $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
-      $(".param").collapse("hide");
-    });
-
-    $("#mappingMode").on("click", function () {
-      $("#calibrateMenu").collapse("show");
-
-      $("#matrixMenu").collapse("hide");
-      $("#matrixCanvas").collapse("hide");
-
-      $("#mappingMenu").collapse("show");
-      $("#mappingCanvas").collapse("show");
-
-      $("#summaryAction").html("2D MAPPING-APP").removeClass("badge-danger").addClass("badge-success");
-      $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces!");
-      $(".param").collapse("hide");
-    });
-
-    $("#editMode").on("click", function () {
-      $("#editMenu").collapse("show");
-      $("#playMenu").collapse("hide");
-      $("#loadMenu").collapse("hide");
-
-      $("#summaryAction").html("EDIT-MODE").removeClass("badge-danger").addClass("badge-success");
-      $("#summaryContent").html("Add new components");
-    });
-
-    $("#playMode").on("click", function () {
-      $("#editMenu").collapse("hide");
-      $("#playMenu").collapse("show");
-      $("#loadMenu").collapse("show");
-
-      $("#summaryAction").html("PLAY-MODE").removeClass("badge-danger").addClass("badge-success");
-      $("#summaryContent").html("Evaluate what you have made");
-      $(".param").collapse("hide");
-    });
-
-    $(".e256_setMode").click(function () {
-      e256_setMode(event.target.id);
-    });
-
-    $("#calibrate").click(function () {
-      calibrate();
-    });
-
-    $("#getConfig").click(function () {
-      // TODO
-    });
-
-    $("#loadConfigFile").change(function () {
-      loadFile(event);
-    });
-
-    $("#setConfig").click(function () {
-      setConfig();
-    });
-
-    $(".mapingTool").click(function () {
-      $(".param").collapse("hide");
-      toolSelector(event.target.id);
-    });
-
-    // Update item parameters using the txt input fields
-    $(".btnSet").click(function () {
-      updateParams(event.target.id);
-    });
-
-  </script>
-
+      href="https://etextile.org/">www.eTextile.org</a>
+  </footer>
 </body>
 
 </html>

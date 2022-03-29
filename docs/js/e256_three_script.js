@@ -8,10 +8,8 @@
 import * as THREE from 'three';
 
 let camera, scene, geometry, renderer;
-var myWidth, myHeight;
+var paperWidth, paperHeight;
 var windowHalfX, windowHalfY;
-
-let e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);
 
 $(document).ready(function () {
 
@@ -21,12 +19,12 @@ $(document).ready(function () {
   function init() {
     var myCanvas = document.getElementById('canvas-3D');
 
-    myWidth = (window.innerWidth * 0.7);
-    myHeight = (window.innerHeight * 0.8);
-    windowHalfX = (myWidth / 2);
-    windowHalfY = (myHeight / 2);
+    paperWidth = (window.innerWidth * 0.7);
+    paperHeight = (window.innerHeight * 0.8);
+    windowHalfX = (paperWidth / 2);
+    windowHalfY = (paperHeight / 2);
 
-    camera = new THREE.PerspectiveCamera(45, myWidth / myHeight, 1, 1000);
+    camera = new THREE.PerspectiveCamera(45, paperWidth / paperHeight, 1, 1000);
     camera.position.z = 31;
 
     scene = new THREE.Scene();
@@ -35,11 +33,11 @@ $(document).ready(function () {
 
     const light = new THREE.HemisphereLight();
     scene.add(light);
-
+    
     /*
     const pointMaterial = new THREE.PointsMaterial({size: 0.2, color: "red"})
     let points = new THREE.Points(geometry, pointMaterial);  
-    wireframe.add(points);
+    scene.add(points);
     */
 
     geometry = new THREE.BufferGeometry();
@@ -106,7 +104,7 @@ $(document).ready(function () {
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(myWidth, myHeight);
+    renderer.setSize(paperWidth, paperHeight);
     myCanvas.appendChild(renderer.domElement);
 
     window.addEventListener('resize', onWindowResize);
@@ -114,12 +112,12 @@ $(document).ready(function () {
 });
 
 function onWindowResize() {
-  myWidth = window.innerWidth * 0.7;
-  myHeight = window.innerHeight * 0.8;
-  windowHalfX = (myWidth / 2);
-  windowHalfY = (myHeight / 2);
-  renderer.setSize(myWidth, myHeight);
-  camera.aspect = myWidth / myHeight;
+  paperWidth = window.innerWidth * 0.7;
+  paperHeight = window.innerHeight * 0.8;
+  windowHalfX = (paperWidth / 2);
+  windowHalfY = (paperHeight / 2);
+  renderer.setSize(paperWidth, paperHeight);
+  camera.aspect = paperWidth / paperHeight;
   camera.updateProjectionMatrix();
 }
 
@@ -130,12 +128,8 @@ function animate() {
 
 function render() {
   let position = geometry.getAttribute('position');
-  //let colorAttribute = geometry.getAttribute('color');
   for (let i = 0; i < RAW_FRAME; i++) {
     position.setZ(i, e256_matrix.getZ(i));
-    //var r = e256_matrix.getZ(i);
-    //var g = e256_matrix.getZ(i);
-    //colorAttribute.setXYZ(r, g, 1);  
   }
   geometry.attributes.position.needsUpdate = true;
   camera.lookAt(scene.position);
