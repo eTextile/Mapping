@@ -1,15 +1,19 @@
 /*
-  **Mapping-app V0.1**
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
   Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
+
+const PROJECT = "ETEXTILE-SYNTH";
+const NAME = "MAPPING-APP";
+const VERSION = "1.0.11";
 
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
 const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
+
 // E256 MODES CONSTANTS (MIDI_CHANNEL 1)
 const SYNC_MODE = 0           // Read incoming setup
 const STANDALONE_MODE = 1;    // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
@@ -17,16 +21,20 @@ const MATRIX_MODE_RAW = 2;    // Get matrix analog sensor values (16x16) over US
 const MATRIX_MODE_INTERP = 3; // Get matrix analog sensor values (16x16) over USB using MIDI format
 const EDIT_MODE = 4;          // Get all blobs values over USB using MIDI format
 const PLAY_MODE = 5;          // Get mappings values over USB using MIDI format
-const GET_CONFIG = 6;         // TODO: Fetch the e256 CONFIG file
+const MAX_PARAMS = 15;
+
 // STATES CONSTANTS (MIDI_CHANNEL 2)
 const CALIBRATE = 0;
+const GET_CONFIG = 1;         // TODO: Fetch the e256 CONFIG file
 const DONE_ACTION = 2;
 const ERROR = 3;
+
 // LEVELS CONSTANTS
 const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
 const SIG_IN = 1;    // E256-LEDs: | 1 | 0 |
 const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
 const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
+
 // MIDI CONSTANTS
 const MIDI_INPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_INPUT channel
 const MIDI_OUTPUT_CHANNEL = 1; // [1:15] Set the HARDWARE MIDI_OUTPUT channel
@@ -40,14 +48,16 @@ const SYSEX_END = 0xF7; // 247
 const SYSEX_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
 const SYSEX_CONF = 0x7C; // 124
 const SYSEX_SOUND = 0x6C; // 108
+
 // VERBOSITY CONSTANTS
 const FLASH_CONFIG_ALLOC_DONE = 16;
 const FLASH_CONFIG_LOAD_DONE = 17;
 const FLASH_CONFIG_WRITE_DONE = 18;
 const USBMIDI_CONFIG_ALLOC_DONE = 19;
-const USBMIDI_CONFIG_UPLOAD_DONE = 20;
-const USBMIDI_SOUND_UPLOAD_DONE = 21;
+const USBMIDI_CONFIG_LOAD_DONE = 20;
+const USBMIDI_SOUND_LOAD_DONE = 21;
 const USBMIDI_SET_LEVEL_DONE = 22;
+
 // ERROR_CODES CONSTANTS
 const ERROR_WAITING_FOR_GONFIG = 33;
 const ERROR_LOADING_GONFIG_FAILED = 34;

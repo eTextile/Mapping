@@ -3,6 +3,26 @@ body {
   width: 100%;
 }
 
+.collapsing {
+  transition: none;
+}
+
+.row {
+  height: 90vh;
+}
+
+.col-sm-2 {
+  height: 100%;
+  padding-top: 30px;
+}
+
+h1, h2, h3, h4, h5 {
+	line-height: 5;
+	font-weight: 500;
+	font-family: 'Poppins', sans-serif;
+	color: black;
+}
+
 #matrixCanvas, #mappingCanvas {
   margin: 0px;
   height: 100%;
@@ -15,28 +35,9 @@ body {
   height: 100%;
 }
 
-/* Remove the navbar's default margin-bottom and rounded borders */ 
-.navbar {
-  margin-bottom: 0;
-  border-radius: 0;
-}
-
-/* Set height of the grid so .sidenav can be 100% (adjust as needed) */
-.row.content {
-  height: 100%;
-  padding: 0px;
-}
-
-/* Set gray background color and 100% height */
-.sidenav {
-  flex: 1;
-  padding-top: 20px;
-  background-color: #f1f1f1;
-  height: auto;
-}
-
 /* Set black background color, white text and some padding */
 footer {
+  height: 10vh;
   background-color: rgb(202, 202, 202);
   color: white;
   padding: 15px;

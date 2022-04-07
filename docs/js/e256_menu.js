@@ -1,5 +1,4 @@
 /*
-  **Mapping-app V0.1**
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
   Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
@@ -10,7 +9,14 @@ var e256_drawMode = null;
 
 window.onload = function () {
 
+  console.log("PROJECT: " + PROJECT);
+  console.log("NAME: " + NAME);
+  console.log("VERSION: " + VERSION);
   console.log("CurrentMode: " + currentMode);
+  $("#PROJECT").html(PROJECT);
+  $("#NAME").html(NAME);
+  $("#VERSION").html(VERSION);
+
   $(".btn").addClass("shadow-none");
   $(".input-group").addClass("input-group-sm");
   $(".form-control").addClass("shadow-none");
@@ -20,15 +26,22 @@ window.onload = function () {
     $(this).addClass("active").siblings().removeClass("active");
   });
 
+  $("#connectSwitch").on("change", function () {
+    $("#startMenu").collapse("show");
+  });
+
   $(".e256_setMode").click(function (event) {
     e256_setMode(event.target.id);
   });
 
   $("#calibrate").on("click", function () {
-    calibrate();
-    $("#summaryAction").html("CALIBRATED").removeClass("badge-danger").addClass("badge-success");
+    if (connected) {
+      e256_calibrate();
+    } else {
+      alert("e256 NOT CONNECTED!");
+    };
   });
-  
+
   $("#getConfig").click(function () {
     // TODO
   });
@@ -38,7 +51,11 @@ window.onload = function () {
   });
 
   $("#setConfig").click(function () {
-    setConfig();
+    if (connected) {
+      setConfig();
+    } else {
+      alert("e256 NOT CONNECTED!");
+    }
   });
 
   $(".mapingTool").click(function (event) {
@@ -62,20 +79,19 @@ window.onload = function () {
         $("#mappingCanvas").collapse("hide");
         $("#matrixMenu").collapse("show");
         $("#matrixCanvas").collapse("show");
-        $("#summaryAction").html("3D-VISUALISATION").removeClass("badge-danger").addClass("badge-success");
+        $("#summary_title").html("3D-VISUALISATION");
         $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
         $(".param").collapse("hide");
         break;
       case "mappingMode":
         // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
-        currentMode = GET_CONFIG;
         $("#calibrateMenu").collapse("show");
         $("#matrixMenu").collapse("hide");
         $("#matrixCanvas").collapse("hide");
         $("#mappingMenu").collapse("show");
         $("#mappingCanvas").collapse("show");
-        $("#summaryAction").html("2D MAPPING-APP").removeClass("badge-danger").addClass("badge-success");
-        $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces!");
+        $("#summary_title").html("2D-MAPPING");
+        $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces !");
         $(".param").collapse("hide");
         break;
       case "editMode":
@@ -83,7 +99,7 @@ window.onload = function () {
         $("#editMenu").collapse("show");
         $("#playMenu").collapse("hide");
         $("#loadMenu").collapse("hide");
-        $("#summaryAction").html("EDIT-MODE").removeClass("badge-danger").addClass("badge-success");
+        $("#summary_title").html("2D-MAPPING / EDIT");
         $("#summaryContent").html("Add new components");
         break;
       case "playMode":
@@ -91,11 +107,23 @@ window.onload = function () {
         $("#editMenu").collapse("hide");
         $("#playMenu").collapse("show");
         $("#loadMenu").collapse("show");
-        $("#summaryAction").html("PLAY-MODE").removeClass("badge-danger").addClass("badge-success");
+        $("#summary_title").html("2D-MAPPING / PLAY");
         $("#summaryContent").html("Evaluate what you have made");
         $(".param").collapse("hide");
         break;
     }
     programChange(currentMode, CHAN1);
+  }
+}
+
+
+function e256_setState(event) {
+  switch (event) {
+    case "mappingMode":
+      programChange(GET_CONFIG, CHAN2);
+      break;
+    case "calibrate":
+      programChange(GET_CONFIG, CHAN2);
+      break;
   }
 }
