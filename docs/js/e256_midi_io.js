@@ -69,9 +69,11 @@ var confSize = 0;
           }
           if (MIDIin && MIDIout) {
             connected = true;
-            $("#summaryAction").html("CONNECTED").removeClass("badge-danger").addClass("badge-success");
             connectSwitch.checked = true;
             programChange(SYNC_MODE, CHAN1);
+            $("#summary_title").html("");
+            $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
+            $("#startMenu").collapse("show");
             console.log("REQUEST_SYNC_MODE - Prog:" + SYNC_MODE + " Chan:" + CHAN1);
           } else {
             connected = false;
@@ -91,7 +93,8 @@ var confSize = 0;
           $("#mappingMenu").collapse("hide");
           $("#matrixCanvas").collapse("hide");
           $("#mappingCanvas").collapse("hide");
-          $("#summaryAction").html("DISCONNECTED").removeClass("badge-success").addClass("badge-danger");
+          $("#summary_title").html("");
+          $("#summaryAction").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
           $("#summaryContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
           $(".param").collapse("hide");
           break;
@@ -140,9 +143,7 @@ var confSize = 0;
         switch (midiMsg.data[1]) {
           case MATRIX_MODE_RAW:
             console.log("RECIVE_MATRIX_MODE_RAW - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-            $("#startMenu").collapse("show");
-            //$("#summaryAction").html("CONNECTED").removeClass("badge-danger").addClass("badge-success");
-            e256_setMode("matrixMode");
+            //e256_setMode("matrixMode");
             break;
           // VERBOSITY CONSTANTS
           case DONE_ACTION:
@@ -268,10 +269,6 @@ var confSize = 0;
 
   function setConfig() {
     e256_alocate_memory();
-  }
-
-  function e256_calibrate() {
-    programChange(CALIBRATE, CHAN2);
   }
 
   function loadFile(event) {

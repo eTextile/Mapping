@@ -5,6 +5,7 @@
 */
 
 var currentMode = EDIT_MODE;
+var currentState = null;
 var e256_drawMode = null;
 
 window.onload = function () {
@@ -34,16 +35,8 @@ window.onload = function () {
     e256_setMode(event.target.id);
   });
 
-  $("#calibrate").on("click", function () {
-    if (connected) {
-      e256_calibrate();
-    } else {
-      alert("e256 NOT CONNECTED!");
-    };
-  });
-
-  $("#getConfig").click(function () {
-    // TODO
+  $(".e256_setState").click(function (event) {
+    e256_setState(event.target.id);
   });
 
   $("#loadConfigFile").change(function (event) {
@@ -68,62 +61,71 @@ window.onload = function () {
   $(".btnSet").click(function (event) {
     updateParams(event.target.id);
   });
-
-  function e256_setMode(event) {
-    switch (event) {
-      case "matrixMode":
-        currentMode = MATRIX_MODE_RAW;
-        //currentMode = MATRIX_MODE_INTERP; // TODO
-        $("#calibrateMenu").collapse("show");
-        $("#mappingMenu").collapse("hide");
-        $("#mappingCanvas").collapse("hide");
-        $("#matrixMenu").collapse("show");
-        $("#matrixCanvas").collapse("show");
-        $("#summary_title").html("3D-VISUALISATION");
-        $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
-        $(".param").collapse("hide");
-        break;
-      case "mappingMode":
-        // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
-        $("#calibrateMenu").collapse("show");
-        $("#matrixMenu").collapse("hide");
-        $("#matrixCanvas").collapse("hide");
-        $("#mappingMenu").collapse("show");
-        $("#mappingCanvas").collapse("show");
-        $("#summary_title").html("2D-MAPPING");
-        $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces !");
-        $(".param").collapse("hide");
-        break;
-      case "editMode":
-        currentMode = EDIT_MODE;
-        $("#editMenu").collapse("show");
-        $("#playMenu").collapse("hide");
-        $("#loadMenu").collapse("hide");
-        $("#summary_title").html("2D-MAPPING / EDIT");
-        $("#summaryContent").html("Add new components");
-        break;
-      case "playMode":
-        currentMode = PLAY_MODE;
-        $("#editMenu").collapse("hide");
-        $("#playMenu").collapse("show");
-        $("#loadMenu").collapse("show");
-        $("#summary_title").html("2D-MAPPING / PLAY");
-        $("#summaryContent").html("Evaluate what you have made");
-        $(".param").collapse("hide");
-        break;
-    }
-    programChange(currentMode, CHAN1);
-  }
 }
 
+function e256_setMode(event) {
+  switch (event) {
+    case "matrixMode":
+      currentMode = MATRIX_MODE_RAW;
+      //currentMode = MATRIX_MODE_INTERP; // TODO
+      $("#calibrateMenu").collapse("show");
+      $("#mappingMenu").collapse("hide");
+      $("#mappingCanvas").collapse("hide");
+      $("#matrixMenu").collapse("show");
+      $("#matrixCanvas").collapse("show");
+      $("#summary_title").html("3D-VISUALISATION");
+      $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
+      $(".param").collapse("hide");
+      break;
+    case "mappingMode":
+      //currentMode = MAPPING_MODE;
+      $("#calibrateMenu").collapse("show");
+      $("#matrixMenu").collapse("hide");
+      $("#matrixCanvas").collapse("hide");
+      $("#mappingMenu").collapse("show");
+      $("#mappingCanvas").collapse("show");
+      $("#summary_title").html("2D-MAPPING");
+      $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces !");
+      $(".param").collapse("hide");
+      break;
+    case "editMode":
+      currentMode = EDIT_MODE;
+      $("#editMenu").collapse("show");
+      $("#playMenu").collapse("hide");
+      $("#loadMenu").collapse("hide");
+      $("#summary_title").html("2D-MAPPING / EDIT");
+      $("#summaryContent").html("Add new components");
+      break;
+    case "playMode":
+      currentMode = PLAY_MODE;
+      $("#editMenu").collapse("hide");
+      $("#playMenu").collapse("show");
+      $("#loadMenu").collapse("show");
+      $("#summary_title").html("2D-MAPPING / PLAY");
+      $("#summaryContent").html("Evaluate what you have made");
+      $(".param").collapse("hide");
+      break;
+  }
+  if (connected) {
+    programChange(currentMode, CHAN1);
+  } else {
+    //alert("e256 NOT CONNECTED!");
+  }
+}
 
 function e256_setState(event) {
   switch (event) {
-    case "mappingMode":
-      programChange(GET_CONFIG, CHAN2);
+    case "getConfig":
+      // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
+      currentState = GET_CONFIG;
       break;
     case "calibrate":
-      programChange(GET_CONFIG, CHAN2);
+      currentState = CALIBRATE;
       break;
   }
-}
+  if (connected) {
+    programChange(currentState, CHAN2);
+  } else {
+    //alert("e256 NOT CONNECTED!");
+  };
+};

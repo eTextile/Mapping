@@ -39,8 +39,6 @@
 
   <script type="text/javascript" src="./js/e256_midi_io.js"></script>
   <script type="text/javascript" src="./js/e256_menu.js"></script>
-
-
 </head>
 
 <body>
@@ -71,11 +69,11 @@
               <div class="input-group"></div>
             </div>
 
-            <div id="calibrateMenu" class="collapse w-100">
+            <div id="calibrateMenu" class="collapse">
               <button id="calibrate" class="e256_setState btn btn-outline-primary input-group" type="button">CALIBRATE</button>
             </div>
 
-            <div id="mappingMenu" class="collapse w-100">
+            <div id="mappingMenu" class="collapse">
               <div class="btn-group input-group" role="group">
                 <button id="editMode" class="e256_setMode btn btn-outline-primary" type="button">EDIT</button>
                 <button id="playMode" class="e256_setMode btn btn-outline-primary" type="button">PLAY</button>
@@ -124,8 +122,8 @@
       <section class="col-sm-2 sidenav">
         <div class="card shadow">
           <div class="card-body">
-            <h5 id="summary_title" class="card-title">DISCONNECTED</h5>
-            <span id="summaryAction" class=" badge-danger">DISCONNECTED</span>
+            <h4 id="summary_title" class="card-title"></h4>
+            <div id="summaryAction" class="alert alert-warning">DISCONNECTED</div>
             <p id="summaryContent" class="text card-text">
               This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.
             </p>
