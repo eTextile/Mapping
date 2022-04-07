@@ -74,6 +74,7 @@ function e256_setMode(event) {
       $("#matrixMenu").collapse("show");
       $("#matrixCanvas").collapse("show");
       $("#summary_title").html("3D-VISUALISATION");
+      $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
       $(".param").collapse("hide");
       break;
@@ -85,6 +86,7 @@ function e256_setMode(event) {
       $("#mappingMenu").collapse("show");
       $("#mappingCanvas").collapse("show");
       $("#summary_title").html("2D-MAPPING");
+      $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces !");
       $(".param").collapse("hide");
       break;
@@ -93,7 +95,8 @@ function e256_setMode(event) {
       $("#editMenu").collapse("show");
       $("#playMenu").collapse("hide");
       $("#loadMenu").collapse("hide");
-      $("#summary_title").html("2D-MAPPING / EDIT");
+      $("#summary_title").html("2D-MAPPING");
+      $("#summaryAction").html("CONNECTED / EDIT_MODE");
       $("#summaryContent").html("Add new components");
       break;
     case "playMode":
@@ -101,7 +104,8 @@ function e256_setMode(event) {
       $("#editMenu").collapse("hide");
       $("#playMenu").collapse("show");
       $("#loadMenu").collapse("show");
-      $("#summary_title").html("2D-MAPPING / PLAY");
+      $("#summary_title").html("2D-MAPPING");
+      $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#summaryContent").html("Evaluate what you have made");
       $(".param").collapse("hide");
       break;

@@ -20,7 +20,7 @@ var hitOptions = {
 
 //window.onload = function () {
 $(document).ready(function () {
-  "use strict";
+  //"use strict";
 
   var paperWindow = document.getElementById("canvas-2D");
   //paper.install(paperWindow); // Setup paper scope
@@ -40,8 +40,8 @@ $(document).ready(function () {
   console.log("Version: " + paper.version);
   console.log("Settings: " + paper.settings);
 
-  paperWidth = paper.view.size.width;
-  paperHeight = paper.view.size.height;
+  paperWidth = paperWindow.width;
+  paperHeight = paperWindow.height;
 
   console.log("PaperWidth: " + paperWidth + " PaperHeight: " + paperHeight);
 
@@ -141,7 +141,7 @@ $(document).ready(function () {
     }
   }
 });
-
+//}
 // Update item parameters using the txt input fields
 function updateParams(event) {
   var paramsIndex = 0;
