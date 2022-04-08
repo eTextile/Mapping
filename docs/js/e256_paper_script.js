@@ -17,15 +17,13 @@ var hitOptions = {
   "tolerance": 3
 }
 
+canvasHeight = $("#loadingCanvas").height();
+canvasWidth = canvasHeight;
+console.log("PAPER_WIDTH: " + canvasWidth + " PAPER_HEIGHT: " + canvasHeight);
+scaleFactor = canvasHeight / 127;
+
 function paperInit() {
-
-  canvasHeight = $('.container').height();
-  canvasWidth = canvasHeight;
-  console.log("WIDTH: " + canvasWidth + " HEIGHT: " + canvasHeight);
-  scaleFactor = canvasHeight / 127;
-
-  var paperCanvas = document.getElementById("canvas-2D");
-  paper.setup(paperCanvas); // Setup paper window size  
+  paper.setup(document.getElementById("canvas-2D"));
   console.log("PAPER_VERSION: " + paper.version);
 
   paper.view.viewSize.width = canvasWidth;
@@ -40,7 +38,7 @@ function paperInit() {
   var knobLayer = new paper.Layer();
 
   var paperTool = new paper.Tool();
-  paperTool.minDistance = 5;
+  //paperTool.minDistance = 5;
 
   paperTool.onMouseDown = function (event) {
     var hitResult = paper.project.hitTest(event.point, hitOptions);
@@ -65,7 +63,7 @@ function paperInit() {
     // TODO
   }
 
-  paperTool.onFrame = function (event) {
+  paper.onFrame = function (event) {
     // Every frame
   }
 
@@ -105,7 +103,7 @@ function paperInit() {
 
   // Whenever the view is resized - FIXME!
   paper.view.onResize = function() {
-    canvasHeight = $('.container').height();
+    canvasHeight = $("#loadingCanvas").height();
     canvasWidth = canvasHeight;
     console.log("WIDTH: " + canvasWidth + " HEIGHT: " + canvasHeight);
     scaleFactor = canvasHeight / 127;

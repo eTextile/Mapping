@@ -7,24 +7,25 @@
 import * as THREE from 'three';
 
 let camera, scene, geometry, renderer;
-var paperWidth, paperHeight;
-var windowHalfX, windowHalfY;
 
+var canvasWidth = null;
+var canvasHeight = null;
+var halfCanvas = null;
+
+canvasHeight = $("#loadingCanvas").height();
+canvasWidth = canvasHeight;
+halfCanvas = canvasWidth / 2;
+console.log("THREE_WIDTH: " + canvasWidth + " THREE_HEIGHT: " + canvasHeight);
 
 function init() {
-  var myCanvas = document.getElementById('canvas-3D');
+  var threeCanvas = document.getElementById("canvas-3D");
 
-  paperWidth = (window.innerWidth * 0.7);
-  paperHeight = (window.innerHeight * 0.8);
-  windowHalfX = (paperWidth / 2);
-  windowHalfY = (paperHeight / 2);
-
-  camera = new THREE.PerspectiveCamera(45, paperWidth / paperHeight, 1, 1000);
-  camera.position.z = 31;
+  camera = new THREE.PerspectiveCamera(45, 1, 1, 1000);
+  camera.position.z = 35;
+  camera.aspect = 1;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
-  //scene.background = new THREE.Color(0x050505);
 
   const light = new THREE.HemisphereLight();
   scene.add(light);
@@ -42,24 +43,22 @@ function init() {
   const normals = [];
   const colors = [];
 
-  const sizeX = 26;
-  const sizeY = 26;
+  const size = 22;
 
-  const X_offset = (sizeX / 2);
-  const Y_offset = (sizeY / 2);
+  const X_offset = (size / 2) - 1;
+  const Y_offset = (size / 2) - 1;
 
-  const segmentSizeX = (sizeX / RAW_COLS);
-  const segmentSizeY = (sizeY / RAW_ROWS);
+  const segmentSize = (size / RAW_COLS);
 
   // RAW_FRAME = RAW_ROWS * RAW_COLS (16 * 16)
   for (var i = 0; i < RAW_ROWS; i++) {
-    const y = (i * segmentSizeY) - Y_offset;
+    const y = (i * segmentSize) - Y_offset;
     for (var j = 0; j < RAW_COLS; j++) {
-      const x = (j * segmentSizeX) - X_offset;
+      const x = (j * segmentSize) - X_offset;
       vertices.push(x, y, 0); // Make new vertex
       normals.push(0, 0, 1);
-      const r = (x / sizeX) + 0.5;
-      const g = (y / sizeY) + 0.5;
+      const r = (x / size) + 0.5;
+      const g = (y / size) + 0.5;
       colors.push(r, g, 1); // Set vertex color
     }
   }
@@ -99,19 +98,19 @@ function init() {
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(paperWidth, paperHeight);
-  myCanvas.appendChild(renderer.domElement);
+  renderer.setSize(canvasWidth, canvasHeight);
+  threeCanvas.appendChild(renderer.domElement);
 
   window.addEventListener('resize', onWindowResize);
 }
 
 function onWindowResize() {
-  paperWidth = window.innerWidth * 0.7;
-  paperHeight = window.innerHeight * 0.8;
-  windowHalfX = (paperWidth / 2);
-  windowHalfY = (paperHeight / 2);
-  renderer.setSize(paperWidth, paperHeight);
-  camera.aspect = paperWidth / paperHeight;
+  canvasHeight = $("#loadingCanvas").height();
+  canvasWidth = canvasHeight;
+  halfCanvas = canvasWidth / 2;
+  console.log("THREE_WIDTH: " + canvasWidth + " THREE_HEIGHT: " + canvasHeight);  
+  renderer.setSize(canvasWidth, canvasHeight);
+  camera.aspect = canvasWidth / canvasHeight;
   camera.updateProjectionMatrix();
 }
 

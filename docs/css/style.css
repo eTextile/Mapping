@@ -1,14 +1,15 @@
 body {
-  height: 100%;
-  width: 100%;
+  height: inherit;
+  width: inherit;
+  background-color: rgb(223, 222, 223);
 }
 
 .collapsing {
   transition: 0;
 }
 
-.col-sm-3 {
-  padding: 35px;
+.col-sm-3, .col-sm-6 {
+  padding: 3vh;
 }
 
 h1, h2, h3, h4, h5 {
@@ -21,17 +22,17 @@ h1, h2, h3, h4, h5 {
 @media (orientation: landscape) {
   .container {
     width: 100%;
-    height:100vh;
-    border: 1px dashed rgb(52, 251, 12);
+    height: 90vh;
+    /*display: block;*/
+    /*border: 1px dashed rgb(52, 251, 12);*/
   }
   .canvas{
-    padding: 0;
+    width: inherit;
+    height: inherit;
     margin: auto;
-    display: block;
-    width: 100vmin;
-    height: 100vmin;
     overflow: hidden;
-    border: 1px dashed rgb(255, 0, 0);
+    background-color: rgb(255, 255, 255);
+    /*border: 1px dashed rgb(255, 0, 0);*/
   }
 }
 
