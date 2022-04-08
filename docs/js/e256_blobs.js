@@ -23,7 +23,7 @@ function onBlobDown() {
 function onBlobUpdate(event) {
   let blob = new Blob;
   blob = e256_blobs.get(event);
-  let pos = new paper.Point(blob.x * scaleFactorX, blob.y * scaleFactorY);
+  let pos = new paper.Point(blob.x * scaleFactor, blob.y * scaleFactor);
   blobTouch[event].position = pos;
   //blobTouch[event].radius = blob.z; // FIXME!
   blobPath[event].add(pos);

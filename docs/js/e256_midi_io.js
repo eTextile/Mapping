@@ -12,6 +12,7 @@ let config = null;
 var confSize = 0;
 
 //window.onload = function () {
+//$(document).ready(function () {
 
   async function MIDIrequest() {
     if (navigator.requestMIDIAccess) {
@@ -74,6 +75,7 @@ var confSize = 0;
             $("#summary_title").html("");
             $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
             $("#startMenu").collapse("show");
+            $("#loadingCanvas").collapse("show");
             console.log("REQUEST_SYNC_MODE - Prog:" + SYNC_MODE + " Chan:" + CHAN1);
           } else {
             connected = false;
@@ -91,6 +93,7 @@ var confSize = 0;
           $("#calibrateMenu").collapse("hide");
           $("#matrixMenu").collapse("hide");
           $("#mappingMenu").collapse("hide");
+          $("#loadingCanvas").collapse("hide");
           $("#matrixCanvas").collapse("hide");
           $("#mappingCanvas").collapse("hide");
           $("#summary_title").html("");
@@ -128,7 +131,6 @@ var confSize = 0;
   function onMIDIMessage(midiMsg) {
     var channel = midiMsg.data[0] & 0xF;
     var status = midiMsg.data[0];
-    //var value = midiMsg.data[1];
     switch (status) {
       case NOTE_ON:
         e256_blobs.add(midiMsg.data, onBlobDown);
@@ -312,7 +314,8 @@ var confSize = 0;
   }
 
   $(document).ready(function () {
+    $("#loadingCanvas").collapse("show");
     MIDIrequest();
   });
-
+//});
 //}
