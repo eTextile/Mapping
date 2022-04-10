@@ -114,25 +114,12 @@ function paperInit() {
   }
 }
 
-//$(document).ready(function () {
 window.onload = function () {
-  //"use strict";
   paperInit();
-}
-//});
-
-// Update item parameters using the txt input fields
-function updateParams(event) {
-  var paramsIndex = 0;
-  if (event === "btnSet-" + paramsIndex) {
-    for (const param in selectedItem.data) {
-      selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
-      paramsIndex++;
-    }
-  }
 }
 
 function popUp(url, winName, winWidth, winHeight) {
+  //See https://getbootstrap.com/docs/4.0/components/modal/
   var paddingLeft = (screen.width) ? (screen.width - winWidth) / 2 : 0;
   var paddingTop = (screen.height) ? (screen.height - winHeight) / 2 : 0;
   settings = "height=" + winHeight + ", width = " + winWidth + ", top=" + paddingTop + ", left=" + paddingLeft

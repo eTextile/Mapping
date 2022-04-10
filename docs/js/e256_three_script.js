@@ -129,7 +129,7 @@ function render() {
   renderer.render(scene, camera);
 }
 
-$(document).ready(function () {
+$(document).ready(function() {
   init();
   animate();
 });

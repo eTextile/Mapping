@@ -57,7 +57,13 @@ $(".mapingTool").click(function (event) {
 
 // Update item parameters using the txt input fields
 $(".btnSet").click(function (event) {
-  updateParams(event.target.id);
+  var paramsIndex = 0;
+  if (event.target.id === "btnSet-" + paramsIndex) {
+    for (const param in selectedItem.data) {
+      selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
+      paramsIndex++;
+    }
+  }
 });
 
 function e256_setMode(event) {
@@ -72,7 +78,7 @@ function e256_setMode(event) {
       $("#matrixCanvas").collapse("show");
       $("#mappingCanvas").collapse("hide");
       // SETUP...
-      $("#summary_title").html("3D-VISUALISATION");
+      $("#summaryTitle").html("3D-VISUALISATION");
       $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
       $(".param").collapse("hide");
@@ -85,7 +91,7 @@ function e256_setMode(event) {
       $("#loadingCanvas").collapse("hide");
       $("#matrixCanvas").collapse("hide");
       $("#mappingCanvas").collapse("show");
-      $("#summary_title").html("2D-MAPPING");
+      $("#summaryTitle").html("2D-MAPPING");
       $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces !");
       $(".param").collapse("hide");
@@ -96,7 +102,7 @@ function e256_setMode(event) {
       $("#editMenu").collapse("show");
       $("#playMenu").collapse("hide");
       $("#loadMenu").collapse("hide");
-      $("#summary_title").html("2D-MAPPING");
+      $("#summaryTitle").html("2D-MAPPING");
       $("#summaryAction").html("CONNECTED / EDIT_MODE");
       $("#summaryContent").html("Add new components");
       break;
@@ -105,7 +111,7 @@ function e256_setMode(event) {
       $("#editMenu").collapse("hide");
       $("#playMenu").collapse("show");
       $("#loadMenu").collapse("show");
-      $("#summary_title").html("2D-MAPPING");
+      $("#summaryTitle").html("2D-MAPPING");
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#summaryContent").html("Evaluate what you have made");
       $(".param").collapse("hide");

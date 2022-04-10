@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="./css/bootstrap.css">
   <script type="text/javascript" src="./js/lib/jquery.js"></script>
   <script type="text/javascript" src="./js/lib/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="./css/style.css">
 
   <script type="importmap">
     {
@@ -62,6 +63,8 @@
           </div>
 
           <div id="mappingMenu" class="collapse">
+            <button id="get_config" class="e256_setState btn btn-outline-primary input-group" type="button">
+              GET CONFIG</button>
             <div class="btn-group input-group" role="group">
               <button id="editMode" class="e256_setMode btn btn-outline-primary" type="button">EDIT</button>
               <button id="playMode" class="e256_setMode btn btn-outline-primary" type="button">PLAY</button>
@@ -70,8 +73,6 @@
             <div id="editMenu" class="collapse">
               <div id="mappingToolsMenu">
                 <div class="btn-group input-group" role="group">
-                  <button id="get_config" class="e256_setState btn btn-outline-primary input-group" type="button">GET
-                    CONFIG</button>
                   <button id="Touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
                   <button id="Trigger" class="mapingTool btn btn-outline-primary" type="button">Trigger</button>
                   <button id="Switch" class="mapingTool btn btn-outline-primary" type="button">Switch</button>
@@ -98,39 +99,38 @@
 
     <section id="page" class="col-sm-6">
 
-      <body>
+      <div id="sensor">
         <div id="loadingCanvas" class="container collapse">
           <div class="card shadow">
-            <div id="canvas-1D" class="canvas"></div>
+              <div id="canvas-1D" class="canvas"></div>
           </div>
         </div>
 
         <div id="mappingCanvas" class="container collapse">
           <div class="card shadow">
-            <canvas id="canvas-2D" class="canvas"></canvas>
+              <canvas id="canvas-2D" class="canvas"></canvas>
           </div>
         </div>
 
         <div id="matrixCanvas" class="container collapse">
           <div class="card shadow">
-            <div id="canvas-3D" class="canvas"></div>
+              <div id="canvas-3D" class="canvas"></div>
           </div>
         </div>
 
-      </body>
+      </div>
     </section>
 
     <section class="col-sm-3 sidenav d-flex flex-column">
 
       <div class="card shadow">
         <div class="card-body">
-          <h4 id="summary_title" class="card-title"></h4>
-          <div id="summaryAction" class="alert alert-warning">DISCONNECTED</div>
+          <div id="summaryAction" class="alert alert-warning text-center">DISCONNECTED</div>
           <p id="summaryContent" class="text card-text">
             This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.
           </p>
-        </div>
         <div id="params"></div>
+      </div>
         <script type="text/javascript">
           //var canvasW = $('.container').height();
           //$('.canvas').css({'width':canvasW+'px'});
@@ -177,21 +177,27 @@
             divParam.appendChild(divGroupe);
             paramsContainer.appendChild(divParam);
           }
+        
         </script>
       </div>
 
-      <div class="card shadow mt-auto">
-        <div class="card-body">
-          <p><a href="https://etextile.org/">www.eTextile.org</a>
-            - electronic textile interfaces</p>
+      <div id="contact" class="card shadow mt-auto">
+        <div class="d-flex flex-row">
+          <div class="p-1">
+            <img class="img-fluid" src="./assets/img/logo.png" alt="Picture" />
+          </div>
+          <div class="p-2 mt-5">
+            <span class="">
+              <h3><a href="https://etextile.org/">www.eTextile.org</a></H3>
+              <h5>Electronic textile interfaces</h5>
+            </span>
+          </div>
         </div>
       </div>
 
     </section>
 
   </div>
-
-  <link rel="stylesheet" href="./css/style.css">
 
   <script type="text/javascript" src="./js/e256_matrix.js"></script>
   <script type="module" src="./js/e256_three_script.js"></script>

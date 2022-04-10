@@ -3,8 +3,9 @@
   Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
-
-// Paper.js cant extend subclasses!
+// Pixy.js !? 
+// Use typescripte !?
+// Paper.js can't extend subclasses!
 // See: https://github.com/paperjs/paper.js/issues/1335
 
 const MAX_PARAM = 16;
@@ -15,7 +16,7 @@ var hitOptions = {
   "tolerance": 5
 };
 
-/////////// SLIDER Factory
+/////////// TOUCHPAD Factory
 function touchpadFactory(event) {
   var topPos = 0;
   var bottPos = 0;
@@ -173,7 +174,6 @@ function touchpadFactory(event) {
                   break;
               }
               break;
-
             }
         }
       }
