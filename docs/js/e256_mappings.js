@@ -287,7 +287,7 @@ function triggerFactory(event) {
       "y": Math.round(event.point.y),
       "chan": 1,
       "note": 33,
-      "velocity": 33
+      "velocity": 127
     },
     onMouseDown: function (event) {
       setMenuParams(this);

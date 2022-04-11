@@ -4,8 +4,10 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var MIDIInput
-var MIDIoutput;
+var MIDIInput = null;
+var MIDIoutput = null;
+var inputSetup = false;
+var outputSetup = false;
 var connected = false;
 var fileType = null;
 let config = null;
@@ -15,117 +17,95 @@ async function MIDIrequest() {
   if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
   } else {
-    alert("No MIDI support in your browser!");
-    connectSwitch.checked = false;
-    connected = false;
+    alert("No MIDI support in this browser!");
   }
 }
 
 function onMIDISuccess(midiAccess) {
-  //listInputsAndOutputs(midiAccess);
-  var MIDIin = false;
-  var MIDIout = false;
   for (var entry of midiAccess.inputs.values()) {
-    if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
+    if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
       MIDIInput = entry;
       MIDIInput.onmidimessage = onMIDIMessage;
-      MIDIin = true;
+      inputSetup = true;
     }
     for (var entry of midiAccess.outputs.values()) {
-      if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
+      if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
         MIDIoutput = entry;
-        MIDIout = true;
+        outputSetup = true;
       }
     }
-    if (MIDIin && MIDIout) {
-      connected = true;
-      connectSwitch.checked = true;
-      programChange(SYNC_MODE, CHAN1);
-      console.log("REQUEST_SYNC_MODE - Prog:" + SYNC_MODE + " Chan:" + CHAN1);
-    }
-    else {
-      connected = false;
-      connectSwitch.checked = false;
+    if (inputSetup && outputSetup) {
+      connectionRequest();
+      setTimeout(isConnected, SYNC_MODE_TIMEOUT)
     }
   }
 
-  midiAccess.onstatechange = function (e) {
-    switch (e.port.state) {
+  midiAccess.onstatechange = function (msg) {
+    switch (msg.port.state) {
       case "connected":
         for (var entry of midiAccess.inputs.values()) {
-          if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
+          if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
             MIDIInput = entry;
-            MIDIInput.onmidimessage = onMIDIMessage;
-            MIDIin = true;
+            MIDIInput.onmidimessag = onMIDIMessage;
+            inputSetup = true;
           }
         }
         for (var entry of midiAccess.outputs.values()) {
-          if (entry.name === 'ETEXTILE_SYNTH MIDI 1') {
+          if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
             MIDIoutput = entry;
-            MIDIout = true;
+            outputSetup = true;
           }
         }
-        if (MIDIin && MIDIout) {
-          connected = true;
-          connectSwitch.checked = true;
-          programChange(SYNC_MODE, CHAN1);
-          $("#summaryTitle").html("");
-          $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
-          $("#startMenu").collapse("show");
-          console.log("REQUEST_SYNC_MODE - Prog:" + SYNC_MODE + " Chan:" + CHAN1);
-        } else {
-          connected = false;
-          connectSwitch.checked = false;
+        if (inputSetup && outputSetup) {
+          connectionRequest();
+          setTimeout(isConnected, SYNC_MODE_TIMEOUT)
         }
         break;
       case "disconnected":
-        //MIDIoutput.close(); // FIXME!
-        //MIDIInput.close();  // FIXME!
         MIDIInput = null;
         MIDIoutput = null;
         connected = false;
-        connectSwitch.checked = false;
-        $("#startMenu").collapse("hide");
-        $("#calibrateMenu").collapse("hide");
-        $("#matrixMenu").collapse("hide");
-        $("#mappingMenu").collapse("hide");
-        $("#matrixCanvas").collapse("hide");
-        $("#mappingCanvas").collapse("hide");
-        $("#summaryTitle").html("");
-        $("#summaryAction").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
-        $("#summaryContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
-        $(".param").collapse("hide");
+        isConnected();
         break;
     }
   }
 }
 
 function onMIDIFailure(error) {
-  connected = false;
-  connectSwitch.checked = false;
   alert("e256 NOT CONNECTED! " + error);
 }
 
-/*
-function listInputsAndOutputs(midiAccess) {
-  for (var entry of midiAccess.inputs) {
-    var input = entry[1];
-    console.log("Input port [type:'" + input.type + "'] id:'" + input.id +
-      "' manufacturer:'" + input.manufacturer + "' name:'" + input.name +
-      "' version:'" + input.version + "'");
+function connectionRequest() {
+  programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+  console.log("REQUEST_SYNC_MODE - Prog:" + SYNC_MODE + " Chan:" + MIDI_MODES_CHANNEL);
+}
+
+function isConnected() {
+  if (connected) {
+    connectSwitch.checked = true;
+    $("#connectSwitch").removeClass("btn-danger").addClass("btn-success");
+    $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
+    $("#startMenu").collapse("show");
   }
-  for (var entry of midiAccess.outputs) {
-    var output = entry[1];
-    console.log("Output port [type:'" + output.type + "'] id:'" + output.id +
-      "' manufacturer:'" + output.manufacturer + "' name:'" + output.name +
-      "' version:'" + output.version + "'");
+  else {
+    connectSwitch.checked = false;
+    $("#startMenu").collapse("hide");
+    $("#calibrateMenu").collapse("hide");
+    $("#matrixMenu").collapse("hide");
+    $("#mappingMenu").collapse("hide");
+    $("#matrixCanvas").collapse("hide");
+    $("#mappingCanvas").collapse("hide");
+    $("#summaryAction").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
+    $("#summaryContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
+    $("#connectSwitch").removeClass("btn-success").addClass("btn-danger");
+    $(".param").collapse("hide");
   }
 }
-*/
 
 function onMIDIMessage(midiMsg) {
-  var channel = midiMsg.data[0] & 0xF;
-  var status = midiMsg.data[0];
+  var channel = midiMsg.data[0] & 0xF; // lowByte
+  var status = midiMsg.data[0] & 0xF0; // highByte
+  var value = midiMsg.data[1];
   switch (status) {
     case NOTE_ON:
       e256_blobs.add(midiMsg.data, onBlobDown);
@@ -134,67 +114,29 @@ function onMIDIMessage(midiMsg) {
       e256_blobs.remove(midiMsg.data, onBlobRelease);
       break;
     case CONTROL_CHANGE:
-      //e256_parcer.update(midiMsg.data); // Deprecated
+      // NA
       break;
     case PROGRAM_CHANGE:
-      switch (midiMsg.data[1]) {
-        case MATRIX_MODE_RAW:
-          console.log("RECIVE_MATRIX_MODE_RAW - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          //e256_setMode("matrixMode");
+      switch (channel) {
+        case MIDI_MODES_CHANNEL:
+          switch (value) {
+            case DONE_ACTION:
+              connected = true;
+              console.log("RECIVE_DONE_ACTION - Prog:" + value + " Chan:" + channel);
+              break;
+            default:
+              // NA
+              break;
+          }
           break;
-        // VERBOSITY CONSTANTS
-        case DONE_ACTION:
-          console.log("RECIVE_DONE_ACTION - Prog:" + midiMsg.data[1] + " Chan:" + channel);
+        case MIDI_STATES_CHANNEL:
+          console.log(STATES_CODES.value + " - Prog:" + value + " Chan:" + channel);
+          if (USBMIDI_CONFIG_ALLOC_DONE){
+            sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
+          }
           break;
-        case FLASH_CONFIG_ALLOC_DONE:
-          console.log("RECIVE_FLASH_CONFIG_ALLOC_DONE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case FLASH_CONFIG_LOAD_DONE:
-          console.log("RECIVE_FLASH_CONFIG_LOAD_DONE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case FLASH_CONFIG_WRITE_DONE:
-          console.log("RECIVE_FLASH_CONFIG_WRITE_DONE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case USBMIDI_CONFIG_ALLOC_DONE:
-          console.log("RECIVE_USBMIDI_CONFIG_ALLOC_DONE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
-          break;
-        case USBMIDI_CONFIG_UPLOAD_DONE:
-          console.log("RECIVE_USBMIDI_CONFIG_UPLOAD_DONE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case USBMIDI_SOUND_UPLOAD_DONE:
-          console.log("RECIVE_USBMIDI_SOUND_UPLOAD_DONE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case USBMIDI_SET_LEVEL_DONE:
-          console.log("RECIVE_USBMIDI_SET_LEVEL_DONE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        // ERROR CODES CONSTANTS
-        case ERROR_WAITING_FOR_GONFIG:
-          alert("RECIVE_ERROR_WAITING_FOR_GONFIG - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case ERROR_LOADING_GONFIG_FAILED:
-          alert("RECIVE_ERROR_LOADING_GONFIG_FAILED - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case ERROR_CONNECTING_FLASH:
-          alert("RECIVE_ERROR_CONNECTING_FLASH - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case ERROR_WHILE_OPEN_FLASH_FILE:
-          alert("RECIVE_ERROR_WHILE_OPEN_FLASH_FILE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case ERROR_FLASH_FULL:
-          alert("RECIVE_ERROR_FLASH_FULL - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case ERROR_FILE_TO_BIG:
-          alert("RECIVE_ERROR_FILE_TO_BIG - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case ERROR_NO_CONFIG_FILE:
-          alert("RECIVE_ERROR_NO_CONFIG_FILE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        case ERROR_UNKNOWN_SYSEX:
-          alert("RECIVE_ERROR_UNKNOWN_SYSEX - Prog:" + midiMsg.data[1] + " Chan:" + channel);
-          break;
-        default:
-          alert("RECIVE_ERROR_UNKNOW_MIDI_MSSGAGE - Prog:" + midiMsg.data[1] + " Chan:" + channel);
+        case MIDI_ERROR_CHANNEL:
+          console.log(ERROR_CODES.value + " - Prog:" + value + " Chan:" + channel);
           break;
       }
       break;

@@ -13,9 +13,7 @@ console.log("NAME: " + NAME + ": " + VERSION);
 console.log("MODE: " + currentMode);
 
 $("#PROJECT").html(PROJECT);
-$("#NAME").html(NAME);
-$("#VERSION").html(VERSION);
-
+$("#NAME").html(NAME + " - " + VERSION);
 $(".btn").addClass("shadow-none");
 $(".input-group").addClass("input-group-sm");
 $(".form-control").addClass("shadow-none");
@@ -78,7 +76,6 @@ function e256_setMode(event) {
       $("#matrixCanvas").collapse("show");
       $("#mappingCanvas").collapse("hide");
       // SETUP...
-      $("#summaryTitle").html("3D-VISUALISATION");
       $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
       $(".param").collapse("hide");
@@ -91,7 +88,6 @@ function e256_setMode(event) {
       $("#loadingCanvas").collapse("hide");
       $("#matrixCanvas").collapse("hide");
       $("#mappingCanvas").collapse("show");
-      $("#summaryTitle").html("2D-MAPPING");
       $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces !");
       $(".param").collapse("hide");
@@ -102,7 +98,6 @@ function e256_setMode(event) {
       $("#editMenu").collapse("show");
       $("#playMenu").collapse("hide");
       $("#loadMenu").collapse("hide");
-      $("#summaryTitle").html("2D-MAPPING");
       $("#summaryAction").html("CONNECTED / EDIT_MODE");
       $("#summaryContent").html("Add new components");
       break;
@@ -111,14 +106,13 @@ function e256_setMode(event) {
       $("#editMenu").collapse("hide");
       $("#playMenu").collapse("show");
       $("#loadMenu").collapse("show");
-      $("#summaryTitle").html("2D-MAPPING");
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#summaryContent").html("Evaluate what you have made");
       $(".param").collapse("hide");
       break;
   }
   if (connected) {
-    programChange(currentMode, CHAN1);
+    programChange(currentMode, MIDI_MODES_CHANNEL);
   } else {
     //alert("e256 NOT CONNECTED!");
   }
@@ -135,7 +129,7 @@ function e256_setState(event) {
       break;
   }
   if (connected) {
-    programChange(currentState, CHAN2);
+    programChange(currentState, MIDI_STATES_CHANNEL);
   } else {
     //alert("e256 NOT CONNECTED!");
   };
