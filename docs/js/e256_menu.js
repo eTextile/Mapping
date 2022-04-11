@@ -75,7 +75,6 @@ function e256_setMode(event) {
       $("#loadingCanvas").collapse("hide");
       $("#matrixCanvas").collapse("show");
       $("#mappingCanvas").collapse("hide");
-      // SETUP...
       $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
       $(".param").collapse("hide");
@@ -94,7 +93,6 @@ function e256_setMode(event) {
       break;
     case "editMode":
       currentMode = EDIT_MODE;
-      //paperSetup();
       $("#editMenu").collapse("show");
       $("#playMenu").collapse("hide");
       $("#loadMenu").collapse("hide");

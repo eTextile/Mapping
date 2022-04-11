@@ -130,8 +130,8 @@ function onMIDIMessage(midiMsg) {
           }
           break;
         case MIDI_STATES_CHANNEL:
-          console.log(STATES_CODES.value + " - Prog:" + value + " Chan:" + channel);
-          if (USBMIDI_CONFIG_ALLOC_DONE){
+          console.log(STATE_CODES.value + " - Prog:" + value + " Chan:" + channel);
+          if (value === USBMIDI_CONFIG_ALLOC_DONE){
             sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           }
           break;
@@ -167,19 +167,16 @@ function onMIDIMessage(midiMsg) {
 function noteOn(note, velocity, channel) {
   var status = NOTE_ON | channel;
   MIDIoutput.send([status, note, velocity]);
-  //console.log("SEND_NOTEON: " + note + " " + velocity + " " + channel);
 }
 
 function noteOff(note, velocity, channel) {
   var status = NOTE_OFF | channel;
   MIDIoutput.send([status, note, velocity]);
-  //console.log("SEND_NOTEOFF: " + note + " " + velocity + " " + channel);
 }
 
 function controlChange(control, value, channel) {
   var status = CONTROL_CHANGE | channel;
   MIDIoutput.send([status, control, value]);
-  //console.log("SEND_CONTROL_CHANGE: " + control + " " + value + " " + channel);
 }
 
 function programChange(program, channel) {

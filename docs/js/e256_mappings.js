@@ -3,10 +3,11 @@
   Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
-// Pixy.js !? 
-// Use typescripte !?
+
 // Paper.js can't extend subclasses!
 // See: https://github.com/paperjs/paper.js/issues/1335
+  // pixi.js: https://pixijs.com/
+  // Typescript: https://www.typescriptlang.org/
 
 const MAX_PARAM = 16;
 
@@ -73,14 +74,17 @@ function touchpadFactory(event) {
       if (currentMode === EDIT_MODE) {
         if (selectedtPath != null) {
           switch (selectedtPath) {
+            case "fill":
+              selectedtPathName = hitResult.item.name;
+              selectedItem = hitResult.item.parent;
+              setMenuParams(selectedItem);
+              break;
             case "stroke":
               selectedtPathName = hitResult.item.name;
               selectedSegment = hitResult.location.index;
               break;
-            case "fill":
-              selectedItem = hitResult.item;
-              break;
             default:
+              // NA
               break;
           }
         }
