@@ -77,7 +77,7 @@ function onMIDIFailure(error) {
 
 function connectionRequest() {
   programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-  console.log("REQUEST_SYNC_MODE - Prog:" + SYNC_MODE + " Chan:" + MIDI_MODES_CHANNEL);
+  console.log("REQUEST_SYNC_MODE - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
 }
 
 function isConnected() {
@@ -118,25 +118,17 @@ function onMIDIMessage(midiMsg) {
       break;
     case PROGRAM_CHANGE:
       switch (channel) {
-        case MIDI_MODES_CHANNEL:
-          switch (value) {
-            case DONE_ACTION:
-              connected = true;
-              console.log("RECIVE_DONE_ACTION - Prog:" + value + " Chan:" + channel);
-              break;
-            default:
-              // NA
-              break;
+        case MIDI_VERBOSITY_CHANNEL:
+          console.log("RECIVE_" + VERBOSITY_CODES[value] + " - [CODE:" + value + " CHANNEL:" + channel + "]");
+          if (value === 15){ // SYNC_MODE_DONE
+            connected = true;
           }
-          break;
-        case MIDI_STATES_CHANNEL:
-          console.log(STATE_CODES.value + " - Prog:" + value + " Chan:" + channel);
-          if (value === USBMIDI_CONFIG_ALLOC_DONE){
+          if (value === 19){ // USBMIDI_CONFIG_ALLOC_DONE
             sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           }
           break;
         case MIDI_ERROR_CHANNEL:
-          console.log(ERROR_CODES.value + " - Prog:" + value + " Chan:" + channel);
+          console.log("RECIVE_" + ERROR_CODES[value] + " - [CODE:" + value + " CHANNEL:" + channel + "]");
           break;
       }
       break;
@@ -238,7 +230,6 @@ function onReaderLoad(event) {
 function e256_alocate_memory() {
   if (fileType === "json") {
     sysex_alloc(SYSEX_CONF, confSize);
-    console.log("SYSEX_CONF");
   }
   else if (fileType === "wav") {
     //sysex_alloc(SYSEX_SOUND, sound.length); // TODO
@@ -249,5 +240,6 @@ function e256_alocate_memory() {
 
 $(document).ready(function () {
   $("#loadingCanvas").collapse("show");
+  $("#loadingCanvas").css("background", "white");
   MIDIrequest();
 });

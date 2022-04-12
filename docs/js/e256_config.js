@@ -15,14 +15,14 @@ const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
 
 // E256 MIDI I/O CHANNELS CONSTANTS [1:15]
-const MIDI_INPUT_CHANNEL = 0;   // 
-const MIDI_OUTPUT_CHANNEL = 1;  //
-const MIDI_MODES_CHANNEL = 2;   //
-const MIDI_STATES_CHANNEL = 3;  // 
-const MIDI_LEVELS_CHANNEL = 4;  // 
-const MIDI_ERROR_CHANNEL = 5;   //
-
-const SYNC_MODE_TIMEOUT = 3000;
+// QUICK_FIX: if sending on channel 1 e256 is receiving on channel 2
+const MIDI_INPUT_CHANNEL = 1 - 1;
+const MIDI_OUTPUT_CHANNEL = 2 - 1;
+const MIDI_MODES_CHANNEL = 3 - 1;
+const MIDI_STATES_CHANNEL = 4 - 1;
+const MIDI_LEVELS_CHANNEL = 5 - 1;
+const MIDI_VERBOSITY_CHANNEL = 6 -1;
+const MIDI_ERROR_CHANNEL = 7 - 1;
 
 // E256 MODES CONSTANTS (MIDI_CHANNEL 1)
 const SYNC_MODE = 0;           // Read incoming setup
@@ -31,7 +31,6 @@ const MATRIX_MODE_RAW = 2;     // Get matrix analog sensor values (16x16) over U
 const MATRIX_MODE_INTERP = 3;  // Get matrix analog sensor values (16x16) over USB using MIDI format
 const EDIT_MODE = 4;           // Get all blobs values over USB using MIDI format
 const PLAY_MODE = 5;           // Get mappings values over USB using MIDI format
-const MAX_PARAMS = 15;
 
 // STATES CONSTANTS (MIDI_CHANNEL 2)
 const CALIBRATE = 0;
@@ -57,26 +56,31 @@ const SYSEX_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
 const SYSEX_CONF = 0x7C; // 124
 const SYSEX_SOUND = 0x6C; // 108
 
-// VERBOSITY CONSTANTS
-const STATE_CODES = {
-  16 : "FLASH_CONFIG_ALLOC_DONE",
-  17 : "FLASH_CONFIG_LOAD_DONE",
-  18 : "FLASH_CONFIG_WRITE_DONE",
-  19 : "USBMIDI_CONFIG_ALLOC_DONE",
-  20 : "USBMIDI_CONFIG_LOADED_DONE",
-  21 : "USBMIDI_SOUND_LOADED_DONE",
-  22 : "USBMIDI_LEVEL_SET_DONE",
+const SYNC_MODE_TIMEOUT = 3000;
+const MAX_PARAMS = 15;
+
+// VERBOSITY CODES CONSTANTS
+const VERBOSITY_CODES = {
+  15: "SYNC_MODE_DONE",
+  16: "FLASH_CONFIG_ALLOC_DONE",
+  17: "FLASH_CONFIG_LOAD_DONE",
+  18: "FLASH_CONFIG_WRITE_DONE",
+  19: "USBMIDI_CONFIG_ALLOC_DONE",
+  20: "USBMIDI_CONFIG_LOADED_DONE",
+  21: "USBMIDI_SOUND_LOADED_DONE",
+  22: "USBMIDI_LEVEL_SET_DONE"
 };
 
+// ERROR CODES CONSTANTS
 const ERROR_CODES = {
-  33 : "WAITING_FOR_GONFIG",
-  34 : "LOADING_GONFIG_FAILED",
-  35 : "CONNECTING_FLASH",
-  36 : "WHILE_OPEN_FLASH_FILE",
-  37 : "FLASH_FULL",
-  38 : "FILE_TO_BIG",
-  39 : "NO_CONFIG_FILE",
-  40 : "UNKNOWN_SYSEX"
+  33: "WAITING_FOR_GONFIG",
+  34: "LOADING_GONFIG_FAILED",
+  35: "CONNECTING_FLASH",
+  36: "WHILE_OPEN_FLASH_FILE",
+  37: "FLASH_FULL",
+  38: "FILE_TO_BIG",
+  39: "NO_CONFIG_FILE",
+  40: "UNKNOWN_SYSEX"
 };
 
 const BI = 0; // [0] Blob UID

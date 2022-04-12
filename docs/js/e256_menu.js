@@ -28,45 +28,7 @@ $("#connectSwitch").on("change", function () {
 });
 
 $(".e256_setMode").click(function (event) {
-  e256_setMode(event.target.id);
-});
-
-$(".e256_setState").click(function (event) {
-  e256_setState(event.target.id);
-});
-
-$("#loadConfigFile").change(function (event) {
-  loadFile(event);
-});
-
-$("#setConfig").click(function () {
-  if (connected) {
-    setConfig();
-  } else {
-    alert("e256 NOT CONNECTED!");
-  }
-});
-
-$(".mapingTool").click(function (event) {
-  $("#optionsMenu").collapse("show");
-  $(".param").collapse("hide");
-  e256_drawMode = event.target.id;
-  console.log("e256_drawMode: " + e256_drawMode);
-});
-
-// Update item parameters using the txt input fields
-$(".btnSet").click(function (event) {
-  var paramsIndex = 0;
-  if (event.target.id === "btnSet-" + paramsIndex) {
-    for (const param in selectedItem.data) {
-      selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
-      paramsIndex++;
-    }
-  }
-});
-
-function e256_setMode(event) {
-  switch (event) {
+  switch (event.target.id) {
     case "matrixMode":
       currentMode = MATRIX_MODE_RAW;
       //currentMode = MATRIX_MODE_INTERP; // TODO
@@ -82,6 +44,7 @@ function e256_setMode(event) {
       break;
     case "mappingMode":
       //currentMode = MAPPING_MODE;
+      currentMode = EDIT_MODE;
       $("#calibrateMenu").collapse("show");
       $("#matrixMenu").collapse("hide");
       $("#mappingMenu").collapse("show");
@@ -112,10 +75,45 @@ function e256_setMode(event) {
   }
   if (connected) {
     programChange(currentMode, MIDI_MODES_CHANNEL);
+    console.log("REQUEST_MODE - CODE:" + currentMode + " CHANNEL:" + MIDI_MODES_CHANNEL);
   } else {
     //alert("e256 NOT CONNECTED!");
   }
-}
+});
+
+$(".e256_setState").click(function (event) {
+  e256_setState(event.target.id);
+});
+
+$("#loadConfigFile").change(function (event) {
+  loadFile(event);
+});
+
+$("#setConfig").click(function () {
+  if (connected) {
+    setConfig();
+  } else {
+    alert("e256 NOT CONNECTED!");
+  }
+});
+
+$(".mapingTool").click(function (event) {
+  $("#optionsMenu").collapse("show");
+  $(".param").collapse("hide");
+  e256_drawMode = event.target.id;
+  console.log("DRAW_MODE: " + e256_drawMode);
+});
+
+// Update item parameters using the txt input fields
+$(".btnSet").click(function (event) {
+  var paramsIndex = 0;
+  if (event.target.id === "btnSet-" + paramsIndex) {
+    for (const param in selectedItem.data) {
+      selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
+      paramsIndex++;
+    }
+  }
+});
 
 function e256_setState(event) {
   switch (event) {
