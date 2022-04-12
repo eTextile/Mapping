@@ -8,7 +8,6 @@ var canvasWidth = null;
 var canvasHeight = null;
 var scaleFactor = null;
 var selectedItem = null;
-//var popupWindow = null;
 
 var hitOptions = {
   "segments": true,
@@ -116,12 +115,4 @@ function paperInit() {
 
 window.onload = function () {
   paperInit();
-}
-
-function popUp(url, winName, winWidth, winHeight) {
-  //See https://getbootstrap.com/docs/4.0/components/modal/
-  var paddingLeft = (screen.width) ? (screen.width - winWidth) / 2 : 0;
-  var paddingTop = (screen.height) ? (screen.height - winHeight) / 2 : 0;
-  settings = "height=" + winHeight + ", width = " + winWidth + ", top=" + paddingTop + ", left=" + paddingLeft
-  popupWindow = window.open(url, winName, settings)
 }
