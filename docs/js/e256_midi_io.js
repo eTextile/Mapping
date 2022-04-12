@@ -35,8 +35,9 @@ function onMIDISuccess(midiAccess) {
       }
     }
     if (inputSetup && outputSetup) {
-      connectionRequest();
-      setTimeout(isConnected, SYNC_MODE_TIMEOUT)
+      programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+      setTimeout(isConnected, SYNC_MODE_TIMEOUT);
+      console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
     }
   }
 
@@ -57,8 +58,9 @@ function onMIDISuccess(midiAccess) {
           }
         }
         if (inputSetup && outputSetup) {
-          connectionRequest();
-          setTimeout(isConnected, SYNC_MODE_TIMEOUT)
+          programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+          setTimeout(isConnected, SYNC_MODE_TIMEOUT);
+          console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
         }
         break;
       case "disconnected":
@@ -73,11 +75,6 @@ function onMIDISuccess(midiAccess) {
 
 function onMIDIFailure(error) {
   alert("e256 NOT CONNECTED! " + error);
-}
-
-function connectionRequest() {
-  programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-  console.log("REQUEST_SYNC_MODE - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
 }
 
 function isConnected() {
@@ -120,11 +117,13 @@ function onMIDIMessage(midiMsg) {
     case PROGRAM_CHANGE:
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          console.log("RECIVE_" + VERBOSITY_CODES[value] + " - [CODE:" + value + " CHANNEL:" + channel + "]");
-          if (value === 15){ // SYNC_MODE_DONE
+          console.log("RECIVED_" + VERBOSITY_CODES[value] + " - [CODE:" + value + " CHANNEL:" + channel + "]");
+          if (value === 0){ // PENDING_MODE_DONE
             connected = true;
+            programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+            console.log("SYNC_MODE_REQUEST - CODE:" + PENDING_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
           }
-          if (value === 19){ // USBMIDI_CONFIG_ALLOC_DONE
+          if (value === 9){ // USBMIDI_CONFIG_ALLOC_DONE
             sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           }
           break;

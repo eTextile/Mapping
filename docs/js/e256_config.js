@@ -25,18 +25,18 @@ const MIDI_VERBOSITY_CHANNEL = 6 -1;
 const MIDI_ERROR_CHANNEL = 7 - 1;
 
 // E256 MODES CONSTANTS (MIDI_CHANNEL 1)
-const SYNC_MODE = 0;           // Read incoming setup
-const STANDALONE_MODE = 1;     // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
-const MATRIX_MODE_RAW = 2;     // Get matrix analog sensor values (16x16) over USB using MIDI format
-const MATRIX_MODE_INTERP = 3;  // Get matrix analog sensor values (16x16) over USB using MIDI format
-const EDIT_MODE = 4;           // Get all blobs values over USB using MIDI format
-const PLAY_MODE = 5;           // Get mappings values over USB using MIDI format
+const PENDING_MODE = 0;        // Waiting for mode
+const SYNC_MODE = 1;           // Hand chake mode
+const STANDALONE_MODE = 2;     // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
+const MATRIX_MODE_RAW = 3;     // Get matrix analog sensor values (16x16) over USB using MIDI format
+const MATRIX_MODE_INTERP = 4;  // Get matrix analog sensor values (16x16) over USB using MIDI format
+const EDIT_MODE = 5;           // Get all blobs values over USB using MIDI format
+const PLAY_MODE = 6;           // Get mappings values over USB using MIDI format
+const ERROR_MODE = 7;
 
 // STATES CONSTANTS (MIDI_CHANNEL 2)
 const CALIBRATE = 0;
 const GET_CONFIG = 1;          // TODO: Fetch the e256 CONFIG file
-const DONE_ACTION = 2;
-const ERROR = 3;
 
 // LEVELS CONSTANTS
 const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
@@ -61,14 +61,21 @@ const MAX_PARAMS = 15;
 
 // VERBOSITY CODES CONSTANTS
 const VERBOSITY_CODES = {
-  15: "SYNC_MODE_DONE",
-  16: "FLASH_CONFIG_ALLOC_DONE",
-  17: "FLASH_CONFIG_LOAD_DONE",
-  18: "FLASH_CONFIG_WRITE_DONE",
-  19: "USBMIDI_CONFIG_ALLOC_DONE",
-  20: "USBMIDI_CONFIG_LOADED_DONE",
-  21: "USBMIDI_SOUND_LOADED_DONE",
-  22: "USBMIDI_LEVEL_SET_DONE"
+  0:  "PENDING_MODE_DONE",
+  1:  "SYNC_MODE_DONE",
+  2:  "MATRIX_MODE_RAW_DONE",
+  3:  "MATRIX_MODE_INTERP_DONE",
+  4:  "EDIT_MODE_DONE",
+  5:  "PLAY_MODE_DONE",
+  6:  "FLASH_CONFIG_ALLOC_DONE",
+  7:  "FLASH_CONFIG_LOAD_DONE",
+  8:  "FLASH_CONFIG_WRITE_DONE",
+  9:  "USBMIDI_CONFIG_ALLOC_DONE",
+  10: "USBMIDI_CONFIG_LOADED_DONE",
+  11: "USBMIDI_SOUND_LOADED_DONE",
+  12: "USBMIDI_LEVEL_SET_DONE",
+  13: "CALIBRATE_DONE",
+  14: "DONE_ACTION"
 };
 
 // ERROR CODES CONSTANTS
