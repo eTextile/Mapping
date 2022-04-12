@@ -4,7 +4,7 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var currentMode = EDIT_MODE;
+var currentMode = PENDING_MODE;
 var currentState = null;
 var e256_drawMode = null;
 
@@ -43,7 +43,6 @@ $(".e256_setMode").click(function (event) {
       $(".param").collapse("hide");
       break;
     case "mappingMode":
-      //currentMode = MAPPING_MODE;
       currentMode = EDIT_MODE;
       $("#calibrateMenu").collapse("show");
       $("#matrixMenu").collapse("hide");

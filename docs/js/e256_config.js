@@ -56,7 +56,7 @@ const SYSEX_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
 const SYSEX_CONF = 0x7C; // 124
 const SYSEX_SOUND = 0x6C; // 108
 
-const SYNC_MODE_TIMEOUT = 1000;
+const SYNC_MODE_TIMEOUT = 2000;
 const MAX_PARAMS = 15;
 
 // VERBOSITY CODES CONSTANTS

@@ -67,6 +67,7 @@ function onMIDISuccess(midiAccess) {
         MIDIInput = null;
         MIDIoutput = null;
         connected = false;
+        currentMode = PENDING_MODE;
         isConnected();
         break;
     }
@@ -117,14 +118,19 @@ function onMIDIMessage(midiMsg) {
     case PROGRAM_CHANGE:
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          console.log("RECIVED_" + VERBOSITY_CODES[value] + " - [CODE:" + value + " CHANNEL:" + channel + "]");
-          if (value === 0){ // PENDING_MODE_DONE
-            connected = true;
+          if (value == 0){ // PENDING_MODE_DONE
             programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-            console.log("SYNC_MODE_REQUEST - CODE:" + PENDING_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
+            console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
           }
-          if (value === 9){ // USBMIDI_CONFIG_ALLOC_DONE
+          else if (value == 1){ // SYNC_MODE_DONE
+            connected = true;
+            console.log("SYNC_MODE_DONE - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
+          }
+          else if (value == 9){ // USBMIDI_CONFIG_ALLOC_DONE
             sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
+          }
+          else {
+            console.log("RECIVED_" + VERBOSITY_CODES[value] + " - [CODE:" + value + " CHANNEL:" + channel + "]");
           }
           break;
         case MIDI_ERROR_CHANNEL:
