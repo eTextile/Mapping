@@ -93,20 +93,21 @@
             <div id="loadMenu" class="collapse">
               <input id="loadConfigFile" class="form-control form-control-sm" type="file" accept=".json, .wav">
             </div>
-
           </div>
         </div>
+      </div>
 
-        <!--TODO-->
+      <!--TODO-->
+      <div id="optionsMenu" class="collapse">
         <div class="card">
           <div class="card-body shadow">
-            <div id="mapping-options"> options </div>
+            <div> Options </div>
           </div>
         </div>
-        <script type="text/javascript">
-          containerOptions = document.getElementById("params");
-
-        </script>
+      </div>
+      <script type="text/javascript">
+        containerOptions = document.getElementById("params");
+      </script>
 
     </section>
 
@@ -189,15 +190,13 @@
       </div>
 
       <div id="contact" class="card shadow mt-auto">
-        <div class="d-flex flex-row">
-          <div class="p-1">
+        <div class="d-flex">
+          <div class="flex-fill">
             <img class="img-fluid" src="./assets/img/logo.png" alt="Picture" />
           </div>
-          <div class="p-2 mt-5">
-            <span class="">
-              <h3><a href="https://etextile.org/">www.eTextile.org</a></H3>
-              <h5>Electronic textile interfaces</h5>
-            </span>
+          <div class="flex-fill align-self-end text-left">
+            <h3><a href="https://etextile.org/">www.eTextile.org</a></H3>
+            <p class="font-weight-bold">Electronic textile interfaces</p>
           </div>
         </div>
       </div>

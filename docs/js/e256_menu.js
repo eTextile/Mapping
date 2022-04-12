@@ -48,6 +48,7 @@ $("#setConfig").click(function () {
 });
 
 $(".mapingTool").click(function (event) {
+  $("#optionsMenu").collapse("show");
   $(".param").collapse("hide");
   e256_drawMode = event.target.id;
   console.log("e256_drawMode: " + e256_drawMode);
