@@ -93,6 +93,7 @@ function isConnected() {
     $("#calibrateMenu").collapse("hide");
     $("#matrixMenu").collapse("hide");
     $("#mappingMenu").collapse("hide");
+    $("#loadingCanvas").collapse("show");
     $("#matrixCanvas").collapse("hide");
     $("#mappingCanvas").collapse("hide");
     $("#summaryAction").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
