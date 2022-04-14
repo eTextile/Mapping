@@ -35,8 +35,8 @@ const PLAY_MODE = 6;           // Get mappings values over USB using MIDI format
 const ERROR_MODE = 7;
 
 // STATES CONSTANTS (MIDI_CHANNEL 2)
-const CALIBRATE = 0;
-const GET_CONFIG = 1;          // TODO: Fetch the e256 CONFIG file
+const CALIBRATE = 0;  // Calibrate the e256 matrix sensor 
+const GET_CONFIG = 1; // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
 
 // LEVELS CONSTANTS
 const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
@@ -58,6 +58,9 @@ const SYSEX_SOUND = 0x6C; // 108
 
 const SYNC_MODE_TIMEOUT = 2000;
 const MAX_PARAMS = 15;
+
+const PENDING_MODE_DONE = 0;
+const SYNC_MODE_DONE = 1;
 
 // VERBOSITY CODES CONSTANTS
 const VERBOSITY_CODES = {

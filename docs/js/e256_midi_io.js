@@ -6,8 +6,7 @@
 
 var MIDIInput = null;
 var MIDIoutput = null;
-var inputSetup = false;
-var outputSetup = false;
+
 var connected = false;
 var fileType = null;
 let config = null;
@@ -22,6 +21,9 @@ async function MIDIrequest() {
 }
 
 function onMIDISuccess(midiAccess) {
+  var inputSetup = false;
+  var outputSetup = false;
+  
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
       MIDIInput = entry;
@@ -118,12 +120,13 @@ function onMIDIMessage(midiMsg) {
     case PROGRAM_CHANGE:
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          if (value == 0){ // PENDING_MODE_DONE
+          if (value == PENDING_MODE_DONE){
             programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
             console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
           }
-          else if (value == 1){ // SYNC_MODE_DONE
+          else if (value == SYNC_MODE_DONE){
             connected = true;
+            currentMode = SYNC_MODE;
             console.log("SYNC_MODE_DONE - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
           }
           else if (value == 9){ // USBMIDI_CONFIG_ALLOC_DONE
