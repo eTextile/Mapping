@@ -15,7 +15,7 @@ const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
 
 // E256 MIDI I/O CHANNELS CONSTANTS [1:15]
-// QUICK_FIX: if sending on channel 1 e256 is receiving on channel 2
+// QUICK_FIX: if sending on channel 1, eTextile-synth is receiving on channel 2
 const MIDI_INPUT_CHANNEL = 1 - 1;
 const MIDI_OUTPUT_CHANNEL = 2 - 1;
 const MIDI_MODES_CHANNEL = 3 - 1;
@@ -24,8 +24,8 @@ const MIDI_LEVELS_CHANNEL = 5 - 1;
 const MIDI_VERBOSITY_CHANNEL = 6 -1;
 const MIDI_ERROR_CHANNEL = 7 - 1;
 
-// E256 MODES CONSTANTS (MIDI_CHANNEL 1)
-const PENDING_MODE = 0;        // Waiting for mode
+// E256 MODES CONSTANTS (MIDI_MODES_CHANNEL)
+const PENDING_MODE = 0;        // Waiting mode
 const SYNC_MODE = 1;           // Hand chake mode
 const STANDALONE_MODE = 2;     // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
 const MATRIX_MODE_RAW = 3;     // Get matrix analog sensor values (16x16) over USB using MIDI format
@@ -34,11 +34,11 @@ const EDIT_MODE = 5;           // Get all blobs values over USB using MIDI forma
 const PLAY_MODE = 6;           // Get mappings values over USB using MIDI format
 const ERROR_MODE = 7;
 
-// STATES CONSTANTS (MIDI_CHANNEL 2)
-const CALIBRATE = 0;  // Calibrate the e256 matrix sensor 
-const GET_CONFIG = 1; // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
+// STATES CONSTANTS (MIDI_STATES_CHANNEL)
+const CALIBRATE_REQUEST = 0;   // Calibrate the e256 matrix sensor 
+const CONFIG_FILE_REQUEST = 1; // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
 
-// LEVELS CONSTANTS
+// LEVELS CONSTANTS (MIDI_LEVELS_CHANNEL)
 const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
 const SIG_IN = 1;    // E256-LEDs: | 1 | 0 |
 const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
@@ -61,6 +61,7 @@ const MAX_PARAMS = 15;
 
 const PENDING_MODE_DONE = 0;
 const SYNC_MODE_DONE = 1;
+const USBMIDI_CONFIG_ALLOC_DONE = 9;
 
 // VERBOSITY CODES CONSTANTS
 const VERBOSITY_CODES = {

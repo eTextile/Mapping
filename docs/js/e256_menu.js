@@ -117,11 +117,10 @@ $(".btnSet").click(function (event) {
 function e256_setState(event) {
   switch (event) {
     case "calibrate":
-      currentState = CALIBRATE;
+      currentState = CALIBRATE_REQUEST;
       break;
     case "getConfig":
-      // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
-      currentState = GET_CONFIG;
+      currentState = CONFIG_FILE_REQUEST;
       break;
   }
   if (connected) {

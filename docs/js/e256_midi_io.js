@@ -6,10 +6,9 @@
 
 var MIDIInput = null;
 var MIDIoutput = null;
-
 var connected = false;
 var fileType = null;
-let config = null;
+var config = null;
 var confSize = 0;
 
 async function MIDIrequest() {
@@ -23,7 +22,6 @@ async function MIDIrequest() {
 function onMIDISuccess(midiAccess) {
   var inputSetup = false;
   var outputSetup = false;
-  
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
       MIDIInput = entry;
@@ -120,16 +118,18 @@ function onMIDIMessage(midiMsg) {
     case PROGRAM_CHANGE:
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          if (value == PENDING_MODE_DONE){
+          if (value == PENDING_MODE_DONE) {
             programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
             console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
           }
-          else if (value == SYNC_MODE_DONE){
+          else if (value == SYNC_MODE_DONE) {
             connected = true;
             currentMode = SYNC_MODE;
             console.log("SYNC_MODE_DONE - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
+            programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
+            console.log("CONFIG_FILE_REQUEST - CODE:" + CONFIG_FILE_REQUEST + " CHANNEL:" + MIDI_STATES_CHANNEL); 
           }
-          else if (value == 9){ // USBMIDI_CONFIG_ALLOC_DONE
+          else if (value == USBMIDI_CONFIG_ALLOC_DONE) {
             sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           }
           else {
@@ -143,20 +143,22 @@ function onMIDIMessage(midiMsg) {
       break;
     case SYSTEM_EXCLUSIVE:
       switch (currentMode) {
+        case SYNC_MODE:
+        // Fetch the e256 CONFIG file
+        console.log("RECIVED_CONFIG_FILE");
+        console.log(midiMsg.data);
+        break;
         case MATRIX_MODE_RAW:
           e256_matrix.update(midiMsg.data);
           break;
         case MATRIX_MODE_INTERP:
           // TODO
           break;
-        case PLAY_MODE:
-          e256_blobs.update(midiMsg.data, onBlobUpdate);
-          break;
         case EDIT_MODE:
           e256_blobs.update(midiMsg.data, onBlobUpdate);
           break;
-        case GET_CONFIG:
-          // TODO: fetch the e256 CONFIG file
+        case PLAY_MODE:
+          e256_blobs.update(midiMsg.data, onBlobUpdate);
           break;
       }
       break;
