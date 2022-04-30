@@ -22,6 +22,7 @@ async function MIDIrequest() {
 function onMIDISuccess(midiAccess) {
   var inputSetup = false;
   var outputSetup = false;
+  /*
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
       MIDIInput = entry;
@@ -35,19 +36,20 @@ function onMIDISuccess(midiAccess) {
       }
     }
     if (inputSetup && outputSetup) {
+      connected = true;
       programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
       setTimeout(isConnected, SYNC_MODE_TIMEOUT);
-      console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
+      console.log("SYNC_MODE_REQUEST_A - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
     }
   }
-
+  */
   midiAccess.onstatechange = function (msg) {
     switch (msg.port.state) {
       case "connected":
         for (var entry of midiAccess.inputs.values()) {
           if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
             MIDIInput = entry;
-            MIDIInput.onmidimessag = onMIDIMessage;
+            MIDIInput.onmidimessage = onMIDIMessage;
             inputSetup = true;
           }
         }
@@ -58,16 +60,18 @@ function onMIDISuccess(midiAccess) {
           }
         }
         if (inputSetup && outputSetup) {
-          programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+          connected = true;
           setTimeout(isConnected, SYNC_MODE_TIMEOUT);
+          programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
           console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
         }
         break;
       case "disconnected":
         MIDIInput = null;
         MIDIoutput = null;
-        connected = false;
         currentMode = PENDING_MODE;
+        console.log("PENDING_MODE");
+        connected = false;
         isConnected();
         break;
     }
@@ -105,9 +109,13 @@ function onMIDIMessage(midiMsg) {
   var channel = midiMsg.data[0] & 0xF; // lowByte
   var status = midiMsg.data[0] & 0xF0; // highByte
   var value = midiMsg.data[1];
+  //console.log("PROGRAM_CHANGE_CHANNEL: ", channel);
+  //console.log("PROGRAM_CHANGE_STATUS: ", status);
+  //console.log("PROGRAM_CHANGE_VALUE: ", value);
   switch (status) {
     case NOTE_ON:
       e256_blobs.add(midiMsg.data, onBlobDown);
+      console.log(midiMsg.data);
       break;
     case NOTE_OFF:
       e256_blobs.remove(midiMsg.data, onBlobRelease);
@@ -116,28 +124,29 @@ function onMIDIMessage(midiMsg) {
       // NA
       break;
     case PROGRAM_CHANGE:
+      //console.log("PROGRAM_CHANGE: ");
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
           if (value == PENDING_MODE_DONE) {
             programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-            console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
+            console.log("SYNC_MODE_REQUEST");
           }
           else if (value == SYNC_MODE_DONE) {
             connected = true;
             currentMode = SYNC_MODE;
-            console.log("SYNC_MODE_DONE - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
+            console.log("SYNC_MODE_DONE");
             programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
-            console.log("CONFIG_FILE_REQUEST - CODE:" + CONFIG_FILE_REQUEST + " CHANNEL:" + MIDI_STATES_CHANNEL); 
+            console.log("CONFIG_FILE_REQUEST"); 
           }
           else if (value == USBMIDI_CONFIG_ALLOC_DONE) {
             sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
           }
           else {
-            console.log("RECIVED_" + VERBOSITY_CODES[value] + " - [CODE:" + value + " CHANNEL:" + channel + "]");
+            console.log("RECIVED: " + VERBOSITY_CODES[value]);
           }
           break;
         case MIDI_ERROR_CHANNEL:
-          console.log("RECIVE_" + ERROR_CODES[value] + " - [CODE:" + value + " CHANNEL:" + channel + "]");
+          console.log("RECIVED: " + ERROR_CODES[value]);
           break;
       }
       break;
@@ -145,7 +154,7 @@ function onMIDIMessage(midiMsg) {
       switch (currentMode) {
         case SYNC_MODE:
         // Fetch the e256 CONFIG file
-        console.log("RECIVED_CONFIG_FILE");
+        console.log("CONFIG_FILE_RECIVED");
         console.log(midiMsg.data);
         break;
         case MATRIX_MODE_RAW:
