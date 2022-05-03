@@ -117,15 +117,13 @@ $(".btnSet").click(function (event) {
 function e256_setState(event) {
   switch (event) {
     case "calibrate":
-      currentState = CALIBRATE_REQUEST;
+      programChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
+      console.log("CALIBRATE_REQUEST");
       break;
     case "getConfig":
-      currentState = CONFIG_FILE_REQUEST;
+      currentMode = SYNC_MODE;
+      programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
+      console.log("CONFIG_FILE_REQUEST");
       break;
   }
-  if (connected) {
-    programChange(currentState, MIDI_STATES_CHANNEL);
-  } else {
-    //alert("e256 NOT CONNECTED!");
-  };
 };

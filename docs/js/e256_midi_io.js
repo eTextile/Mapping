@@ -22,6 +22,7 @@ async function MIDIrequest() {
 function onMIDISuccess(midiAccess) {
   var inputSetup = false;
   var outputSetup = false;
+  
   /*
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
@@ -43,6 +44,7 @@ function onMIDISuccess(midiAccess) {
     }
   }
   */
+
   midiAccess.onstatechange = function (msg) {
     switch (msg.port.state) {
       case "connected":
@@ -124,7 +126,6 @@ function onMIDIMessage(midiMsg) {
       // NA
       break;
     case PROGRAM_CHANGE:
-      //console.log("PROGRAM_CHANGE: ");
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
           if (value == PENDING_MODE_DONE) {
@@ -132,7 +133,6 @@ function onMIDIMessage(midiMsg) {
             console.log("SYNC_MODE_REQUEST");
           }
           else if (value == SYNC_MODE_DONE) {
-            connected = true;
             currentMode = SYNC_MODE;
             console.log("SYNC_MODE_DONE");
             programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
@@ -153,9 +153,9 @@ function onMIDIMessage(midiMsg) {
     case SYSTEM_EXCLUSIVE:
       switch (currentMode) {
         case SYNC_MODE:
-        // Fetch the e256 CONFIG file
-        console.log("CONFIG_FILE_RECIVED");
-        console.log(midiMsg.data);
+          console.log("CONFIG_FILE_RECIVED");
+          console.log(midiMsg.data);
+          currentMode = EDIT_MODE;
         break;
         case MATRIX_MODE_RAW:
           e256_matrix.update(midiMsg.data);
