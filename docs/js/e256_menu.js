@@ -10,7 +10,7 @@ var e256_drawMode = null;
 
 console.log("PROJECT: " + PROJECT);
 console.log("NAME: " + NAME + ": " + VERSION);
-console.log("MODE: " + currentMode);
+console.log("MODE: " + MODES_CODES[currentMode]);
 
 $("#PROJECT").html(PROJECT);
 $("#NAME").html(NAME + " - " + VERSION);
@@ -31,7 +31,6 @@ $(".e256_setMode").click(function (event) {
   switch (event.target.id) {
     case "matrixMode":
       currentMode = MATRIX_MODE_RAW;
-      //currentMode = MATRIX_MODE_INTERP; // TODO
       $("#calibrateMenu").collapse("show");
       $("#matrixMenu").collapse("show");
       $("#mappingMenu").collapse("hide");
@@ -74,7 +73,7 @@ $(".e256_setMode").click(function (event) {
   }
   if (connected) {
     programChange(currentMode, MIDI_MODES_CHANNEL);
-    console.log("REQUEST_MODE - CODE:" + currentMode + " CHANNEL:" + MIDI_MODES_CHANNEL);
+    console.log("REQUEST: " + MODES_CODES[currentMode]);
   } else {
     //alert("e256 NOT CONNECTED!");
   }
@@ -118,12 +117,12 @@ function e256_setState(event) {
   switch (event) {
     case "calibrate":
       programChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
-      console.log("CALIBRATE_REQUEST");
+      console.log("REQUEST: CALIBRATE");
       break;
     case "getConfig":
       currentMode = SYNC_MODE;
       programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
-      console.log("CONFIG_FILE_REQUEST");
+      console.log("REQUEST: CONFIG_FILE");
       break;
   }
 };

@@ -32,7 +32,19 @@ const MATRIX_MODE_RAW = 3;     // Get matrix analog sensor values (16x16) over U
 const MATRIX_MODE_INTERP = 4;  // Get matrix analog sensor values (16x16) over USB using MIDI format
 const EDIT_MODE = 5;           // Get all blobs values over USB using MIDI format
 const PLAY_MODE = 6;           // Get mappings values over USB using MIDI format
-const ERROR_MODE = 7;
+const ERROR_MODE = 7;          //
+
+// ERROR CODES CONSTANTS
+const MODES_CODES = {
+  0: "PENDING_MODE",
+  1: "SYNC_MODE",
+  2: "STANDALONE_MODE",
+  3: "MATRIX_MODE_RAW",
+  4: "MATRIX_MODE_INTERP",
+  5: "EDIT_MODE",
+  6: "PLAY_MODE",
+  7: "ERROR_MODE"
+};
 
 // STATES CONSTANTS (MIDI_STATES_CHANNEL)
 const CALIBRATE_REQUEST = 0;   // Calibrate the e256 matrix sensor 
@@ -52,7 +64,7 @@ const PROGRAM_CHANGE = 0xC0; //
 const SYSTEM_EXCLUSIVE = 0xF0; // 240
 const SYSEX_BEGIN = 0xF0; // 240
 const SYSEX_END = 0xF7; // 247
-const SYSEX_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
+const SYSEX_DEVICE_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
 const SYSEX_CONF = 0x7C; // 124
 const SYSEX_SOUND = 0x6C; // 108
 
@@ -85,13 +97,15 @@ const VERBOSITY_CODES = {
 // ERROR CODES CONSTANTS
 const ERROR_CODES = {
   0: "WAITING_FOR_GONFIG",
-  1: "LOADING_GONFIG_FAILED",
-  2: "CONNECTING_FLASH",
-  3: "WHILE_OPEN_FLASH_FILE",
-  4: "FLASH_FULL",
-  5: "FILE_TO_BIG",
-  6: "NO_CONFIG_FILE",
-  7: "UNKNOWN_SYSEX"
+  1: "CONNECTING_FLASH",
+  2: "FLASH_FULL",
+  3: "FILE_TO_BIG",
+  4: "NO_CONFIG_FILE",
+  5: "WHILE_OPEN_FLASH_FILE",
+  6: "USBMIDI_GONFIG_LOAD_FAILED",
+  7: "FLASH_CONFIG_LOAD_FAILED",
+  8: "LOAD_GONFIG_FAILED",
+  9: "UNKNOWN_SYSEX"
 };
 
 const BI = 0; // [0] Blob UID

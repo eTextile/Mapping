@@ -22,7 +22,7 @@ async function MIDIrequest() {
 function onMIDISuccess(midiAccess) {
   var inputSetup = false;
   var outputSetup = false;
-  
+
   /*
   for (var entry of midiAccess.inputs.values()) {
     if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
@@ -63,18 +63,18 @@ function onMIDISuccess(midiAccess) {
         }
         if (inputSetup && outputSetup) {
           connected = true;
-          setTimeout(isConnected, SYNC_MODE_TIMEOUT);
+          setTimeout(updateMenu, SYNC_MODE_TIMEOUT);
           programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-          console.log("SYNC_MODE_REQUEST - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
+          console.log("SYNC_MODE_REQUEST");
         }
         break;
       case "disconnected":
         MIDIInput = null;
         MIDIoutput = null;
         currentMode = PENDING_MODE;
-        console.log("PENDING_MODE");
+        console.log("MODE: " + MODES_CODES[currentMode]);
         connected = false;
-        isConnected();
+        updateMenu();
         break;
     }
   }
@@ -84,7 +84,7 @@ function onMIDIFailure(error) {
   alert("e256 NOT CONNECTED! " + error);
 }
 
-function isConnected() {
+function updateMenu() {
   if (connected) {
     connectSwitch.checked = true;
     $("#connectSwitch").removeClass("btn-danger").addClass("btn-success");
@@ -134,12 +134,14 @@ function onMIDIMessage(midiMsg) {
           }
           else if (value == SYNC_MODE_DONE) {
             currentMode = SYNC_MODE;
-            console.log("SYNC_MODE_DONE");
+            console.log("MODE: " + MODES_CODES[currentMode]);
             programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
             console.log("CONFIG_FILE_REQUEST"); 
           }
           else if (value == USBMIDI_CONFIG_ALLOC_DONE) {
-            sysex_upload(Array.from(JSON.stringify(config)).map(letter => letter.charCodeAt(0)));
+            // JSON serialization
+            sysex_upload(stringToBytes(JSON.stringify(config)));
+            //console.log(stringToBytes(JSON.stringify(config)));
           }
           else {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);
@@ -154,7 +156,11 @@ function onMIDIMessage(midiMsg) {
       switch (currentMode) {
         case SYNC_MODE:
           console.log("CONFIG_FILE_RECIVED");
-          console.log(midiMsg.data);
+          // JSON deserialization
+          var string = new TextDecoder().decode(midiMsg.data);
+          console.log(string); // FIXME: recived file is not consistent!?
+          //config = JSON.parse(string);
+          //console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
           currentMode = EDIT_MODE;
         break;
         case MATRIX_MODE_RAW:
@@ -197,20 +203,19 @@ function programChange(program, channel) {
 }
 
 // Send data via MIDI system exclusive message
-// Must provides the data in chunks!
-// [ SYSEX_BEGIN, SYSEX_ID, SYSEX_IDENTIFIER, SYSEX_SIZE_MSB, SYSEX_SIZE_LSB, SYSEX_END ] 
-// ALLOC_DONE
-// [ SYSEX_BEGIN, SYSEX_ID, SYSEX_DATA, SYSEX_END ]
-// LOAD_DONE
+// Send: [ SYSEX_BEGIN, SYSEX_DEVICE_ID, SYSEX_IDENTIFIER, SYSEX_SIZE_MSB, SYSEX_SIZE_LSB, SYSEX_END ] 
+// Recive: USBMIDI_CONFIG_ALLOC_DONE
+// Send: [ SYSEX_BEGIN, SYSEX_DEVICE_ID, SYSEX_DATA, SYSEX_END ]
+// Recive: USBMIDI_CONFIG_LOAD_DONE
 function sysex_alloc(identifier, size) {
   var size_msb = size >> 7;
   var size_lsb = size & 0x7F;
-  let midiMsg = [SYSEX_BEGIN, SYSEX_ID, identifier, size_msb, size_lsb, SYSEX_END];
+  let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END];
   MIDIoutput.send(midiMsg);
 }
 
 function sysex_upload(data) {
-  let header = [SYSEX_BEGIN, SYSEX_ID];
+  let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
   MIDIoutput.send(midiMsg);
 }
@@ -240,8 +245,8 @@ function onReaderLoad(event) {
   try {
     config = JSON.parse(event.target.result);
     confSize = Object.keys(JSON.stringify(config)).length;
-    //console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
-    //console.log(confSize);
+    console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
+    console.log("CONFIG_SIZE: " + confSize);
   } catch (e) {
     alert(e);
   }
@@ -254,7 +259,7 @@ function e256_alocate_memory() {
   else if (fileType === "wav") {
     //sysex_alloc(SYSEX_SOUND, sound.length); // TODO
   } else {
-    alert("CONFIG FILE MISSING!");
+    alert("MISSING FILE!");
   }
 }
 
@@ -263,3 +268,12 @@ $(document).ready(function () {
   $("#loadingCanvas").css("background", "white");
   MIDIrequest();
 });
+
+function stringToBytes(str) {
+  var bytes = [];
+  for(var i = 0, n = str.length; i < n; i++) {
+      var char = str.charCodeAt(i);
+      bytes.push(char);
+  }
+  return bytes;
+}
