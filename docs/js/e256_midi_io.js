@@ -141,7 +141,6 @@ function onMIDIMessage(midiMsg) {
           else if (value == USBMIDI_CONFIG_ALLOC_DONE) {
             // JSON serialization
             sysex_upload(stringToBytes(JSON.stringify(config)));
-            //console.log(stringToBytes(JSON.stringify(config)));
           }
           else {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);
@@ -218,6 +217,9 @@ function sysex_upload(data) {
   let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
   MIDIoutput.send(midiMsg);
+
+  //let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END];
+  //MIDIoutput.send(midiMsg);
 }
 
 function setConfig() {
