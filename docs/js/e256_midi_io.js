@@ -65,7 +65,7 @@ function onMIDISuccess(midiAccess) {
           connected = true;
           setTimeout(updateMenu, SYNC_MODE_TIMEOUT);
           programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-          console.log("SYNC_MODE_REQUEST");
+          console.log("REQUEST: SYNC_MODE");
         }
         break;
       case "disconnected":
@@ -130,13 +130,13 @@ function onMIDIMessage(midiMsg) {
         case MIDI_VERBOSITY_CHANNEL:
           if (value == PENDING_MODE_DONE) {
             programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-            console.log("SYNC_MODE_REQUEST");
+            console.log("REQUEST: SYNC_MODE");
           }
           else if (value == SYNC_MODE_DONE) {
             currentMode = SYNC_MODE;
-            console.log("MODE: " + MODES_CODES[currentMode]);
+            console.log("RECIVED: " + MODES_CODES[currentMode]);
             programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
-            console.log("CONFIG_FILE_REQUEST"); 
+            console.log("REQUEST: CONFIG_FILE"); 
           }
           else if (value == USBMIDI_CONFIG_ALLOC_DONE) {
             // JSON serialization
@@ -154,7 +154,7 @@ function onMIDIMessage(midiMsg) {
     case SYSTEM_EXCLUSIVE:
       switch (currentMode) {
         case SYNC_MODE:
-          console.log("CONFIG_FILE_RECIVED");
+          console.log("RECIVED: CONFIG_FILE");
           // JSON deserialization
           var string = new TextDecoder().decode(midiMsg.data);
           console.log(string); // FIXME: recived file is not consistent!?
@@ -217,13 +217,8 @@ function sysex_upload(data) {
   let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
   MIDIoutput.send(midiMsg);
-
   //let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END];
   //MIDIoutput.send(midiMsg);
-}
-
-function setConfig() {
-  e256_alocate_memory();
 }
 
 function loadFile(event) {

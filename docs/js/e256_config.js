@@ -68,7 +68,7 @@ const SYSEX_DEVICE_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/
 const SYSEX_CONF = 0x7C; // 124
 const SYSEX_SOUND = 0x6C; // 108
 
-const SYNC_MODE_TIMEOUT = 4000;
+const SYNC_MODE_TIMEOUT = 2000;
 const MAX_PARAMS = 15;
 
 const PENDING_MODE_DONE = 0;

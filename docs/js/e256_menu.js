@@ -87,9 +87,17 @@ $("#loadConfigFile").change(function (event) {
   loadFile(event);
 });
 
-$("#setConfig").click(function () {
+$("#uploadConfig").click(function () {
   if (connected) {
-    setConfig();
+    e256_alocate_memory();
+  } else {
+    alert("e256 NOT CONNECTED!");
+  }
+});
+
+$("#exportConfig").click(function () {
+  if (connected) {
+    e256_exportParams();
   } else {
     alert("e256 NOT CONNECTED!");
   }
