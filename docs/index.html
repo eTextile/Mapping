@@ -61,15 +61,12 @@
           </div>
 
           <div id="calibrateMenu" class="collapse">
-            <button id="calibrate" class="e256_setState btn btn-outline-primary input-group"
+            <button id="calibrate" class="btn btn-outline-primary input-group"
               type="button">CALIBRATE</button>
           </div>
 
           <div id="mappingMenu" class="collapse">
-            <button id="getConfig" class="e256_setState btn btn-outline-primary input-group" type="button">
-              GET CONFIG</button>
-            <button id="exportConfig" class="e256_setState btn btn-outline-primary input-group" type="button">
-                MAKE CONFIG</button>
+
             <div class="btn-group input-group" role="group">
               <button id="editMode" class="e256_setMode btn btn-outline-primary" type="button">EDIT</button>
               <button id="playMode" class="e256_setMode btn btn-outline-primary" type="button">PLAY</button>
@@ -77,25 +74,29 @@
 
             <div id="editMenu" class="collapse">
               <div id="mappingToolsMenu">
+                <button id="getConfig" class="btn btn-outline-primary input-group" type="button">
+                  GET CONFIG</button>
                 <div class="btn-group input-group" role="group">
-                  <button id="Touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
-                  <button id="Trigger" class="mapingTool btn btn-outline-primary" type="button">Trigger</button>
-                  <button id="Switch" class="mapingTool btn btn-outline-primary" type="button">Switch</button>
-                  <button id="Slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
-                  <button id="Knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
+                  <button id="touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
+                  <button id="trigger" class="mapingTool btn btn-outline-primary" type="button">Trigger</button>
+                  <button id="switch" class="mapingTool btn btn-outline-primary" type="button">Switch</button>
+                  <button id="slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
+                  <button id="knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
                 </div>
+                <button id="setConfig" class="btn btn-outline-primary input-group" type="button">
+                  SET CONFIG</button>
               </div>
             </div>
 
             <div id="playMenu" class="collapse">
+              <div id="loadMenu" class="collapse">
+                <input id="loadConfig" class="form-control form-control-sm" type="file" accept=".json, .wav">
+              </div>
               <div class="btn-group input-group" role="group">
                 <button id="uploadConfig" class="btn btn-outline-primary" type="button">UPLOAD CONFIG</button>
               </div>
             </div>
 
-            <div id="loadMenu" class="collapse">
-              <input id="uploadConfigFile" class="form-control form-control-sm" type="file" accept=".json, .wav">
-            </div>
           </div>
         </div>
       </div>
@@ -188,8 +189,8 @@
             divParam.appendChild(divGroupe);
             containerParams.appendChild(divParam);
           }
-
         </script>
+        
       </div>
 
       <div id="contact" class="card shadow mt-auto">
@@ -210,13 +211,13 @@
 
   <script type="text/javascript" src="./js/e256_matrix.js"></script>
   <script type="module" src="./js/e256_three_script.js"></script>
+  <script type="text/javascript" src="./js/lib/paper-full.js"></script>
 
-  <script type="text/javascript" src="./js/lib/paper-core.min.js"></script>
   <script type="text/javascript" src="./js/e256_paper_script.js"></script>
-  <script type="text/javascript" src="./js/e256_blobs.js"></script>
   <script type="text/javascript" src="./js/e256_mappings.js"></script>
-
+  <script type="text/javascript" src="./js/e256_blobs.js"></script>
   <script type="text/javascript" src="./js/e256_midi_io.js"></script>
+  <script type="text/javascript" src="./js/e256_importFile.js"></script>
   <script type="text/javascript" src="./js/e256_menu.js"></script>
 
 </body>

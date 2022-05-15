@@ -108,12 +108,3 @@ const ERROR_CODES = {
   8: "CONFIG_APPLY_FAILED",
   9: "UNKNOWN_SYSEX"
 };
-
-const BI = 0; // [0] Blob UID
-const BS = 1; // [1] Blob State
-const BL = 2; // [2] Blob Last State
-const BX = 3; // [3] Blob X centroid position
-const BY = 4; // [4] Blob Y centroid position
-const BZ = 5; // [5] Blob Depth
-const BW = 6; // [6] Blob width
-const BH = 7; // [7] Blob Height

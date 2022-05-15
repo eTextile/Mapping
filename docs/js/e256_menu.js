@@ -79,25 +79,13 @@ $(".e256_setMode").click(function (event) {
   }
 });
 
-$(".e256_setState").click(function (event) {
-  e256_setState(event.target.id);
-});
-
-$("#loadConfigFile").change(function (event) {
+$("#loadConfig").change(function (event) {
   loadFile(event);
 });
 
 $("#uploadConfig").click(function () {
   if (connected) {
     e256_alocate_memory();
-  } else {
-    alert("e256 NOT CONNECTED!");
-  }
-});
-
-$("#exportConfig").click(function () {
-  if (connected) {
-    e256_exportParams();
   } else {
     alert("e256 NOT CONNECTED!");
   }
@@ -110,6 +98,33 @@ $(".mapingTool").click(function (event) {
   console.log("DRAW_MODE: " + e256_drawMode);
 });
 
+$("#calibrate").click(function () {
+  if (connected) {
+    programChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
+    console.log("REQUEST: CALIBRATE");
+  } else {
+    alert("e256 NOT CONNECTED!");
+  }
+});
+
+$("#getConfig").click(function () {
+  if (connected) {
+    currentMode = SYNC_MODE;
+    programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
+    console.log("REQUEST: CONFIG_FILE");
+  } else {
+    alert("e256 NOT CONNECTED!");
+  }
+});
+
+$("#setConfig").click(function () {
+  if (connected) {
+    e256_exportParams();
+  } else {
+    alert("e256 NOT CONNECTED!");
+  }
+});
+
 // Update item parameters using the txt input fields
 $(".btnSet").click(function (event) {
   var paramsIndex = 0;
@@ -120,17 +135,3 @@ $(".btnSet").click(function (event) {
     }
   }
 });
-
-function e256_setState(event) {
-  switch (event) {
-    case "calibrate":
-      programChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
-      console.log("REQUEST: CALIBRATE");
-      break;
-    case "getConfig":
-      currentMode = SYNC_MODE;
-      programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
-      console.log("REQUEST: CONFIG_FILE");
-      break;
-  }
-};

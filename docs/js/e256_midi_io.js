@@ -140,7 +140,7 @@ function onMIDIMessage(midiMsg) {
           }
           else if (value == USBMIDI_CONFIG_ALLOC_DONE) {
             // JSON serialization
-            sysex_upload(stringToBytes(JSON.stringify(config)));
+            sysex_upload(string_to_bytes(JSON.stringify(config)));
           }
           else {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);
@@ -157,9 +157,9 @@ function onMIDIMessage(midiMsg) {
           console.log("RECIVED: CONFIG_FILE");
           // JSON deserialization
           var string = new TextDecoder().decode(midiMsg.data);
-          console.log(string); // FIXME: recived file is not consistent!?
-          //config = JSON.parse(string);
-          //console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
+          const e256_jsonFile = string.slice(1, -1);
+          config = JSON.parse(e256_jsonFile);
+          //drawFromParams(config.mapping);
           currentMode = EDIT_MODE;
         break;
         case MATRIX_MODE_RAW:
@@ -221,39 +221,11 @@ function sysex_upload(data) {
   //MIDIoutput.send(midiMsg);
 }
 
-function loadFile(event) {
-  var file = event.target.files[0];
-  if (file.type === "application/json") {
-    fileType = "json";
-    var reader = new FileReader();
-    reader.onload = onReaderLoad;
-    reader.readAsText(event.target.files[0]);
-  }
-  else if (file.type === "application/wav") {
-    fileType = "wav";
-    //TODO
-  }
-  else {
-    alert("WRONG FILE TYPE!");
-  }
-}
-
-function onReaderLoad(event) {
-  try {
-    config = JSON.parse(event.target.result);
-    confSize = Object.keys(JSON.stringify(config)).length;
-    console.log("NAME:" + config.NAME + " " + config.PROJECT + " " + config.VERSION);
-    console.log("CONFIG_SIZE: " + confSize);
-  } catch (e) {
-    alert(e);
-  }
-}
-
 function e256_alocate_memory() {
-  if (fileType === "json") {
+  if (fileType === "application/json") {
     sysex_alloc(SYSEX_CONF, confSize);
   }
-  else if (fileType === "wav") {
+  else if (fileType === "application/wav") {
     //sysex_alloc(SYSEX_SOUND, sound.length); // TODO
   } else {
     alert("MISSING FILE!");
@@ -266,7 +238,7 @@ $(document).ready(function () {
   MIDIrequest();
 });
 
-function stringToBytes(str) {
+function string_to_bytes(str) {
   var bytes = [];
   for(var i = 0, n = str.length; i < n; i++) {
       var char = str.charCodeAt(i);
