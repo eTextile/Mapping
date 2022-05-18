@@ -2,7 +2,7 @@
 	"name": "E256",
 	"project": "ETEXTILE-SYNTHESIZER",
 	"version": "1.0.9",
-	"mapping": {
+	"mappings": {
 		"triggers": [
 			{ "x": 10, "y": 20, "s": 20, "c": 1, "n": 33, "v": 127 },
 			{ "x": 30, "y": 20, "s": 20, "c": 1, "n": 34, "v": 127 }

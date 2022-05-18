@@ -157,7 +157,8 @@ function onMIDIMessage(midiMsg) {
           console.log("RECIVED: CONFIG_FILE");
           // JSON deserialization
           var string = new TextDecoder().decode(midiMsg.data);
-          const e256_jsonFile = string.slice(1, -1);
+          console.log(string);
+          var e256_jsonFile = string.slice(1, -1);
           config = JSON.parse(e256_jsonFile);
           //drawFromParams(config.mapping);
           currentMode = EDIT_MODE;
