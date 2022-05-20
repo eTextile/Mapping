@@ -7,7 +7,7 @@ Starting from the textile design paterns placed on top of the matrix sensor, thi
 
 ## Web Application
 
-    https://mapping.etextile.org/
+    https://mapping.etextile.org/ (load using chrome!)
 
 ## Functionalities
 - Create custom graphic user interface for the eTextile-Synthesizer
