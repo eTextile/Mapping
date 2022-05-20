@@ -79,10 +79,6 @@ $(".e256_setMode").click(function (event) {
   }
 });
 
-$("#loadConfig").change(function (event) {
-  loadFile(event);
-});
-
 $("#uploadConfig").click(function () {
   if (connected) {
     e256_alocate_memory();

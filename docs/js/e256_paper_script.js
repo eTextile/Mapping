@@ -33,12 +33,14 @@ function paperInit() {
   var sliderLayer = new paper.Layer();
   var knobLayer = new paper.Layer();
   var touchpadLayer = new paper.Layer();
+  var polygonLayer = new paper.Layer();
 
   triggerLayer.name = "triggers";
   switchLayer.name = "switchs";
   sliderLayer.name = "sliders";
   knobLayer.name = "knobs";
   touchpadLayer.name = "touchpads";
+  touchpadLayer.name = "polygons";
 
   paper.view.viewSize.width = canvasWidth;
   paper.view.viewSize.height = canvasHeight;
@@ -103,52 +105,64 @@ function paperInit() {
         knobLayer.activate();
         break;
       case "touchpad":
-        clearLayer(touchpadLayer);
         var e256_touchpad = touchpadFactory();
         e256_touchpad.setupFromMouseEvent(mouseEvent);
         touchpadLayer.addChild(e256_touchpad);
         touchpadLayer.activate();
         break;
-      case "polygon":
-        //var e256_polygon = polygonFactory();
-        //e256_polygon.init(mouseEvent);
-        //polygonLayer.addChild(e256_polygon);
-        //polygonLayer.activate();
+      /*
+        case "polygon":
+        var e256_polygon = polygonFactory();
+        e256_polygon.init(mouseEvent);
+        polygonLayer.addChild(e256_polygon);
+        polygonLayer.activate();
         break;
+      */
     }
+  }
 
-    function drawControlerFromParams(configFile) {
-      let conf = configFile.mappings;
-      for (var i = 0; i < conf.triggers.length; i++) {
-        var e256_trigger = triggerFactory();
-        e256_trigger.setupFromConfig(conf.triggers[i]);
-        triggerLayer.addChild(e256_trigger);
-      }
-      for (var i = 0; i < conf.switchs.length; i++) {
-        var e256_switch = switchFactory();
-        e256_switch.setupFromConfig(conf.switchs[i]);
-        switchLayer.addChild(e256_switch);
-      }
-      for (var i = 0; i < conf.sliders.length; i++) {
-        var e256_slider = sliderFactory();
-        e256_slider.setupFromConfig(conf.sliders[i]);
-        sliderLayer.addChild(e256_slider);
-      }
-      for (var i = 0; i < conf.knobs.length; i++) {
-        var e256_knob = knobFactory();
-        e256_knob.setupFromConfig(conf.knobs[i]);
-        knobLayer.addChild(e256_knob);
-      }
-      for (var i = 0; i < conf.touchpads.length; i++) {
-        var e256_touchpad = touchpadFactory();
-        e256_touchpad.setupFromConfig(conf.touchpads[i]);
-        touchpadLayer.addChild(e256_touchpad);
-      }
-      for (var i = 0; i < conf.polygons.length; i++) {
-        //var e256_polygon = polygonFactory();
-        //e256_polygon.setupFromConfig(conf.polygons[i]);
-        //polygonLayer.addChild(e256_polygon);
-      }
+  function drawControlerFromParams(configFile) {
+    let conf = configFile.mappings;
+    clearLayers();
+    /*
+    for (var i = 0; i < conf.triggers.length; i++) {
+      var e256_trigger = triggerFactory();
+      e256_trigger.setupFromConfig(conf.triggers[i]);
+      triggerLayer.addChild(e256_trigger);
+    }
+    for (var i = 0; i < conf.switchs.length; i++) {
+      var e256_switch = switchFactory();
+      e256_switch.setupFromConfig(conf.switchs[i]);
+      switchLayer.addChild(e256_switch);
+    }
+    for (var i = 0; i < conf.sliders.length; i++) {
+      var e256_slider = sliderFactory();
+      e256_slider.setupFromConfig(conf.sliders[i]);
+      sliderLayer.addChild(e256_slider);
+    }
+    for (var i = 0; i < conf.knobs.length; i++) {
+      var e256_knob = knobFactory();
+      e256_knob.setupFromConfig(conf.knobs[i]);
+      knobLayer.addChild(e256_knob);
+    }
+    */
+    for (var i = 0; i < conf.touchpads.length; i++) {
+      var e256_touchpad = touchpadFactory();
+      e256_touchpad.setupFromConfig(conf.touchpads[i]);
+      touchpadLayer.addChild(e256_touchpad);
+    }
+    /*
+    for (var i = 0; i < conf.polygons.length; i++) {
+      var e256_polygon = polygonFactory();
+      e256_polygon.setupFromConfig(conf.polygons[i]);
+      polygonLayer.addChild(e256_polygon);
+    }
+    */
+  }
+
+  function clearLayer(layer) {
+    if (layer.hasChildren() != false) {
+      layer.removeChildren();
     }
   }
 
@@ -159,12 +173,6 @@ function paperInit() {
     clearLayer(knobLayer);
     clearLayer(touchpadLayer);
     clearLayer(polygonLayer);
-  }
-
-  function clearLayer(layer) {
-    if (layer.hasChildren() != false) {
-      layer.removeChildren();
-    }
   }
 
   // Whenever the view is resized - FIXME!
@@ -179,36 +187,40 @@ function paperInit() {
     paper.view.center = new paper.Point(canvasWidth / 2, canvasHeight / 2);
   }
 
+  function onReaderLoad(event) {
+    try {
+      config = JSON.parse(event.target.result);
+      confSize = Object.keys(JSON.stringify(config)).length;
+      clearLayers();
+      drawControlerFromParams(config);
+    } catch (e) {
+      alert(e);
+    }
+  }
+
+  function loadFile(event) {
+    var file = event.target.files[0];
+    fileType = file.type;
+    if (fileType === "application/json") {
+      var reader = new FileReader();
+      reader.onload = onReaderLoad;
+      reader.readAsText(event.target.files[0]);
+    }
+    else if (fileType === "application/wav") {
+      //TODO
+    }
+    else {
+      alert("WRONG FILE TYPE!");
+    }
+  }
+
+  $("#loadConfig").change(function (event) {
+    loadFile(event);
+  });
+  
 }
 
 window.onload = function () {
   paperInit();
 }
 
-
-function loadFile(event) {
-  var file = event.target.files[0];
-  fileType = file.type;
-  if (fileType === "application/json") {
-    var reader = new FileReader();
-    reader.onload = onReaderLoad;
-    reader.readAsText(event.target.files[0]);
-  }
-  else if (fileType === "application/wav") {
-    //TODO
-  }
-  else {
-    alert("WRONG FILE TYPE!");
-  }
-}
-
-function onReaderLoad(event) {
-  try {
-    config = JSON.parse(event.target.result);
-    confSize = Object.keys(JSON.stringify(config)).length;
-    clearLayers();
-    drawControlerFromParams(config);
-  } catch (e) {
-    alert(e);
-  }
-}
