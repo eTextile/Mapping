@@ -197,7 +197,7 @@ function touchpadFactory() {
                   for (var i = 1; i < this.data.touchs + 1; i++) {
                     var item = this.children[i];
                     item.children["line-x"].segments[0].point.x = mouseEvent.point.x + (this.children["pad"].strokeWidth / 2);
-                    newSize_x = ((this.data.to.x - item.children["line-y"].segments[0].point.x) * newWidth) / lastWidth;
+                    var newSize_x = ((this.data.to.x - item.children["line-y"].segments[0].point.x) * newWidth) / lastWidth;
                     item.children["line-y"].position.x = this.data.to.x - newSize_x;
                     item.children["circle"].position.x = this.data.to.x - newSize_x;
                   }
