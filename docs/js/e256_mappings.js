@@ -58,8 +58,8 @@ function touchpadFactory() {
           data: {
             name: null,
             value: new paper.Point(
-              getRandomInt(this.bounds.left + (_pad.strokeWidth), this.bounds.right - (_pad.strokeWidth)),
-              getRandomInt(this.bounds.top + (_pad.strokeWidth), this.bounds.bottom - (_pad.strokeWidth))
+              getRandomInt(this.data.from.x + (_pad.strokeWidth), this.data.to.x - (_pad.strokeWidth)),
+              getRandomInt(this.data.from.y + (_pad.strokeWidth), this.data.to.y - (_pad.strokeWidth))
             ),
             Xchan: null,
             Xcc: null,
@@ -70,15 +70,15 @@ function touchpadFactory() {
         _touch.data.name = "touch-" + i;
         var _line_x = new paper.Path.Line({
           name: "line-x",
-          from: new paper.Point(this.bounds.left + (_pad.strokeWidth / 2), _touch.data.value.y),
-          to: new paper.Point(this.bounds.right - (_pad.strokeWidth / 2), _touch.data.value.y),
+          from: new paper.Point(this.data.from.x + (_pad.strokeWidth / 2), _touch.data.value.y),
+          to: new paper.Point(this.data.to.x - (_pad.strokeWidth / 2), _touch.data.value.y),
           strokeColor: "black",
           strokeWidth: 1
         });
         var _line_y = new paper.Path.Line({
           name: "line-y",
-          from: new paper.Point(_touch.data.value.x, this.bounds.top + (_pad.strokeWidth / 2)),
-          to: new paper.Point(_touch.data.value.x, this.internalBounds.bottom - (_pad.strokeWidth / 2)),
+          from: new paper.Point(_touch.data.value.x, this.data.from.y + (_pad.strokeWidth / 2)),
+          to: new paper.Point(_touch.data.value.x, this.data.to.y  - (_pad.strokeWidth / 2)),
           strokeColor: "black",
           strokeWidth: 1
         });
@@ -178,8 +178,8 @@ function touchpadFactory() {
         switch (selectedPath) {
           case "fill":
             this.translate(mouseEvent.delta);
-            //this.data.from = this.bounds.topLeft;   // NOT WORKING!
-            //this.data.to = this.bounds.bottomRight; // NOT WORKING!
+            //this.data.from = this.data.from.yLeft; // NOT WORKING!
+            //this.data.to = this.data.to.yRight; // NOT WORKING!
             this.data.from = new paper.Point(mouseEvent.point.x - (defaultWidth / 2), mouseEvent.point.y - (defaultHeight / 2));
             this.data.to = new paper.Point(mouseEvent.point.x + (defaultWidth / 2), mouseEvent.point.y + (defaultHeight / 2));
             updateMenuParams(this.data);
@@ -193,13 +193,13 @@ function touchpadFactory() {
                   this.data.from.x = mouseEvent.point.x;
                   updateMenuParams(this.data);
                   var lastWidth = newWidth;
-                  var newWidth = this.bounds.right - mouseEvent.point.x;
+                  var newWidth = this.data.to.x - mouseEvent.point.x;
                   for (var i = 1; i < this.data.touchs + 1; i++) {
                     var item = this.children[i];
-                    item.children["line-x"].segments[0].point.x = mouseEvent.point.x;
-                    newSize_x = ((this.bounds.right - item.children["line-y"].segments[0].point.x) * newWidth) / lastWidth;
-                    item.children["line-y"].position.x = this.bounds.right - newSize_x;
-                    item.children["circle"].position.x = this.bounds.right - newSize_x;
+                    item.children["line-x"].segments[0].point.x = mouseEvent.point.x + (this.children["pad"].strokeWidth / 2);
+                    newSize_x = ((this.data.to.x - item.children["line-y"].segments[0].point.x) * newWidth) / lastWidth;
+                    item.children["line-y"].position.x = this.data.to.x - newSize_x;
+                    item.children["circle"].position.x = this.data.to.x - newSize_x;
                   }
                   break;
                 case 1: // Update top segment
@@ -208,13 +208,13 @@ function touchpadFactory() {
                   this.data.from.y = mouseEvent.point.y;
                   updateMenuParams(this.data);
                   var lastHeight = newHeight;
-                  var newHeight = this.bounds.bottom - mouseEvent.point.y;
+                  var newHeight = this.data.to.y - mouseEvent.point.y;
                   for (var i = 1; i < this.data.touchs + 1; i++) {
                     var item = this.children[i];
-                    item.children["line-y"].segments[0].point.y = mouseEvent.point.y;
-                    var newSize_y = ((this.bounds.bottom - item.children["line-x"].segments[0].point.y) * newHeight) / lastHeight;
-                    item.children["line-x"].position.y = this.bounds.bottom - newSize_y;
-                    item.children["circle"].position.y = this.bounds.bottom - newSize_y;
+                    item.children["line-y"].segments[0].point.y = mouseEvent.point.y + (this.children["pad"].strokeWidth / 2);
+                    var newSize_y = ((this.data.to.y - item.children["line-x"].segments[0].point.y) * newHeight) / lastHeight;
+                    item.children["line-x"].position.y = this.data.to.y - newSize_y;
+                    item.children["circle"].position.y = this.data.to.y - newSize_y;
                   }
                   break;
                 case 2: // Update right segment
@@ -223,13 +223,13 @@ function touchpadFactory() {
                   this.data.to.x = mouseEvent.point.x;
                   updateMenuParams(this.data);
                   var lastWidth = newWidth;
-                  var newWidth = mouseEvent.point.x - this.bounds.left;
+                  var newWidth = mouseEvent.point.x - this.data.from.x;
                   for (var i = 1; i < this.data.touchs + 1; i++) {
                     var item = this.children[i];
-                    item.children["line-x"].segments[1].point.x = mouseEvent.point.x;
-                    var newSize_x = ((item.children["line-y"].segments[0].point.x - this.bounds.left) * newWidth) / lastWidth;
-                    item.children["line-y"].position.x = this.bounds.left + newSize_x;
-                    item.children["circle"].position.x = this.bounds.left + newSize_x;
+                    item.children["line-x"].segments[1].point.x = mouseEvent.point.x - (this.children["pad"].strokeWidth / 2);
+                    var newSize_x = ((item.children["line-y"].segments[0].point.x - this.data.from.x) * newWidth) / lastWidth;
+                    item.children["line-y"].position.x = this.data.from.x + newSize_x;
+                    item.children["circle"].position.x = this.data.from.x + newSize_x;
                   }
                   break;
                 case 3: // Update bottom segment
@@ -238,13 +238,13 @@ function touchpadFactory() {
                   this.data.to.y = mouseEvent.point.y;
                   updateMenuParams(this.data);
                   var lastHeight = newHeight;
-                  var newHeight = mouseEvent.point.y - this.bounds.top;
+                  var newHeight = mouseEvent.point.y - this.data.from.y;
                   for (var i = 1; i < this.data.touchs + 1; i++) {
                     var item = this.children[i];
-                    item.children["line-y"].segments[1].point.y = mouseEvent.point.y;
-                    var newSize_y = ((item.children["line-x"].segments[0].point.y - this.bounds.top) * newHeight) / lastHeight;
-                    item.children["line-x"].position.y = this.bounds.top + newSize_y;
-                    item.children["circle"].position.y = this.bounds.top + newSize_y;
+                    item.children["line-y"].segments[1].point.y = mouseEvent.point.y - (this.children["pad"].strokeWidth / 2);
+                    var newSize_y = ((item.children["line-x"].segments[0].point.y - this.data.from.y) * newHeight) / lastHeight;
+                    item.children["line-x"].position.y = this.data.from.y + newSize_y;
+                    item.children["circle"].position.y = this.data.from.y + newSize_y;
                   }
                   break;
               }
@@ -587,7 +587,7 @@ function sliderFactory(mouseEvent) {
         if (selectedPath === "stroke") selectedSegment = hitResult.location.index;
         else if (currentMode === PLAY_MODE) {
           last_val = this.data.val;
-          this.data.val = Math.round(mapp(this.bounds.bottom - mouseEvent.point.y, 0, this.data.height, this.data.min, this.data.max));
+          this.data.val = Math.round(mapp(this.data.to.y - mouseEvent.point.y, 0, this.data.height, this.data.min, this.data.max));
           this.children["handle"].segments[0].point.y = mouseEvent.point.y;
           this.children["handle"].segments[1].point.y = mouseEvent.point.y;
         }
@@ -604,32 +604,32 @@ function sliderFactory(mouseEvent) {
               case "rect":
                 switch (selectedSegment) {
                   case 0: // Update left segment
-                    this.data.x = Math.round(this.bounds.right - ((this.bounds.right - mouseEvent.point.x) / 2));
+                    this.data.x = Math.round(this.data.to.x - ((this.data.to.x - mouseEvent.point.x) / 2));
 
-                    width = Math.round(this.bounds.right - this.bounds.right);
+                    width = Math.round(this.data.to.x - this.data.to.x);
 
                     this.children["rect"].segments[0].point.x = mouseEvent.point.x;
                     this.children["rect"].segments[1].point.x = mouseEvent.point.x;
                     this.children["handle"].segments[0].point.x = mouseEvent.point.x;
                     break;
                   case 1: // Update top segment
-                    this.data.y = Math.round(this.bounds.bottom - ((this.bounds.bottom - mouseEvent.point.y) / 2));
-                    height = Math.round((this.bounds.bottom - this.data.y) * 2);
+                    this.data.y = Math.round(this.data.to.y - ((this.data.to.y - mouseEvent.point.y) / 2));
+                    height = Math.round((this.data.to.y - this.data.y) * 2);
                     this.children["rect"].segments[1].point.y = mouseEvent.point.y;
                     this.children["rect"].segments[2].point.y = mouseEvent.point.y;
                     this.children["handle"].segments[0].point.y = this.data.y;
                     this.children["handle"].segments[1].point.y = this.data.y;
                     break;
                   case 2: // Update right segment
-                    this.data.x = Math.round(this.bounds.left + ((mouseEvent.point.x - this.bounds.left) / 2));
-                    width = Math.round((this.data.x - this.bounds.left) * 2);
+                    this.data.x = Math.round(this.data.from.x + ((mouseEvent.point.x - this.data.from.x) / 2));
+                    width = Math.round((this.data.x - this.data.from.x) * 2);
                     this.children["rect"].segments[2].point.x = mouseEvent.point.x;
                     this.children["rect"].segments[3].point.x = mouseEvent.point.x;
                     this.children["handle"].segments[1].point.x = mouseEvent.point.x;
                     break;
                   case 3: // Update bottom segment
-                    this.data.y = Math.round(this.bounds.top + ((mouseEvent.point.y - this.bounds.top) / 2));
-                    height = Math.round((this.data.y - this.bounds.top) * 2);
+                    this.data.y = Math.round(this.data.from.y + ((mouseEvent.point.y - this.data.from.y) / 2));
+                    height = Math.round((this.data.y - this.data.from.y) * 2);
                     this.children["rect"].segments[3].point.y = mouseEvent.point.y;
                     this.children["rect"].segments[0].point.y = mouseEvent.point.y;
                     this.children["handle"].segments[0].point.y = this.data.y;
@@ -644,17 +644,17 @@ function sliderFactory(mouseEvent) {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        if (mouseEvent.point.y > this.bounds.top && mouseEvent.point.y < this.bounds.bottom) {
+        if (mouseEvent.point.y > this.data.from.y && mouseEvent.point.y < this.data.to.y) {
           /*
           if (newWidth > newHeight){
-            selectedItem.data.value.x = Math.round(mapp(mouseEvent.point.x - this.bounds.left, 0, newWidth, this.data.min, this.data.max));
+            selectedItem.data.value.x = Math.round(mapp(mouseEvent.point.x - this.data.from.x, 0, newWidth, this.data.min, this.data.max));
           } else {  
-            selectedItem.data.value.y = Math.round(mapp(mouseEvent.point.y - this.bounds.top, 0, newHeight, this.data.min, this.data.max));
+            selectedItem.data.value.y = Math.round(mapp(mouseEvent.point.y - this.data.from.y, 0, newHeight, this.data.min, this.data.max));
           }
           */
 
           last_val = this.data.val;
-          this.data.val = Math.round(mapp(this.bounds.bottom - mouseEvent.point.y, 0, this.data.height, this.data.min, this.data.max));
+          this.data.val = Math.round(mapp(this.data.to.y - mouseEvent.point.y, 0, this.data.height, this.data.min, this.data.max));
           // SEND MIDI CONTROL_CHANGE
           if (this.data.val != last_val) {
             if (connected) controlChange(this.data.cc, this.data.val, this.data.chan - 1);
