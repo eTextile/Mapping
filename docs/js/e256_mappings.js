@@ -261,10 +261,8 @@ function touchpadFactory() {
             // SEND MIDI CONTROL_CHANGE
             //controlChange(selectedItem.parent.data.Xcc, selectedItem.parent.data.value.x, selectedItem.parent.data.Xchan - 1);
             //controlChange(selectedItem.parent.data.Ycc, selectedItem.parent.data.value.y, selectedItem.parent.data.Ychan - 1);
-            selectedItem.parent.children["line-x"].segments[0].point.y = mouseEvent.point.y;
-            selectedItem.parent.children["line-x"].segments[1].point.y = mouseEvent.point.y;
-            selectedItem.parent.children["line-y"].segments[0].point.x = mouseEvent.point.x;
-            selectedItem.parent.children["line-y"].segments[1].point.x = mouseEvent.point.x;
+            selectedItem.parent.children["line-x"].position.y = mouseEvent.point.y;
+            selectedItem.parent.children["line-y"].position.x = mouseEvent.point.x;
             selectedItem.parent.children["circle"].position = mouseEvent.point;
             selectedItem.parent.data.value = mouseEvent.point;
             updateMenuParams(selectedItem.parent.data);
