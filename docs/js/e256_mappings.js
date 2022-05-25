@@ -21,9 +21,10 @@ var hitOptions = {
 function touchpadFactory() {
   var defaultWidth = 400;
   var defaultHeight = 400;
-  var selectedItem = null;
   var selectedPath = null;
   var selectedSegment = null;
+  var newWidth = defaultWidth;
+  var newHeight = defaultHeight;
 
   var touchpadHitOptions = {
     stroke: true,
@@ -52,11 +53,10 @@ function touchpadFactory() {
         strokeColor: new paper.Color(0.7, 0, 0.5),
         fillColor: new paper.Color(1, 1, 1)
       });
-      this.addChild(_pad);
       for (var i = 0; i < this.data.touchs; i++) {
         var _touch = new paper.Group({
           data: {
-            name: null,
+            name: "touch-" + i,
             value: new paper.Point(
               getRandomInt(this.data.from.x + (_pad.strokeWidth), this.data.to.x - (_pad.strokeWidth)),
               getRandomInt(this.data.from.y + (_pad.strokeWidth), this.data.to.y - (_pad.strokeWidth))
@@ -67,7 +67,6 @@ function touchpadFactory() {
             Ycc: null
           }
         });
-        _touch.data.name = "touch-" + i;
         var _line_x = new paper.Path.Line({
           name: "line-x",
           from: new paper.Point(this.data.from.x + (_pad.strokeWidth / 2), _touch.data.value.y),
@@ -78,7 +77,7 @@ function touchpadFactory() {
         var _line_y = new paper.Path.Line({
           name: "line-y",
           from: new paper.Point(_touch.data.value.x, this.data.from.y + (_pad.strokeWidth / 2)),
-          to: new paper.Point(_touch.data.value.x, this.data.to.y  - (_pad.strokeWidth / 2)),
+          to: new paper.Point(_touch.data.value.x, this.data.to.y - (_pad.strokeWidth / 2)),
           strokeColor: "black",
           strokeWidth: 1
         });
@@ -93,34 +92,37 @@ function touchpadFactory() {
         _touch.addChild(_circle);
         this.addChild(_touch);
       }
+      this.addChild(_pad);
+      this.children["pad"].sendToBack();
     },
     setupFromConfig: function (params) {
-      this.data.from = new paper.Point(params.x - (params.w / 2), params.y - (params.h / 2));
-      this.data.to = new paper.Point(params.x + (params.w / 2), params.y + (params.h / 2));
-      this.data.touchs = params.t;
+      this.data.from = new paper.Point(params.f);
+      this.data.to = new paper.Point(params.t);
+      this.data.touchs = params.b;
       this.data.min = params.i;
       this.data.max = params.a;
       var _pad = new paper.Path.Rectangle({
         name: "pad",
         from: this.data.from,
         to: this.data.to,
-        strokeWidth: 25,
+        strokeWidth: 20,
         strokeColor: new paper.Color(0.7, 0, 0.5),
         fillColor: new paper.Color(1, 1, 1)
       });
-      console.log("touchs: " + this.data.touchs);
       for (var i = 0; i < this.data.touchs; i++) {
         var _touch = new paper.Group({
           data: {
-            name: null,
-            value: new paper.Point(getRandomInt(this.data.from.x, this.data.to.x), getRandomInt(this.data.from.y, this.data.to.y)),
+            name: "touch-" + i,
+            value: new paper.Point(
+              getRandomInt(this.data.from.x + (_pad.strokeWidth), this.data.to.x - (_pad.strokeWidth)),
+              getRandomInt(this.data.from.y + (_pad.strokeWidth), this.data.to.y - (_pad.strokeWidth))
+            ),
             Xchan: null, // TODO
             Xcc: null,   // TODO
             Ychan: null, // TODO
             Ycc: null    // TODO
           }
         });
-        _touch.data.name = "touch-" + i;
         var _line_x = new paper.Path.Line({
           name: "line-x",
           from: new paper.Point(this.data.from.x + (_pad.strokeWidth / 2), _touch.data.value.y),
@@ -155,8 +157,8 @@ function touchpadFactory() {
       // selectedSegment: 0, 1, 2...
       var hitResult = this.hitTest(mouseEvent.point, touchpadHitOptions);
       selectedItem = hitResult.item;
-      selectedPath = hitResult.type;
       if (currentMode === EDIT_MODE) {
+        selectedPath = hitResult.type;
         if (selectedPath === "fill") {
           selectedSegment = null;
           updateMenuParams(selectedItem.parent.data);
@@ -178,10 +180,12 @@ function touchpadFactory() {
         switch (selectedPath) {
           case "fill":
             this.translate(mouseEvent.delta);
-            //this.data.from = this.data.from.yLeft; // NOT WORKING!
-            //this.data.to = this.data.to.yRight; // NOT WORKING!
-            this.data.from = new paper.Point(mouseEvent.point.x - (defaultWidth / 2), mouseEvent.point.y - (defaultHeight / 2));
-            this.data.to = new paper.Point(mouseEvent.point.x + (defaultWidth / 2), mouseEvent.point.y + (defaultHeight / 2));
+            this.data.from = new paper.Point(
+              Math.round(mouseEvent.point.x - (defaultWidth / 2)),
+              Math.round(mouseEvent.point.y - (defaultHeight / 2)));
+            this.data.to = new paper.Point(
+              Math.round(mouseEvent.point.x + (defaultWidth / 2)),
+              Math.round(mouseEvent.point.y + (defaultHeight / 2)));
             updateMenuParams(this.data);
             break;
           case "stroke":
@@ -190,64 +194,57 @@ function touchpadFactory() {
                 case 0: // Update left segment
                   this.children["pad"].segments[0].point.x = mouseEvent.point.x;
                   this.children["pad"].segments[1].point.x = mouseEvent.point.x;
-                  this.data.from.x = mouseEvent.point.x;
-                  updateMenuParams(this.data);
+                  this.data.from.x = Math.round(mouseEvent.point.x);
                   var lastWidth = newWidth;
-                  var newWidth = this.data.to.x - mouseEvent.point.x;
+                  newWidth = this.bounds.right - mouseEvent.point.x;
                   for (var i = 1; i < this.data.touchs + 1; i++) {
-                    var item = this.children[i];
-                    item.children["line-x"].segments[0].point.x = mouseEvent.point.x + (this.children["pad"].strokeWidth / 2);
-                    var newSize_x = ((this.data.to.x - item.children["line-y"].segments[0].point.x) * newWidth) / lastWidth;
-                    item.children["line-y"].position.x = this.data.to.x - newSize_x;
-                    item.children["circle"].position.x = this.data.to.x - newSize_x;
+                    this.children[i].children["line-x"].segments[0].point.x = mouseEvent.point.x + (this.children["pad"].strokeWidth / 2);
+                    var newSize_x = ((this.bounds.right - this.children[i].children["line-y"].segments[0].point.x) * newWidth) / lastWidth;
+                    this.children[i].children["line-y"].position.x = this.bounds.right - newSize_x;
+                    this.children[i].children["circle"].position.x = this.bounds.right - newSize_x;
                   }
                   break;
                 case 1: // Update top segment
                   this.children["pad"].segments[1].point.y = mouseEvent.point.y;
                   this.children["pad"].segments[2].point.y = mouseEvent.point.y;
-                  this.data.from.y = mouseEvent.point.y;
-                  updateMenuParams(this.data);
+                  this.data.from.y = Math.round(mouseEvent.point.y);
                   var lastHeight = newHeight;
-                  var newHeight = this.data.to.y - mouseEvent.point.y;
+                  newHeight = this.bounds.bottom - mouseEvent.point.y;
                   for (var i = 1; i < this.data.touchs + 1; i++) {
-                    var item = this.children[i];
-                    item.children["line-y"].segments[0].point.y = mouseEvent.point.y + (this.children["pad"].strokeWidth / 2);
-                    var newSize_y = ((this.data.to.y - item.children["line-x"].segments[0].point.y) * newHeight) / lastHeight;
-                    item.children["line-x"].position.y = this.data.to.y - newSize_y;
-                    item.children["circle"].position.y = this.data.to.y - newSize_y;
+                    this.children[i].children["line-y"].segments[0].point.y = mouseEvent.point.y + (this.children["pad"].strokeWidth / 2);
+                    var newSize_y = ((this.bounds.bottom - this.children[i].children["line-x"].segments[0].point.y) * newHeight) / lastHeight;
+                    this.children[i].children["line-x"].position.y = this.bounds.bottom - newSize_y;
+                    this.children[i].children["circle"].position.y = this.bounds.bottom - newSize_y;
                   }
                   break;
                 case 2: // Update right segment
                   this.children["pad"].segments[2].point.x = mouseEvent.point.x;
                   this.children["pad"].segments[3].point.x = mouseEvent.point.x;
-                  this.data.to.x = mouseEvent.point.x;
-                  updateMenuParams(this.data);
+                  this.data.to.x = Math.round(mouseEvent.point.x);
                   var lastWidth = newWidth;
-                  var newWidth = mouseEvent.point.x - this.data.from.x;
+                  newWidth = mouseEvent.point.x - this.bounds.left;
                   for (var i = 1; i < this.data.touchs + 1; i++) {
-                    var item = this.children[i];
-                    item.children["line-x"].segments[1].point.x = mouseEvent.point.x - (this.children["pad"].strokeWidth / 2);
-                    var newSize_x = ((item.children["line-y"].segments[0].point.x - this.data.from.x) * newWidth) / lastWidth;
-                    item.children["line-y"].position.x = this.data.from.x + newSize_x;
-                    item.children["circle"].position.x = this.data.from.x + newSize_x;
+                    this.children[i].children["line-x"].segments[1].point.x = mouseEvent.point.x - (this.children["pad"].strokeWidth / 2);
+                    var newSize_x = ((this.children[i].children["line-y"].segments[0].point.x - this.bounds.left) * newWidth) / lastWidth;
+                    this.children[i].children["line-y"].position.x = this.bounds.left + newSize_x;
+                    this.children[i].children["circle"].position.x = this.bounds.left + newSize_x;
                   }
                   break;
                 case 3: // Update bottom segment
                   this.children["pad"].segments[3].point.y = mouseEvent.point.y;
                   this.children["pad"].segments[0].point.y = mouseEvent.point.y;
-                  this.data.to.y = mouseEvent.point.y;
-                  updateMenuParams(this.data);
+                  this.data.to.y = Math.round(mouseEvent.point.y);
                   var lastHeight = newHeight;
-                  var newHeight = mouseEvent.point.y - this.data.from.y;
+                  newHeight = mouseEvent.point.y - this.bounds.top;
                   for (var i = 1; i < this.data.touchs + 1; i++) {
-                    var item = this.children[i];
-                    item.children["line-y"].segments[1].point.y = mouseEvent.point.y - (this.children["pad"].strokeWidth / 2);
-                    var newSize_y = ((item.children["line-x"].segments[0].point.y - this.data.from.y) * newHeight) / lastHeight;
-                    item.children["line-x"].position.y = this.data.from.y + newSize_y;
-                    item.children["circle"].position.y = this.data.from.y + newSize_y;
+                    this.children[i].children["line-y"].segments[1].point.y = mouseEvent.point.y - (this.children["pad"].strokeWidth / 2);
+                    var newSize_y = ((this.children[i].children["line-x"].segments[0].point.y - this.bounds.top) * newHeight) / lastHeight;
+                    this.children[i].children["line-x"].position.y = this.bounds.top + newSize_y;
+                    this.children[i].children["circle"].position.y = this.bounds.top + newSize_y;
                   }
                   break;
               }
+              updateMenuParams(this.data);
               break;
             }
         }
@@ -259,34 +256,14 @@ function touchpadFactory() {
             mouseEvent.point.y > this.children["pad"].bounds.top &&
             mouseEvent.point.y < this.children["pad"].bounds.bottom) {
             // SEND MIDI CONTROL_CHANGE
-            //controlChange(selectedItem.parent.data.Xcc, selectedItem.parent.data.value.x, selectedItem.parent.data.Xchan - 1);
-            //controlChange(selectedItem.parent.data.Ycc, selectedItem.parent.data.value.y, selectedItem.parent.data.Ychan - 1);
+            //sendControlChange(selectedItem.parent.data.Xcc, selectedItem.parent.data.value.x, selectedItem.parent.data.Xchan);
+            //sendControlChange(selectedItem.parent.data.Ycc, selectedItem.parent.data.value.y, selectedItem.parent.data.Ychan);
             selectedItem.parent.children["line-x"].position.y = mouseEvent.point.y;
             selectedItem.parent.children["line-y"].position.x = mouseEvent.point.x;
             selectedItem.parent.children["circle"].position = mouseEvent.point;
-            selectedItem.parent.data.value = mouseEvent.point;
+            selectedItem.parent.data.value.x = Math.round(mouseEvent.point.x);
+            selectedItem.parent.data.value.y = Math.round(mouseEvent.point.y);
             updateMenuParams(selectedItem.parent.data);
-          }
-        }
-      }
-    },
-    onMouseUp: function () {
-      if (currentMode === EDIT_MODE) {
-        //updateMenuParams(this.data);
-      }
-      else if (currentMode === PLAY_MODE) {
-        //updateMenuParams(this.data);
-      }
-    },
-    onKeyDown: function (event) {
-      console.log(event.key);
-      if (currentMode === EDIT_MODE) {
-        console.log("ping");
-        if (event.modifiers.shift) {
-          console.log("pong");
-          if (Key.isDown("backspace")) {
-            console.log(selectedItem.parent);
-            selectedItem.parent.remove();
           }
         }
       }
@@ -297,80 +274,69 @@ function touchpadFactory() {
 
 /////////// TRIGGER Factory
 function triggerFactory() {
+  var defaulSize = 80;
   var selectedPath = null;
-  var selectedPath = null;
-
-  function sendNoteOff() {
-    this.children["circle"].fillColor = "green";
-    this.data.value = 0;
-    if (connected) noteOff(this.data.note, 0, this.data.chan - 1);
-    updateMenuParams(this.data);
-  }
-
-  var Trigger = new paper.Group({
+  var _Trigger = new paper.Group({
     data: {
       name: "trigger",
       value: null,
       from: [{ x: null, y: null }],
       to: [{ x: null, y: null }],
-      size: 50,
       chan: null,
       note: null,
       velocity: null
     },
     setupFromMouseEvent: function (mouseEvent) {
-      this.data.from = new paper.Point(mouseEvent.point.x - (this.data.size / 2), mouseEvent.point.y - (this.data.size / 2));
-      this.data.to = new paper.Point(mouseEvent.point.x + (this.data.size / 2), mouseEvent.point.y + (this.data.size / 2));
-
+      this.data.from = new paper.Point(mouseEvent.point.x - (defaulSize / 2), mouseEvent.point.y - (defaulSize / 2));
+      this.data.to = new paper.Point(mouseEvent.point.x + (defaulSize / 2), mouseEvent.point.y + (defaulSize / 2));
       var _square = new paper.Path.Rectangle({
+        name: "square",
+        from: this.data.from,
+        to: this.data.to,
         strokeWidth: 10,
         strokeColor: "lightblue",
-        fillColor: "lightblue",
+        fillColor: "lightblue"
       });
-      _square.name = "square";
-      _square.from = this.data.from;
-      _square.to = this.data.to;
-
       var _circle = new paper.Path.Circle({
+        name: "circle",
+        center: mouseEvent.point,
+        radius: defaulSize / 2.2,
         fillColor: "green"
       });
-      _circle.name = "circle";
-      _circle.position = mouseEvent.point;
-      _circle.radius = this.data.size / 2.2;
-
       this.addChild(_square);
       this.addChild(_circle);
     },
     setupFromConfig: function (params) {
-      this.data.from = new paper.Point(params.x - (params.s / 2), params.y - (params.s / 2));
-      this.data.to = new paper.Point(params.x + (params.s / 2), params.y + (params.s / 2));
+      this.data.from = new paper.Point(params.f);
+      this.data.to = new paper.Point(params.t);
       this.data.chan = params.c;
       this.data.note = params.n;
       this.data.velocity = params.v;
-
+      var sizeX = this.data.to.x - this.data.from.x;
+      var sizeY = this.data.to.y - this.data.from.y;
+      var circleCenterX = this.data.to.x - (sizeX / 2);
+      var circleCenterY = this.data.to.y - (sizeY / 2);
       var _square = new paper.Path.Rectangle({
+        name: "square",
+        from: this.data.from,
+        to: this.data.to,
         strokeWidth: 10,
         strokeColor: "lightblue",
         fillColor: "lightblue",
       });
-      _square.name = "square";
-      _square.from = this.data.from;
-      _square.to = this.data.to;
-
       var _circle = new paper.Path.Circle({
+        name: "circle",
+        center: new paper.Point(circleCenterX, circleCenterY),
+        radius: sizeX / 2.2,
         fillColor: "green"
       });
-      _circle.name = "circle";
-      _circle.position = mouseEvent.point;
-      _circle.radius = this.data.size / 2.2;
-
-      this.addChildren(_square);
-      this.addChildren(_circle);
+      this.addChild(_square);
+      this.addChild(_circle);
     },
-    onMouseDown: function (event) {
+    onMouseDown: function (mouseEvent) {
       // selectedItem: "circle",...
       // selectedPath: fill, stroke
-      var hitResult = this.hitTest(mouseEvent.point, touchpadHitOptions);
+      var hitResult = this.hitTest(mouseEvent.point, hitOptions);
       selectedItem = hitResult.item;
       if (currentMode === EDIT_MODE) {
         selectedPath = hitResult.type;
@@ -379,13 +345,166 @@ function triggerFactory() {
         if (selectedItem.name === "circle") {
           selectedItem.fillColor = "red";
           selectedItem.parent.data.value = this.data.note;
-          setTimeout(sendNoteOff, 200, this);
-          if (connected) noteOn(this.data.note, this.data.velocity, this.data.chan - 1);
+          updateMenuParams(this.data);
+          if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
+          setTimeout(this.triggerOff, 200, this);
         }
-        updateMenuParams(this.data);
       }
     },
-    onMouseUp: function () {
+    onMouseDrag: function (mouseEvent) {
+      if (currentMode === EDIT_MODE) {
+        switch (selectedPath) {
+          case "fill":
+            this.translate(mouseEvent.delta);
+            this.data.from.x = Math.round(this.data.from.x += mouseEvent.delta.x);
+            this.data.from.y = Math.round(this.data.from.y += mouseEvent.delta.y);
+            this.data.to.x = Math.round(this.data.to.x += mouseEvent.delta.x);
+            this.data.to.y = Math.round(this.data.to.y += mouseEvent.delta.y);
+            updateMenuParams(this.data);
+            break;
+          case "stroke":
+            if (selectedItem.name === "square") {
+              var triggRadius_x = (this.bounds.right - this.bounds.left) / 2;
+              var triggRadius_y = (this.bounds.bottom - this.bounds.top) / 2;
+              var triggRadius = triggRadius_x;
+
+              var triggCenter_x = this.bounds.left + triggRadius_x;
+              var triggCenter_y = this.bounds.top + triggRadius_y;
+              var x = mouseEvent.point.x - triggCenter_x;
+              var y = mouseEvent.point.y - triggCenter_y;
+              var lastTriggRadius = triggRadius;
+              var triggRadius = Math.sqrt((x * x) + (y * y)) - (this.children["square"].strokeWidth / 2);
+              this.scale(triggRadius / lastTriggRadius);
+
+              this.data.from.x = Math.round(this.children["square"].bounds.left);
+              this.data.to.x = Math.round(this.children["square"].bounds.right);
+              this.data.from.y = Math.round(this.children["square"].bounds.top);
+              this.data.to.y = Math.round(this.children["square"].bounds.bottom);
+              updateMenuParams(this.data);
+
+            } else if (selectedItem.name === "circle") {
+              moveItem(this, mouseEvent);
+            }
+            break;
+        }
+      }
+    },
+    triggerOff: function (item) {
+      item.children["circle"].fillColor = "green";
+      item.data.value = 0;
+      if (connected) sendNoteOff(item.data.note, 0, item.data.chan);
+      updateMenuParams(item.data);
+    }
+  });
+  return _Trigger;
+}
+
+/////////// SWITCH Factory
+function switchFactory() {
+  var defaulSize = 80;
+  var selectedPath = null;
+  var _Switch = new paper.Group({
+    data: {
+      name: "switch",
+      value: null,
+      from: [{ x: null, y: null }],
+      to: [{ x: null, y: null }],
+      chan: null,
+      note: null,
+      velocity: null
+    },
+    setupFromMouseEvent: function (mouseEvent) {
+      this.data.from = new paper.Point(mouseEvent.point.x - (defaulSize / 2), mouseEvent.point.y - (defaulSize / 2));
+      this.data.to = new paper.Point(mouseEvent.point.x + (defaulSize / 2), mouseEvent.point.y + (defaulSize / 2));
+      var _square = new paper.Path.Rectangle({
+        name: "square",
+        from: this.data.from,
+        to: this.data.to,
+        strokeWidth: 10,
+        strokeColor: "lightblue",
+        fillColor: "white"
+      });
+      var _cross = new paper.Group({
+        name: "cross"
+      });
+      var _line_a = new paper.Path.Line({
+        name: "line",
+        from: new paper.Point(this.data.from.x, this.data.from.y),
+        to: new paper.Point(this.data.to.x, this.data.to.y),
+        strokeWidth: 8,
+        strokeColor: "black"
+        //strokeCap: "round"
+      });
+      var _line_b = new paper.Path.Line({
+        name: "line",
+        from: new paper.Point(this.data.from.x, this.data.to.y),
+        to: new paper.Point(this.data.to.x, this.data.from.y),
+        strokeWidth: 8,
+        strokeColor: "black"
+        //strokeCap: "round"
+      });
+      this.addChild(_square);
+      _cross.addChild(_line_a);
+      _cross.addChild(_line_b);
+      this.addChild(_cross);
+    },
+    setupFromConfig: function (params) {
+      this.data.from = new paper.Point(params.f);
+      this.data.to = new paper.Point(params.t);
+      this.data.chan = params.c;
+      this.data.note = params.n;
+      this.data.velocity = params.v;
+      var _square = new paper.Path.Rectangle({
+        name: "square",
+        from: this.data.from,
+        to: this.data.to,
+        strokeWidth: 10,
+        strokeColor: "lightblue",
+        fillColor: "white"
+      });
+      var _cross = new paper.Group({
+        name: "cross"
+      });
+      var _line_a = new paper.Path.Line({
+        name: "line",
+        from: new paper.Point(this.data.from.x, this.data.from.y),
+        to: new paper.Point(this.data.to.x, this.data.to.y),
+        strokeWidth: 8,
+        strokeColor: "black"
+        //strokeCap: "round"
+      });
+      var _line_b = new paper.Path.Line({
+        name: "line",
+        from: new paper.Point(this.data.from.x, this.data.to.y),
+        to: new paper.Point(this.data.to.x, this.data.from.y),
+        strokeWidth: 8,
+        strokeColor: "black",
+        //strokeCap: "round"
+      });
+      this.addChild(_square);
+      _cross.addChild(_line_a);
+      _cross.addChild(_line_b);
+      this.addChild(_cross);
+    },
+    onMouseDown: function (mouseEvent) {
+      // selectedItem: "circle",...
+      // selectedPath: fill, stroke
+      var hitResult = this.hitTest(mouseEvent.point, hitOptions);
+      selectedItem = hitResult.item;
+      if (currentMode === EDIT_MODE) {
+        var hitResult = this.hitTest(mouseEvent.point, hitOptions);
+        selectedPath = hitResult.type;
+      }
+      else if (currentMode === PLAY_MODE) {
+        this.data.value = !this.data.value;
+        if (this.data.value) {
+          this.children["cross"].visible = true;
+          if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
+        } else {
+          this.children["cross"].visible = false;
+          if (connected) sendNoteOff(this.data.note, 0, this.data.chan);
+        }
+      }
       updateMenuParams(this.data);
     },
     onMouseDrag: function (mouseEvent) {
@@ -396,200 +515,118 @@ function triggerFactory() {
             break;
           case "stroke":
             if (selectedItem.name === "square") {
-              scale2d(this, mouseEvent);
-            } else if (selectedItem.name === "circle") {
+              var switchRadius_x = (this.bounds.right - this.bounds.left) / 2;
+              var switchRadius_y = (this.bounds.bottom - this.bounds.top) / 2;
+              var switchRadius = switchRadius_x;
+              var switchCenter_x = this.bounds.left + switchRadius_x;
+              var switchCenter_y = this.bounds.top + switchRadius_y;
+              var x = mouseEvent.point.x - switchCenter_x;
+              var y = mouseEvent.point.y - switchCenter_y;
+              var lastSwitchRadius = switchRadius;
+              var switchRadius = Math.sqrt((x * x) + (y * y)) - (this.children["square"].strokeWidth / 2);
+              this.scale(switchRadius / lastSwitchRadius);
+              this.data.from.x = Math.round(this.children["square"].bounds.left);
+              this.data.to.x = Math.round(this.children["square"].bounds.right);
+              this.data.from.y = Math.round(this.children["square"].bounds.top);
+              this.data.to.y = Math.round(this.children["square"].bounds.bottom);
+            } else if (selectedItem.name === "line") {
               moveItem(this, mouseEvent);
             }
             break;
         }
-      } else if (currentMode === PLAY_MODE) {
-        // TODO
-      }
-    },
-    onKeyDown: function (mouseEvent) {
-      if (currentMode === EDIT_MODE) {
-        if (mouseEvent.modifiers.shift) {
-          if (Key.isDown("backspace")) {
-            this.remove();
-          }
-        }
+        updateMenuParams(this.data);
       }
     }
   });
-  return Trigger;
-}
-
-
-
-
-
-
-
-
-
-/////////// SWITCH Factory
-function switchFactory() {
-  var selectedPath = null;
-  var selectedPathName = null;
-  var e256_switch = new paper.Group({
-    data: {
-      name: "switch",
-      value: false,
-      from: [{ x: null, y: null }],
-      to: [{ x: null, y: null }],
-      chan: 1,
-      note: 64,
-      velocity: 127
-    },
-    setupFromMouseEvent: function (mouseEvent) {
-      this.data.x = Math.round(mouseEvent.point.x);
-      this.data.y = Math.round(mouseEvent.point.y);
-    },
-    setupFromConfig: function (params) {
-      for (var i = 0; i < params.length; i++) {
-        this.data.x = params[i].x;
-        this.data.y = params[i].y;
-        this.data.size = params[i].s;
-        this.data.chan = params[i].c;
-        this.data.note = params[i].n;
-        this.data.velocity = params[i].v;
-      }
-      console.log("SWITCHS_PARAMS_LOADED");
-    },
-    onMouseDown: function (mouseEvent) {
-      updateMenuParams(this.data);
-      if (currentMode === EDIT_MODE) {
-        var hitResult = this.hitTest(mouseEvent.point, hitOptions);
-        selectedPath = hitResult.type;
-        selectedPathName = hitResult.item.name;
-      }
-      else if (currentMode === PLAY_MODE) {
-        this.data.value = !this.data.value;
-        if (this.data.value) {
-          this.children["cross"].visible = true;
-          // SEND MIDI NOTE_ON
-          if (connected) noteOn(this.data.note, this.data.velocity, this.data.chan - 1);
-        } else {
-          this.children["cross"].visible = false;
-          // SEND MIDI NOTE_OFF
-          if (connected) noteOff(this.data.note, 0, this.data.chan - 1);
-        }
-      }
-    },
-    onMouseUp: function (mouseEvent) {
-      updateMenuParams(this.data);
-    },
-    onMouseDrag: function (mouseEvent) {
-      if (currentMode === EDIT_MODE) {
-        switch (selectedPath) {
-          case "fill":
-            moveItem(this, mouseEvent);
-            break;
-          case "stroke":
-            if (selectedPathName === "square") {
-              scale2d(this, mouseEvent);
-            } else if (selectedPathName === "cross") {
-              moveItem(this, mouseEvent);
-            }
-            break;
-        }
-      }
-      else if (currentMode === PLAY_MODE) {
-        // NA
-      }
-    }
-  });
-
-  var Square = new paper.Path.Rectangle({
-    name: "square",
-    strokeWidth: 10,
-    strokeColor: "lightblue",
-    fillColor: "white",
-    from: new paper.Point(e256_switch.data.x - (e256_switch.data.size / 2), e256_switch.data.y - (e256_switch.data.size / 2)),
-    to: new paper.Point(e256_switch.data.x + (e256_switch.data.size / 2), e256_switch.data.y + (e256_switch.data.size / 2))
-  });
-  e256_switch.addChild(Square);
-
-  var Cross = new paper.Group({});
-  Cross.name = "cross";
-  var Line_A = new paper.Path.Line({
-    name: "cross",
-    strokeWidth: 8,
-    strokeColor: "black",
-    strokeCap: "round",
-    from: new paper.Point(e256_switch.data.x - (e256_switch.data.size / 3), e256_switch.data.y - (e256_switch.data.size / 3)),
-    to: new paper.Point(e256_switch.data.x + (e256_switch.data.size / 3), e256_switch.data.y + (e256_switch.data.size / 3))
-  });
-  Cross.addChild(Line_A);
-  var Line_B = new paper.Path.Line({
-    name: "cross",
-    strokeCap: "round",
-    strokeColor: "black",
-    strokeWidth: 7,
-    from: new paper.Point(e256_switch.data.x + (e256_switch.data.size / 3), e256_switch.data.y - (e256_switch.data.size / 3)),
-    to: new paper.Point(e256_switch.data.x - (e256_switch.data.size / 3), e256_switch.data.y + (e256_switch.data.size / 3))
-  });
-  Cross.addChild(Line_B);
-
-  e256_switch.addChild(Cross);
-  return e256_switch;
+  return _Switch;
 }
 
 /////////// SLIDER Factory
 function sliderFactory(mouseEvent) {
+  var defaultWidth = 50;
+  var defaultHeight = 400;
+  var selectedPath = null;
+  var selectedSegment = null;
+  var lastValue = null;
   var sliderHitOptions = {
     stroke: true,
     segment: true,
     fill: true,
     tolerance: 5
   };
-  var selectedPath = null;
-  var selectedPathName = null;
-  var selectedSegment = null;
-  var last_val = 0;
-
-  var e256_slider = new paper.Group({
+  var _Slider = new paper.Group({
     data: {
       name: "slider",
       value: 0,
       from: [{ x: null, y: null }],
       to: [{ x: null, y: null }],
-      chan: 1,
-      cc: 0,
-      min: 2,
-      max: 50
+      chan: null,
+      cc: null,
+      min: null,
+      max: null
     },
     setupFromMouseEvent: function (mouseEvent) {
-      //this.data.from = Math.round(mouseEvent.point.x);
-      //this.data.to = Math.round(mouseEvent.point.y);
+      this.data.from = new paper.Point(Math.round(mouseEvent.point.x - (defaultWidth / 2)), Math.round(mouseEvent.point.y - (defaultHeight / 2)));
+      this.data.to = new paper.Point(Math.round(mouseEvent.point.x + (defaultWidth / 2)), Math.round(mouseEvent.point.y + (defaultHeight / 2)));
+      var _rect = new paper.Path.Rectangle({
+        name: "rect",
+        value: 0,
+        from: this.data.from,
+        to: this.data.to,
+        strokeWidth: 8,
+        strokeColor: "lightblue",
+        fillColor: "white"
+      });
+      var _handle = new paper.Path.Line({
+        name: "handle",
+        from: new paper.Point(this.data.from.x, this.data.from.y + (defaultHeight / 2)),
+        to: new paper.Point(this.data.to.x, this.data.from.y + (defaultHeight / 2)),
+        strokeWidth: 10,
+        strokeCap: "round",
+        strokeColor: "black"
+      });
+      this.addChild(_rect);
+      this.addChild(_handle);
     },
     setupFromConfig: function (params) {
-      for (var i = 0; i < params.length; i++) {
-        this.data.x = params[i].x;
-        this.data.y = params[i].y;
-        this.data.width = params[i].w;
-        this.data.height = params[i].h;
-        this.data.chan = params[i].c;
-        this.data.cc = params[i].o;
-        this.data.min = params[i].i;
-        this.data.max = params[i].a;
-      }
-      console.log("SWITCHS_PARAMS_LOADED");
+      this.data.from = new paper.Point(params.f);
+      this.data.to = new paper.Point(params.t);
+      this.data.chan = params[i].c;
+      this.data.cc = params[i].o;
+      this.data.min = params[i].i;
+      this.data.max = params[i].a;
+      var _rect = new paper.Path.Rectangle({
+        name: "rect",
+        from: this.data.from,
+        to: this.data.to,
+        strokeWidth: 8,
+        strokeColor: "lightblue",
+        fillColor: "white"
+      });
+      var _handle = new paper.Path.Line({
+        name: "handle",
+        from: new paper.Point(this.data.from.x, this.data.from.y + (defaultHeight / 2)),
+        to: new paper.Point(this.data.to.x, this.data.from.y + (defaultHeight / 2)),
+        strokeWidth: 10,
+        strokeCap: "round",
+        strokeColor: "black"
+      });
+      this.addChild(_rect);
+      this.addChild(_handle);
     },
     onMouseDown: function (mouseEvent) {
-      updateMenuParams(this.data);
+      var hitResult = this.hitTest(mouseEvent.point, sliderHitOptions);
+      selectedItem = hitResult.item;
       if (currentMode === EDIT_MODE) {
-        var hitResult = this.hitTest(mouseEvent.point, sliderHitOptions);
-        selectedPathName = hitResult.item.name;
         selectedPath = hitResult.type;
         if (selectedPath === "stroke") selectedSegment = hitResult.location.index;
-        else if (currentMode === PLAY_MODE) {
-          last_val = this.data.val;
-          this.data.val = Math.round(mapp(this.data.to.y - mouseEvent.point.y, 0, this.data.height, this.data.min, this.data.max));
-          this.children["handle"].segments[0].point.y = mouseEvent.point.y;
-          this.children["handle"].segments[1].point.y = mouseEvent.point.y;
-        }
       }
+      else if (currentMode === PLAY_MODE) {
+        this.data.value = Math.round(mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.min, this.data.max));
+        console.log(this.data.value);
+        this.children["handle"].position.y = mouseEvent.point.y;
+      }
+      updateMenuParams(this.data);
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
@@ -598,40 +635,35 @@ function sliderFactory(mouseEvent) {
             moveItem(this, mouseEvent);
             break;
           case "stroke":
-            switch (selectedPathName) {
+            switch (selectedItem.name) {
               case "rect":
                 switch (selectedSegment) {
                   case 0: // Update left segment
-                    this.data.x = Math.round(this.data.to.x - ((this.data.to.x - mouseEvent.point.x) / 2));
-
-                    width = Math.round(this.data.to.x - this.data.to.x);
-
+                    this.data.from.x = Math.round(this.bounds.right - ((this.bounds.right - mouseEvent.point.x) / 2));
+                    //width = this.bounds.right - this.bounds.left;
                     this.children["rect"].segments[0].point.x = mouseEvent.point.x;
                     this.children["rect"].segments[1].point.x = mouseEvent.point.x;
                     this.children["handle"].segments[0].point.x = mouseEvent.point.x;
                     break;
                   case 1: // Update top segment
-                    this.data.y = Math.round(this.data.to.y - ((this.data.to.y - mouseEvent.point.y) / 2));
-                    height = Math.round((this.data.to.y - this.data.y) * 2);
+                    this.data.from.y = Math.round(this.bounds.bottom - ((this.bounds.bottom - mouseEvent.point.y) / 2));
                     this.children["rect"].segments[1].point.y = mouseEvent.point.y;
                     this.children["rect"].segments[2].point.y = mouseEvent.point.y;
-                    this.children["handle"].segments[0].point.y = this.data.y;
-                    this.children["handle"].segments[1].point.y = this.data.y;
+                    this.children["handle"].position.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
                     break;
                   case 2: // Update right segment
-                    this.data.x = Math.round(this.data.from.x + ((mouseEvent.point.x - this.data.from.x) / 2));
-                    width = Math.round((this.data.x - this.data.from.x) * 2);
+                    this.data.to.x = Math.round(this.bounds.left + ((mouseEvent.point.x - this.bounds.left) / 2));
+                    //width = this.bounds.right - this.bounds.left;
                     this.children["rect"].segments[2].point.x = mouseEvent.point.x;
                     this.children["rect"].segments[3].point.x = mouseEvent.point.x;
                     this.children["handle"].segments[1].point.x = mouseEvent.point.x;
                     break;
                   case 3: // Update bottom segment
-                    this.data.y = Math.round(this.data.from.y + ((mouseEvent.point.y - this.data.from.y) / 2));
-                    height = Math.round((this.data.y - this.data.from.y) * 2);
+                    this.data.to.y = Math.round(this.data.from.y + ((mouseEvent.point.y - this.bounds.top) / 2));
+                    height = this.bounds.bottom - this.bounds.top;
                     this.children["rect"].segments[3].point.y = mouseEvent.point.y;
                     this.children["rect"].segments[0].point.y = mouseEvent.point.y;
-                    this.children["handle"].segments[0].point.y = this.data.y;
-                    this.children["handle"].segments[1].point.y = this.data.y;
+                    this.children["handle"].position.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
                     break;
                 }
                 break;
@@ -640,67 +672,36 @@ function sliderFactory(mouseEvent) {
                 break;
             }
         }
+        updateMenuParams(this.data);
       }
       else if (currentMode === PLAY_MODE) {
-        if (mouseEvent.point.y > this.data.from.y && mouseEvent.point.y < this.data.to.y) {
-          /*
-          if (newWidth > newHeight){
-            selectedItem.data.value.x = Math.round(mapp(mouseEvent.point.x - this.data.from.x, 0, newWidth, this.data.min, this.data.max));
-          } else {  
-            selectedItem.data.value.y = Math.round(mapp(mouseEvent.point.y - this.data.from.y, 0, newHeight, this.data.min, this.data.max));
-          }
-          */
+        if (mouseEvent.point.y > this.bounds.top && mouseEvent.point.y < this.bounds.bottom) {
+          lastValue = this.data.value;
+          this.data.value = Math.round(mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.min, this.data.max));
+          console.log(this.data.value);
 
-          last_val = this.data.val;
-          this.data.val = Math.round(mapp(this.data.to.y - mouseEvent.point.y, 0, this.data.height, this.data.min, this.data.max));
-          // SEND MIDI CONTROL_CHANGE
-          if (this.data.val != last_val) {
-            if (connected) controlChange(this.data.cc, this.data.val, this.data.chan - 1);
+          if (this.data.value != lastValue) {
+            if (connected) sendControlChange(this.data.cc, this.data.value, this.data.chan);
             updateMenuParams(this.data);
           }
-          this.children["handle"].segments[0].point.y = mouseEvent.point.y;
-          this.children["handle"].segments[1].point.y = mouseEvent.point.y;
+          this.children["handle"].position.y = mouseEvent.point.y;
         }
       }
     },
     onMouseUp: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
-        updateMenuParams(this.data);
       }
       else if (currentMode === PLAY_MODE) {
         updateMenuParams(this.data);
       }
     }
   });
-
-  var Rect = new paper.Path.Rectangle({
-    name: "rect",
-    strokeColor: "lightblue",
-    fillColor: "yellow",
-    strokeWidth: 8,
-    fillColor: "white",
-    from: new paper.Point(e256_slider.data.x - (e256_slider.data.width / 2), e256_slider.data.y - (e256_slider.data.height / 2)),
-    to: new paper.Point(e256_slider.data.x + (e256_slider.data.width / 2), e256_slider.data.y + (e256_slider.data.height / 2))
-  });
-  e256_slider.addChild(Rect);
-
-  var Handle = new paper.Path.Line({
-    name: "handle",
-    strokeCap: "round",
-    strokeColor: "black",
-    strokeWidth: 10,
-    from: new paper.Point(e256_slider.data.x - (e256_slider.data.width / 2) - 2, e256_slider.data.y),
-    to: new paper.Point(e256_slider.data.x + (e256_slider.data.width / 2) + 2, e256_slider.data.y)
-  });
-  e256_slider.addChild(Handle);
-
-  return e256_slider;
+  return _Slider;
 }
 
 /////////// KNOB Factory
 function knobFactory(mouseEvent) {
   var selectedPath = null;
-  var selectedPathName = null;
   var last_offset = 0;
   var last_rVal = 0;
   var last_tVal = 0;
@@ -748,7 +749,7 @@ function knobFactory(mouseEvent) {
       if (currentMode === EDIT_MODE) {
         var hitResult = this.hitTest(mouseEvent.point, hitOptions);
         selectedPath = hitResult.type;
-        selectedPathName = hitResult.item.name;
+        selectedItem = hitResult.item;
       }
       else if (currentMode === PLAY_MODE) {
         var x = mouseEvent.point.x - this.data.x; // Place the x origin to the circle center
@@ -762,14 +763,14 @@ function knobFactory(mouseEvent) {
         last_rVal = this.data.rVal;
         this.data.rVal = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
         if (connected && this.data.rVal != last_rVal) {
-          controlChange(this.data.rCc, this.data.rVal, this.data.rChan - 1);
+          sendControlChange(this.data.rCc, this.data.rVal, this.data.rChan);
         }
 
         last_tVal = this.data.tVal;
         var newPolar = rotatePolar(rad_to_deg(polar.theta), this.data.offset);
         this.data.tVal = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
         if (connected && this.data.tVal != last_tVal) {
-          controlChange(this.data.tCc, this.data.tVal, this.data.tChan - 1);
+          sendControlChange(this.data.tCc, this.data.tVal, this.data.tChan);
         }
         updateMenuParams(this.data);
       }
@@ -782,7 +783,7 @@ function knobFactory(mouseEvent) {
       if (currentMode === EDIT_MODE) {
         switch (selectedPath) {
           case "fill":
-            if (selectedPathName === "handle") {
+            if (selectedItem.name === "handle") {
               var x = mouseEvent.point.x - this.data.x; // Place the x origin to the circle center
               var y = mouseEvent.point.y - this.data.y; // Place the y origin to the circle center
               last_offset = this.data.offset;
@@ -795,7 +796,7 @@ function knobFactory(mouseEvent) {
             }
             break;
           case "stroke":
-            switch (selectedPathName) {
+            switch (selectedItem.name) {
               case "circle":
                 var x = mouseEvent.point.x - this.data.x;
                 var y = mouseEvent.point.y - this.data.y;
@@ -836,10 +837,10 @@ function knobFactory(mouseEvent) {
 
         // SEND MIDI CONTROL_CHANGE
         if (connected && this.data.tVal != last_tVal) {
-          controlChange(this.data.tCc, this.data.tVal, this.data.tChan - 1);
+          sendControlChange(this.data.tCc, this.data.tVal, this.data.tChan);
         }
         if (connected && this.data.rVal != last_rVal) {
-          controlChange(this.data.rCc, this.data.rVal, this.data.rChan - 1);
+          sendControlChange(this.data.rCc, this.data.rVal, this.data.rChan);
         }
       }
     }
@@ -904,7 +905,7 @@ function scale2d(item, mouseEvent) {
   var y = mouseEvent.point.y - item.data.y;
   var radius = Math.sqrt((x * x) + (y * y));
   var newRadius = radius - (item.children[0].strokeWidth / 2);
-  var oldRadius = item.data.size / 2;
+  var oldRadius = (item.data.to.x - item.data.from.x) / 2;
   item.scale(newRadius / oldRadius);
   item.data.size = Math.round(item.children[0].bounds.width);
 }

@@ -38,7 +38,7 @@ function onMIDISuccess(midiAccess) {
     }
     if (inputSetup && outputSetup) {
       connected = true;
-      programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+      sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
       setTimeout(isConnected, SYNC_MODE_TIMEOUT);
       console.log("SYNC_MODE_REQUEST_A - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
     }
@@ -64,7 +64,7 @@ function onMIDISuccess(midiAccess) {
         if (inputSetup && outputSetup) {
           connected = true;
           setTimeout(updateMenu, SYNC_MODE_TIMEOUT);
-          programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+          sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
           console.log("REQUEST: SYNC_MODE");
         }
         break;
@@ -129,13 +129,13 @@ function onMIDIMessage(midiMsg) {
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
           if (value == PENDING_MODE_DONE) {
-            programChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+            sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
             console.log("REQUEST: SYNC_MODE");
           }
           else if (value == SYNC_MODE_DONE) {
             currentMode = SYNC_MODE;
             console.log("RECIVED: " + MODES_CODES[currentMode]);
-            programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
+            sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
             console.log("REQUEST: CONFIG_FILE"); 
           }
           else if (value == USBMIDI_CONFIG_ALLOC_DONE) {
@@ -182,23 +182,23 @@ function onMIDIMessage(midiMsg) {
   }
 }
 
-function noteOn(note, velocity, channel) {
-  var status = NOTE_ON | channel;
+function sendNoteOn(note, velocity, channel) {
+  var status = NOTE_ON | (channel - 1);
   MIDIoutput.send([status, note, velocity]);
 }
 
-function noteOff(note, velocity, channel) {
-  var status = NOTE_OFF | channel;
+function sendNoteOff(note, velocity, channel) {
+  var status = NOTE_OFF | (channel - 1);
   MIDIoutput.send([status, note, velocity]);
 }
 
-function controlChange(control, value, channel) {
-  var status = CONTROL_CHANGE | channel;
+function sendControlChange(control, value, channel) {
+  var status = CONTROL_CHANGE | (channel - 1);
   MIDIoutput.send([status, control, value]);
 }
 
-function programChange(program, channel) {
-  var status = PROGRAM_CHANGE | channel;
+function sendProgramChange(program, channel) {
+  var status = PROGRAM_CHANGE | (channel - 1);
   MIDIoutput.send([status, program]);
 }
 

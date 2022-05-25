@@ -72,7 +72,7 @@ $(".e256_setMode").click(function (event) {
       break;
   }
   if (connected) {
-    programChange(currentMode, MIDI_MODES_CHANNEL);
+    sendProgramChange(currentMode, MIDI_MODES_CHANNEL);
     console.log("REQUEST: " + MODES_CODES[currentMode]);
   } else {
     //alert("e256 NOT CONNECTED!");
@@ -96,7 +96,7 @@ $(".mapingTool").click(function (event) {
 
 $("#calibrate").click(function () {
   if (connected) {
-    programChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
+    sendProgramChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CALIBRATE");
   } else {
     alert("e256 NOT CONNECTED!");
@@ -106,7 +106,7 @@ $("#calibrate").click(function () {
 $("#getConfig").click(function () {
   if (connected) {
     currentMode = SYNC_MODE;
-    programChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
+    sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CONFIG_FILE");
   } else {
     alert("e256 NOT CONNECTED!");
@@ -123,11 +123,9 @@ $("#setConfig").click(function () {
 
 // Update item parameters using the txt input fields
 $(".btnSet").click(function (event) {
-  var paramsIndex = 0;
-  if (event.target.id === "btnSet-" + paramsIndex) {
-    for (const param in selectedItem.data) {
-      selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
-      paramsIndex++;
-    }
-  }
+  //console.log("SETUP_VAL: " + event.target.id);
+  var paramIndex = event.target.id.substring(event.target.id.length - 1);
+  //console.log("INDEX: " + paramsIndex);
+  //console.log("ITEM: " + selectedItem.parent.data.name);
+  console.log(selectedItem.parent.data[paramIndex]);
 });

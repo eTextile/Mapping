@@ -16,13 +16,13 @@ const RAW_FRAME = RAW_COLS * RAW_ROWS;
 
 // E256 MIDI I/O CHANNELS CONSTANTS [1:15]
 // QUICK_FIX: if sending on channel 1, eTextile-synth is receiving on channel 2
-const MIDI_INPUT_CHANNEL = 1 - 1;
-const MIDI_OUTPUT_CHANNEL = 2 - 1;
-const MIDI_MODES_CHANNEL = 3 - 1;
-const MIDI_STATES_CHANNEL = 4 - 1;
-const MIDI_LEVELS_CHANNEL = 5 - 1;
-const MIDI_VERBOSITY_CHANNEL = 6 - 1;
-const MIDI_ERROR_CHANNEL = 7 - 1;
+const MIDI_INPUT_CHANNEL = 1;
+const MIDI_OUTPUT_CHANNEL = 2;
+const MIDI_MODES_CHANNEL = 3;
+const MIDI_STATES_CHANNEL = 4;
+const MIDI_LEVELS_CHANNEL = 5;
+const MIDI_VERBOSITY_CHANNEL = 6;
+const MIDI_ERROR_CHANNEL = 7;
 
 // E256 MODES CONSTANTS (MIDI_MODES_CHANNEL)
 const PENDING_MODE = 0;        // Waiting mode

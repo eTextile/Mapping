@@ -57,7 +57,7 @@ function paperInit() {
       if (!hitResult) {
         drawControlerFromMouse(mouseEvent);
       } else {
-        // NA
+
       }
     }
     if (currentMode === PLAY_MODE) {
@@ -69,8 +69,13 @@ function paperInit() {
     }
   }
 
-  paperTool.onKeyDown = function (event) {
-    // TODO
+  paperTool.onKeyDown = function (keyEvent) {
+    if (currentMode === EDIT_MODE) {
+      if (keyEvent.modifiers.shift && keyEvent.Key === "backspace") {
+        console.log(selectedItem.parent);
+        selectedItem.parent.layer.removeChildren();
+      }
+    }
   }
 
   paper.onFrame = function (event) {
@@ -121,10 +126,10 @@ function paperInit() {
     }
   }
 
-  function drawControlerFromParams(configFile) {
+  function drawControlerFromConfig(configFile) {
     let conf = configFile.mappings;
     clearLayers();
-    /*
+
     for (var i = 0; i < conf.triggers.length; i++) {
       var e256_trigger = triggerFactory();
       e256_trigger.setupFromConfig(conf.triggers[i]);
@@ -140,6 +145,7 @@ function paperInit() {
       e256_slider.setupFromConfig(conf.sliders[i]);
       sliderLayer.addChild(e256_slider);
     }
+    /*
     for (var i = 0; i < conf.knobs.length; i++) {
       var e256_knob = knobFactory();
       e256_knob.setupFromConfig(conf.knobs[i]);
@@ -192,7 +198,7 @@ function paperInit() {
       config = JSON.parse(event.target.result);
       confSize = Object.keys(JSON.stringify(config)).length;
       clearLayers();
-      drawControlerFromParams(config);
+      drawControlerFromConfig(config);
     } catch (e) {
       alert(e);
     }
@@ -217,7 +223,7 @@ function paperInit() {
   $("#loadConfig").change(function (event) {
     loadFile(event);
   });
-  
+
 }
 
 window.onload = function () {
