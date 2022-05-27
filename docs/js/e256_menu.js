@@ -114,6 +114,7 @@ $("#getConfig").click(function () {
 });
 
 $("#setConfig").click(function () {
+  console.log(connected);
   if (connected) {
     e256_exportParams();
   } else {

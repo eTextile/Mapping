@@ -5,6 +5,7 @@
 */
 
 function e256_exportParams() {
+  console.log("PIG"); /////////////////////////////////////////////
   var JSONconfig = ({});
   JSONconfig["mapping"] = [];
   JSONconfig["mapping"].push(listLayerParams("triggers"));
@@ -16,6 +17,7 @@ function e256_exportParams() {
 }
 
 function listLayerParams(layerName) {
+  console.log(paper.project.layers); //////////////////////////////////////
   var layerParams = {};
   layerParams[layerName] = [];
   for (var i = 0; i < paper.project.layers[layerName].children.length; i++) {

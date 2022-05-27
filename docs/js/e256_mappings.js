@@ -346,7 +346,7 @@ function triggerFactory() {
           selectedItem.fillColor = "red";
           selectedItem.parent.data.value = this.data.note;
           updateMenuParams(this.data);
-          if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
+          if (connected) sendProgramChange(this.data.note, this.data.velocity, this.data.chan);
           setTimeout(this.triggerOff, 200, this);
         }
       }
@@ -499,7 +499,7 @@ function switchFactory() {
         this.data.value = !this.data.value;
         if (this.data.value) {
           this.children["cross"].visible = true;
-          if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
+          //if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
         } else {
           this.children["cross"].visible = false;
           if (connected) sendNoteOff(this.data.note, 0, this.data.chan);
@@ -591,10 +591,10 @@ function sliderFactory(mouseEvent) {
     setupFromConfig: function (params) {
       this.data.from = new paper.Point(params.f);
       this.data.to = new paper.Point(params.t);
-      this.data.chan = params[i].c;
-      this.data.cc = params[i].o;
-      this.data.min = params[i].i;
-      this.data.max = params[i].a;
+      this.data.chan = params.c;
+      this.data.cc = params.o;
+      this.data.min = params.i;
+      this.data.max = params.a;
       var _rect = new paper.Path.Rectangle({
         name: "rect",
         from: this.data.from,
