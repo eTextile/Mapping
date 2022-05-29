@@ -94,6 +94,7 @@ function touchpadFactory() {
       }
       this.addChild(_pad);
       this.children["pad"].sendToBack();
+      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -139,7 +140,7 @@ function touchpadFactory() {
         });
         var _circle = new paper.Path.Circle({
           name: "circle",
-          center: _touch.data.value,
+          center: new paper.Point(_touch.data.value[0], _touch.data.value[1]),
           radius: 10,
           fillColor: "green"
         });
@@ -308,6 +309,7 @@ function triggerFactory() {
       });
       this.addChild(_square);
       this.addChild(_circle);
+      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -451,6 +453,7 @@ function switchFactory() {
       _cross.addChild(_line_a);
       _cross.addChild(_line_b);
       this.addChild(_cross);
+      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -599,6 +602,7 @@ function sliderFactory(mouseEvent) {
       });
       this.addChild(_rect);
       this.addChild(_handle);
+      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -725,7 +729,7 @@ function knobFactory(mouseEvent) {
   var defaultStrokeWidth = 10;
   var selectedPath = null;
   var last_offset = 0;
-  var last_rVal = 0;
+  var last_radius = 0;
   var last_tVal = 0;
 
   var _Knob = new paper.Group({
@@ -734,7 +738,7 @@ function knobFactory(mouseEvent) {
       center: [null, null],
       radius: 50,
       offset: 60,
-      rVal: 0,
+      radius: 0,
       tVal: 0,
       tChan: 1,
       tCc: 1,
@@ -791,12 +795,12 @@ function knobFactory(mouseEvent) {
       _Knob.addChild(_needle);
       _handle.rotate(-30);
       _Knob.addChild(_handle);
+      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       for (var i = 0; i < params.length; i++) {
-        this.data.center[0] = params[i].x;
-        this.data.center[1] = params[i].y;
-        this.data.radius = params[i].d;
+        this.data.center = params[i].center;
+        this.data.radius = params[i].radius;
         this.data.offset = params[i].o;
         this.data.tChan = params[i].t;
         this.data.tCc = params[i].tc;
@@ -826,10 +830,10 @@ function knobFactory(mouseEvent) {
         this.children["needle"].children["head"].position = new paper.Point(this.data.center[0] + headPos.x, this.data.center[1] + headPos.y);
         this.children["needle"].children["foot"].segments[1].point = new paper.Point(this.data.center[0] + footPos.x, this.data.center[1] + footPos.y);
 
-        last_rVal = this.data.rVal;
-        this.data.rVal = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
-        if (connected && this.data.rVal != last_rVal) {
-          sendControlChange(this.data.rCc, this.data.rVal, this.data.rChan);
+        last_radius = this.data.radius;
+        this.data.radius = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
+        if (connected && this.data.radius != last_radius) {
+          sendControlChange(this.data.rCc, this.data.radius, this.data.rChan);
         }
 
         last_tVal = this.data.tVal;
@@ -857,7 +861,10 @@ function knobFactory(mouseEvent) {
               this.children["handle"].rotate(delta, new paper.Point(this.data.center[0], this.data.center[1]));
               updateMenuParams(this.data);
             } else {
-              moveItem(this, mouseEvent);
+              //moveItem(this, mouseEvent);
+              this.data.center[0] += Math.round(mouseEvent.delta.x);
+              this.data.center[1] += Math.round(mouseEvent.delta.y);
+              this.translate(mouseEvent.delta);
             }
             break;
           case "stroke":
@@ -870,7 +877,10 @@ function knobFactory(mouseEvent) {
                 this.data.radius = Math.round(polar.radius);
                 break;
               case "needle":
-                moveItem(this, mouseEvent);
+                //moveItem(this, mouseEvent);
+                this.data.center[0] += Math.round(mouseEvent.delta.x);
+                this.data.center[1] += Math.round(mouseEvent.delta.y);
+                this.translate(mouseEvent.delta);
                 break;
             }
         }
@@ -887,8 +897,8 @@ function knobFactory(mouseEvent) {
           headPos = pol_to_cart(this.data.radius, polar.theta);
           footPos = pol_to_cart(this.data.radius, polar.theta);
         } else {
-          last_rVal = this.data.rVal;
-          this.data.rVal = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
+          last_radius = this.data.radius;
+          this.data.radius = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
           var newPolar = rotatePolar(rad_to_deg(polar.theta), this.data.offset);
           last_tVal = this.data.tVal;
           this.data.tVal = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
@@ -904,8 +914,8 @@ function knobFactory(mouseEvent) {
         if (connected && this.data.tVal != last_tVal) {
           sendControlChange(this.data.tCc, this.data.tVal, this.data.tChan);
         }
-        if (connected && this.data.rVal != last_rVal) {
-          sendControlChange(this.data.rCc, this.data.rVal, this.data.rChan);
+        if (connected && this.data.radius != last_radius) {
+          sendControlChange(this.data.rCc, this.data.radius, this.data.rChan);
         }
       }
     }
@@ -915,10 +925,10 @@ function knobFactory(mouseEvent) {
 
 function moveItem(item, mouseEvent) {
   item.translate(mouseEvent.delta);
-  item.data.from.x += Math.round(mouseEvent.delta.x);
-  item.data.from.y += Math.round(mouseEvent.delta.y);
-  item.data.to.x += Math.round(mouseEvent.delta.x);
-  item.data.to.y += Math.round(mouseEvent.delta.y);
+  item.data.from[0] += Math.round(mouseEvent.delta.x);
+  item.data.from[1] += Math.round(mouseEvent.delta.y);
+  item.data.to[0] += Math.round(mouseEvent.delta.x);
+  item.data.to[1] += Math.round(mouseEvent.delta.y);
 }
 
 function scale2d(item, mouseEvent) {

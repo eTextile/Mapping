@@ -145,13 +145,11 @@ function paperInit() {
       e256_slider.setupFromConfig(conf.sliders[i]);
       sliderLayer.addChild(e256_slider);
     }
-    /*
     for (var i = 0; i < conf.knobs.length; i++) {
       var e256_knob = knobFactory();
       e256_knob.setupFromConfig(conf.knobs[i]);
       knobLayer.addChild(e256_knob);
     }
-    */
     for (var i = 0; i < conf.touchpads.length; i++) {
       var e256_touchpad = touchpadFactory();
       e256_touchpad.setupFromConfig(conf.touchpads[i]);
@@ -229,4 +227,3 @@ function paperInit() {
 window.onload = function () {
   paperInit();
 }
-
