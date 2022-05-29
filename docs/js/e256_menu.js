@@ -97,7 +97,7 @@ $(".mapingTool").click(function (event) {
 $("#calibrate").click(function () {
   if (connected) {
     sendProgramChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
-    console.log("REQUEST: CALIBRATE");
+    cexportConfigonsole.log("REQUEST: CALIBRATE");
   } else {
     alert("e256 NOT CONNECTED!");
   }
@@ -113,20 +113,15 @@ $("#getConfig").click(function () {
   }
 });
 
-$("#setConfig").click(function () {
-  console.log(connected);
-  if (connected) {
-    e256_exportParams();
-  } else {
-    alert("e256 NOT CONNECTED!");
-  }
+$("#exportConfig").click(function () {
+  e256_exportParams();
 });
 
 // Update item parameters using the txt input fields
 $(".btnSet").click(function (event) {
-  //console.log("SETUP_VAL: " + event.target.id);
+  console.log("BUTTON_PARAM: ", event.target.id);
+  console.log("ITEM_NAME: ", selectedItem.parent.data.name); 
   var paramIndex = event.target.id.substring(event.target.id.length - 1);
-  //console.log("INDEX: " + paramsIndex);
-  //console.log("ITEM: " + selectedItem.parent.data.name);
-  console.log(selectedItem.parent.data[paramIndex]);
+  console.log("INDEX: " + paramIndex);
+  console.log("CURRENT_VAL" + selectedItem.parent.data[paramIndex]);
 });
