@@ -252,12 +252,12 @@ function triggerFactory() {
       this.data.chan = params.c;
       this.data.note = params.n;
       this.data.velocity = params.v;
+    },
+    setup: function () {
       var sizeX = this.data.to[0] - this.data.from[0];
       var sizeY = this.data.to[1] - this.data.from[1];
       var circleCenterX = this.data.to[0] - (sizeX / 2);
       var circleCenterY = this.data.to[1] - (sizeY / 2);
-    },
-    setup: function () {
       var _square = new paper.Path.Rectangle({
         name: "square",
         from: this.data.from,

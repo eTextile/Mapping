@@ -89,6 +89,7 @@ function paperInit() {
         var e256_trigger = triggerFactory();
         e256_trigger.setupFromMouseEvent(mouseEvent);
         e256_trigger.setup();
+        updateMenuParams(e256_trigger.data);
         triggerLayer.addChild(e256_trigger);
         triggerLayer.activate();
         break;
@@ -96,6 +97,7 @@ function paperInit() {
         var e256_switch = switchFactory();
         e256_switch.setupFromMouseEvent(mouseEvent);
         e256_switch.setup();
+        updateMenuParams(e256_switch.data);
         switchLayer.addChild(e256_switch);
         switchLayer.activate();
         break;
@@ -103,6 +105,7 @@ function paperInit() {
         var e256_slider = sliderFactory();
         e256_slider.setupFromMouseEvent(mouseEvent);
         e256_slider.setup();
+        updateMenuParams(e256_slider.data);
         sliderLayer.addChild(e256_slider);
         sliderLayer.activate();
         break;
@@ -110,6 +113,7 @@ function paperInit() {
         var e256_knob = knobFactory();
         e256_knob.setupFromMouseEvent(mouseEvent);
         e256_knob.setup();
+        updateMenuParams(e256_knob.data);
         knobLayer.addChild(e256_knob);
         knobLayer.activate();
         break;
@@ -117,13 +121,16 @@ function paperInit() {
         var e256_touchpad = touchpadFactory();
         e256_touchpad.setupFromMouseEvent(mouseEvent);
         e256_touchpad.setup();
+        updateMenuParams(e256_touchpad.data);
         touchpadLayer.addChild(e256_touchpad);
         touchpadLayer.activate();
         break;
       /*
         case "polygon":
         var e256_polygon = polygonFactory();
-        e256_polygon.init(mouseEvent);
+        e256_polygon.setupFromMouseEvent(mouseEvent);
+        e256_polygon.setup();
+        updateMenuParams(e256_touchpad.data);
         polygonLayer.addChild(e256_polygon);
         polygonLayer.activate();
         break;
@@ -140,13 +147,13 @@ function paperInit() {
       e256_trigger.setupFromConfig(conf.triggers[i]);
       e256_trigger.setup();
       triggerLayer.addChild(e256_trigger);
+      console.log(e256_trigger.data);
     }
     for (var i = 0; i < conf.switchs.length; i++) {
       var e256_switch = switchFactory();
       e256_switch.setupFromConfig(conf.switchs[i]);
       e256_switch.setup();
       switchLayer.addChild(e256_switch);
-      updateMenuParams(e256_switch.data);
     }
     for (var i = 0; i < conf.sliders.length; i++) {
       var e256_slider = sliderFactory();
