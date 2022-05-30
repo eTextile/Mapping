@@ -88,30 +88,35 @@ function paperInit() {
       case "trigger":
         var e256_trigger = triggerFactory();
         e256_trigger.setupFromMouseEvent(mouseEvent);
+        e256_trigger.setup();
         triggerLayer.addChild(e256_trigger);
         triggerLayer.activate();
         break;
       case "switch":
         var e256_switch = switchFactory();
         e256_switch.setupFromMouseEvent(mouseEvent);
+        e256_switch.setup();
         switchLayer.addChild(e256_switch);
         switchLayer.activate();
         break;
       case "slider":
         var e256_slider = sliderFactory();
         e256_slider.setupFromMouseEvent(mouseEvent);
+        e256_slider.setup();
         sliderLayer.addChild(e256_slider);
         sliderLayer.activate();
         break;
       case "knob":
         var e256_knob = knobFactory();
         e256_knob.setupFromMouseEvent(mouseEvent);
+        e256_knob.setup();
         knobLayer.addChild(e256_knob);
         knobLayer.activate();
         break;
       case "touchpad":
         var e256_touchpad = touchpadFactory();
         e256_touchpad.setupFromMouseEvent(mouseEvent);
+        e256_touchpad.setup();
         touchpadLayer.addChild(e256_touchpad);
         touchpadLayer.activate();
         break;
@@ -133,32 +138,39 @@ function paperInit() {
     for (var i = 0; i < conf.triggers.length; i++) {
       var e256_trigger = triggerFactory();
       e256_trigger.setupFromConfig(conf.triggers[i]);
+      e256_trigger.setup();
       triggerLayer.addChild(e256_trigger);
     }
     for (var i = 0; i < conf.switchs.length; i++) {
       var e256_switch = switchFactory();
       e256_switch.setupFromConfig(conf.switchs[i]);
+      e256_switch.setup();
       switchLayer.addChild(e256_switch);
+      updateMenuParams(e256_switch.data);
     }
     for (var i = 0; i < conf.sliders.length; i++) {
       var e256_slider = sliderFactory();
       e256_slider.setupFromConfig(conf.sliders[i]);
+      e256_slider.setup();
       sliderLayer.addChild(e256_slider);
     }
     for (var i = 0; i < conf.knobs.length; i++) {
       var e256_knob = knobFactory();
       e256_knob.setupFromConfig(conf.knobs[i]);
+      e256_knob.setup();
       knobLayer.addChild(e256_knob);
     }
     for (var i = 0; i < conf.touchpads.length; i++) {
       var e256_touchpad = touchpadFactory();
       e256_touchpad.setupFromConfig(conf.touchpads[i]);
+      e256_touchpad.setup();
       touchpadLayer.addChild(e256_touchpad);
     }
     /*
     for (var i = 0; i < conf.polygons.length; i++) {
       var e256_polygon = polygonFactory();
       e256_polygon.setupFromConfig(conf.polygons[i]);
+      e256_polygon.setup();
       polygonLayer.addChild(e256_polygon);
     }
     */

@@ -45,56 +45,6 @@ function touchpadFactory() {
     setupFromMouseEvent: function (mouseEvent) {
       this.data.from = [Math.round(mouseEvent.point.x - (defaultWidth / 2)), Math.round(mouseEvent.point.y - (defaultHeight / 2))];
       this.data.to = [Math.round(mouseEvent.point.x + (defaultWidth / 2)), Math.round(mouseEvent.point.y + (defaultHeight / 2))];
-      var _pad = new paper.Path.Rectangle({
-        name: "pad",
-        from: new paper.Point(this.data.from[0], this.data.from[1]),
-        to: new paper.Point(this.data.to[0], this.data.to[1]),
-        strokeWidth: 25,
-        strokeColor: new paper.Color(0.7, 0, 0.5),
-        fillColor: new paper.Color(1, 1, 1)
-      });
-      for (var i = 0; i < this.data.touchs; i++) {
-        var _touch = new paper.Group({
-          data: {
-            name: "touch-" + i,
-            value: [
-              getRandomInt(this.data.from[0] + (_pad.strokeWidth), this.data.to[0] - (_pad.strokeWidth)),
-              getRandomInt(this.data.from[1] + (_pad.strokeWidth), this.data.to[1] - (_pad.strokeWidth))
-            ],
-            Xchan: null,
-            Xcc: null,
-            Ychan: null,
-            Ycc: null
-          }
-        });
-        var _line_x = new paper.Path.Line({
-          name: "line-x",
-          from: new paper.Point(this.data.from[0] + (_pad.strokeWidth / 2), _touch.data.value[1]),
-          to: new paper.Point(this.data.to[0] - (_pad.strokeWidth / 2), _touch.data.value[1]),
-          strokeColor: "black",
-          strokeWidth: 1
-        });
-        var _line_y = new paper.Path.Line({
-          name: "line-y",
-          from: new paper.Point(_touch.data.value[0], this.data.from[1] + (_pad.strokeWidth / 2)),
-          to: new paper.Point(_touch.data.value[0], this.data.to[1] - (_pad.strokeWidth / 2)),
-          strokeColor: "black",
-          strokeWidth: 1
-        });
-        var _circle = new paper.Path.Circle({
-          name: "circle",
-          center: new paper.Point(_touch.data.value[0], _touch.data.value[1]),
-          radius: 10,
-          fillColor: "green"
-        });
-        _touch.addChild(_line_x);
-        _touch.addChild(_line_y);
-        _touch.addChild(_circle);
-        this.addChild(_touch);
-      }
-      this.addChild(_pad);
-      this.children["pad"].sendToBack();
-      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -102,6 +52,8 @@ function touchpadFactory() {
       this.data.touchs = params.b;
       this.data.min = params.i;
       this.data.max = params.a;
+    },
+    setup: function () {
       var _pad = new paper.Path.Rectangle({
         name: "pad",
         from: this.data.from,
@@ -293,23 +245,6 @@ function triggerFactory() {
       let halfSize = defaulSize / 2
       this.data.from = [Math.round(mouseEvent.point.x - halfSize), Math.round(mouseEvent.point.y - halfSize)];
       this.data.to = [Math.round(mouseEvent.point.x + halfSize), Math.round(mouseEvent.point.y + halfSize)];
-      var _square = new paper.Path.Rectangle({
-        name: "square",
-        from: this.data.from,
-        to: this.data.to,
-        strokeWidth: 10,
-        strokeColor: "lightblue",
-        fillColor: "lightblue"
-      });
-      var _circle = new paper.Path.Circle({
-        name: "circle",
-        center: mouseEvent.point,
-        radius: defaulSize / 2.2,
-        fillColor: "green"
-      });
-      this.addChild(_square);
-      this.addChild(_circle);
-      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -321,6 +256,8 @@ function triggerFactory() {
       var sizeY = this.data.to[1] - this.data.from[1];
       var circleCenterX = this.data.to[0] - (sizeX / 2);
       var circleCenterY = this.data.to[1] - (sizeY / 2);
+    },
+    setup: function () {
       var _square = new paper.Path.Rectangle({
         name: "square",
         from: this.data.from,
@@ -423,38 +360,6 @@ function switchFactory() {
       let halfSize = defaulSize / 2
       this.data.from = [Math.round(mouseEvent.point.x - halfSize), Math.round(mouseEvent.point.y - halfSize)];
       this.data.to = [Math.round(mouseEvent.point.x + halfSize), Math.round(mouseEvent.point.y + halfSize)];
-      var _square = new paper.Path.Rectangle({
-        name: "square",
-        from: new paper.Point(this.data.from[0], this.data.from[1]),
-        to: new paper.Point(this.data.to[0], this.data.to[1]),
-        strokeWidth: 10,
-        strokeColor: "lightblue",
-        fillColor: "white"
-      });
-      var _cross = new paper.Group({
-        name: "cross"
-      });
-      var _line_a = new paper.Path.Line({
-        name: "line",
-        from: new paper.Point(this.data.from[0], this.data.from[1]),
-        to: new paper.Point(this.data.to[0], this.data.to[1]),
-        strokeWidth: 8,
-        strokeColor: "black"
-        //strokeCap: "round"
-      });
-      var _line_b = new paper.Path.Line({
-        name: "line",
-        from: new paper.Point(this.data.from[0], this.data.to[1]),
-        to: new paper.Point(this.data.to[0], this.data.from[1]),
-        strokeWidth: 8,
-        strokeColor: "black"
-        //strokeCap: "round"
-      });
-      this.addChild(_square);
-      _cross.addChild(_line_a);
-      _cross.addChild(_line_b);
-      this.addChild(_cross);
-      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -462,6 +367,8 @@ function switchFactory() {
       this.data.chan = params.c;
       this.data.note = params.n;
       this.data.velocity = params.v;
+    },
+    setup: function(){
       var _square = new paper.Path.Rectangle({
         name: "square",
         from: this.data.from,
@@ -584,26 +491,6 @@ function sliderFactory(mouseEvent) {
     setupFromMouseEvent: function (mouseEvent) {
       this.data.from = [Math.round(mouseEvent.point.x - (defaultWidth / 2)), Math.round(mouseEvent.point.y - (defaultHeight / 2))];
       this.data.to = [Math.round(mouseEvent.point.x + (defaultWidth / 2)), Math.round(mouseEvent.point.y + (defaultHeight / 2))];
-      var _rect = new paper.Path.Rectangle({
-        name: "rect",
-        value: 0,
-        from: new paper.Point(this.data.from[0], this.data.from[1]),
-        to: new paper.Point(this.data.to[0], this.data.to[1]),
-        strokeWidth: 10,
-        strokeColor: "lightblue",
-        fillColor: "white"
-      });
-      var _handle = new paper.Path.Line({
-        name: "handle",
-        from: new paper.Point(this.data.from[0], this.data.from[1] + (defaultHeight / 2)),
-        to: new paper.Point(this.data.to[0], this.data.from[1] + (defaultHeight / 2)),
-        strokeWidth: 10,
-        strokeCap: "round",
-        strokeColor: "black"
-      });
-      this.addChild(_rect);
-      this.addChild(_handle);
-      updateMenuParams(this.data);
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -612,11 +499,14 @@ function sliderFactory(mouseEvent) {
       this.data.cc = params.o;
       this.data.min = params.i;
       this.data.max = params.a;
+    },
+    setup: function(){
       var _rect = new paper.Path.Rectangle({
         name: "rect",
-        from: this.data.from,
-        to: this.data.to,
-        strokeWidth: 8,
+        value: 0,
+        from: new paper.Point(this.data.from[0], this.data.from[1]),
+        to: new paper.Point(this.data.to[0], this.data.to[1]),
+        strokeWidth: 10,
         strokeColor: "lightblue",
         fillColor: "white"
       });
@@ -754,6 +644,23 @@ function knobFactory(mouseEvent) {
       this.data.center[0] = Math.round(mouseEvent.point.x);
       this.data.center[1] = Math.round(mouseEvent.point.y);
       this.data.radius = defaultRadius;
+    },
+    setupFromConfig: function (params) {
+      for (var i = 0; i < params.length; i++) {
+        this.data.center = params[i].center;
+        this.data.radius = params[i].radius;
+        this.data.offset = params[i].o;
+        this.data.tChan = params[i].t;
+        this.data.tCc = params[i].tc;
+        this.data.tMin = params[i].ti;
+        this.data.tMax = params[i].ta;
+        this.data.rChan = params[i].r;
+        this.data.rCc = params[i].rc;
+        this.data.rMin = params[i].ri;
+        this.data.rMax = params[i].ra;
+      }
+    },
+    setup: function(){
       var headPos = pol_to_cart(this.data.radius - defaultStrokeWidth, deg_to_rad(defaultOffet));
       var footPos = pol_to_cart(this.data.radius - defaultStrokeWidth * 2, deg_to_rad(defaultOffet));
       var handlePos = pol_to_cart(this.data.radius + defaultStrokeWidth, deg_to_rad(defaultOffet));
@@ -796,25 +703,6 @@ function knobFactory(mouseEvent) {
       _Knob.addChild(_needle);
       _handle.rotate(-30);
       _Knob.addChild(_handle);
-      updateMenuParams(this.data);
-    },
-    setupFromConfig: function (params) {
-      for (var i = 0; i < params.length; i++) {
-        this.data.center = params[i].center;
-        this.data.radius = params[i].radius;
-        this.data.offset = params[i].o;
-        this.data.tChan = params[i].t;
-        this.data.tCc = params[i].tc;
-        this.data.tMin = params[i].ti;
-        this.data.tMax = params[i].ta;
-        this.data.rChan = params[i].r;
-        this.data.rCc = params[i].rc;
-        this.data.rMin = params[i].ri;
-        this.data.rMax = params[i].ra;
-      }
-
-      // TODO!
-
     },
     onMouseDown: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
