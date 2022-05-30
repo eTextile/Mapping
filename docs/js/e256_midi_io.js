@@ -130,40 +130,37 @@ function onMIDIMessage(midiMsg) {
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
           if (VERBOSITY_CODES[value] === PENDING_MODE_DONE) {
-            console.log("RECIVED: " + VERBOSITY_CODES[value]);
+            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
             sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
             console.log("REQUEST: SYNC_MODE");
           }
           else if (VERBOSITY_CODES[value] === SYNC_MODE_DONE) {
-            console.log("RECIVED: " + VERBOSITY_CODES[value]);
+            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
             currentMode = SYNC_MODE;
             sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
             console.log("REQUEST: CONFIG_FILE");
           }
-          else if (VERBOSITY_CODES[value] === FLASH_CONFIG_LOAD_DONE) {
-            console.log("RECIVED: " + VERBOSITY_CODES[value]);
-          }
           else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_ALLOC_DONE) {
-            console.log("RECIVED: " + VERBOSITY_CODES[value]);
+            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
             sysex_upload(string_to_bytes(JSON.stringify(config))); // JSON serialization
           }
           else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_ALLOC_DONE) {
-            console.log("RECIVED: " + VERBOSITY_CODES[value]);
+            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
             // Graph config
           }
           else {
-            console.log("RECIVED_UNSUPPORTED: " + VERBOSITY_CODES[value]);
+            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
           }
           break;
         case MIDI_ERROR_CHANNEL:
-          console.log("RECIVED: " + ERROR_CODES[value]);
+          console.log("RECEIVED: " + ERROR_CODES[value]);
           break;
       }
       break;
     case SYSTEM_EXCLUSIVE:
       switch (currentMode) {
         case SYNC_MODE:
-          console.log("RECIVED: CONFIG_FILE");
+          console.log("RECEIVED: CONFIG_FILE");
           // JSON deserialization
           var string = new TextDecoder().decode(midiMsg.data);
           console.log(string);
