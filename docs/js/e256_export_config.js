@@ -18,6 +18,10 @@ function e256_exportParams() {
 
 function listLayerParams(layerName) {
   let layerParams = [];
+
+  if (paper.project.layers[layerName] === undefined)
+    return layerParams;
+
   for (let i = 0; i < paper.project.layers[layerName].children.length; i++) {
     let itemParams = paper.project.layers[layerName].children[i].data;
     switch (layerName) {
