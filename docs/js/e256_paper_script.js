@@ -192,14 +192,10 @@ function paperInit() {
   }
 
   function onReaderLoad(event) {
-    try {
-      config = JSON.parse(event.target.result);
-      confSize = Object.keys(JSON.stringify(config)).length;
-      clearLayers();
-      drawControlerFromConfig(config);
-    } catch (e) {
-      alert(e);
-    }
+    config = JSON.parse(event.target.result);
+    confSize = Object.keys(JSON.stringify(config)).length;
+    clearLayers();
+    drawControlerFromConfig(config);
   }
 
   function loadFile(event) {
