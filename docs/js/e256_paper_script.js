@@ -127,7 +127,7 @@ function paperInit() {
   }
 
   function drawControlerFromConfig(configFile) {
-    let conf = configFile.mappings;
+    let conf = configFile.mapping;
     clearLayers();
 
     for (var i = 0; i < conf.triggers.length; i++) {
