@@ -355,6 +355,7 @@ function triggerFactory() {
           setTimeout(this.triggerOff, 200, this);
         }
       }
+      updateMenuParams(this.data);
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
