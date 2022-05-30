@@ -114,7 +114,6 @@ function touchpadFactory() {
         selectedPath = hitResult.type;
         if (selectedPath === "fill") {
           selectedSegment = null;
-          updateMenuParams(selectedItem.parent.data);
         } else if (selectedPath === "stroke") {
           selectedSegment = hitResult.location.index;
         } else {
@@ -124,7 +123,6 @@ function touchpadFactory() {
       }
       else if (currentMode === PLAY_MODE) {
         if (selectedPath === "fill") {
-          updateMenuParams(selectedItem.parent.data);
         }
       }
     },
@@ -242,7 +240,7 @@ function triggerFactory() {
       velocity: null
     },
     setupFromMouseEvent: function (mouseEvent) {
-      let halfSize = defaulSize / 2
+      let halfSize = defaulSize / 2;
       this.data.from = [Math.round(mouseEvent.point.x - halfSize), Math.round(mouseEvent.point.y - halfSize)];
       this.data.to = [Math.round(mouseEvent.point.x + halfSize), Math.round(mouseEvent.point.y + halfSize)];
     },
@@ -287,12 +285,10 @@ function triggerFactory() {
         if (selectedItem.name === "circle") {
           selectedItem.fillColor = "red";
           selectedItem.parent.data.value = this.data.note;
-          updateMenuParams(this.data);
           if (connected) sendProgramChange(this.data.note, this.data.velocity, this.data.chan);
           setTimeout(this.triggerOff, 200, this);
         }
       }
-      updateMenuParams(this.data);
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
@@ -418,7 +414,6 @@ function switchFactory() {
           if (connected) sendNoteOff(this.data.note, 0, this.data.chan);
         }
       }
-      updateMenuParams(this.data);
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
@@ -533,7 +528,6 @@ function sliderFactory(mouseEvent) {
         console.log(this.data.value);
         this.children["handle"].position.y = mouseEvent.point.y;
       }
-      updateMenuParams(this.data);
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
@@ -731,7 +725,6 @@ function knobFactory(mouseEvent) {
         if (connected && this.data.tVal != last_tVal) {
           sendControlChange(this.data.tCc, this.data.tVal, this.data.tChan);
         }
-        updateMenuParams(this.data);
       }
     },
     onMouseUp: function (mouseEvent) {

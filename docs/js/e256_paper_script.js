@@ -51,20 +51,24 @@ function paperInit() {
   //paperTool.minDistance = 5;
 
   paperTool.onMouseDown = function (mouseEvent) {
-    var hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
+    let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
     //console.log("hitResult: " + hitResult);
     if (currentMode === EDIT_MODE) {
       if (!hitResult) {
         drawControlerFromMouse(mouseEvent);
       } else {
-
+        if (hitResult.type === "fill") {
+          updateMenuParams(selectedItem.parent.data);
+        }
       }
     }
     if (currentMode === PLAY_MODE) {
       if (!hitResult) {
         // TODO
       } else {
-        // TODO
+        if (hitResult.type === "fill") {
+          updateMenuParams(selectedItem.parent.data);
+        }
       }
     }
   }
