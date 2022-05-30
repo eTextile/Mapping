@@ -63,9 +63,10 @@ function onMIDISuccess(midiAccess) {
         }
         if (inputSetup && outputSetup) {
           connected = true;
-          setTimeout(updateMenu, SYNC_MODE_TIMEOUT);
-          sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+          console.log("E256_CONNECTED");
           console.log("REQUEST: SYNC_MODE");
+          sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+          setTimeout(updateMenu, SYNC_MODE_TIMEOUT);
         }
         break;
       case "disconnected":
@@ -108,12 +109,12 @@ function updateMenu() {
 }
 
 function onMIDIMessage(midiMsg) {
-  var channel = midiMsg.data[0] & 0xF; // lowByte
-  var status = midiMsg.data[0] & 0xF0; // highByte
-  var value = midiMsg.data[1];
-  //console.log("PROGRAM_CHANGE_CHANNEL: ", channel);
-  //console.log("PROGRAM_CHANGE_STATUS: ", status);
-  //console.log("PROGRAM_CHANGE_VALUE: ", value);
+  let channel = (midiMsg.data[0] & 0xF) + 1; // lowByte
+  let status = midiMsg.data[0] & 0xF0; // highByte
+  let value = midiMsg.data[1]; 
+  //console.log("CHANNEL: ", channel);
+  //console.log("STATUS: ", status);
+  //console.log("VALUE: ", value);
   switch (status) {
     case NOTE_ON:
       e256_blobs.add(midiMsg.data, onBlobDown);
@@ -128,22 +129,27 @@ function onMIDIMessage(midiMsg) {
     case PROGRAM_CHANGE:
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          if (value == PENDING_MODE_DONE) {
+          if (value === PENDING_MODE_DONE) {
+            console.log("RECIVED: " + VERBOSITY_CODES[value]);
             sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
             console.log("REQUEST: SYNC_MODE");
           }
-          else if (value == SYNC_MODE_DONE) {
+          else if (value === SYNC_MODE_DONE) {
+            console.log("RECIVED: " + VERBOSITY_CODES[value]);
             currentMode = SYNC_MODE;
-            console.log("RECIVED: " + MODES_CODES[currentMode]);
             sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
             console.log("REQUEST: CONFIG_FILE"); 
           }
-          else if (value == USBMIDI_CONFIG_ALLOC_DONE) {
-            // JSON serialization
-            sysex_upload(string_to_bytes(JSON.stringify(config)));
+          else if (value === USBMIDI_CONFIG_ALLOC_DONE) {
+            console.log("RECIVED: " + VERBOSITY_CODES[value]);
+            sysex_upload(string_to_bytes(JSON.stringify(config))); // JSON serialization
+          }
+          else if (value === USBMIDI_CONFIG_ALLOC_DONE) {
+            console.log("RECIVED: " + VERBOSITY_CODES[value]);
+            // Graph config
           }
           else {
-            console.log("RECIVED: " + VERBOSITY_CODES[value]);
+            console.log("RECIVED_UNSUPPORTED: " + VERBOSITY_CODES[value]);
           }
           break;
         case MIDI_ERROR_CHANNEL:

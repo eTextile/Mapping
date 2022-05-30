@@ -25,5 +25,7 @@ The e256 eTextile-Synthesizer is connected to the MAPPING_TOOLKIT web app via th
     https://www.w3.org/TR/webmidi/
     https://webaudio.github.io/web-midi-api/
 
+T
+
 ## TODO
 

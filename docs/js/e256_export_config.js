@@ -6,19 +6,21 @@
 
 function e256_exportParams() {
   let JSONconfig = ({});
-  JSONconfig["mapping"] = [];
-  JSONconfig["mapping"].push(listLayerParams("triggers"));
-  JSONconfig["mapping"].push(listLayerParams("switchs"));
-  //JSONconfig["mapping"].push(listLayerParams("sliders"));
-  //JSONconfig["mapping"].push(listLayerParams("knobs"));
-  //JSONconfig["mapping"].push(listLayerParams("touchpads"));
+  JSONconfig["mapping"] = {};
+  JSONconfig["mapping"]["triggers"] = listLayerParams("triggers");
+  JSONconfig["mapping"]["switch"] = listLayerParams("switch");
+  JSONconfig["mapping"].push(listLayerParams("sliders"));
+  JSONconfig["mapping"].push(listLayerParams("knobs"));
+  JSONconfig["mapping"].push(listLayerParams("touchpads"));
   console.log("PARAMS: ");
   console.log(JSON.stringify(JSONconfig));
 }
 
 function listLayerParams(layerName) {
-  var layerParams = {};
-  layerParams = [layerName];
+  let layerParams = [];
+
+  console.log(paper.project.layers, layerName);
+
   for (let i = 0; i < paper.project.layers[layerName].children.length; i++) {
     let itemParams = paper.project.layers[layerName].children[i].data;
     switch (layerName) {
@@ -43,6 +45,7 @@ function listLayerParams(layerName) {
         delete itemParams.name;
       // TODO: add Touch params
     }
+    
     layerParams.push(itemParams);
   }
   return layerParams;

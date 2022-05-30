@@ -32,7 +32,7 @@ const MATRIX_MODE_RAW = 3;     // Get matrix analog sensor values (16x16) over U
 const MATRIX_MODE_INTERP = 4;  // Get matrix analog sensor values (16x16) over USB using MIDI format
 const EDIT_MODE = 5;           // Get all blobs values over USB using MIDI format
 const PLAY_MODE = 6;           // Get mappings values over USB using MIDI format
-const ERROR_MODE = 7;          //
+const ERROR_MODE = 7;          // Unexpected behaviour
 
 // VERBOSITY MODES CONSTANTS
 const MODES_CODES = {
@@ -57,18 +57,18 @@ const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
 const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
 
 // E256 MIDI I/O CONSTANTS
-const NOTE_ON = 0x90; // 
-const NOTE_OFF = 0x80; //
-const CONTROL_CHANGE = 0xB0; //
-const PROGRAM_CHANGE = 0xC0; //
-const SYSTEM_EXCLUSIVE = 0xF0; // 240
-const SYSEX_BEGIN = 0xF0; // 240
-const SYSEX_END = 0xF7; // 247
-const SYSEX_DEVICE_ID = 0x7D; // 253 http://midi.teragonaudio.com/tech/midispec/id.htm
-const SYSEX_CONF = 0x7C; // 124
-const SYSEX_SOUND = 0x6C; // 108
+const NOTE_ON = 0x90;          // DEC: 144
+const NOTE_OFF = 0x80;         // DEC: 128
+const CONTROL_CHANGE = 0xB0;   // DEC: 176
+const PROGRAM_CHANGE = 0xC0;   // DEC: 192
+const SYSTEM_EXCLUSIVE = 0xF0; // DEC: 240
+const SYSEX_BEGIN = 0xF0;      // DEC: 240
+const SYSEX_END = 0xF7;        // DEC: 247
+const SYSEX_DEVICE_ID = 0x7D;  // DEC: 253 http://midi.teragonaudio.com/tech/midispec/id.htm
+const SYSEX_CONF = 0x7C;       // DEC: 124
+const SYSEX_SOUND = 0x6C;      // DEC: 108
 
-const SYNC_MODE_TIMEOUT = 2000;
+const SYNC_MODE_TIMEOUT = 4000;
 const MAX_PARAMS = 15;
 
 const PENDING_MODE_DONE = 0;
@@ -86,7 +86,7 @@ const VERBOSITY_CODES = {
   6:  "FLASH_CONFIG_ALLOC_DONE",
   7:  "FLASH_CONFIG_LOAD_DONE",
   8:  "FLASH_CONFIG_WRITE_DONE",
-  9: "USBMIDI_CONFIG_ALLOC_DONE",
+  9:  "USBMIDI_CONFIG_ALLOC_DONE",
   10: "USBMIDI_CONFIG_LOAD_DONE",
   11: "CONFIG_APPLY_DONE",
   12: "USBMIDI_SOUND_LOAD_DONE",

@@ -97,7 +97,7 @@ $(".mapingTool").click(function (event) {
 $("#calibrate").click(function () {
   if (connected) {
     sendProgramChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
-    cexportConfigonsole.log("REQUEST: CALIBRATE");
+    console.log("REQUEST: CALIBRATE");
   } else {
     alert("e256 NOT CONNECTED!");
   }
@@ -105,7 +105,7 @@ $("#calibrate").click(function () {
 
 $("#getConfig").click(function () {
   if (connected) {
-    currentMode = SYNC_MODE;
+    //currentMode = SYNC_MODE;
     sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CONFIG_FILE");
   } else {
