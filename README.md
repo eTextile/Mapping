@@ -21,12 +21,10 @@ Starting from the textile design paterns placed on top of the matrix sensor, thi
     https://github.com/eTextile/Mapping
 
 ## Technicals specifications
-The e256 eTextile-Synthesizer is connected to the MAPPING_TOOLKIT web app via the webMIDI API.
-    https://www.w3.org/TR/webmidi/
-    https://webaudio.github.io/web-midi-api/
-    
-    https://threejs.org/
-    http://paperjs.org/
+
+The eTextile-Synthesizer web-app is using following frameworks:
+- MIDI communication: https://www.w3.org/TR/webmidi/
+- 3D visualisation: https://threejs.org/
+- 2D graphic interface: http://paperjs.org/
 
 ## TODO
-
