@@ -111,7 +111,7 @@ function updateMenu() {
 function onMIDIMessage(midiMsg) {
   let channel = (midiMsg.data[0] & 0xF) + 1; // lowByte
   let status = midiMsg.data[0] & 0xF0; // highByte
-  let value = midiMsg.data[1]; 
+  let value = midiMsg.data[1];
   //console.log("CHANNEL: ", channel);
   //console.log("STATUS: ", status);
   //console.log("VALUE: ", value);
@@ -129,25 +129,25 @@ function onMIDIMessage(midiMsg) {
     case PROGRAM_CHANGE:
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          if (value === PENDING_MODE_DONE) {
+          if (VERBOSITY_CODES[value] === PENDING_MODE_DONE) {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);
             sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
             console.log("REQUEST: SYNC_MODE");
           }
-          else if (value === SYNC_MODE_DONE) {
+          else if (VERBOSITY_CODES[value] === SYNC_MODE_DONE) {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);
             currentMode = SYNC_MODE;
             sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
-            console.log("REQUEST: CONFIG_FILE"); 
+            console.log("REQUEST: CONFIG_FILE");
           }
-          else if (value === FLASH_CONFIG_LOAD_DONE) {
+          else if (VERBOSITY_CODES[value] === FLASH_CONFIG_LOAD_DONE) {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);
           }
-          else if (value === USBMIDI_CONFIG_ALLOC_DONE) {
+          else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_ALLOC_DONE) {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);
             sysex_upload(string_to_bytes(JSON.stringify(config))); // JSON serialization
           }
-          else if (value === USBMIDI_CONFIG_ALLOC_DONE) {
+          else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_ALLOC_DONE) {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);
             // Graph config
           }
@@ -171,7 +171,7 @@ function onMIDIMessage(midiMsg) {
           config = JSON.parse(e256_jsonFile);
           //drawFromParams(config.mapping);
           currentMode = EDIT_MODE;
-        break;
+          break;
         case MATRIX_MODE_RAW:
           e256_matrix.update(midiMsg.data);
           break;
@@ -250,9 +250,9 @@ $(document).ready(function () {
 
 function string_to_bytes(str) {
   var bytes = [];
-  for(var i = 0, n = str.length; i < n; i++) {
-      var char = str.charCodeAt(i);
-      bytes.push(char);
+  for (var i = 0, n = str.length; i < n; i++) {
+    var char = str.charCodeAt(i);
+    bytes.push(char);
   }
   return bytes;
 }
