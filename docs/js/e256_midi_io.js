@@ -112,9 +112,9 @@ function onMIDIMessage(midiMsg) {
   let channel = (midiMsg.data[0] & 0xF) + 1; // lowByte
   let status = midiMsg.data[0] & 0xF0; // highByte
   let value = midiMsg.data[1]; 
-  //console.log("CHANNEL: ", channel);
-  //console.log("STATUS: ", status);
-  //console.log("VALUE: ", value);
+  console.log("CHANNEL: ", channel);
+  console.log("STATUS: ", status);
+  console.log("VALUE: ", value);
   switch (status) {
     case NOTE_ON:
       e256_blobs.add(midiMsg.data, onBlobDown);
@@ -139,6 +139,9 @@ function onMIDIMessage(midiMsg) {
             currentMode = SYNC_MODE;
             sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
             console.log("REQUEST: CONFIG_FILE"); 
+          }
+          else if (value === FLASH_CONFIG_LOAD_DONE) {
+            console.log("RECIVED: " + VERBOSITY_CODES[value]);
           }
           else if (value === USBMIDI_CONFIG_ALLOC_DONE) {
             console.log("RECIVED: " + VERBOSITY_CODES[value]);

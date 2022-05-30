@@ -18,6 +18,7 @@ const RAW_FRAME = RAW_COLS * RAW_ROWS;
 // QUICK_FIX: if sending on channel 1, eTextile-synth is receiving on channel 2
 const MIDI_INPUT_CHANNEL = 1;
 const MIDI_OUTPUT_CHANNEL = 2;
+
 const MIDI_MODES_CHANNEL = 3;
 const MIDI_STATES_CHANNEL = 4;
 const MIDI_LEVELS_CHANNEL = 5;
