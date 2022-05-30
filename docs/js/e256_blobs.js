@@ -88,7 +88,7 @@ Blobs.prototype.remove = function (noteOff, callback) {
     this.blobs.splice(index, 1);
     callback(index);
   } else {
-    console.log("BLOB_NOT_FOUND: " + noteOff[1]);
+    console.log("BLOB_NOT_FOUND_REMOVE: " + noteOff[1]);
     return;
   }
 }
@@ -99,7 +99,7 @@ Blobs.prototype.update = function (sysExMsg, callback) {
     this.blobs[index].update(sysExMsg);
     callback(index);
   } else {
-    console.log("BLOB_NOT_FOUND: " + sysExMsg[1]);
+    console.log("BLOB_NOT_FOUND_UPDATE: " + sysExMsg[1]);
     return;
   }
 }
