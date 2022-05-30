@@ -53,7 +53,7 @@ function touchpadFactory() {
       this.data.min = params.i;
       this.data.max = params.a;
     },
-    setup: function () {
+    create: function () {
       var _pad = new paper.Path.Rectangle({
         name: "pad",
         from: this.data.from,
@@ -251,7 +251,7 @@ function triggerFactory() {
       this.data.note = params.n;
       this.data.velocity = params.v;
     },
-    setup: function () {
+    create: function () {
       var sizeX = this.data.to[0] - this.data.from[0];
       var sizeY = this.data.to[1] - this.data.from[1];
       var circleCenterX = this.data.to[0] - (sizeX / 2);
@@ -364,7 +364,7 @@ function switchFactory() {
       this.data.note = params.n;
       this.data.velocity = params.v;
     },
-    setup: function(){
+    create: function(){
       var _square = new paper.Path.Rectangle({
         name: "square",
         from: this.data.from,
@@ -495,7 +495,7 @@ function sliderFactory(mouseEvent) {
       this.data.min = params.i;
       this.data.max = params.a;
     },
-    setup: function(){
+    create: function(){
       var _rect = new paper.Path.Rectangle({
         name: "rect",
         value: 0,
@@ -654,7 +654,7 @@ function knobFactory(mouseEvent) {
         this.data.rMax = params[i].ra;
       }
     },
-    setup: function(){
+    create: function(){
       var headPos = pol_to_cart(this.data.radius - defaultStrokeWidth, deg_to_rad(defaultOffet));
       var footPos = pol_to_cart(this.data.radius - defaultStrokeWidth * 2, deg_to_rad(defaultOffet));
       var handlePos = pol_to_cart(this.data.radius + defaultStrokeWidth, deg_to_rad(defaultOffet));
