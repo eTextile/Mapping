@@ -49,9 +49,9 @@ function touchpadFactory() {
     setupFromConfig: function (params) {
       this.data.from = params.from;
       this.data.to = params.to;
-      this.data.touchs = params.b;
-      this.data.min = params.i;
-      this.data.max = params.a;
+      this.data.touchs = params.touchs;
+      this.data.min = params.min;
+      this.data.max = params.max;
     },
     create: function () {
       var _pad = new paper.Path.Rectangle({
@@ -247,9 +247,9 @@ function triggerFactory() {
     setupFromConfig: function (params) {
       this.data.from = params.from;
       this.data.to = params.to;
-      this.data.chan = params.c;
-      this.data.note = params.n;
-      this.data.velocity = params.v;
+      this.data.chan = params.chan;
+      this.data.note = params.note;
+      this.data.velocity = params.velocity;
     },
     create: function () {
       var sizeX = this.data.to[0] - this.data.from[0];
@@ -360,9 +360,9 @@ function switchFactory() {
     setupFromConfig: function (params) {
       this.data.from = params.from;
       this.data.to = params.to;
-      this.data.chan = params.c;
-      this.data.note = params.n;
-      this.data.velocity = params.v;
+      this.data.chan = params.chan;
+      this.data.note = params.note;
+      this.data.velocity = params.velocity;
     },
     create: function(){
       var _square = new paper.Path.Rectangle({
@@ -490,10 +490,10 @@ function sliderFactory(mouseEvent) {
     setupFromConfig: function (params) {
       this.data.from = params.from;
       this.data.to = params.to;
-      this.data.chan = params.c;
-      this.data.cc = params.o;
-      this.data.min = params.i;
-      this.data.max = params.a;
+      this.data.chan = params.chan;
+      this.data.cc = params.cc;
+      this.data.min = params.min;
+      this.data.max = params.max;
     },
     create: function(){
       var _rect = new paper.Path.Rectangle({
@@ -643,15 +643,15 @@ function knobFactory(mouseEvent) {
       for (var i = 0; i < params.length; i++) {
         this.data.center = params[i].center;
         this.data.radius = params[i].radius;
-        this.data.offset = params[i].o;
-        this.data.tChan = params[i].t;
-        this.data.tCc = params[i].tc;
-        this.data.tMin = params[i].ti;
-        this.data.tMax = params[i].ta;
-        this.data.rChan = params[i].r;
-        this.data.rCc = params[i].rc;
-        this.data.rMin = params[i].ri;
-        this.data.rMax = params[i].ra;
+        this.data.offset = params[i].offset;
+        this.data.tChan = params[i].tChan;
+        this.data.tCc = params[i].tCc;
+        this.data.tMin = params[i].tMin;
+        this.data.tMax = params[i].tMax;
+        this.data.rChan = params[i].rChan;
+        this.data.rCc = params[i].rCc;
+        this.data.rMin = params[i].rMin;
+        this.data.rMax = params[i].rMax;
       }
     },
     create: function(){
