@@ -118,14 +118,10 @@ $("#exportConfig").click(function () {
 });
 
 // Update item parameters using the txt input fields
-$(".btnSet").click(function (clicEvent) {
-  let htmlButton = $("#" + clicEvent.target.id);
-  if (!htmlButton) {
-    console.log("ERROR: ", clicEvent);
-    return;
+$("#btnSet").click(function () {
+  let paramsIndex = 0;
+  for (const param in selectedItem.data) {
+    selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
+    paramsIndex++;
   }
-  let divButton = htmlButton.parent();
-  let labelButton = divButton.children("span").text();
-  var paramIndex = clicEvent.target.id.substring(clicEvent.target.id.length - 1);
-  selectedItem.parent.data[labelButton] = $("#paramInputValue-" + paramIndex).val();
 });
