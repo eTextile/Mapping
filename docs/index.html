@@ -156,39 +156,37 @@
 
         <script type="text/javascript">
           containerParams = document.getElementById("params");
+
           for (i = 0; i < MAX_PARAMS; i++) {
-            var divParam = document.createElement("div");
+            let divParam = document.createElement("div");
             divParam.setAttribute("id", "param-" + i);
             divParam.classList.add("param", "collapse");
 
-            var divGroupe = document.createElement("div");
+            let divGroupe = document.createElement("div");
             divGroupe.className = "input-group";
 
-            var spanParam = document.createElement("span");
+            let spanParam = document.createElement("span");
             spanParam.setAttribute("id", "paramInputAtribute-" + i);
             spanParam.className = "input-group-text";
             divGroupe.appendChild(spanParam);
 
-            var buttonParam = document.createElement("button");
-            buttonName = document.createTextNode("set");
-            buttonParam.appendChild(buttonName);
-            buttonParam.setAttribute("id", "btnSet-" + i);
-            buttonParam.classList.add("btnSet", "btn", "btn-outline-secondary");
-            buttonParam.setAttribute("type", "button");
-            divGroupe.appendChild(buttonParam);
-
-            var inputValue = document.createElement("input");
+            let inputValue = document.createElement("input");
             inputValue.setAttribute("id", "paramInputValue-" + i);
             inputValue.setAttribute("type", "text");
             inputValue.className = "form-control";
             inputValue.setAttribute("aria-label", "Small");
             inputValue.setAttribute("aria-describedby", "paramInputAtribute-" + i);
             divGroupe.appendChild(inputValue);
-
             divParam.appendChild(divGroupe);
             containerParams.appendChild(divParam);
           }
         </script>
+
+        <div id="updateParams" class="param collapse">
+          <div class="input-group-text">
+            <button id="btnSet" class="btn w-100 btn-outline-primary" type="button">SET</button>
+          </div>
+        </div>
 
       </div>
 
