@@ -9,7 +9,10 @@
 var canvasWidth = null;
 var canvasHeight = null;
 var scaleFactor = null;
+var hitResult = null;
 var selectedItem = null;
+var selectedItemPart = null;
+var selectedPath = null;
 
 var hitOptions = {
   "segments": true,
@@ -51,33 +54,59 @@ function paperInit() {
   //paperTool.minDistance = 5;
 
   paperTool.onMouseDown = function (mouseEvent) {
-    let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
-    //console.log("hitResult: " + hitResult);
+    hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
     if (currentMode === EDIT_MODE) {
       if (!hitResult) {
-        drawControlerFromMouse(mouseEvent);
+        drawControlerFromMouse(mouseEvent);        
       } else {
-        if (hitResult.type === "fill") {
-          updateMenuParams(selectedItem.parent.data);
+        selectedPath = hitResult.type;
+        console.log("PATH: " + selectedPath)
+        selectedItemPart = hitResult.item.name;
+        if (selectedPath === "fill") {
+          selectedItem = hitResult.item.parent;
         }
       }
+      drawMenuParams(selectedItem);
+      updateMenuParams(selectedItem);
     }
     if (currentMode === PLAY_MODE) {
       if (!hitResult) {
-        // TODO
+        // NA
       } else {
-        if (hitResult.type === "fill") {
-          updateMenuParams(selectedItem.parent.data);
-        }
+        selectedItem = hitResult.item.parent;
+        drawMenuParams(selectedItem);
+        updateMenuParams(selectedItem);
       }
     }
+  }
+
+  paperTool.onMouseDrag = function (mouseEvent) {
+    if (currentMode === EDIT_MODE) {
+      if(selectedPath === "fill") {
+        updateMenuParams(selectedItem);
+      }
+    }
+  }
+
+  function drawMenuParams(item) {
+    let paramsIndex = 0;
+    $("#summaryContent").html("Parameters");
+    for (const param in item.data) {
+      $("#param-" + paramsIndex).collapse("show");
+      paramsIndex++;
+    }
+    for (let i = MAX_PARAM; i >= paramsIndex; i--) {
+      $("#param-" + i).collapse("hide");
+    }
+    $("#updateParams").collapse("show");
+    console.log("DRAW_MENU: " + item.data.name);
   }
 
   paperTool.onKeyDown = function (keyEvent) {
     if (currentMode === EDIT_MODE) {
       if (keyEvent.modifiers.shift && keyEvent.Key === "backspace") {
         console.log(selectedItem.parent);
-        selectedItem.parent.layer.removeChildren();
+        selectedItem.parent.removeChildren();
       }
     }
   }
@@ -90,62 +119,38 @@ function paperInit() {
   function drawControlerFromMouse(mouseEvent) {
     switch (e256_drawMode) {
       case "trigger":
-        var e256_trigger = triggerFactory();
-        e256_trigger.setupFromMouseEvent(mouseEvent);
-        e256_trigger.create();
-        updateMenuParams(e256_trigger.data);
-        triggerLayer.addChild(e256_trigger);
-        triggerLayer.activate();
+        selectedItem = triggerFactory();
+        triggerLayer.addChild(selectedItem);   
         break;
       case "switch":
-        var e256_switch = switchFactory();
-        e256_switch.setupFromMouseEvent(mouseEvent);
-        e256_switch.create();
-        updateMenuParams(e256_switch.data);
-        switchLayer.addChild(e256_switch);
-        switchLayer.activate();
+        selectedItem = switchFactory();
+        switchLayer.addChild(selectedItem);
         break;
       case "slider":
-        var e256_slider = sliderFactory();
-        e256_slider.setupFromMouseEvent(mouseEvent);
-        e256_slider.create();
-        updateMenuParams(e256_slider.data);
-        sliderLayer.addChild(e256_slider);
-        sliderLayer.activate();
+        selectedItem = sliderFactory();
+        sliderLayer.addChild(selectedItem);
         break;
       case "knob":
-        var e256_knob = knobFactory();
-        e256_knob.setupFromMouseEvent(mouseEvent);
-        e256_knob.create();
-        updateMenuParams(e256_knob.data);
-        knobLayer.addChild(e256_knob);
-        knobLayer.activate();
+        selectedItem = knobFactory();
+        knobLayer.addChild(selectedItem);
         break;
       case "touchpad":
-        var e256_touchpad = touchpadFactory();
-        e256_touchpad.setupFromMouseEvent(mouseEvent);
-        e256_touchpad.create();
-        updateMenuParams(e256_touchpad.data);
-        touchpadLayer.addChild(e256_touchpad);
-        touchpadLayer.activate();
+        selectedItem = touchpadFactory();
+        touchpadLayer.addChild(selectedItem);
         break;
-      /*
-        case "polygon":
-        var e256_polygon = polygonFactory();
-        e256_polygon.setupFromMouseEvent(mouseEvent);
-        e256_polygon.create();
-        updateMenuParams(e256_touchpad.data);
-        polygonLayer.addChild(e256_polygon);
-        polygonLayer.activate();
+      case "polygon":
+        selectedItem = polygonFactory();
+        polygonLayer.addChild(selectedItem);
         break;
-      */
     }
+    selectedItem.setupFromMouseEvent(mouseEvent);
+    selectedItem.create();
+    updateMenuParams(selectedItem);
   }
 
   function drawControlerFromConfig(configFile) {
     let conf = configFile.mapping;
     clearLayers();
-
     for (var i = 0; i < conf.triggers.length; i++) {
       var e256_trigger = triggerFactory();
       e256_trigger.setupFromConfig(conf.triggers[i]);
