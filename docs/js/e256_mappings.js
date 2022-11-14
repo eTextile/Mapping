@@ -467,7 +467,7 @@ function switchFactory() {
 function sliderFactory() {
   var defaultWidth = 50;
   var defaultHeight = 400;
-  var minWidth = 30;
+  var minWidth = 45;
   var minHeight = 400;
   var lastValue = null; // Is it Global !?
   var sliderDir = 0;
@@ -539,22 +539,26 @@ function sliderFactory() {
           case "stroke":
             switch (selectedItem.name) {
               case "rect":
-                if (this.bounds.width > this.bounds.height){
+                if (this.bounds.width > this.bounds.height) {
                   sliderDir = H_SLIDER;
                 } else {
                   sliderDir = V_SLIDER;
                 }
                 switch (selectedSegment) {
                   case 0: // Update left segment
-                    this.data.from[0] = Math.round(this.bounds.left);
-                    if (this.bounds.width > minWidth){
+                    if (this.bounds.width < minWidth) {
+                      this.children["rect"].segments[0].point.x = this.bounds.right - minWidth; // FEXME
+                      this.children["rect"].segments[1].point.x = this.bounds.right - minWidth; // FEXME
+                    }
+                    else {
+                      this.data.from[0] = Math.round(this.bounds.left);
                       this.children["rect"].segments[0].point.x = mouseEvent.point.x;
                       this.children["rect"].segments[1].point.x = mouseEvent.point.x;
                       switch (sliderDir) {
                         case H_SLIDER:
-                          this.children["handle"].segments[0].point.x = this.bounds.right - (this.bounds.width  / 2);
+                          this.children["handle"].segments[0].point.x = this.bounds.right - (this.bounds.width / 2);
                           this.children["handle"].segments[0].point.y = this.bounds.top;
-                          this.children["handle"].segments[1].point.x = this.bounds.right - (this.bounds.width  / 2);
+                          this.children["handle"].segments[1].point.x = this.bounds.right - (this.bounds.width / 2);
                           this.children["handle"].segments[1].point.y = this.bounds.bottom;
                           break;
                         case V_SLIDER:
@@ -565,66 +569,80 @@ function sliderFactory() {
                           break;
                       }
                     }
-                    else {
-                      this.children["rect"].segments[0].point.x = this.bounds.right - (minWidth - 1);
-                      this.children["rect"].segments[1].point.x = this.bounds.right - (minWidth - 1);
-                    }
                     break;
                   case 1: // Update top segment
-                    this.data.from[1] = Math.round(this.bounds.top);
-                    this.children["rect"].segments[1].point.y = mouseEvent.point.y;
-                    this.children["rect"].segments[2].point.y = mouseEvent.point.y;
-                    switch (sliderDir) {
-                      case H_SLIDER:
-                        this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width / 2);
-                        this.children["handle"].segments[0].point.y = mouseEvent.point.y;
-                        this.children["handle"].segments[1].point.x = this.bounds.left + (this.bounds.width / 2);
-                        this.children["handle"].segments[1].point.y = this.bounds.bottom;
-                        break;
-                      case V_SLIDER:
-                        this.children["handle"].segments[0].point.x = this.bounds.left;
-                        this.children["handle"].segments[0].point.y = this.bounds.bottom - (this.bounds.height / 2);
-                        this.children["handle"].segments[1].point.x = this.bounds.right;
-                        this.children["handle"].segments[1].point.y = this.bounds.bottom - (this.bounds.height / 2);
-                        break;
+                    if (this.bounds.height < minHeight) {
+                      this.children["rect"].segments[1].point.y = this.bounds.bottom - minHeight; // FEXME
+                      this.children["rect"].segments[2].point.y = this.bounds.bottom - minHeight; // FEXME
+                    }
+                    else {
+                      this.data.from[1] = Math.round(this.bounds.top);
+                      this.children["rect"].segments[1].point.y = mouseEvent.point.y;
+                      this.children["rect"].segments[2].point.y = mouseEvent.point.y;
+                      switch (sliderDir) {
+                        case H_SLIDER:
+                          this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width / 2);
+                          this.children["handle"].segments[0].point.y = mouseEvent.point.y;
+                          this.children["handle"].segments[1].point.x = this.bounds.left + (this.bounds.width / 2);
+                          this.children["handle"].segments[1].point.y = this.bounds.bottom;
+                          break;
+                        case V_SLIDER:
+                          this.children["handle"].segments[0].point.x = this.bounds.left;
+                          this.children["handle"].segments[0].point.y = this.bounds.bottom - (this.bounds.height / 2);
+                          this.children["handle"].segments[1].point.x = this.bounds.right;
+                          this.children["handle"].segments[1].point.y = this.bounds.bottom - (this.bounds.height / 2);
+                          break;
+                      }
                     }
                     break;
                   case 2: // Update right segment
-                    this.data.to[0] = Math.round(this.bounds.right);
-                    this.children["rect"].segments[2].point.x = mouseEvent.point.x;
-                    this.children["rect"].segments[3].point.x = mouseEvent.point.x;
-                    switch (sliderDir) {
-                      case H_SLIDER:
-                        this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width  / 2);
-                        this.children["handle"].segments[0].point.y = this.bounds.top;
-                        this.children["handle"].segments[1].point.x = this.bounds.left + (this.bounds.width  / 2);
-                        this.children["handle"].segments[1].point.y = this.bounds.bottom;
-                        break;
-                      case V_SLIDER:
-                        this.children["handle"].segments[0].point.x = this.bounds.left;
-                        this.children["handle"].segments[0].point.y = this.bounds.top + (this.bounds.height / 2);
-                        this.children["handle"].segments[1].point.x = mouseEvent.point.x
-                        this.children["handle"].segments[1].point.y = this.bounds.top + (this.bounds.height / 2);
-                        break;
+                    if (this.bounds.width < minWidth) {
+                      this.children["rect"].segments[2].point.x = this.bounds.left + minWidth; // FEXME
+                      this.children["rect"].segments[3].point.x = this.bounds.left + minWidth; // FEXME
+                    }
+                    else {
+                      this.data.to[0] = Math.round(this.bounds.right);
+                      this.children["rect"].segments[2].point.x = mouseEvent.point.x;
+                      this.children["rect"].segments[3].point.x = mouseEvent.point.x;
+                      switch (sliderDir) {
+                        case H_SLIDER:
+                          this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width / 2);
+                          this.children["handle"].segments[0].point.y = this.bounds.top;
+                          this.children["handle"].segments[1].point.x = this.bounds.left + (this.bounds.width / 2);
+                          this.children["handle"].segments[1].point.y = this.bounds.bottom;
+                          break;
+                        case V_SLIDER:
+                          this.children["handle"].segments[0].point.x = this.bounds.left;
+                          this.children["handle"].segments[0].point.y = this.bounds.top + (this.bounds.height / 2);
+                          this.children["handle"].segments[1].point.x = mouseEvent.point.x
+                          this.children["handle"].segments[1].point.y = this.bounds.top + (this.bounds.height / 2);
+                          break;
+                      }
                     }
                     break;
                   case 3: // Update bottom segment
-                    this.data.to[1] = Math.round(this.bounds.bottom);
-                    this.children["rect"].segments[0].point.y = mouseEvent.point.y;
-                    this.children["rect"].segments[3].point.y = mouseEvent.point.y;
-                    switch (sliderDir) {
-                      case H_SLIDER:
-                        this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width  / 2);
-                        this.children["handle"].segments[0].point.y = this.bounds.top;
-                        this.children["handle"].segments[1].point.x = this.bounds.left + (this.bounds.width  / 2);
-                        this.children["handle"].segments[1].point.y = mouseEvent.point.y;
-                        break;
-                      case V_SLIDER:
-                        this.children["handle"].segments[0].point.x = this.bounds.left;
-                        this.children["handle"].segments[0].point.y = this.bounds.bottom - (this.bounds.height / 2);
-                        this.children["handle"].segments[1].point.x = this.bounds.right;
-                        this.children["handle"].segments[1].point.y = this.bounds.bottom - (this.bounds.height / 2);
-                        break;
+                    if (this.bounds.height < minHeight) {
+                      this.children["rect"].segments[0].point.y = this.bounds.right + minHeight; // FEXME
+                      this.children["rect"].segments[3].point.y = this.bounds.right + minHeight; // FEXME
+                    }
+                    else {
+                      this.data.to[1] = Math.round(this.bounds.bottom);
+                      this.children["rect"].segments[0].point.y = mouseEvent.point.y;
+                      this.children["rect"].segments[3].point.y = mouseEvent.point.y;
+                      switch (sliderDir) {
+                        case H_SLIDER:
+                          this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width / 2);
+                          this.children["handle"].segments[0].point.y = this.bounds.top;
+                          this.children["handle"].segments[1].point.x = this.bounds.left + (this.bounds.width / 2);
+                          this.children["handle"].segments[1].point.y = mouseEvent.point.y;
+                          break;
+                        case V_SLIDER:
+                          this.children["handle"].segments[0].point.x = this.bounds.left;
+                          this.children["handle"].segments[0].point.y = this.bounds.bottom - (this.bounds.height / 2);
+                          this.children["handle"].segments[1].point.x = this.bounds.right;
+                          this.children["handle"].segments[1].point.y = this.bounds.bottom - (this.bounds.height / 2);
+                          break;
+                      }
                     }
                     break;
                 }
