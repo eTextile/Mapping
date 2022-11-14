@@ -4,21 +4,22 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-//var mapping = [{}]; // empty JSON declaration
-
 var canvasWidth = null;
 var canvasHeight = null;
 var scaleFactor = null;
-var hitResult = null;
+
 var selectedItem = null;
-var selectedItemPart = null;
+var lastSelectedItem = null;
+
 var selectedPath = null;
+var selectedSegment = null;
 
 var hitOptions = {
-  "segments": true,
-  "stroke": true,
-  "fill": true,
-  "tolerance": 3
+  segments: true,
+  stroke: true,
+  position: true,
+  fill: true,
+  tolerance: 7,
 }
 
 canvasHeight = $("#loadingCanvas").height();
@@ -36,14 +37,16 @@ function paperInit() {
   var sliderLayer = new paper.Layer();
   var knobLayer = new paper.Layer();
   var touchpadLayer = new paper.Layer();
-  var polygonLayer = new paper.Layer();
+  var pathLayer = new paper.Layer();
+  var gridLayer = new paper.Layer();
 
   triggerLayer.name = "triggers";
   switchLayer.name = "switchs";
   sliderLayer.name = "sliders";
   knobLayer.name = "knobs";
   touchpadLayer.name = "touchpads";
-  touchpadLayer.name = "polygons";
+  pathLayer.name = "paths";
+  gridLayer.name = "gridLayer";
 
   paper.view.viewSize.width = canvasWidth;
   paper.view.viewSize.height = canvasHeight;
@@ -51,67 +54,126 @@ function paperInit() {
   paper.view.center = new paper.Point(canvasWidth / 2, canvasHeight / 2);
 
   var paperTool = new paper.Tool();
-  //paperTool.minDistance = 5;
+
+  var newShape = true;
 
   paperTool.onMouseDown = function (mouseEvent) {
-    hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
+    let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
+    console.log("SELECT_GLOBAL");
     if (currentMode === EDIT_MODE) {
-      if (!hitResult) {
-        drawControlerFromMouse(mouseEvent);        
-      } else {
-        selectedPath = hitResult.type;
-        console.log("PATH: " + selectedPath)
-        selectedItemPart = hitResult.item.name;
-        if (selectedPath === "fill") {
-          selectedItem = hitResult.item.parent;
+      if (e256_drawMode) {
+        if (!hitResult) {
+          drawControlerFromMouse(mouseEvent);
+        } else {
+          lastSelectedItem = selectedItem;
+          selectedItem = hitResult.item;
+          
+          //console.log("ITEM_STROCKE: " + selectedItem.isSelected());
+          //this.selectedItem.stroke = false;
+          //console.log("ITEM_STROCKE: " + selectedItem.hasStroke());
+
+          selectedPath = hitResult.type;
+          switch (selectedPath) {
+            case "fill":
+              selectedSegment = null;
+              break;
+            case "stroke":
+              selectedSegment = hitResult.location.index;
+              break;
+            case "segment":
+              selectedSegment = hitResult.segment.index;
+              break;
+          }
+          //console.log("ITEM: " + selectedItem);
+          //console.log("PART: " + selectedPath);
+          if (selectedItem.parent.data.type != lastSelectedItem.parent.data.type) {
+            drawMenuParams(selectedItem.parent);
+            console.log("drawMenuParams: " + selectedItem.parent);
+          }
+          updateMenuParams(selectedItem.parent);
         }
+      } else {
+        alert("SELECT A GUI!");
       }
-      drawMenuParams(selectedItem);
-      updateMenuParams(selectedItem);
     }
     if (currentMode === PLAY_MODE) {
-      if (!hitResult) {
-        // NA
+      if (hitResult) {
+        let lastSelectedItem = selectedItem;
+        selectedItem = hitResult.item;
+        if (selectedItem && !lastSelectedItem) {
+          //console.log("NEW_ITEM_A: " + selectedItem);
+          drawMenuParams(selectedItem.parent);
+        }
+        else {
+          if (selectedItem.parent.data.type != lastSelectedItem.parent.data.type) {
+            //console.log("NEW_ITEM_B: " + selectedItem);
+            drawMenuParams(selectedItem.parent);
+          }
+        }
+        //console.log("ITEM: " + selectedItem);
+        selectedItem.parent.activate(mouseEvent);
       } else {
-        selectedItem = hitResult.item.parent;
-        drawMenuParams(selectedItem);
-        updateMenuParams(selectedItem);
+        selectedItem = null;
+        hideMenuParams();
       }
     }
   }
 
   paperTool.onMouseDrag = function (mouseEvent) {
     if (currentMode === EDIT_MODE) {
-      if(selectedPath === "fill") {
-        updateMenuParams(selectedItem);
+      if (selectedPath === "fill" || selectedSegment) {
+        updateMenuParams(selectedItem.parent);
+      }
+    }
+    if (currentMode === PLAY_MODE) {
+      if (selectedPath === "fill" || selectedSegment) {
+        updateMenuParams(selectedItem.parent);
       }
     }
   }
 
   function drawMenuParams(item) {
     let paramsIndex = 0;
-    $("#summaryContent").html("Parameters");
-    for (const param in item.data) {
-      $("#param-" + paramsIndex).collapse("show");
-      paramsIndex++;
+    if (item.data.type != null) {
+      $("#summaryContent").html("Parameters");
+      for (const param in item.data) {
+        $("#param-" + paramsIndex).collapse("show");
+        $("#paramInputAtribute-" + paramsIndex).html(param);
+        $("#paramInputValue-" + paramsIndex).val(item.data[param]);
+        paramsIndex++;
+      }
+      for (let i = MAX_PARAM; i >= paramsIndex; i--) {
+        $("#param-" + i).collapse("hide");
+      }
+      $("#updateParams").collapse("show");
+      console.log("DRAW_MENU: " + item.data.type);
     }
-    for (let i = MAX_PARAM; i >= paramsIndex; i--) {
-      $("#param-" + i).collapse("hide");
-    }
-    $("#updateParams").collapse("show");
-    console.log("DRAW_MENU: " + item.data.name);
   }
 
   paperTool.onKeyDown = function (keyEvent) {
     if (currentMode === EDIT_MODE) {
-      if (keyEvent.modifiers.shift && keyEvent.Key === "backspace") {
-        console.log(selectedItem.parent);
-        selectedItem.parent.removeChildren();
+      if (keyEvent.modifiers.shift) {
+        switch (keyEvent.key) {
+          case "backspace":
+            selectedItem.parent.removeChildren();
+            hideMenuParams();
+            newShape = true;
+            break;
+          case "enter":
+            if (e256_drawMode === "path") {
+              newShape = true;
+            }
+            break;
+        }
       }
     }
   }
 
-  paper.onFrame = function (event) {
+  function hideMenuParams() {
+    $(".param").collapse("hide");
+  }
+
+  paper.onFrame = function (mouseEvent) {
     // Every frame
   }
 
@@ -120,43 +182,72 @@ function paperInit() {
     switch (e256_drawMode) {
       case "trigger":
         selectedItem = triggerFactory();
-        triggerLayer.addChild(selectedItem);   
+        selectedItem.setupFromMouseEvent(mouseEvent);
+        selectedItem.create();
+        triggerLayer.addChild(selectedItem);
+        drawMenuParams(selectedItem);
         break;
       case "switch":
         selectedItem = switchFactory();
+        selectedItem.setupFromMouseEvent(mouseEvent);
+        selectedItem.create();
         switchLayer.addChild(selectedItem);
+        drawMenuParams(selectedItem);
         break;
       case "slider":
         selectedItem = sliderFactory();
+        selectedItem.setupFromMouseEvent(mouseEvent);
+        selectedItem.create();
         sliderLayer.addChild(selectedItem);
+        drawMenuParams(selectedItem);
         break;
       case "knob":
         selectedItem = knobFactory();
+        selectedItem.setupFromMouseEvent(mouseEvent);
+        selectedItem.create();
         knobLayer.addChild(selectedItem);
+        drawMenuParams(selectedItem);
         break;
       case "touchpad":
         selectedItem = touchpadFactory();
+        selectedItem.setupFromMouseEvent(mouseEvent);
+        selectedItem.create();
         touchpadLayer.addChild(selectedItem);
+        drawMenuParams(selectedItem);
         break;
-      case "polygon":
-        selectedItem = polygonFactory();
-        polygonLayer.addChild(selectedItem);
+      case "grid":
+        selectedItem = gridFactory();
+        selectedItem.setupFromMouseEvent(mouseEvent);
+        selectedItem.create();
+        gridLayer.addChild(selectedItem);
+        drawMenuParams(selectedItem);
+        break;
+      case "path":
+        if (newShape) {
+          newShape = false;
+          selectedItem = pathFactory();
+          selectedItem.setupFromMouseEvent(mouseEvent);
+          selectedItem.create(mouseEvent);
+          pathLayer.addChild(selectedItem);
+          drawMenuParams(selectedItem);
+        } else {
+          selectedItem.addPoint(mouseEvent);
+          updateMenuParams(selectedItem);
+          console.log("NEW_POINT");
+        }
         break;
     }
-    selectedItem.setupFromMouseEvent(mouseEvent);
-    selectedItem.create();
-    updateMenuParams(selectedItem);
+    console.log("ITEM: " + selectedItem.data.type);
   }
 
   function drawControlerFromConfig(configFile) {
-    let conf = configFile.mapping;
+    let conf = configFile.mappings;
     clearLayers();
     for (var i = 0; i < conf.triggers.length; i++) {
       var e256_trigger = triggerFactory();
       e256_trigger.setupFromConfig(conf.triggers[i]);
       e256_trigger.create();
       triggerLayer.addChild(e256_trigger);
-      console.log(e256_trigger.data);
     }
     for (var i = 0; i < conf.switchs.length; i++) {
       var e256_switch = switchFactory();
@@ -182,14 +273,18 @@ function paperInit() {
       e256_touchpad.create();
       touchpadLayer.addChild(e256_touchpad);
     }
-    /*
-    for (var i = 0; i < conf.polygons.length; i++) {
-      var e256_polygon = polygonFactory();
-      e256_polygon.setupFromConfig(conf.polygons[i]);
-      e256_polygon.create();
-      polygonLayer.addChild(e256_polygon);
+    for (var i = 0; i < conf.grids.length; i++) {
+      var e256_grid = touchpadFactory();
+      e256_grid.setupFromConfig(conf.grids[i]);
+      e256_grid.create();
+      gridLayer.addChild(e256_grid);
     }
-    */
+    for (var i = 0; i < conf.path.length; i++) {
+      var e256_path = pathFactory();
+      e256_path.setupFromConfig(conf.polygons[i]);
+      e256_path.create();
+      pathLayer.addChild(e256_path);
+    }
   }
 
   function clearLayer(layer) {
@@ -204,7 +299,8 @@ function paperInit() {
     clearLayer(sliderLayer);
     clearLayer(knobLayer);
     clearLayer(touchpadLayer);
-    clearLayer(polygonLayer);
+    clearLayer(gridLayer);
+    clearLayer(pathLayer);
   }
 
   // Whenever the view is resized - FIXME!

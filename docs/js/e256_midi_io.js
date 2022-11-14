@@ -108,25 +108,28 @@ function updateMenu() {
   }
 }
 
+// RAW MIDI MESSAGES!
+
 function onMIDIMessage(midiMsg) {
   let channel = (midiMsg.data[0] & 0xF) + 1; // lowByte
-  let status = midiMsg.data[0] & 0xF0; // highByte
+  let status = midiMsg.data[0] & 0xF0;       // highByte
   let value = midiMsg.data[1];
-  //console.log("CHANNEL: ", channel);
-  //console.log("STATUS: ", status);
-  //console.log("VALUE: ", value);
+  // midiMsg -> Input row MIDI mesages!
+  //console.log("CHANNEL: ", channel); // []
+  //console.log("STATUS: ", status);   // []
+  //console.log("VALUE: ", value);     // []
   switch (status) {
-    case NOTE_ON:
+    case NOTE_ON: // 144	[han-1], 145 [chan-1], ...
       e256_blobs.add(midiMsg.data, onBlobDown);
       console.log(midiMsg.data);
       break;
-    case NOTE_OFF:
+    case NOTE_OFF: // 128	[han-1], 129 [chan-1], ...
       e256_blobs.remove(midiMsg.data, onBlobRelease);
       break;
-    case CONTROL_CHANGE:
-      // NA
+    case CONTROL_CHANGE: // 176 [chan-1], 177 [chan-1], ...
+      // NOT USE IN THIS BRANCHE OF THE PROJECT! 
       break;
-    case PROGRAM_CHANGE:
+    case PROGRAM_CHANGE: // 192 [chan-1], 193 [chan-2], ...
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
           if (VERBOSITY_CODES[value] === PENDING_MODE_DONE) {
@@ -144,9 +147,8 @@ function onMIDIMessage(midiMsg) {
             console.log("RECEIVED: " + VERBOSITY_CODES[value]);
             sysex_upload(string_to_bytes(JSON.stringify(config))); // JSON serialization
           }
-          else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_ALLOC_DONE) {
+          else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_LOAD_DONE) {
             console.log("RECEIVED: " + VERBOSITY_CODES[value]);
-            // Graph config
           }
           else {
             console.log("RECEIVED: " + VERBOSITY_CODES[value]);
@@ -166,7 +168,7 @@ function onMIDIMessage(midiMsg) {
           console.log(string);
           var e256_jsonFile = string.slice(1, -1);
           config = JSON.parse(e256_jsonFile);
-          //drawFromParams(config.mapping);
+          drawFromParams(config.mappings);
           currentMode = EDIT_MODE;
           break;
         case MATRIX_MODE_RAW:

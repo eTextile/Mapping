@@ -60,6 +60,7 @@ $(".e256_setMode").click(function (event) {
       $("#loadMenu").collapse("hide");
       $("#summaryAction").html("CONNECTED / EDIT_MODE");
       $("#summaryContent").html("Add new components");
+      
       break;
     case "playMode":
       currentMode = PLAY_MODE;
@@ -69,6 +70,7 @@ $(".e256_setMode").click(function (event) {
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#summaryContent").html("Evaluate what you have made");
       $(".param").collapse("hide");
+      //lastSelectedItem = null; 
       break;
   }
   if (connected) {
@@ -120,8 +122,23 @@ $("#exportConfig").click(function () {
 // Update item parameters using the txt input fields
 $("#btnSet").click(function () {
   let paramsIndex = 0;
-  for (const param in selectedItem.data) {
-    selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
+  for (const param in selectedItem.parent.data) {
+    if (param === "from" || param === "to"){
+      selectedItem.parent.data[param].x = $("#paramInputValue-" + paramsIndex).val[0];
+      selectedItem.parent.data[param].y = $("#paramInputValue-" + paramsIndex).val[1];
+    }
+    else{
+      // FIXME!
+      //typeof
+      //selectedItem.parent.data[param] = parseInt($("#paramInputValue-" + paramsIndex).val(), 10);
+      selectedItem.parent.data[param] = $("#paramInputValue-" + paramsIndex).val();
+    }
     paramsIndex++;
   }
+
+  // This will be add to all feature of the mapping_lib
+  if (selectedItem.parent.data.type === "touchpad"){
+    selectedItem.parent.updateFromParams();
+  }
+  
 });
