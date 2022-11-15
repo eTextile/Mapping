@@ -46,7 +46,7 @@ function paperInit() {
   knobLayer.name = "knobs";
   touchpadLayer.name = "touchpads";
   pathLayer.name = "paths";
-  gridLayer.name = "gridLayer";
+  gridLayer.name = "grids";
 
   paper.view.viewSize.width = canvasWidth;
   paper.view.viewSize.height = canvasHeight;

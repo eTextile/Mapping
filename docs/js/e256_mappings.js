@@ -468,7 +468,7 @@ function sliderFactory() {
   var defaultWidth = 50;
   var defaultHeight = 400;
   var minWidth = 45;
-  var minHeight = 400;
+  var minHeight = 100;
   var lastValue = null; // Is it Global !?
   var sliderDir = 0;
 
@@ -546,9 +546,7 @@ function sliderFactory() {
                 }
                 switch (selectedSegment) {
                   case 0: // Update left segment
-                    if (this.bounds.width < minWidth) {
-                      this.children["rect"].segments[0].point.x = this.bounds.right - minWidth; // FEXME
-                      this.children["rect"].segments[1].point.x = this.bounds.right - minWidth; // FEXME
+                    if ( mouseEvent.point.x < this.bounds.right - minWidth) {
                     }
                     else {
                       this.data.from[0] = Math.round(this.bounds.left);
@@ -571,9 +569,7 @@ function sliderFactory() {
                     }
                     break;
                   case 1: // Update top segment
-                    if (this.bounds.height < minHeight) {
-                      this.children["rect"].segments[1].point.y = this.bounds.bottom - minHeight; // FEXME
-                      this.children["rect"].segments[2].point.y = this.bounds.bottom - minHeight; // FEXME
+                    if (mouseEvent.point.y > this.bounds.bottom - minHeight) {
                     }
                     else {
                       this.data.from[1] = Math.round(this.bounds.top);
@@ -596,9 +592,7 @@ function sliderFactory() {
                     }
                     break;
                   case 2: // Update right segment
-                    if (this.bounds.width < minWidth) {
-                      this.children["rect"].segments[2].point.x = this.bounds.left + minWidth; // FEXME
-                      this.children["rect"].segments[3].point.x = this.bounds.left + minWidth; // FEXME
+                    if ( mouseEvent.point.x < this.bounds.left + minWidth) {
                     }
                     else {
                       this.data.to[0] = Math.round(this.bounds.right);
@@ -621,9 +615,7 @@ function sliderFactory() {
                     }
                     break;
                   case 3: // Update bottom segment
-                    if (this.bounds.height < minHeight) {
-                      this.children["rect"].segments[0].point.y = this.bounds.right + minHeight; // FEXME
-                      this.children["rect"].segments[3].point.y = this.bounds.right + minHeight; // FEXME
+                    if ( mouseEvent.point.y < this.bounds.top + minHeight) {
                     }
                     else {
                       this.data.to[1] = Math.round(this.bounds.bottom);

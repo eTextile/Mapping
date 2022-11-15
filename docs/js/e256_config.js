@@ -58,9 +58,9 @@ const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
 const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
 
 // E256 MIDI I/O CONSTANTS
-const NOTE_ON = 0x90;          // DEC: 144
-const NOTE_OFF = 0x80;         // DEC: 128
-const CONTROL_CHANGE = 0xB0;   // DEC: 176
+const NOTE_ON = 0x90;          // DEC: 144 (fon channel 1) -> + 1 for channel two... 
+const NOTE_OFF = 0x80;         // DEC: 128 (fon channel 1) -> + 1 for channel two... 
+const CONTROL_CHANGE = 0xB0;   // DEC: 176 (fon channel 1) -> + 1 for channel two... 
 const PROGRAM_CHANGE = 0xC0;   // DEC: 192
 const SYSTEM_EXCLUSIVE = 0xF0; // DEC: 240
 const SYSEX_BEGIN = 0xF0;      // DEC: 240
@@ -136,6 +136,6 @@ const ERROR_CODES = [
   TOO_MANY_BLOBS
 ];
 
-// MAPPING_LIB CODES CONSTANTS
+// MAPPING_LIB CONSTANTS
 const H_SLIDER = 0;
 const V_SLIDER = 1;
