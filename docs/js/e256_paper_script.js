@@ -9,7 +9,8 @@ var canvasHeight = null;
 var scaleFactor = null;
 
 var selectedItem = null;
-var lastSelectedItem = null;
+//var lastSelectedItem = null;
+var selectedPart = null;
 
 var selectedPath = null;
 var selectedSegment = null;
@@ -19,7 +20,7 @@ var hitOptions = {
   stroke: true,
   position: true,
   fill: true,
-  tolerance: 7,
+  tolerance: 5,
 }
 
 canvasHeight = $("#loadingCanvas").height();
@@ -58,23 +59,22 @@ function paperInit() {
   var newShape = true;
 
   paperTool.onMouseDown = function (mouseEvent) {
-    let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
-    console.log("SELECT_GLOBAL");
+    var hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
     if (currentMode === EDIT_MODE) {
       if (e256_drawMode) {
         if (!hitResult) {
-          drawControlerFromMouse(mouseEvent);
+          if (selectedItem !== null) selectedItem.free();
+          selectedItem = drawControlerFromMouse(mouseEvent);
+          selectedItem.select();
         } else {
-          lastSelectedItem = selectedItem;
-          selectedItem = hitResult.item;
-          
-          //console.log("ITEM_STROCKE: " + selectedItem.isSelected());
-          //this.selectedItem.stroke = false;
-          //console.log("ITEM_STROCKE: " + selectedItem.hasStroke());
-
+          selectedPart = hitResult.item;
           selectedPath = hitResult.type;
+          console.log("selectedPart_A : " + selectedPart.name);
           switch (selectedPath) {
             case "fill":
+              //if (selectedItem !== null) selectedItem.free(); // NOT WORKING WITH SLIDER!
+              selectedItem = hitResult.item.parent;
+              //selectedItem.select();
               selectedSegment = null;
               break;
             case "stroke":
@@ -84,13 +84,8 @@ function paperInit() {
               selectedSegment = hitResult.segment.index;
               break;
           }
-          //console.log("ITEM: " + selectedItem);
-          //console.log("PART: " + selectedPath);
-          if (selectedItem.parent.data.type != lastSelectedItem.parent.data.type) {
-            drawMenuParams(selectedItem.parent);
-            console.log("drawMenuParams: " + selectedItem.parent);
-          }
-          updateMenuParams(selectedItem.parent);
+          drawMenuParams(selectedItem);
+          updateMenuParams(selectedItem);
         }
       } else {
         alert("SELECT A GUI!");
@@ -99,19 +94,19 @@ function paperInit() {
     if (currentMode === PLAY_MODE) {
       if (hitResult) {
         let lastSelectedItem = selectedItem;
-        selectedItem = hitResult.item;
+        selectedItem = hitResult.item.parent;
+        selectedPart = hitResult.item;
         if (selectedItem && !lastSelectedItem) {
-          //console.log("NEW_ITEM_A: " + selectedItem);
-          drawMenuParams(selectedItem.parent);
+          drawMenuParams(selectedItem);
         }
         else {
-          if (selectedItem.parent.data.type != lastSelectedItem.parent.data.type) {
-            //console.log("NEW_ITEM_B: " + selectedItem);
-            drawMenuParams(selectedItem.parent);
+          /*
+          if (selectedItem.data.type != lastSelectedItem.data.type) {
+            drawMenuParams(selectedItem);
           }
+          */
         }
-        //console.log("ITEM: " + selectedItem);
-        selectedItem.parent.activate(mouseEvent);
+        selectedItem.activate(mouseEvent);
       } else {
         selectedItem = null;
         hideMenuParams();
@@ -119,34 +114,11 @@ function paperInit() {
     }
   }
 
-  paperTool.onMouseDrag = function (mouseEvent) {
-    if (currentMode === EDIT_MODE) {
+  paperTool.onMouseDrag = function () {
+    if (currentMode === EDIT_MODE || currentMode === PLAY_MODE) {
       if (selectedPath === "fill" || selectedSegment) {
-        updateMenuParams(selectedItem.parent);
+        //updateMenuParams(selectedItem);
       }
-    }
-    if (currentMode === PLAY_MODE) {
-      if (selectedPath === "fill" || selectedSegment) {
-        updateMenuParams(selectedItem.parent);
-      }
-    }
-  }
-
-  function drawMenuParams(item) {
-    let paramsIndex = 0;
-    if (item.data.type != null) {
-      $("#summaryContent").html("Parameters");
-      for (const param in item.data) {
-        $("#param-" + paramsIndex).collapse("show");
-        $("#paramInputAtribute-" + paramsIndex).html(param);
-        $("#paramInputValue-" + paramsIndex).val(item.data[param]);
-        paramsIndex++;
-      }
-      for (let i = MAX_PARAM; i >= paramsIndex; i--) {
-        $("#param-" + i).collapse("hide");
-      }
-      $("#updateParams").collapse("show");
-      console.log("DRAW_MENU: " + item.data.type);
     }
   }
 
@@ -155,7 +127,7 @@ function paperInit() {
       if (keyEvent.modifiers.shift) {
         switch (keyEvent.key) {
           case "backspace":
-            selectedItem.parent.removeChildren();
+            selectedItem.removeChildren();
             hideMenuParams();
             newShape = true;
             break;
@@ -181,63 +153,64 @@ function paperInit() {
   function drawControlerFromMouse(mouseEvent) {
     switch (e256_drawMode) {
       case "trigger":
-        selectedItem = triggerFactory();
-        selectedItem.setupFromMouseEvent(mouseEvent);
-        selectedItem.create();
-        triggerLayer.addChild(selectedItem);
-        drawMenuParams(selectedItem);
+        newItem = triggerFactory();
+        newItem.setupFromMouseEvent(mouseEvent);
+        newItem.create();
+        triggerLayer.addChild(newItem);
+        drawMenuParams(newItem);
         break;
       case "switch":
-        selectedItem = switchFactory();
-        selectedItem.setupFromMouseEvent(mouseEvent);
-        selectedItem.create();
-        switchLayer.addChild(selectedItem);
-        drawMenuParams(selectedItem);
+        newItem = switchFactory();
+        newItem.setupFromMouseEvent(mouseEvent);
+        newItem.create();
+        switchLayer.addChild(newItem);
+        drawMenuParams(newItem);
         break;
       case "slider":
-        selectedItem = sliderFactory();
-        selectedItem.setupFromMouseEvent(mouseEvent);
-        selectedItem.create();
-        sliderLayer.addChild(selectedItem);
-        drawMenuParams(selectedItem);
+        newItem = sliderFactory();
+        newItem.setupFromMouseEvent(mouseEvent);
+        newItem.create();
+        sliderLayer.addChild(newItem);
+        drawMenuParams(newItem);
         break;
       case "knob":
-        selectedItem = knobFactory();
-        selectedItem.setupFromMouseEvent(mouseEvent);
-        selectedItem.create();
-        knobLayer.addChild(selectedItem);
-        drawMenuParams(selectedItem);
+        newItem = knobFactory();
+        newItem.setupFromMouseEvent(mouseEvent);
+        newItem.create();
+        knobLayer.addChild(newItem);
+        drawMenuParams(newItem);
         break;
       case "touchpad":
-        selectedItem = touchpadFactory();
-        selectedItem.setupFromMouseEvent(mouseEvent);
-        selectedItem.create();
-        touchpadLayer.addChild(selectedItem);
-        drawMenuParams(selectedItem);
+        newItem = touchpadFactory();
+        newItem.setupFromMouseEvent(mouseEvent);
+        newItem.create();
+        touchpadLayer.addChild(newItem);
+        drawMenuParams(newItem);
         break;
       case "grid":
-        selectedItem = gridFactory();
-        selectedItem.setupFromMouseEvent(mouseEvent);
-        selectedItem.create();
-        gridLayer.addChild(selectedItem);
-        drawMenuParams(selectedItem);
+        newItem = gridFactory();
+        newItem.setupFromMouseEvent(mouseEvent);
+        newItem.create();
+        gridLayer.addChild(newItem);
+        drawMenuParams(newItem);
         break;
       case "path":
         if (newShape) {
           newShape = false;
-          selectedItem = pathFactory();
-          selectedItem.setupFromMouseEvent(mouseEvent);
-          selectedItem.create(mouseEvent);
-          pathLayer.addChild(selectedItem);
-          drawMenuParams(selectedItem);
+          newItem = pathFactory();
+          newItem.setupFromMouseEvent(mouseEvent);
+          newItem.create(mouseEvent);
+          pathLayer.addChild(newItem);
+          drawMenuParams(newItem);
         } else {
-          selectedItem.addPoint(mouseEvent);
-          updateMenuParams(selectedItem);
+          newItem.addPoint(mouseEvent);
+          updateMenuParams(newItem);
           console.log("NEW_POINT");
         }
         break;
     }
-    console.log("ITEM: " + selectedItem.data.type);
+    console.log("ITEM: " + newItem.data.type);
+    return newItem;
   }
 
   function drawControlerFromConfig(configFile) {

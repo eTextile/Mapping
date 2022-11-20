@@ -9,12 +9,12 @@ const MAX_PARAM = 16;
 /////////// GRID Factory -> IN PROCESS!
 function gridFactory() {
 
-  const defaultWidth = 400;
-  const defaultHeight = 400;
+  const grid_default_width = 400;
+  const grid_default_height = 400;
   const defaultMode = 400;
 
-  let newWidth = defaultWidth;
-  let newHeight = defaultHeight;
+  let newWidth = grid_default_width;
+  let newHeight = grid_default_height;
   let lastWidth = newWidth;
   let lastHeight = newHeight;
   let margin = 35;
@@ -44,8 +44,8 @@ function gridFactory() {
   };
   */
     setupFromMouseEvent: function (mouseEvent) {
-      this.data.from = [Math.round(mouseEvent.point.x - (defaultWidth / 2)), Math.round(mouseEvent.point.y - (defaultHeight / 2))];
-      this.data.to = [Math.round(mouseEvent.point.x + (defaultWidth / 2)), Math.round(mouseEvent.point.y + (defaultHeight / 2))];
+      this.data.from = [Math.round(mouseEvent.point.x - (grid_default_width / 2)), Math.round(mouseEvent.point.y - (grid_default_height / 2))];
+      this.data.to = [Math.round(mouseEvent.point.x + (grid_default_width / 2)), Math.round(mouseEvent.point.y + (grid_default_height / 2))];
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -61,10 +61,10 @@ return _Grid;
 
 /////////// TOUCHPAD Factory
 function touchpadFactory() {
-  const defaultWidth = 400;
-  const defaultHeight = 400;
-  let newWidth = defaultWidth;
-  let newHeight = defaultHeight;
+  const pad_default_width = 400;
+  const pad_default_height = 400;
+  let newWidth = pad_default_width;
+  let newHeight = pad_default_height;
   let lastWidth = newWidth;
   let lastHeight = newHeight;
   let margin = 35;
@@ -79,8 +79,8 @@ function touchpadFactory() {
       max: 127
     },
     setupFromMouseEvent: function (mouseEvent) {
-      this.data.from = [Math.round(mouseEvent.point.x - (defaultWidth / 2)), Math.round(mouseEvent.point.y - (defaultHeight / 2))];
-      this.data.to = [Math.round(mouseEvent.point.x + (defaultWidth / 2)), Math.round(mouseEvent.point.y + (defaultHeight / 2))];
+      this.data.from = [Math.round(mouseEvent.point.x - (pad_default_width / 2)), Math.round(mouseEvent.point.y - (pad_default_height / 2))];
+      this.data.to = [Math.round(mouseEvent.point.x + (pad_default_width / 2)), Math.round(mouseEvent.point.y + (pad_default_height / 2))];
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -91,12 +91,13 @@ function touchpadFactory() {
     },
     create: function () {
       var _pad = new paper.Path.Rectangle({
-        name: "pad", // name -> type !?
+        name: "pad",
         from: this.data.from,
         to: this.data.to,
-        strokeWidth: 1,
-        strokeColor: new paper.Color("DeepPink"),
-        fillColor: new paper.Color("DeepPink")
+        strokeWidth: SELECT_ON,
+        dashArray: [10, 5],
+        strokeColor: 'chartreuse',
+        fillColor: 'pink'
       });
       this.addChild(_pad);
       for (let i = 0; i < this.data.touchs; i++) {
@@ -105,7 +106,7 @@ function touchpadFactory() {
     },
     updateFromParams: function () {
       this.removeChildren(1);
-      console.log("from: " + this.data.from + " " + "to: " + this.data.to);
+      //console.log("from: " + this.data.from + " " + "to: " + this.data.to);
       for (let i = 0; i < this.data.touchs; i++) {
         this.addChild(this.newTouch(i));
       }
@@ -152,8 +153,26 @@ function touchpadFactory() {
       _touch.addChild(_circle);
       return _touch;
     },
-    activate: function (mouseEvent) {
-      console.log("NAN");
+    activate: function () {
+      updateMenuParams(this);
+    },
+    select: function () {
+      this.children["pad"].strokeWidth = SELECT_ON;
+      updateMenuParams(this);
+    },
+    free: function () {
+      this.children["pad"].strokeWidth = SELECT_OFF;
+    },
+    onMouseEnter: function () {
+      if (currentMode === EDIT_MODE) {
+        this.select();
+      }
+      drawMenuParams(this);
+    },
+    onMouseLeave: function(){
+      if (currentMode === EDIT_MODE) {
+        this.free();
+      }
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
@@ -166,7 +185,7 @@ function touchpadFactory() {
             this.data.to[1] += Math.round(mouseEvent.delta.y);
             break;
           case "stroke":
-            if (selectedItem.name === "pad") {
+            if (selectedPart.name === "pad") {
               switch (selectedSegment) {
                 case 0: // Update left segment
                   this.children["pad"].segments[0].point.x = mouseEvent.point.x;
@@ -226,19 +245,19 @@ function touchpadFactory() {
         }
       }
       else if (currentMode === PLAY_MODE) {
-        if (selectedItem.name === "circle") {
+        if (selectedPart.name === "circle") {
           if (mouseEvent.point.x > this.children["pad"].bounds.left &&
             mouseEvent.point.x < this.children["pad"].bounds.right &&
             mouseEvent.point.y > this.children["pad"].bounds.top &&
             mouseEvent.point.y < this.children["pad"].bounds.bottom) {
-            selectedItem.parent.children["line-x"].position.y = mouseEvent.point.y;
-            selectedItem.parent.children["line-y"].position.x = mouseEvent.point.x;
-            selectedItem.parent.children["circle"].position = mouseEvent.point;
-            selectedItem.parent.data.value[0] = Math.round(mapp(mouseEvent.point.x, this.data.from[0], this.data.to[0], this.data.min, this.data.max));
-            //if (connected) sendControlChange(selectedItem.parent.data.Xcc, selectedItem.parent.data.value[0], selectedItem.parent.data.x_chan);
-            selectedItem.parent.data.value[1] = Math.round(mapp(mouseEvent.point.y, this.data.from[1], this.data.to[1], this.data.max, this.data.min));
-            //if (connected) sendControlChange(selectedItem.parent.data.Ycc, selectedItem.parent.data.value[1], selectedItem.parent.data.y_chan);
-            //updateMenuParams(selectedItem.parent);
+            selectedItem.children["line-x"].position.y = mouseEvent.point.y;
+            selectedItem.children["line-y"].position.x = mouseEvent.point.x;
+            selectedItem.children["circle"].position = mouseEvent.point;
+            selectedItem.data.value[0] = Math.round(mapp(mouseEvent.point.x, this.data.from[0], this.data.to[0], this.data.min, this.data.max));
+            //if (connected) sendControlChange(selectedItem.data.Xcc, selectedItem.data.value[0], selectedItem.data.x_chan);
+            selectedItem.data.value[1] = Math.round(mapp(mouseEvent.point.y, this.data.from[1], this.data.to[1], this.data.max, this.data.min));
+            //if (connected) sendControlChange(selectedItem.data.Ycc, selectedItem.data.value[1], selectedItem.data.y_chan);
+            //updateMenuParams(selectedItem);
           }
         }
       }
@@ -249,7 +268,10 @@ function touchpadFactory() {
 
 /////////// TRIGGER Factory
 function triggerFactory() {
-  var defaulSize = 80;
+  var trigger_default_size = 80;
+  var trigger_min_size = 40;
+  var trigger_radius = trigger_default_size;
+
   var _Trigger = new paper.Group({
     data: {
       "type": "trigger",
@@ -261,7 +283,7 @@ function triggerFactory() {
       "velocity": null
     },
     setupFromMouseEvent: function (mouseEvent) {
-      let halfSize = defaulSize / 2;
+      let halfSize = trigger_default_size / 2;
       this.data.from = [Math.round(mouseEvent.point.x - halfSize), Math.round(mouseEvent.point.y - halfSize)];
       this.data.to = [Math.round(mouseEvent.point.x + halfSize), Math.round(mouseEvent.point.y + halfSize)];
     },
@@ -281,64 +303,78 @@ function triggerFactory() {
         name: "square",
         from: this.data.from,
         to: this.data.to,
-        strokeWidth: 10,
-        strokeColor: "SkyBlue",
-        fillColor: "SkyBlue",
+        strokeWidth: SELECT_ON,
+        dashArray: [10, 5],
+        strokeColor: 'chartreuse',
+        fillColor: "skyblue",
       });
       var _circle = new paper.Path.Circle({
         name: "circle",
         center: new paper.Point(circleCenterX, circleCenterY),
-        radius: sizeX / 2.2,
-        fillColor: "Yellow"
+        radius: sizeX / 2.5,
+        fillColor: "yellow"
       });
       this.addChild(_square);
       this.addChild(_circle);
     },
-    activate: function (mouseEvent) {
-      if (selectedItem.name === "circle") {
-        //console.log("activate");
-        this.children["circle"].fillColor = "LawnGreen";
+    activate: function () {
+      if (selectedPart.name === "circle") {
+        this.children["circle"].fillColor = "lawngreen";
         this.data.value = this.data.note;
         if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
         updateMenuParams(this);
-        setTimeout(this.triggerOff, 200, this);
+        setTimeout(this.triggerOff, 300, this);
+      }
+    },
+    select: function () {
+      this.children["square"].strokeWidth = SELECT_ON;
+      updateMenuParams(this);
+    },
+    free: function () {
+      this.children["square"].strokeWidth = SELECT_OFF;
+    },
+    onMouseEnter: function () {
+      drawMenuParams(this);
+      if (currentMode === EDIT_MODE) {
+        this.select();
+      }
+    },
+    onMouseLeave: function(){
+      if (currentMode === EDIT_MODE) {
+        this.free();
       }
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
         switch (selectedPath) {
           case "fill":
-            this.translate(mouseEvent.delta);
-            this.data.from[0] = Math.round(this.data.from[0] += mouseEvent.delta.x);
-            this.data.from[1] = Math.round(this.data.from[1] += mouseEvent.delta.y);
-            this.data.to[0] = Math.round(this.data.to[0] += mouseEvent.delta.x);
-            this.data.to[1] = Math.round(this.data.to[1] += mouseEvent.delta.y);
-            updateMenuParams(this);
+            moveItem(this, mouseEvent);
             break;
           case "stroke":
-            if (selectedItem.name === "square") {
-              var triggRadius_x = (this.bounds.right - this.bounds.left) / 2;
-              var triggRadius_y = (this.bounds.bottom - this.bounds.top) / 2;
-              var triggRadius = triggRadius_x;
-
-              var triggCenter_x = this.bounds.left + triggRadius_x;
-              var triggCenter_y = this.bounds.top + triggRadius_y;
-              var x = mouseEvent.point.x - triggCenter_x;
-              var y = mouseEvent.point.y - triggCenter_y;
-              var lastTriggRadius = triggRadius;
-              var triggRadius = Math.sqrt((x * x) + (y * y)) - (this.children["square"].strokeWidth / 2);
-              this.scale(triggRadius / lastTriggRadius);
-
-              this.data.from[0] = Math.round(this.children["square"].bounds.left);
-              this.data.to[0] = Math.round(this.children["square"].bounds.right);
-              this.data.from[1] = Math.round(this.children["square"].bounds.top);
-              this.data.to[1] = Math.round(this.children["square"].bounds.bottom);
-              updateMenuParams(this);
-            } else if (selectedItem.name === "circle") {
-              this.moveItem(mouseEvent);
+            if (selectedPart.name === "square") {
+              let trigger_radius_x = (this.bounds.right - this.bounds.left) / 2;
+              let trigger_radius_y = (this.bounds.bottom - this.bounds.top) / 2;
+              trigger_radius = trigger_radius_x;
+              let trigger_center_x = this.bounds.left + trigger_radius_x;
+              let trigger_center_y = this.bounds.top + trigger_radius_y;
+              let x = mouseEvent.point.x - trigger_center_x;
+              let y = mouseEvent.point.y - trigger_center_y;
+              let last_trigger_radius = trigger_radius;
+              trigger_radius = Math.sqrt((x * x) + (y * y)) - (this.children["square"].strokeWidth / 2);
+              if (trigger_radius > trigger_min_size){ 
+                this.scale(trigger_radius / last_trigger_radius);
+                this.data.from[0] = Math.round(this.children["square"].bounds.left);
+                this.data.from[1] = Math.round(this.children["square"].bounds.top);
+                this.data.to[0] = Math.round(this.children["square"].bounds.right);
+                this.data.to[1] = Math.round(this.children["square"].bounds.bottom);
+              }
+            }
+            else if (selectedPart.name === "circle") {
+              moveItem(this, mouseEvent);
             }
             break;
         }
+        updateMenuParams(this);
       }
     },
     triggerOff: function (item) {
@@ -359,7 +395,7 @@ function switchFactory() {
       type: "switch",
       from: [null, null],
       to: [null, null],
-      value: null,
+      value: true,
       chan: null,
       note: null,
       velocity: null
@@ -381,19 +417,20 @@ function switchFactory() {
         name: "square",
         from: this.data.from,
         to: this.data.to,
-        strokeWidth: 1,
-        strokeColor: "Yellow",
-        fillColor: "Yellow"
+        strokeWidth: SELECT_ON,
+        dashArray: [10, 5],
+        strokeColor: 'chartreuse',
+        fillColor: "yellow"
       });
       let _line_a = new paper.Path.Line({
-        name: "line",
+        name: "cross_line_x",
         from: new paper.Point(this.data.from[0], this.data.from[1]),
         to: new paper.Point(this.data.to[0], this.data.to[1]),
         strokeWidth: 1,
         strokeColor: "black"
       });
       let _line_b = new paper.Path.Line({
-        name: "line",
+        name: "cross_line_y",
         from: new paper.Point(this.data.from[0], this.data.to[1]),
         to: new paper.Point(this.data.to[0], this.data.from[1]),
         strokeWidth: 1,
@@ -403,34 +440,52 @@ function switchFactory() {
       this.addChild(_line_a);
       this.addChild(_line_b);
     },
-    activate: function (mouseEvent) {
+    activate: function () {
       this.data.value = !this.data.value;
       if (this.data.value) {
-        this.children[1].visible = true;
-        this.children[2].visible = true;
+        this.children["cross_line_x"].visible = true;
+        this.children["cross_line_y"].visible = true;
         if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
         updateMenuParams(this);
       } else {
-        this.children[1].visible = false;
-        this.children[2].visible = false;
+        this.children["cross_line_x"].visible = false;
+        this.children["cross_line_y"].visible = false;
         if (connected) sendNoteOff(this.data.note, 0, this.data.chan);
         updateMenuParams(this);
+      }
+    },
+    select: function () {
+      this.children["square"].strokeWidth = SELECT_ON;
+      updateMenuParams(this);
+    },
+    free: function () {
+      this.children["square"].strokeWidth = SELECT_OFF;
+    },
+    onMouseEnter: function () {
+      switch (currentMode) {
+        case EDIT_MODE:
+          this.select();
+          break;
+        case PLAY_MODE:
+          //
+          break;
+      }
+      drawMenuParams(this);
+      updateMenuParams(this);
+    },
+    onMouseLeave: function(){
+      if (currentMode === EDIT_MODE) {
+        this.free();
       }
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
         switch (selectedPath) {
           case "fill":
-            //moveItem(this, mouseEvent);
-            this.translate(mouseEvent.delta);
-            this.data.from[0] = Math.round(this.children["square"].bounds.left);
-            this.data.from[1] = Math.round(this.children["square"].bounds.top);
-            this.data.to[0] = Math.round(this.children["square"].bounds.right);
-            this.data.to[1] = Math.round(this.children["square"].bounds.bottom);
-            updateMenuParams(this);
+            moveItem(this, mouseEvent);
             break;
           case "stroke":
-            if (selectedItem.name === "square") {
+            if (selectedPart.name === "square") {
               var switchRadius_x = (this.bounds.right - this.bounds.left) / 2;
               var switchRadius_y = (this.bounds.bottom - this.bounds.top) / 2;
               var switchRadius = switchRadius_x;
@@ -446,13 +501,8 @@ function switchFactory() {
               this.data.to[0] = Math.round(this.children["square"].bounds.right);
               this.data.to[1] = Math.round(this.children["square"].bounds.bottom);
             }
-            else if (selectedItem.name === "line") {
-              //moveItem(this, mouseEvent);
-              this.translate(mouseEvent.delta);
-              this.data.from[0] = Math.round(this.children["square"].bounds.left);
-              this.data.from[1] = Math.round(this.children["square"].bounds.top);
-              this.data.to[0] = Math.round(this.children["square"].bounds.right);
-              this.data.to[1] = Math.round(this.children["square"].bounds.bottom);
+            else if (selectedPart.name === "line") {
+              moveItem(this, mouseEvent);
             }
             updateMenuParams(this);
             break;
@@ -465,12 +515,12 @@ function switchFactory() {
 
 /////////// SLIDER Factory
 function sliderFactory() {
-  var defaultWidth = 50;
-  var defaultHeight = 400;
-  var minWidth = 45;
-  var minHeight = 100;
-  var lastValue = null; // Is it Global !?
-  var sliderDir = 0;
+  var slider_default_width = 50;
+  var slider_default_height = 400;
+  var slider_min_width = 45;
+  var slider_min_height = 100;
+  var slider_last_val = null; // Is it Global !?
+  var slider_dir = V_SLIDER;
 
   var _Slider = new paper.Group({
     data: {
@@ -484,8 +534,8 @@ function sliderFactory() {
       max: 127
     },
     setupFromMouseEvent: function (mouseEvent) {
-      this.data.from = [Math.round(mouseEvent.point.x - (defaultWidth / 2)), Math.round(mouseEvent.point.y - (defaultHeight / 2))];
-      this.data.to = [Math.round(mouseEvent.point.x + (defaultWidth / 2)), Math.round(mouseEvent.point.y + (defaultHeight / 2))];
+      this.data.from = [Math.round(mouseEvent.point.x - (slider_default_width / 2)), Math.round(mouseEvent.point.y - (slider_default_height / 2))];
+      this.data.to = [Math.round(mouseEvent.point.x + (slider_default_width / 2)), Math.round(mouseEvent.point.y + (slider_default_height / 2))];
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
@@ -502,57 +552,82 @@ function sliderFactory() {
         from: new paper.Point(this.data.from[0], this.data.from[1]),
         to: new paper.Point(this.data.to[0], this.data.to[1]),
         selected: true,
-        strokeWidth: 3,
-        strokeColor: "Green",
-        fillColor: "SkyBlue"
+        strokeWidth: SELECT_ON,
+        dashArray: [10, 5],
+        strokeColor: 'chartreuse',
+        fillColor: "azure"
       });
       var _handle = new paper.Path.Line({
         name: "handle",
-        from: new paper.Point(this.data.from[0], this.data.from[1] + (defaultHeight / 2)),
-        to: new paper.Point(this.data.to[0], this.data.from[1] + (defaultHeight / 2)),
-        strokeWidth: 10,
+        from: new paper.Point(this.data.from[0], this.data.from[1] + (slider_default_height / 2)),
+        to: new paper.Point(this.data.to[0], this.data.from[1] + (slider_default_height / 2)),
+        strokeWidth: 30,
         strokeCap: "round",
-        strokeColor: "black"
+        strokeColor: "lightslategray"
       });
       this.addChild(_rect);
       this.addChild(_handle);
     },
     activate: function (mouseEvent) {
+      console.log("SLIDER_ACTIVATE");
       this.data.value = Math.round(mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.max, this.data.min));
-      this.children["handle"].position.y = mouseEvent.point.y;
-      //sliderWidth = this.bounds.right - this.bounds.left;
-      //sliderHeight = this.bounds.bottom - this.bounds.top;
+      switch (slider_dir) {
+        case H_SLIDER:
+          this.children["handle"].position.x = mouseEvent.point.x;
+          break;
+        case V_SLIDER:
+          this.children["handle"].position.y = mouseEvent.point.y;
+        break;
+      }
       updateMenuParams(this);
+    },
+    select: function () {
+      this.children["rect"].strokeWidth = SELECT_ON;
+      updateMenuParams(this);
+    },
+    free: function () {
+      this.children["rect"].strokeWidth = SELECT_OFF;
+    },
+    onMouseEnter: function () {
+      switch (currentMode) {
+        case EDIT_MODE:
+          this.select();
+          break;
+        case PLAY_MODE:
+          //
+          break;
+      }
+      drawMenuParams(this);
+      updateMenuParams(this);
+    },
+    onMouseLeave: function(){
+      if (currentMode === EDIT_MODE) {
+        this.free();
+      }
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
         switch (selectedPath) {
           case "fill":
-            //moveItem(this, mouseEvent);
-            this.translate(mouseEvent.delta);
-            this.data.from[0] = Math.round(this.bounds.left);
-            this.data.from[1] = Math.round(this.bounds.top);
-            this.data.to[0] = Math.round(this.bounds.right);
-            this.data.to[1] = Math.round(this.bounds.bottom);
-            updateMenuParams(this);
+            moveItem(this, mouseEvent);
             break;
           case "stroke":
-            switch (selectedItem.name) {
+            switch (selectedPart.name) {
               case "rect":
                 if (this.bounds.width > this.bounds.height) {
-                  sliderDir = H_SLIDER;
+                  slider_dir = H_SLIDER;
                 } else {
-                  sliderDir = V_SLIDER;
+                  slider_dir = V_SLIDER;
                 }
                 switch (selectedSegment) {
                   case 0: // Update left segment
-                    if ( mouseEvent.point.x < this.bounds.right - minWidth) {
+                    if ( mouseEvent.point.x > this.bounds.right - slider_min_width) {
                     }
                     else {
                       this.data.from[0] = Math.round(this.bounds.left);
                       this.children["rect"].segments[0].point.x = mouseEvent.point.x;
                       this.children["rect"].segments[1].point.x = mouseEvent.point.x;
-                      switch (sliderDir) {
+                      switch (slider_dir) {
                         case H_SLIDER:
                           this.children["handle"].segments[0].point.x = this.bounds.right - (this.bounds.width / 2);
                           this.children["handle"].segments[0].point.y = this.bounds.top;
@@ -569,13 +644,13 @@ function sliderFactory() {
                     }
                     break;
                   case 1: // Update top segment
-                    if (mouseEvent.point.y > this.bounds.bottom - minHeight) {
+                    if (mouseEvent.point.y > this.bounds.bottom - slider_min_height) {
                     }
                     else {
                       this.data.from[1] = Math.round(this.bounds.top);
                       this.children["rect"].segments[1].point.y = mouseEvent.point.y;
                       this.children["rect"].segments[2].point.y = mouseEvent.point.y;
-                      switch (sliderDir) {
+                      switch (slider_dir) {
                         case H_SLIDER:
                           this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width / 2);
                           this.children["handle"].segments[0].point.y = mouseEvent.point.y;
@@ -592,13 +667,13 @@ function sliderFactory() {
                     }
                     break;
                   case 2: // Update right segment
-                    if ( mouseEvent.point.x < this.bounds.left + minWidth) {
+                    if ( mouseEvent.point.x < this.bounds.left + slider_min_width) {
                     }
                     else {
                       this.data.to[0] = Math.round(this.bounds.right);
                       this.children["rect"].segments[2].point.x = mouseEvent.point.x;
                       this.children["rect"].segments[3].point.x = mouseEvent.point.x;
-                      switch (sliderDir) {
+                      switch (slider_dir) {
                         case H_SLIDER:
                           this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width / 2);
                           this.children["handle"].segments[0].point.y = this.bounds.top;
@@ -615,13 +690,13 @@ function sliderFactory() {
                     }
                     break;
                   case 3: // Update bottom segment
-                    if ( mouseEvent.point.y < this.bounds.top + minHeight) {
+                    if ( mouseEvent.point.y < this.bounds.top + slider_min_height) {
                     }
                     else {
                       this.data.to[1] = Math.round(this.bounds.bottom);
                       this.children["rect"].segments[0].point.y = mouseEvent.point.y;
                       this.children["rect"].segments[3].point.y = mouseEvent.point.y;
-                      switch (sliderDir) {
+                      switch (slider_dir) {
                         case H_SLIDER:
                           this.children["handle"].segments[0].point.x = this.bounds.left + (this.bounds.width / 2);
                           this.children["handle"].segments[0].point.y = this.bounds.top;
@@ -641,50 +716,38 @@ function sliderFactory() {
                 updateMenuParams(this);
                 break;
               case "handle":
-                //moveItem(this, mouseEvent);
-                this.translate(mouseEvent.delta);
-                this.data.from[0] = Math.round(this.bounds.left);
-                this.data.from[1] = Math.round(this.bounds.top);
-                this.data.to[0] = Math.round(this.bounds.right);
-                this.data.to[1] = Math.round(this.bounds.bottom);
-                updateMenuParams(this);
+                console.log("PINGGGGGG");
+                moveItem(this, mouseEvent);
                 break;
             }
         }
+        updateMenuParams(this);
       }
     },
-    onMouseMove: function (mouseEvent) {
+    onMouseMove: function (mouseEvent) { ////////////////////////////////// activate() !?
       if (currentMode === PLAY_MODE) {
-        switch (sliderDir) {
-          case H_SLIDER:
-            if (mouseEvent.point.x > this.bounds.left && mouseEvent.point.x < this.bounds.right) {
-              this.data.value = Math.round(mapp(mouseEvent.point.x, this.bounds.left, this.bounds.right, this.data.min, this.data.max));
-              //this.children["handle"].position.x = mouseEvent.point.x;
-              this.children["handle"].segments[0].point.y = this.bounds.top;
-              this.children["handle"].segments[0].point.x = mouseEvent.point.x;
-              this.children["handle"].segments[1].point.y = this.bounds.bottom;
-              this.children["handle"].segments[1].point.x  = mouseEvent.point.x;
-            }
-            break;
+        switch (slider_dir) {
           case V_SLIDER:
             if (mouseEvent.point.y > this.bounds.top && mouseEvent.point.y < this.bounds.bottom) {
               this.data.value = Math.round(mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.max, this.data.min));
-              //this.children["handle"].position.y = mouseEvent.point.y;
-              this.children["handle"].segments[0].point.x = this.bounds.left;
-              this.children["handle"].segments[0].point.y = mouseEvent.point.y;
-              this.children["handle"].segments[1].point.x = this.bounds.right;
-              this.children["handle"].segments[1].point.y  = mouseEvent.point.y;
+              this.children["handle"].position.y = mouseEvent.point.y;
+            }
+            break;
+          case H_SLIDER:
+            if (mouseEvent.point.x > this.bounds.left && mouseEvent.point.x < this.bounds.right) {
+              this.data.value = Math.round(mapp(mouseEvent.point.x, this.bounds.left, this.bounds.right, this.data.min, this.data.max));
+              this.children["handle"].position.x = mouseEvent.point.x;
             }
             break;
         }
-        if (this.data.value != lastValue) {
-          lastValue = this.data.value;
+        if (this.data.value != slider_last_val) {
+          slider_last_val = this.data.value;
           if (connected) sendControlChange(this.data.cc, this.data.value, this.data.chan);
           updateMenuParams(this);
         }
       }
     },
-    onMouseUp: function (mouseEvent) {
+    onMouseUp: function () {
       switch (currentMode) {
         case EDIT_MODE:
           break;
@@ -698,12 +761,12 @@ function sliderFactory() {
 
 /////////// KNOB Factory
 function knobFactory(mouseEvent) {
-  var defaultRadius = 80;
-  var defaultOffet = 90;
-  var defaultStrokeWidth = 10;
-  var last_offset = 0;
-  var last_rVal = 0;
-  var last_tVal = 0;
+  var knob_default_stroke_width = 10;
+  var knob_default_radius = 150;
+  var knob_default_offet = 90;
+  var knob_last_offset = 0;
+  var knob_last_radius_val = 0;
+  var knob_last_theta_val = 0;
 
   var _Knob = new paper.Group({
     data: {
@@ -717,7 +780,7 @@ function knobFactory(mouseEvent) {
     setupFromMouseEvent: function (mouseEvent) {
       this.data.center[0] = Math.round(mouseEvent.point.x);
       this.data.center[1] = Math.round(mouseEvent.point.y);
-      this.data.radius = defaultRadius;
+      this.data.radius = knob_default_radius;
     },
     setupFromConfig: function (params) {
       this.data.center = params[i].center;
@@ -733,15 +796,16 @@ function knobFactory(mouseEvent) {
       this.data.rMax = params[i].rMax;
     },
     create: function () {
-      var headPos = pol_to_cart(this.data.radius - defaultStrokeWidth, deg_to_rad(defaultOffet));
-      var footPos = pol_to_cart(this.data.radius - defaultStrokeWidth * 2, deg_to_rad(defaultOffet));
-      var handlePos = pol_to_cart(this.data.radius + defaultStrokeWidth, deg_to_rad(defaultOffet));
+      var headPos = pol_to_cart(this.data.radius - knob_default_stroke_width, deg_to_rad(knob_default_offet));
+      var footPos = pol_to_cart(this.data.radius - knob_default_stroke_width * 2, deg_to_rad(knob_default_offet));
+      var handlePos = pol_to_cart(this.data.radius + knob_default_stroke_width, deg_to_rad(knob_default_offet));
       var _circle = new paper.Path.Circle({
         name: "circle",
         center: new paper.Point(this.data.center[0], this.data.center[1]),
         radius: this.data.radius,
-        strokeWidth: 1,
-        strokeColor: "SpringGreen",
+        strokeWidth: SELECT_ON,
+        dashArray: [10, 5],
+        strokeColor: 'chartreuse',
         fillColor: "SpringGreen"
       });
       var _head = new paper.Path.Circle({
@@ -782,33 +846,48 @@ function knobFactory(mouseEvent) {
         footPos = pol_to_cart(polar.radius, polar.theta);
         this.children["needle-head"].position = new paper.Point(this.data.center[0] + headPos.x, this.data.center[1] + headPos.y);
         this.children["needle-foot"].segments[1].point = new paper.Point(this.data.center[0] + footPos.x, this.data.center[1] + footPos.y);
-
-        last_rVal = this.data.radius;
-        this.data.radius = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
-        if (connected && this.data.radius != last_rVal) {
+        knob_last_radius_val = this.data.radius;
+        this.data.radius_val = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
+        if (connected && this.data.radius != knob_last_radius_val) {
           sendControlChange(this.data.rCc, this.data.radius, this.data.rChan);
         }
-
-        last_tVal = this.data.tVal;
+        knob_last_theta_val = this.data.theta_val;
         var newPolar = rotatePolar(rad_to_deg(polar.theta), this.data.offset);
-        this.data.tVal = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
-        if (connected && this.data.tVal != last_tVal) {
-          sendControlChange(this.data.tCc, this.data.tVal, this.data.tChan);
+        this.data.theta_val = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
+        if (connected && this.data.theta_val != knob_last_theta_val) {
+          sendControlChange(this.data.tCc, this.data.theta_val, this.data.tChan);
         }
+      }
+    },
+    select: function () {
+      this.children["circle"].strokeWidth = SELECT_ON;
+      updateMenuParams(this);
+    },
+    free: function () {
+      this.children["circle"].strokeWidth = SELECT_OFF;
+    },
+    onMouseEnter: function () {
+      if (currentMode === EDIT_MODE) {
+        this.select();
+      }
+      drawMenuParams(this);
+    },
+    onMouseLeave: function(){
+      if (currentMode === EDIT_MODE) {
+        this.free();
       }
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
         switch (selectedPath) {
           case "fill":
-            if (selectedItem.name === "handle") {
+            if (selectedPart.name === "handle") {
               let x = mouseEvent.point.x - this.data.center[0]; // Place the x origin to the circle center
               let y = mouseEvent.point.y - this.data.center[1]; // Place the y origin to the circle center
-              last_offset = this.data.offset;
+              knob_last_offset = this.data.offset;
               this.data.offset = Math.round(rad_to_deg(cart_to_pol(x, y).theta));
-              let delta = this.data.offset - last_offset;
+              let delta = this.data.offset - knob_last_offset;
               this.children["handle"].rotate(delta, new paper.Point(this.data.center[0], this.data.center[1]));
-              updateMenuParams(this);
             } else {
               //moveItem(this, mouseEvent);
               this.translate(mouseEvent.delta);
@@ -817,13 +896,14 @@ function knobFactory(mouseEvent) {
             }
             break;
           case "stroke":
-            switch (selectedItem.name) {
+            switch (selectedPart.name) {
               case "circle":
                 let x = mouseEvent.point.x - this.data.center[0];
                 let y = mouseEvent.point.y - this.data.center[1];
                 let polar = cart_to_pol(x, y);
                 this.scale(polar.radius / this.data.radius);
-                this.data.radius = Math.round(polar.radius);
+                this.data.radius = Math.round(polar.radius); // FIXME!
+                console.log("RADIUS : " + Math.round(polar.radius));
                 break;
               case "needle-head" || "needle-foot":
                 //moveItem(this, mouseEvent);
@@ -833,6 +913,7 @@ function knobFactory(mouseEvent) {
                 break;
             }
         }
+        updateMenuParams(this);
       }
       else if (currentMode === PLAY_MODE) {
         let x = mouseEvent.point.x - this.data.center[0]; // Place the x origin to the circle center
@@ -842,15 +923,15 @@ function knobFactory(mouseEvent) {
         let footPos;
         if (polar.radius > this.data.radius) {
           let newPolar = rotatePolar(rad_to_deg(polar.theta), this.data.offset);
-          this.data.tVal = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
+          this.data.theta_val = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
           headPos = pol_to_cart(this.data.radius, polar.theta);
           footPos = pol_to_cart(this.data.radius, polar.theta);
         } else {
-          last_rVal = this.data.radius;
-          this.data.rVal = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
+          knob_last_radius_val = this.data.radius;
+          this.data.radius_val = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
           let newPolar = rotatePolar(rad_to_deg(polar.theta), this.data.offset);
-          last_tVal = this.data.tVal;
-          this.data.tVal = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
+          knob_last_theta_val = this.data.theta_val;
+          this.data.theta_val = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
           headPos = pol_to_cart(polar.radius, polar.theta);
           footPos = pol_to_cart(polar.radius, polar.theta);
         }
@@ -860,11 +941,11 @@ function knobFactory(mouseEvent) {
         updateMenuParams(this);
 
         // SEND MIDI CONTROL_CHANGE
-        if (connected && this.data.tVal != last_tVal) {
-          sendControlChange(this.data.tCc, this.data.tVal, this.data.tChan);
+        if (connected && this.data.theta_val != knob_last_theta_val) {
+          sendControlChange(this.data.tCc, this.data.theta_val, this.data.tChan);
         }
-        if (connected && this.data.rVal != last_rVal) {
-          sendControlChange(this.data.rCc, this.data.rVal, this.data.rChan);
+        if (connected && this.data.radius_val != knob_last_radius_val) {
+          sendControlChange(this.data.rCc, this.data.radius_val, this.data.rChan);
         }
       }
     }
@@ -875,7 +956,7 @@ function knobFactory(mouseEvent) {
 /////////// PATH Factory
 // http://paperjs.org/reference/path/#path
 function pathFactory() {
-  var defaultStrokeWidth = 20;
+  var path_default_stroke_width = 20;
 
   var _Path = new paper.Group({
     data: {
@@ -897,9 +978,9 @@ function pathFactory() {
       var _path = new paper.Path({
         name: "path",
         segments: this.data.segments, // vertex!?
-        strokeWidth: defaultStrokeWidth,
+        strokeWidth: path_default_stroke_width,
         strokeColor: new paper.Color(0.7, 0, 0.5),
-        selected: true,
+        //selected: true,
         strokeCap: "round",
         strokeJoin: "round"
       });
@@ -911,8 +992,26 @@ function pathFactory() {
       this.children["path"].add(newPoint);
       this.children["path"].smooth();
     },
-    activate: function (mouseEvent) {
+    activate: function () {
       this.children[0].selected = true;
+    },
+    select: function () {
+      this.children["rect"].strokeWidth = SELECT_ON;
+      updateMenuParams(this);
+    },
+    free: function () {
+      this.children["rect"].strokeWidth = SELECT_OFF;
+    },
+    onMouseEnter: function () {
+      if (currentMode === EDIT_MODE) {
+        this.select();
+      }
+      drawMenuParams(this);
+    },
+    onMouseLeave: function(){
+      if (currentMode === EDIT_MODE) {
+        this.free();
+      }
     },
     onMouseDrag: function (mouseEvent) {
       if (currentMode === EDIT_MODE) {
@@ -936,21 +1035,38 @@ function pathFactory() {
 // TODO
 
 /////////////////////////////////////////////////////////////////////////////::
-function moveItem(mouseEvent) {
-  this.translate(mouseEvent.delta);
-  this.data.from[0] += Math.round(mouseEvent.delta.x);
-  this.data.from[1] += Math.round(mouseEvent.delta.y);
-  this.data.to[0] += Math.round(mouseEvent.delta.x);
-  this.data.to[1] += Math.round(mouseEvent.delta.y);
+function moveItem(item, mouseEvent) {
+  item.translate(mouseEvent.delta);
+  item.data.from[0] = Math.round(item.bounds.left);
+  item.data.from[1] = Math.round(item.bounds.top);
+  item.data.to[0] = Math.round(item.bounds.right);
+  item.data.to[1] = Math.round(item.bounds.bottom);
 }
 
 function updateMenuParams(item) {
   var paramsIndex = 0;
-  //console.log("UPDATE_MENU");
   for (const param in item.data) {
     $("#paramInputAtribute-" + paramsIndex).html(param);
     $("#paramInputValue-" + paramsIndex).val(item.data[param]);
     paramsIndex++;
+  }
+}
+
+function drawMenuParams(item) {
+  let paramsIndex = 0;
+  if (item.data.type != null) {
+    $("#summaryContent").html("Parameters");
+    for (const param in item.data) {
+      $("#param-" + paramsIndex).collapse("show");
+      $("#paramInputAtribute-" + paramsIndex).html(param);
+      $("#paramInputValue-" + paramsIndex).val(item.data[param]);
+      paramsIndex++;
+    }
+    for (let i = MAX_PARAM; i >= paramsIndex; i--) {
+      $("#param-" + i).collapse("hide");
+    }
+    $("#updateParams").collapse("show");
+    //console.log("DRAW_MENU: " + item.data.type);
   }
 }
 

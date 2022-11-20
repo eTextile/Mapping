@@ -64,6 +64,7 @@ $(".e256_setMode").click(function (event) {
       break;
     case "playMode":
       currentMode = PLAY_MODE;
+      selectedItem.free();
       $("#editMenu").collapse("hide");
       $("#playMenu").collapse("show");
       $("#loadMenu").collapse("show");
@@ -86,6 +87,12 @@ $("#uploadConfig").click(function () {
     e256_alocate_memory();
   } else {
     alert("e256 NOT CONNECTED!");
+  }
+});
+
+$("#saveConfig").click(function () {
+  if (connected) {
+  } else {
   }
 });
 
@@ -122,23 +129,23 @@ $("#exportConfig").click(function () {
 // Update item parameters using the txt input fields
 $("#btnSet").click(function () {
   let paramsIndex = 0;
-  for (const param in selectedItem.parent.data) {
+  for (const param in selectedItem.data) {
     if (param === "from" || param === "to"){
-      selectedItem.parent.data[param].x = $("#paramInputValue-" + paramsIndex).val[0];
-      selectedItem.parent.data[param].y = $("#paramInputValue-" + paramsIndex).val[1];
+      selectedItem.data[param].x = $("#paramInputValue-" + paramsIndex).val[0];
+      selectedItem.data[param].y = $("#paramInputValue-" + paramsIndex).val[1];
     }
     else{
       // FIXME!
       //typeof
-      //selectedItem.parent.data[param] = parseInt($("#paramInputValue-" + paramsIndex).val(), 10);
-      selectedItem.parent.data[param] = $("#paramInputValue-" + paramsIndex).val();
+      //selectedItem.data[param] = parseInt($("#paramInputValue-" + paramsIndex).val(), 10);
+      selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
     }
     paramsIndex++;
   }
 
-  // This will be add to all feature of the mapping_lib
-  if (selectedItem.parent.data.type === "touchpad"){
-    selectedItem.parent.updateFromParams();
+  // This will be added to all mapping_lib TUI feature
+  if (selectedItem.data.type === "touchpad"){
+    selectedItem.updateFromParams();
   }
   
 });

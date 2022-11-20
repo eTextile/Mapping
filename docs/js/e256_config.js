@@ -6,7 +6,7 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.12";
+const VERSION = "1.0.13";
 
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
@@ -139,3 +139,6 @@ const ERROR_CODES = [
 // MAPPING_LIB CONSTANTS
 const H_SLIDER = 0;
 const V_SLIDER = 1;
+
+const SELECT_ON = 5;
+const SELECT_OFF = 0;
