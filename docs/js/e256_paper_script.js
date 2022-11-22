@@ -84,9 +84,9 @@ function paperInit() {
               selectedSegment = hitResult.segment.index;
               break;
           }
-          drawMenuParams(selectedItem);
-          updateMenuParams(selectedItem);
         }
+        drawMenuParams(selectedItem);
+        updateMenuParams(selectedItem);
       } else {
         alert("SELECT A GUI!");
       }
@@ -151,6 +151,7 @@ function paperInit() {
 
   ////////////// ADD_GUI
   function drawControlerFromMouse(mouseEvent) {
+    //var newItem = null;
     switch (e256_drawMode) {
       case "trigger":
         newItem = triggerFactory();
