@@ -1,7 +1,7 @@
 {
 	"name": "E256",
 	"project": "ETEXTILE-SYNTHESIZER",
-	"version": "1.0.10",
+	"version": "1.0.13",
 	"mappings": {
 		"triggers": [
 			{ "from": [20, 20], "to": [50, 50], "chan": 1, "note": 33, "velocity": 127 },

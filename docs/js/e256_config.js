@@ -8,6 +8,8 @@ const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
 const VERSION = "1.0.13";
 
+const MAX_PARAM = 16;
+
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
 const RAW_COLS = 16;

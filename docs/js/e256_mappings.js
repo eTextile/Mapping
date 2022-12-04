@@ -4,20 +4,24 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-const MAX_PARAM = 16;
 
 /////////// GRID Factory -> IN PROCESS!
 function gridFactory() {
 
   const grid_default_width = 400;
   const grid_default_height = 400;
-  const defaultMode = 400;
 
-  let newWidth = grid_default_width;
-  let newHeight = grid_default_height;
-  let lastWidth = newWidth;
-  let lastHeight = newHeight;
-  let margin = 35;
+  var grid_keys = 0;
+  var grid_width  = grid_default_width;
+  var last_grid_width  = grid_width ;
+
+  var grid_height = grid_default_height;
+  var lastHeight = grid_height;
+  
+  //let margin = 35;
+
+  var key_width = 0;
+  var key_height = 0;
 
   var _Grid = new paper.Group({
     data: {
@@ -26,47 +30,218 @@ function gridFactory() {
       to: [null, null],
       cols: 16,
       rows: 16,
-      gap: 1,
-      mode: 1
+      //gap: 1,
+      //mode: 1
     },
-  /*
-  TODO: define the grid as it is encoded in the firmware !
-  Firmware grid definition 
-  typedef struct grid grid_t;
-    struct grid {
-    rect_t rect;
-    uint8_t cols;
-    uint8_t rows;
-    uint8_t gap;
-    keysroke_t gridKeys[MAX_GRID_KEYS];
-    float scaleFactorX;
-    float scaleFactorY;
-  };
-  */
     setupFromMouseEvent: function (mouseEvent) {
       this.data.from = [Math.round(mouseEvent.point.x - (grid_default_width / 2)), Math.round(mouseEvent.point.y - (grid_default_height / 2))];
       this.data.to = [Math.round(mouseEvent.point.x + (grid_default_width / 2)), Math.round(mouseEvent.point.y + (grid_default_height / 2))];
+      key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
+      key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
     },
     setupFromConfig: function (params) {
       this.data.from = params.from;
       this.data.to = params.to;
       this.data.cols = params.cols;
       this.data.rows = params.rows;
-      this.data.gap = params.gap;
-      this.data.mode = params.mode;
+      //this.data.gap = params.gap;
+      //this.data.mode = params.mode;
+      key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
+      key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
     },
+    create: function () {
+      var _frame = new paper.Path.Rectangle({
+        name: "frame",
+        from: this.data.from,
+        to: this.data.to,
+        strokeWidth: SELECT_ON,
+        dashArray: [10, 5],
+        strokeColor: 'chartreuse',
+        fillColor: null
+      });
+      for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
+        for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
+          this.addChild(this.newKey(pos_y, pos_x));
+        }
+      }
+      this.addChild(_frame);
+      grid_keys = this.data.rows * this.data.cols;    
+    },
+    updateFromParams: function () {
+      this.removeChildren(1);
+      grid_keys = this.data.rows * this.data.cols;
+      key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
+      key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
+      for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
+        for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
+          this.addChild(this.newKey(pos_y, pos_x));
+        }
+      }
+    },
+    newKey: function (y_index, x_index) {
+      var _Key = new paper.Group({
+        name: "key",
+        data: {
+          name: "key-" + (((x_index + 1) * (y_index + 1))),
+          value: false,
+          chan: null,
+          note: null,
+          velocity: null
+        }
+      });
+      var _rect = new paper.Path.Rectangle({
+        name: "rect",
+        from: [this.data.from[0] + x_index * key_width, this.data.from[1] + y_index * key_height],
+        to: [this.data.from[0] + (x_index * key_width) + key_width, this.data.from[1] + (y_index * key_height) + key_height],
+        fillColor: 'white',
+        strokeColor: 'black',
+        strokeWidth: 0.1
+      });
+      var _text = new paper.PointText({
+        name: "txt",
+        point: [this.data.from[0] + x_index * key_width, this.data.from[1] + y_index * key_height],
+        content: _Key.data.name.replace('key-',''),
+        fillColor: 'black'
+      });
+      _Key.addChild(_rect);
+      _Key.addChild(_text);
+      return _Key;
+    },
+    select: function () {
+      this.children["frame"].strokeWidth = SELECT_ON;
+      updateMenuParams(this);
+    },
+    free: function () {
+      this.children["frame"].strokeWidth = SELECT_OFF;
+    },
+    onMouseEnter: function () {
+      if (currentMode === EDIT_MODE) {
+        this.select();
+      }
+      drawMenuParams(this);
+    },
+    onMouseLeave: function(){
+      if (currentMode === EDIT_MODE) {
+        this.free();
+      }
+    },
+    onMouseDrag: function (mouseEvent) {
+      if (currentMode === EDIT_MODE) {
+        switch (selectedPath) {
+          case "fill":
+            this.translate(mouseEvent.delta);
+            this.data.from[0] += Math.round(mouseEvent.delta.x);
+            this.data.from[1] += Math.round(mouseEvent.delta.y);
+            this.data.to[0] += Math.round(mouseEvent.delta.x);
+            this.data.to[1] += Math.round(mouseEvent.delta.y);
+            break;
+          case "stroke":
+            console.log(selectedPart.name);
+            if (selectedPart.name === "frame") {
+              switch (selectedSegment) {
+                case 0: // Update left segment
+                  //this.children["frame"].segments[0].position.x = mouseEvent.point.x;
+                  this.children["frame"].segments[0].point.x = mouseEvent.point.x;
+                  this.children["frame"].segments[1].point.x = mouseEvent.point.x;
+                  this.data.from[0] = Math.round(mouseEvent.point.x);
+                  grid_width = this.bounds.right - mouseEvent.point.x;
+                  key_width = grid_width / this.data.cols;
+                  for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
+                    let row_index = pos_y * this.data.cols;
+                    for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
+                      let index = row_index + pos_x;
+                      this.children[index].children["rect"].segments[0].point.x = this.children["frame"].bounds.right - Math.abs(this.data.cols - (pos_x + 1)) * key_width;
+                      this.children[index].children["rect"].segments[1].point.x = this.children["frame"].bounds.right - Math.abs(this.data.cols - (pos_x + 1)) * key_width;
+                      this.children[index].children["rect"].segments[2].point.x = this.children["frame"].bounds.right - Math.abs(this.data.cols - pos_x) * key_width;
+                      this.children[index].children["rect"].segments[3].point.x = this.children["frame"].bounds.right - Math.abs(this.data.cols - pos_x) * key_width;
+                      this.children[index].children["txt"].position = this.children[index].children["rect"].position;
+                    }
+                  }
+                  break;
+                case 1: // Update top segment
+                  this.children["frame"].segments[1].point.y = mouseEvent.point.y;
+                  this.children["frame"].segments[2].point.y = mouseEvent.point.y;
+                  this.data.from[1] = Math.round(mouseEvent.point.y);
+                  grid_height = this.bounds.bottom - mouseEvent.point.y;
+                  key_height = grid_height / this.data.rows;
+                  for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
+                    let row_index = pos_y * this.data.cols;
+                    for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
+                      let index = row_index + pos_x;
+                      this.children[index].children["rect"].segments[0].point.y = this.children["frame"].bounds.bottom - Math.abs(this.data.cols - (pos_y + 1)) * key_height;
+                      this.children[index].children["rect"].segments[1].point.y = this.children["frame"].bounds.bottom - Math.abs(this.data.cols - pos_y) * key_height;
+                      this.children[index].children["rect"].segments[2].point.y = this.children["frame"].bounds.bottom - Math.abs(this.data.cols - pos_y) * key_height;
+                      this.children[index].children["rect"].segments[3].point.y = this.children["frame"].bounds.bottom - Math.abs(this.data.cols - (pos_y + 1)) * key_height;
+                      this.children[index].children["txt"].position = this.children[index].children["rect"].position;
+                    }
+                  }
+                  break;
+                case 2: // Update right segment
+                  this.children["frame"].segments[2].point.x = mouseEvent.point.x;
+                  this.children["frame"].segments[3].point.x = mouseEvent.point.x;
+                  this.data.to[0] = Math.round(mouseEvent.point.x);
+                  grid_width = mouseEvent.point.x - this.bounds.left;
+                  key_width = grid_width / this.data.cols;
+                  for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
+                    let row_index = pos_y * this.data.cols;
+                    for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
+                      let index = row_index + pos_x;
+                      this.children[index].children["rect"].segments[0].point.x = this.children["frame"].bounds.left + (pos_x * key_width);
+                      this.children[index].children["rect"].segments[1].point.x = this.children["frame"].bounds.left + (pos_x * key_width);
+                      this.children[index].children["rect"].segments[2].point.x = this.children["frame"].bounds.left + ((pos_x + 1) * key_width);
+                      this.children[index].children["rect"].segments[3].point.x = this.children["frame"].bounds.left + ((pos_x + 1) * key_width);
+                      this.children[index].children["txt"].position = this.children[index].children["rect"].position;
+                    }
+                  }
+                  break;
+                case 3: // Update bottom segment
+                  this.children["frame"].segments[3].point.y = mouseEvent.point.y;
+                  this.children["frame"].segments[0].point.y = mouseEvent.point.y;
+                  this.data.to[1] = Math.round(mouseEvent.point.y);
+                  grid_height = mouseEvent.point.y - this.bounds.top;
+                  key_height = grid_height / this.data.rows;
+                  for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
+                    let row_index = pos_y * this.data.cols;
+                    for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
+                      let index = row_index + pos_x;
+                      this.children[index].children["rect"].segments[0].point.y = this.children["frame"].bounds.top + (pos_y + 1) * key_height;
+                      this.children[index].children["rect"].segments[1].point.y = this.children["frame"].bounds.top + pos_y * key_height;
+                      this.children[index].children["rect"].segments[2].point.y = this.children["frame"].bounds.top + pos_y * key_height;
+                      this.children[index].children["rect"].segments[3].point.y = this.children["frame"].bounds.top + (pos_y + 1) * key_height;
+                      this.children[index].children["txt"].position = this.children[index].children["rect"].position;
+                    }
+                  }
+                  break;
+                default:
+                  break;
+              }
+              break;
+            }
+        }
+      }
+      else if (currentMode === PLAY_MODE) {
+        if (selectedPart.name === "circle") {
+          if (mouseEvent.point.x > this.children["frame"].bounds.left &&
+            mouseEvent.point.x < this.children["frame"].bounds.right &&
+            mouseEvent.point.y > this.children["frame"].bounds.top &&
+            mouseEvent.point.y < this.children["frame"].bounds.bottom) {
+              // TODO
+          }
+        }
+      }
+    }
   });
-return _Grid;
+  return _Grid;
 }
 
 /////////// TOUCHPAD Factory
 function touchpadFactory() {
   const pad_default_width = 400;
   const pad_default_height = 400;
-  let newWidth = pad_default_width;
-  let newHeight = pad_default_height;
-  let lastWidth = newWidth;
-  let lastHeight = newHeight;
+  let pad_width  = pad_default_width;
+  let pad_height = pad_default_height;
+  let last_pad_width  = pad_width ;
+  let lastHeight = pad_height;
   let margin = 35;
 
   var _Touchpad = new paper.Group({
@@ -90,7 +265,7 @@ function touchpadFactory() {
       this.data.max = params.max;
     },
     create: function () {
-      var _pad = new paper.Path.Rectangle({
+      var _Pad = new paper.Path.Rectangle({
         name: "pad",
         from: this.data.from,
         to: this.data.to,
@@ -99,7 +274,7 @@ function touchpadFactory() {
         strokeColor: 'chartreuse',
         fillColor: 'pink'
       });
-      this.addChild(_pad);
+      this.addChild(_Pad);
       for (let i = 0; i < this.data.touchs; i++) {
         this.addChild(this.newTouch(i));
       }
@@ -112,7 +287,7 @@ function touchpadFactory() {
       }
     },
     newTouch: function (index) {
-      var _touch = new paper.Group({
+      var _Touch = new paper.Group({
         name: "touch",
         data: {
           name: "touch-" + index,
@@ -130,28 +305,28 @@ function touchpadFactory() {
       });
       var _line_x = new paper.Path.Line({
         name: "line-x",
-        from: new paper.Point(this.data.from[0], _touch.data.value[1]),
-        to: new paper.Point(this.data.to[0], _touch.data.value[1]),
-        strokeColor: "black",
+        from: new paper.Point(this.data.from[0], _Touch.data.value[1]),
+        to: new paper.Point(this.data.to[0], _Touch.data.value[1]),
+        strokeColor: 'black',
         strokeWidth: 1
       });
       var _line_y = new paper.Path.Line({
         name: "line-y",
-        from: new paper.Point(_touch.data.value[0], this.data.from[1]),
-        to: new paper.Point(_touch.data.value[0], this.data.to[1]),
-        strokeColor: "black",
+        from: new paper.Point(_Touch.data.value[0], this.data.from[1]),
+        to: new paper.Point(_Touch.data.value[0], this.data.to[1]),
+        strokeColor: 'black',
         strokeWidth: 1
       });
       var _circle = new paper.Path.Circle({
         name: "circle",
-        center: new paper.Point(_touch.data.value[0], _touch.data.value[1]),
+        center: new paper.Point(_Touch.data.value[0], _Touch.data.value[1]),
         radius: 10,
-        fillColor: "green"
+        fillColor: 'green'
       });
-      _touch.addChild(_line_x);
-      _touch.addChild(_line_y);
-      _touch.addChild(_circle);
-      return _touch;
+      _Touch.addChild(_line_x);
+      _Touch.addChild(_line_y);
+      _Touch.addChild(_circle);
+      return _Touch;
     },
     activate: function () {
       updateMenuParams(this);
@@ -191,11 +366,11 @@ function touchpadFactory() {
                   this.children["pad"].segments[0].point.x = mouseEvent.point.x;
                   this.children["pad"].segments[1].point.x = mouseEvent.point.x;
                   this.data.from[0] = Math.round(mouseEvent.point.x);
-                  lastWidth = newWidth;
-                  newWidth = this.bounds.right - mouseEvent.point.x;
+                  last_pad_width  = pad_width ;
+                  pad_width  = this.bounds.right - mouseEvent.point.x;
                   for (let i = 1; i < this.data.touchs + 1; i++) {
                     this.children[i].children["line-x"].segments[0].point.x = mouseEvent.point.x;
-                    let newSize_x = ((this.bounds.right - this.children[i].children["line-y"].segments[0].point.x) * newWidth) / lastWidth;
+                    let newSize_x = ((this.bounds.right - this.children[i].children["line-y"].segments[0].point.x) * pad_width ) / last_pad_width ;
                     this.children[i].children["line-y"].position.x = this.bounds.right - newSize_x;
                     this.children[i].children["circle"].position.x = this.bounds.right - newSize_x;
                   }
@@ -204,11 +379,11 @@ function touchpadFactory() {
                   this.children["pad"].segments[1].point.y = mouseEvent.point.y;
                   this.children["pad"].segments[2].point.y = mouseEvent.point.y;
                   this.data.from[1] = Math.round(mouseEvent.point.y);
-                  lastHeight = newHeight;
-                  newHeight = this.bounds.bottom - mouseEvent.point.y;
+                  lastHeight = pad_height;
+                  pad_height = this.bounds.bottom - mouseEvent.point.y;
                   for (let i = 1; i < this.data.touchs + 1; i++) {
                     this.children[i].children["line-y"].segments[0].point.y = mouseEvent.point.y;
-                    let newSize_y = ((this.bounds.bottom - this.children[i].children["line-x"].segments[0].point.y) * newHeight) / lastHeight;
+                    let newSize_y = ((this.bounds.bottom - this.children[i].children["line-x"].segments[0].point.y) * pad_height) / lastHeight;
                     this.children[i].children["line-x"].position.y = this.bounds.bottom - newSize_y;
                     this.children[i].children["circle"].position.y = this.bounds.bottom - newSize_y;
                   }
@@ -217,11 +392,11 @@ function touchpadFactory() {
                   this.children["pad"].segments[2].point.x = mouseEvent.point.x;
                   this.children["pad"].segments[3].point.x = mouseEvent.point.x;
                   this.data.to[0] = Math.round(mouseEvent.point.x);
-                  lastWidth = newWidth;
-                  newWidth = mouseEvent.point.x - this.bounds.left;
+                  last_pad_width  = pad_width ;
+                  pad_width  = mouseEvent.point.x - this.bounds.left;
                   for (let i = 1; i < this.data.touchs + 1; i++) {
                     this.children[i].children["line-x"].segments[1].point.x = mouseEvent.point.x;
-                    let newSize_x = ((this.children[i].children["line-y"].segments[0].point.x - this.bounds.left) * newWidth) / lastWidth;
+                    let newSize_x = ((this.children[i].children["line-y"].segments[0].point.x - this.bounds.left) * pad_width ) / last_pad_width ;
                     this.children[i].children["line-y"].position.x = this.bounds.left + newSize_x;
                     this.children[i].children["circle"].position.x = this.bounds.left + newSize_x;
                   }
@@ -230,11 +405,11 @@ function touchpadFactory() {
                   this.children["pad"].segments[3].point.y = mouseEvent.point.y;
                   this.children["pad"].segments[0].point.y = mouseEvent.point.y;
                   this.data.to[1] = Math.round(mouseEvent.point.y);
-                  lastHeight = newHeight;
-                  newHeight = mouseEvent.point.y - this.bounds.top;
+                  lastHeight = pad_height;
+                  pad_height = mouseEvent.point.y - this.bounds.top;
                   for (let i = 1; i < this.data.touchs + 1; i++) {
                     this.children[i].children["line-y"].segments[1].point.y = mouseEvent.point.y;
-                    let newSize_y = ((this.children[i].children["line-x"].segments[0].point.y - this.bounds.top) * newHeight) / lastHeight;
+                    let newSize_y = ((this.children[i].children["line-x"].segments[0].point.y - this.bounds.top) * pad_height) / lastHeight;
                     this.children[i].children["line-x"].position.y = this.bounds.top + newSize_y;
                     this.children[i].children["circle"].position.y = this.bounds.top + newSize_y;
                   }
@@ -274,13 +449,13 @@ function triggerFactory() {
 
   var _Trigger = new paper.Group({
     data: {
-      "type": "trigger",
-      "from": [null, null],
-      "to": [null, null],
-      "value": null,
-      "chan": null,
-      "note": null,
-      "velocity": null
+      type: "trigger",
+      from: [null, null],
+      to: [null, null],
+      value: null,
+      chan: null,
+      note: null,
+      velocity: null
     },
     setupFromMouseEvent: function (mouseEvent) {
       let halfSize = trigger_default_size / 2;
@@ -306,20 +481,20 @@ function triggerFactory() {
         strokeWidth: SELECT_ON,
         dashArray: [10, 5],
         strokeColor: 'chartreuse',
-        fillColor: "skyblue",
+        fillColor: 'skyblue',
       });
       var _circle = new paper.Path.Circle({
         name: "circle",
         center: new paper.Point(circleCenterX, circleCenterY),
         radius: sizeX / 2.5,
-        fillColor: "yellow"
+        fillColor: 'yellow'
       });
       this.addChild(_square);
       this.addChild(_circle);
     },
     activate: function () {
       if (selectedPart.name === "circle") {
-        this.children["circle"].fillColor = "lawngreen";
+        this.children["circle"].fillColor = 'lawngreen';
         this.data.value = this.data.note;
         if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
         updateMenuParams(this);
@@ -378,7 +553,7 @@ function triggerFactory() {
       }
     },
     triggerOff: function (item) {
-      item.children["circle"].fillColor = "Yellow";
+      item.children["circle"].fillColor = 'yellow';
       item.data.value = 0;
       if (connected) sendNoteOff(item.data.note, 0, item.data.chan);
       updateMenuParams(item);
@@ -420,21 +595,21 @@ function switchFactory() {
         strokeWidth: SELECT_ON,
         dashArray: [10, 5],
         strokeColor: 'chartreuse',
-        fillColor: "yellow"
+        fillColor: 'yellow'
       });
       let _line_a = new paper.Path.Line({
         name: "cross_line_x",
         from: new paper.Point(this.data.from[0], this.data.from[1]),
         to: new paper.Point(this.data.to[0], this.data.to[1]),
         strokeWidth: 1,
-        strokeColor: "black"
+        strokeColor: 'black'
       });
       let _line_b = new paper.Path.Line({
         name: "cross_line_y",
         from: new paper.Point(this.data.from[0], this.data.to[1]),
         to: new paper.Point(this.data.to[0], this.data.from[1]),
         strokeWidth: 1,
-        strokeColor: "black",
+        strokeColor: 'black'
       });
       this.addChild(_square);
       this.addChild(_line_a);
@@ -549,23 +724,23 @@ function sliderFactory() {
       var _rect = new paper.Path.Rectangle({
         name: "rect",
         value: 0,
-        from: new paper.Point(this.data.from[0], this.data.from[1]),
-        to: new paper.Point(this.data.to[0], this.data.to[1]),
+        from: this.data.from,
+        to: this.data.to,
         selected: true,
         strokeWidth: SELECT_ON,
         dashArray: [10, 5],
         strokeColor: 'chartreuse',
-        fillColor: "azure"
+        fillColor: 'azure'
       });
+      this.addChild(_rect);
       var _handle = new paper.Path.Line({
         name: "handle",
         from: new paper.Point(this.data.from[0], this.data.from[1] + (slider_default_height / 2)),
         to: new paper.Point(this.data.to[0], this.data.from[1] + (slider_default_height / 2)),
         strokeWidth: 30,
         strokeCap: "round",
-        strokeColor: "lightslategray"
+        strokeColor: 'lightslategray'
       });
-      this.addChild(_rect);
       this.addChild(_handle);
     },
     activate: function (mouseEvent) {
@@ -712,6 +887,10 @@ function sliderFactory() {
                       }
                     }
                     break;
+                  default:
+                    console.log("REST : " + selectedPath);
+                    break;
+
                 }
                 updateMenuParams(this);
                 break;
@@ -806,13 +985,13 @@ function knobFactory(mouseEvent) {
         strokeWidth: SELECT_ON,
         dashArray: [10, 5],
         strokeColor: 'chartreuse',
-        fillColor: "SpringGreen"
+        fillColor: 'springGreen'
       });
       var _head = new paper.Path.Circle({
         name: "needle-head",
         center: new paper.Point(this.data.center[0] + headPos.x, this.data.center[1] + headPos.y),
         radius: 6,
-        strokeColor: "black",
+        strokeColor: 'black',
         strokeWidth: 5
       });
       var _foot = new paper.Path.Line({
@@ -820,14 +999,14 @@ function knobFactory(mouseEvent) {
         from: new paper.Point(this.data.center[0], this.data.center[1]),
         to: new paper.Point((this.data.center[0] + footPos.x), this.data.center[1] + footPos.y),
         strokeCap: "round",
-        strokeColor: "black",
+        strokeColor: 'black',
         strokeWidth: 5,
       });
       var _handle = new paper.Path.RegularPolygon({
         name: "handle",
         center: new paper.Point(this.data.center[0] + handlePos.x, this.data.center[1] + handlePos.y),
         radius: 10,
-        fillColor: "red",
+        fillColor: 'red',
         sides: 3
       });
       _handle.rotate(-30);

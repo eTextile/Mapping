@@ -144,8 +144,8 @@ $("#btnSet").click(function () {
   }
 
   // This will be added to all mapping_lib TUI feature
-  if (selectedItem.data.type === "touchpad"){
+  if (selectedItem.data.type === "touchpad" || selectedItem.data.type === "grid"){
     selectedItem.updateFromParams();
   }
-  
+
 });

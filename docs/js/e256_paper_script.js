@@ -69,7 +69,10 @@ function paperInit() {
         } else {
           selectedPart = hitResult.item;
           selectedPath = hitResult.type;
-          console.log("selectedPart_A : " + selectedPart.name);
+
+          //console.log("select_part : " + selectedPart.name);
+          //console.log("select_path : " + selectedPath.name);
+
           switch (selectedPath) {
             case "fill":
               //if (selectedItem !== null) selectedItem.free(); // NOT WORKING WITH SLIDER!
@@ -247,7 +250,7 @@ function paperInit() {
       touchpadLayer.addChild(e256_touchpad);
     }
     for (var i = 0; i < conf.grids.length; i++) {
-      var e256_grid = touchpadFactory();
+      var e256_grid = gridFactory();
       e256_grid.setupFromConfig(conf.grids[i]);
       e256_grid.create();
       gridLayer.addChild(e256_grid);
@@ -276,7 +279,7 @@ function paperInit() {
     clearLayer(pathLayer);
   }
 
-  // Whenever the view is resized - FIXME!
+  // FIXME: whenever the view is resized
   paper.view.onResize = function () {
     canvasHeight = $("#loadingCanvas").height();
     canvasWidth = canvasHeight;
