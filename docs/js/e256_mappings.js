@@ -11,13 +11,8 @@ function gridFactory() {
   const grid_default_width = 400;
   const grid_default_height = 400;
 
-  var grid_keys = 0;
   var grid_width  = grid_default_width;
-  var last_grid_width  = grid_width ;
-
-  var grid_height = grid_default_height;
-  var lastHeight = grid_height;
-  
+  var grid_height = grid_default_height;  
   //let margin = 35;
 
   var key_width = 0;
@@ -49,6 +44,12 @@ function gridFactory() {
       key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
       key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
     },
+    updateFromParams: function () {
+      key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
+      key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
+      this.removeChildren(0);
+      this.create();
+    },
     create: function () {
       var _frame = new paper.Path.Rectangle({
         name: "frame",
@@ -65,18 +66,6 @@ function gridFactory() {
         }
       }
       this.addChild(_frame);
-      grid_keys = this.data.rows * this.data.cols; 
-    },
-    updateFromParams: function () {
-      this.removeChildren(1);
-      grid_keys = this.data.rows * this.data.cols;
-      key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
-      key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
-      for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
-        for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
-          this.addChild(this.newKey(pos_y, pos_x));
-        }
-      }
     },
     newKey: function (y_index, x_index) {
       let index = y_index * this.data.cols + x_index;
