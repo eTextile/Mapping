@@ -418,6 +418,7 @@ function touchpadFactory() {
               break;
             }
         }
+        updateMenuParams(this);
       }
       else if (currentMode === PLAY_MODE) {
         if (selectedPart.name === "circle") {
@@ -429,9 +430,9 @@ function touchpadFactory() {
             selectedItem.children["line-y"].position.x = mouseEvent.point.x;
             selectedItem.children["circle"].position = mouseEvent.point;
             selectedItem.data.value[0] = Math.round(mapp(mouseEvent.point.x, this.data.from[0], this.data.to[0], this.data.min, this.data.max));
-            //if (connected) sendControlChange(selectedItem.data.Xcc, selectedItem.data.value[0], selectedItem.data.x_chan);
+            //if (MIDI_device_connected) sendControlChange(selectedItem.data.Xcc, selectedItem.data.value[0], selectedItem.data.x_chan);
             selectedItem.data.value[1] = Math.round(mapp(mouseEvent.point.y, this.data.from[1], this.data.to[1], this.data.max, this.data.min));
-            //if (connected) sendControlChange(selectedItem.data.Ycc, selectedItem.data.value[1], selectedItem.data.y_chan);
+            //if (MIDI_device_connected) sendControlChange(selectedItem.data.Ycc, selectedItem.data.value[1], selectedItem.data.y_chan);
             //updateMenuParams(selectedItem);
           }
         }
@@ -496,7 +497,7 @@ function triggerFactory() {
       if (selectedPart.name === "circle") {
         this.children["circle"].fillColor = 'lawngreen';
         this.data.value = this.data.note;
-        if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
+        if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
         updateMenuParams(this);
         setTimeout(this.triggerOff, 300, this);
       }
@@ -555,7 +556,7 @@ function triggerFactory() {
     triggerOff: function (item) {
       item.children["circle"].fillColor = 'yellow';
       item.data.value = 0;
-      if (connected) sendNoteOff(item.data.note, 0, item.data.chan);
+      if (MIDI_device_connected) sendNoteOff(item.data.note, 0, item.data.chan);
       updateMenuParams(item);
     }
   });
@@ -620,14 +621,13 @@ function switchFactory() {
       if (this.data.value) {
         this.children["cross_line_x"].visible = true;
         this.children["cross_line_y"].visible = true;
-        if (connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
-        updateMenuParams(this);
+        if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
       } else {
         this.children["cross_line_x"].visible = false;
         this.children["cross_line_y"].visible = false;
-        if (connected) sendNoteOff(this.data.note, 0, this.data.chan);
-        updateMenuParams(this);
+        if (MIDI_device_connected) sendNoteOff(this.data.note, 0, this.data.chan);
       }
+      updateMenuParams(this);
     },
     select: function () {
       this.children["square"].strokeWidth = SELECT_ON;
@@ -679,9 +679,9 @@ function switchFactory() {
             else if (selectedPart.name === "line") {
               moveItem(this, mouseEvent);
             }
-            updateMenuParams(this);
             break;
         }
+        updateMenuParams(this);
       }
     }
   });
@@ -744,17 +744,21 @@ function sliderFactory() {
       this.addChild(_handle);
     },
     activate: function (mouseEvent) {
+      // tis is call only when cliking on TUI! -> MOVE IT TO onMouseDown!!
       console.log("SLIDER_ACTIVATE");
-      this.data.value = Math.round(mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.max, this.data.min));
+      /*
       switch (slider_dir) {
         case H_SLIDER:
+          this.data.value = Math.round(mapp(mouseEvent.point.x, this.bounds.left, this.bounds.right, this.data.max, this.data.min));
           this.children["handle"].position.x = mouseEvent.point.x;
           break;
         case V_SLIDER:
+          this.data.value = Math.round(mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.max, this.data.min));
           this.children["handle"].position.y = mouseEvent.point.y;
         break;
       }
       updateMenuParams(this);
+      */
     },
     select: function () {
       this.children["rect"].strokeWidth = SELECT_ON;
@@ -903,27 +907,31 @@ function sliderFactory() {
         updateMenuParams(this);
       }
     },
-    onMouseMove: function (mouseEvent) { ////////////////////////////////// activate() !?
-      if (currentMode === PLAY_MODE) {
-        switch (slider_dir) {
-          case V_SLIDER:
-            if (mouseEvent.point.y > this.bounds.top && mouseEvent.point.y < this.bounds.bottom) {
-              this.data.value = Math.round(mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.max, this.data.min));
-              this.children["handle"].position.y = mouseEvent.point.y;
-            }
-            break;
-          case H_SLIDER:
-            if (mouseEvent.point.x > this.bounds.left && mouseEvent.point.x < this.bounds.right) {
-              this.data.value = Math.round(mapp(mouseEvent.point.x, this.bounds.left, this.bounds.right, this.data.min, this.data.max));
-              this.children["handle"].position.x = mouseEvent.point.x;
-            }
-            break;
-        }
-        if (this.data.value != slider_last_val) {
-          slider_last_val = this.data.value;
-          if (connected) sendControlChange(this.data.cc, this.data.value, this.data.chan);
-          updateMenuParams(this);
-        }
+    onMouseMove: function (mouseEvent) {
+      switch (currentMode) {
+        case EDIT_MODE:
+          break;
+        case PLAY_MODE:
+          switch (slider_dir) {
+            case V_SLIDER:
+              if (mouseEvent.point.y > this.bounds.top && mouseEvent.point.y < this.bounds.bottom) {
+                this.data.value = Math.round(mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.max, this.data.min));
+                this.children["handle"].position.y = mouseEvent.point.y;
+              }
+              break;
+            case H_SLIDER:
+              if (mouseEvent.point.x > this.bounds.left && mouseEvent.point.x < this.bounds.right) {
+                this.data.value = Math.round(mapp(mouseEvent.point.x, this.bounds.left, this.bounds.right, this.data.min, this.data.max));
+                this.children["handle"].position.x = mouseEvent.point.x;
+              }
+              break;
+          }
+          if (this.data.value != slider_last_val) {
+            slider_last_val = this.data.value;
+            if (MIDI_device_connected) sendControlChange(this.data.cc, this.data.value, this.data.chan);
+            updateMenuParams(this);
+          }
+          break;
       }
     },
     onMouseUp: function () {
@@ -1027,13 +1035,13 @@ function knobFactory(mouseEvent) {
         this.children["needle-foot"].segments[1].point = new paper.Point(this.data.center[0] + footPos.x, this.data.center[1] + footPos.y);
         knob_last_radius_val = this.data.radius;
         this.data.radius_val = Math.round(mapp(polar.radius, 0, this.data.radius, this.data.rMin, this.data.rMax));
-        if (connected && this.data.radius != knob_last_radius_val) {
+        if (MIDI_device_connected && this.data.radius != knob_last_radius_val) {
           sendControlChange(this.data.rCc, this.data.radius, this.data.rChan);
         }
         knob_last_theta_val = this.data.theta_val;
         var newPolar = rotatePolar(rad_to_deg(polar.theta), this.data.offset);
         this.data.theta_val = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
-        if (connected && this.data.theta_val != knob_last_theta_val) {
+        if (MIDI_device_connected && this.data.theta_val != knob_last_theta_val) {
           sendControlChange(this.data.tCc, this.data.theta_val, this.data.tChan);
         }
       }
@@ -1120,10 +1128,10 @@ function knobFactory(mouseEvent) {
         updateMenuParams(this);
 
         // SEND MIDI CONTROL_CHANGE
-        if (connected && this.data.theta_val != knob_last_theta_val) {
+        if (MIDI_device_connected && this.data.theta_val != knob_last_theta_val) {
           sendControlChange(this.data.tCc, this.data.theta_val, this.data.tChan);
         }
-        if (connected && this.data.radius_val != knob_last_radius_val) {
+        if (MIDI_device_connected && this.data.radius_val != knob_last_radius_val) {
           sendControlChange(this.data.rCc, this.data.radius_val, this.data.rChan);
         }
       }

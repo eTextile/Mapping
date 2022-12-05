@@ -60,7 +60,6 @@ $(".e256_setMode").click(function (event) {
       $("#loadMenu").collapse("hide");
       $("#summaryAction").html("CONNECTED / EDIT_MODE");
       $("#summaryContent").html("Add new components");
-      
       break;
     case "playMode":
       currentMode = PLAY_MODE;
@@ -74,7 +73,7 @@ $(".e256_setMode").click(function (event) {
       //lastSelectedItem = null; 
       break;
   }
-  if (connected) {
+  if (MIDI_device_connected) {
     sendProgramChange(currentMode, MIDI_MODES_CHANNEL);
     console.log("REQUEST: " + MODES_CODES[currentMode]);
   } else {
@@ -83,7 +82,7 @@ $(".e256_setMode").click(function (event) {
 });
 
 $("#uploadConfig").click(function () {
-  if (connected) {
+  if (MIDI_device_connected) {
     e256_alocate_memory();
   } else {
     alert("e256 NOT CONNECTED!");
@@ -91,7 +90,7 @@ $("#uploadConfig").click(function () {
 });
 
 $("#saveConfig").click(function () {
-  if (connected) {
+  if (MIDI_device_connected) {
   } else {
   }
 });
@@ -104,16 +103,16 @@ $(".mapingTool").click(function (event) {
 });
 
 $("#calibrate").click(function () {
-  if (connected) {
+  if (MIDI_device_connected) {
     sendProgramChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CALIBRATE");
   } else {
     alert("e256 NOT CONNECTED!");
   }
-});
+}); 
 
 $("#getConfig").click(function () {
-  if (connected) {
+  if (MIDI_device_connected) {
     //currentMode = SYNC_MODE;
     sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CONFIG_FILE");
@@ -130,22 +129,27 @@ $("#exportConfig").click(function () {
 $("#btnSet").click(function () {
   let paramsIndex = 0;
   for (const param in selectedItem.data) {
-    if (param === "from" || param === "to"){
-      selectedItem.data[param].x = $("#paramInputValue-" + paramsIndex).val[0];
-      selectedItem.data[param].y = $("#paramInputValue-" + paramsIndex).val[1];
-    }
-    else{
-      // FIXME!
-      //typeof
-      //selectedItem.data[param] = parseInt($("#paramInputValue-" + paramsIndex).val(), 10);
-      selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val();
+  switch (param) {
+    case "from":
+      selectedItem.data[param].from = $("#paramInputValue-" + paramsIndex).from;
+      break;
+    case "to":
+      selectedItem.data[param].to = $("#paramInputValue-" + paramsIndex).to;
+      break;
+    case "type":
+        // NA
+      break;
+    default:
+      //selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val(); // NOT WORKING!
+      selectedItem.data[param] = parseInt($("#paramInputValue-" + paramsIndex).val(), 10);
+      //console.log("TYPE : " + typeof (selectedItem.data[param]))
+      break;
     }
     paramsIndex++;
   }
-
+  
   // This will be added to all mapping_lib TUI feature
   if (selectedItem.data.type === "touchpad" || selectedItem.data.type === "grid"){
     selectedItem.updateFromParams();
   }
-
 });

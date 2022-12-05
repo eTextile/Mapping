@@ -6,7 +6,7 @@
 
 var MIDIInput = null;
 var MIDIoutput = null;
-var connected = false;
+var MIDI_device_connected = false;
 var fileType = null;
 var config = null;
 var confSize = 0;
@@ -37,7 +37,7 @@ function onMIDISuccess(midiAccess) {
       }
     }
     if (inputSetup && outputSetup) {
-      connected = true;
+      MIDI_device_connected = true;
       sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
       setTimeout(isConnected, SYNC_MODE_TIMEOUT);
       console.log("SYNC_MODE_REQUEST_A - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
@@ -62,7 +62,7 @@ function onMIDISuccess(midiAccess) {
           }
         }
         if (inputSetup && outputSetup) {
-          connected = true;
+          MIDI_device_connected = true;
           console.log("E256_CONNECTED");
           console.log("REQUEST: SYNC_MODE");
           sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
@@ -74,7 +74,7 @@ function onMIDISuccess(midiAccess) {
         MIDIoutput = null;
         currentMode = PENDING_MODE;
         console.log("MODE: " + MODES_CODES[currentMode]);
-        connected = false;
+        MIDI_device_connected = false;
         updateMenu();
         break;
     }
@@ -86,7 +86,7 @@ function onMIDIFailure(error) {
 }
 
 function updateMenu() {
-  if (connected) {
+  if (MIDI_device_connected) {
     connectSwitch.checked = true;
     $("#connectSwitch").removeClass("btn-danger").addClass("btn-success");
     $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
