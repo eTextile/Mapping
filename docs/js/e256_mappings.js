@@ -65,7 +65,7 @@ function gridFactory() {
         }
       }
       this.addChild(_frame);
-      grid_keys = this.data.rows * this.data.cols;    
+      grid_keys = this.data.rows * this.data.cols; 
     },
     updateFromParams: function () {
       this.removeChildren(1);
@@ -79,10 +79,11 @@ function gridFactory() {
       }
     },
     newKey: function (y_index, x_index) {
+      let index = y_index * this.data.cols + x_index;
       var _Key = new paper.Group({
         name: "key",
         data: {
-          name: "key-" + (((x_index + 1) * (y_index + 1))),
+          name: "key-" + index,
           value: false,
           chan: null,
           note: null,
@@ -105,6 +106,7 @@ function gridFactory() {
       });
       _Key.addChild(_rect);
       _Key.addChild(_text);
+      _Key.children["txt"].position = _Key.children["rect"].position;
       return _Key;
     },
     select: function () {
@@ -129,11 +131,7 @@ function gridFactory() {
       if (currentMode === EDIT_MODE) {
         switch (selectedPath) {
           case "fill":
-            this.translate(mouseEvent.delta);
-            this.data.from[0] += Math.round(mouseEvent.delta.x);
-            this.data.from[1] += Math.round(mouseEvent.delta.y);
-            this.data.to[0] += Math.round(mouseEvent.delta.x);
-            this.data.to[1] += Math.round(mouseEvent.delta.y);
+            moveItem(this, mouseEvent);
             break;
           case "stroke":
             console.log(selectedPart.name);
@@ -353,11 +351,14 @@ function touchpadFactory() {
       if (currentMode === EDIT_MODE) {
         switch (selectedPath) {
           case "fill":
+            moveItem(this, mouseEvent);
+            /*
             this.translate(mouseEvent.delta);
             this.data.from[0] += Math.round(mouseEvent.delta.x);
             this.data.from[1] += Math.round(mouseEvent.delta.y);
             this.data.to[0] += Math.round(mouseEvent.delta.x);
             this.data.to[1] += Math.round(mouseEvent.delta.y);
+            */
             break;
           case "stroke":
             if (selectedPart.name === "pad") {
