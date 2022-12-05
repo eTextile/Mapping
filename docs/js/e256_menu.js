@@ -137,7 +137,7 @@ $("#btnSet").click(function () {
       selectedItem.data[param].to = $("#paramInputValue-" + paramsIndex).to;
       break;
     case "type":
-        // NA
+        // Nothing to do
       break;
     default:
       //selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val(); // NOT WORKING!
@@ -147,7 +147,7 @@ $("#btnSet").click(function () {
     }
     paramsIndex++;
   }
-  
+
   // This will be added to all mapping_lib TUI feature
   if (selectedItem.data.type === "touchpad" || selectedItem.data.type === "grid"){
     selectedItem.updateFromParams();

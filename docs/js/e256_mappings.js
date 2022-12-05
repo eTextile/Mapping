@@ -100,7 +100,7 @@ function gridFactory() {
       });
       var _text = new paper.PointText({
         name: "txt",
-        point: [this.data.from[0] + x_index * key_width, this.data.from[1] + y_index * key_height],
+        point: [null, null],
         content: _Key.data.name.replace('key-',''),
         fillColor: 'black'
       });
@@ -134,11 +134,11 @@ function gridFactory() {
             moveItem(this, mouseEvent);
             break;
           case "stroke":
-            console.log(selectedPart.name);
+            //console.log(selectedPart.name);
             if (selectedPart.name === "frame") {
               switch (selectedSegment) {
                 case 0: // Update left segment
-                  //this.children["frame"].segments[0].position.x = mouseEvent.point.x;
+                  //this.children["frame"].bounds.left = mouseEvent.point.x;
                   this.children["frame"].segments[0].point.x = mouseEvent.point.x;
                   this.children["frame"].segments[1].point.x = mouseEvent.point.x;
                   this.data.from[0] = Math.round(mouseEvent.point.x);
@@ -148,15 +148,14 @@ function gridFactory() {
                     let row_index = pos_y * this.data.cols;
                     for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                       let index = row_index + pos_x;
-                      this.children[index].children["rect"].segments[0].point.x = this.children["frame"].bounds.right - Math.abs(this.data.cols - (pos_x + 1)) * key_width;
-                      this.children[index].children["rect"].segments[1].point.x = this.children["frame"].bounds.right - Math.abs(this.data.cols - (pos_x + 1)) * key_width;
-                      this.children[index].children["rect"].segments[2].point.x = this.children["frame"].bounds.right - Math.abs(this.data.cols - pos_x) * key_width;
-                      this.children[index].children["rect"].segments[3].point.x = this.children["frame"].bounds.right - Math.abs(this.data.cols - pos_x) * key_width;
-                      this.children[index].children["txt"].position = this.children[index].children["rect"].position;
+                      this.children[index].children["rect"].bounds.width = key_width;
+                      this.children[index].children["rect"].position.x = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + (key_width / 2);
+                      this.children[index].children["txt"].position.x = this.children[index].children["rect"].position.x;
                     }
                   }
                   break;
                 case 1: // Update top segment
+                  //this.children["frame"].bounds.top = mouseEvent.point.y;
                   this.children["frame"].segments[1].point.y = mouseEvent.point.y;
                   this.children["frame"].segments[2].point.y = mouseEvent.point.y;
                   this.data.from[1] = Math.round(mouseEvent.point.y);
@@ -166,15 +165,14 @@ function gridFactory() {
                     let row_index = pos_y * this.data.cols;
                     for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                       let index = row_index + pos_x;
-                      this.children[index].children["rect"].segments[0].point.y = this.children["frame"].bounds.bottom - Math.abs(this.data.cols - (pos_y + 1)) * key_height;
-                      this.children[index].children["rect"].segments[1].point.y = this.children["frame"].bounds.bottom - Math.abs(this.data.cols - pos_y) * key_height;
-                      this.children[index].children["rect"].segments[2].point.y = this.children["frame"].bounds.bottom - Math.abs(this.data.cols - pos_y) * key_height;
-                      this.children[index].children["rect"].segments[3].point.y = this.children["frame"].bounds.bottom - Math.abs(this.data.cols - (pos_y + 1)) * key_height;
-                      this.children[index].children["txt"].position = this.children[index].children["rect"].position;
+                      this.children[index].children["rect"].bounds.height = key_height;
+                      this.children[index].children["rect"].position.y = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + (key_height / 2);
+                      this.children[index].children["txt"].position.y = this.children[index].children["rect"].position.y;
                     }
                   }
                   break;
                 case 2: // Update right segment
+                  //this.children["frame"].bounds.right = mouseEvent.point.x;
                   this.children["frame"].segments[2].point.x = mouseEvent.point.x;
                   this.children["frame"].segments[3].point.x = mouseEvent.point.x;
                   this.data.to[0] = Math.round(mouseEvent.point.x);
@@ -184,15 +182,14 @@ function gridFactory() {
                     let row_index = pos_y * this.data.cols;
                     for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                       let index = row_index + pos_x;
-                      this.children[index].children["rect"].segments[0].point.x = this.children["frame"].bounds.left + (pos_x * key_width);
-                      this.children[index].children["rect"].segments[1].point.x = this.children["frame"].bounds.left + (pos_x * key_width);
-                      this.children[index].children["rect"].segments[2].point.x = this.children["frame"].bounds.left + ((pos_x + 1) * key_width);
-                      this.children[index].children["rect"].segments[3].point.x = this.children["frame"].bounds.left + ((pos_x + 1) * key_width);
-                      this.children[index].children["txt"].position = this.children[index].children["rect"].position;
+                      this.children[index].children["rect"].bounds.width = key_width;
+                      this.children[index].children["rect"].position.x = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2);
+                      this.children[index].children["txt"].position.x = this.children[index].children["rect"].position.x;
                     }
                   }
                   break;
                 case 3: // Update bottom segment
+                  //this.children["frame"].bounds.bottom = mouseEvent.point.y;
                   this.children["frame"].segments[3].point.y = mouseEvent.point.y;
                   this.children["frame"].segments[0].point.y = mouseEvent.point.y;
                   this.data.to[1] = Math.round(mouseEvent.point.y);
@@ -202,11 +199,9 @@ function gridFactory() {
                     let row_index = pos_y * this.data.cols;
                     for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                       let index = row_index + pos_x;
-                      this.children[index].children["rect"].segments[0].point.y = this.children["frame"].bounds.top + (pos_y + 1) * key_height;
-                      this.children[index].children["rect"].segments[1].point.y = this.children["frame"].bounds.top + pos_y * key_height;
-                      this.children[index].children["rect"].segments[2].point.y = this.children["frame"].bounds.top + pos_y * key_height;
-                      this.children[index].children["rect"].segments[3].point.y = this.children["frame"].bounds.top + (pos_y + 1) * key_height;
-                      this.children[index].children["txt"].position = this.children[index].children["rect"].position;
+                      this.children[index].children["rect"].bounds.height = key_height;
+                      this.children[index].children["rect"].position.y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2);
+                      this.children[index].children["txt"].position.y = this.children[index].children["rect"].position.y;
                     }
                   }
                   break;
