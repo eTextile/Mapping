@@ -138,8 +138,9 @@ function gridFactory() {
                     for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                       let index = row_index + pos_x;
                       this.children[index].children["rect"].bounds.width = key_width;
-                      this.children[index].children["rect"].position.x = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + (key_width / 2);
-                      this.children[index].children["txt"].position.x = this.children[index].children["rect"].position.x;
+                      let newPos = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + (key_width / 2);
+                      this.children[index].children["rect"].position.x = newPos;
+                      this.children[index].children["txt"].position.x = newPos;
                     }
                   }
                   break;
@@ -155,8 +156,9 @@ function gridFactory() {
                     for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                       let index = row_index + pos_x;
                       this.children[index].children["rect"].bounds.height = key_height;
-                      this.children[index].children["rect"].position.y = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + (key_height / 2);
-                      this.children[index].children["txt"].position.y = this.children[index].children["rect"].position.y;
+                      let newPos = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + (key_height / 2);
+                      this.children[index].children["rect"].position.y = newPos;
+                      this.children[index].children["txt"].position.y = newPos;
                     }
                   }
                   break;
@@ -172,8 +174,9 @@ function gridFactory() {
                     for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                       let index = row_index + pos_x;
                       this.children[index].children["rect"].bounds.width = key_width;
-                      this.children[index].children["rect"].position.x = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2);
-                      this.children[index].children["txt"].position.x = this.children[index].children["rect"].position.x;
+                      let newPos = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2)
+                      this.children[index].children["rect"].position.x = newPos;
+                      this.children[index].children["txt"].position.x = newPos;
                     }
                   }
                   break;
@@ -189,8 +192,9 @@ function gridFactory() {
                     for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                       let index = row_index + pos_x;
                       this.children[index].children["rect"].bounds.height = key_height;
-                      this.children[index].children["rect"].position.y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2);
-                      this.children[index].children["txt"].position.y = this.children[index].children["rect"].position.y;
+                      let newPos = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2);
+                      this.children[index].children["rect"].position.y = newPos
+                      this.children[index].children["txt"].position.y = newPos;
                     }
                   }
                   break;
@@ -246,6 +250,10 @@ function touchpadFactory() {
       this.data.min = params.min;
       this.data.max = params.max;
     },
+    updateFromParams: function () {
+      this.removeChildren(0);
+      this.create();
+    },
     create: function () {
       var _Pad = new paper.Path.Rectangle({
         name: "pad",
@@ -257,13 +265,6 @@ function touchpadFactory() {
         fillColor: 'pink'
       });
       this.addChild(_Pad);
-      for (let i = 0; i < this.data.touchs; i++) {
-        this.addChild(this.newTouch(i));
-      }
-    },
-    updateFromParams: function () {
-      this.removeChildren(1);
-      //console.log("from: " + this.data.from + " " + "to: " + this.data.to);
       for (let i = 0; i < this.data.touchs; i++) {
         this.addChild(this.newTouch(i));
       }
@@ -336,13 +337,6 @@ function touchpadFactory() {
         switch (selectedPath) {
           case "fill":
             moveItem(this, mouseEvent);
-            /*
-            this.translate(mouseEvent.delta);
-            this.data.from[0] += Math.round(mouseEvent.delta.x);
-            this.data.from[1] += Math.round(mouseEvent.delta.y);
-            this.data.to[0] += Math.round(mouseEvent.delta.x);
-            this.data.to[1] += Math.round(mouseEvent.delta.y);
-            */
             break;
           case "stroke":
             if (selectedPart.name === "pad") {
