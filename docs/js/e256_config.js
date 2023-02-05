@@ -1,6 +1,6 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
@@ -138,9 +138,25 @@ const ERROR_CODES = [
   TOO_MANY_BLOBS
 ];
 
+const ERROR_CODES_2 = [
+  "WAITING_FOR_CONFIG",
+  "CONNECTING_FLASH",
+  "FLASH_FULL",
+  "FILE_TO_BIG",
+  "NO_CONFIG_FILE",
+  "WHILE_OPEN_FLASH_FILE",
+  "USBMIDI_CONFIG_LOAD_FAILED",
+  "FLASH_CONFIG_LOAD_FAILED",
+  "CONFIG_APPLY_FAILED",
+  "UNKNOWN_SYSEX",
+"TOO_MANY_BLOBS",
+];
+
 // MAPPING_LIB CONSTANTS
 const H_SLIDER = 0;
 const V_SLIDER = 1;
 
-const SELECT_ON = 5;
-const SELECT_OFF = 0;
+const SELECT_ON = 0;
+const SELECT_OFF = 1;
+const MOUSE_OVER = 2;
+const MOUSE_LEAVE = 3;

@@ -1,6 +1,6 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
@@ -19,6 +19,7 @@ var hitOptions = {
   segments: true,
   stroke: true,
   position: true,
+  point: true, // TESTING!
   fill: true,
   tolerance: 5,
 }
@@ -54,6 +55,10 @@ function paperInit() {
   paper.view.setZoom(canvasWidth / canvasHeight);
   paper.view.center = new paper.Point(canvasWidth / 2, canvasHeight / 2);
 
+  paper.settings.handleSize = 15;
+  paper.settings.selectionLineWidth = 20; // FIXME!
+  paper.settings.hitTolerance = 0;
+
   var paperTool = new paper.Tool();
 
   var newShape = true;
@@ -63,21 +68,26 @@ function paperInit() {
     if (currentMode === EDIT_MODE) {
       if (e256_drawMode) {
         if (!hitResult) {
-          if (selectedItem !== null) selectedItem.free();
+          //if (selectedItem !== null) selectedItem.free();
           selectedItem = drawControlerFromMouse(mouseEvent);
-          selectedItem.select();
         } else {
+          selectedItem = hitResult.item.parent;
           selectedPart = hitResult.item;
           selectedPath = hitResult.type;
-
+          selectedCorner = hitResult.point; // Bounding box corner (testing!)
+          //console.log("selectedCorner : " + selectedCorner); // 
+          //console.log("selectedItem : " + hitResult.item.parent);
           //console.log("select_part : " + selectedPart.name);
           //console.log("select_path : " + selectedPath.name);
-
           switch (selectedPath) {
             case "fill":
-              //if (selectedItem !== null) selectedItem.free(); // NOT WORKING WITH SLIDER!
-              selectedItem = hitResult.item.parent;
-              //selectedItem.select();
+              /*
+              if (selectedItem.selector(selectedItem, MOUSE_CLIC)){ // FIXME!
+                drawMenuParams(selectedItem);
+              } else {
+                hideMenuParams();
+              }
+              */
               selectedSegment = null;
               break;
             case "stroke":
@@ -88,7 +98,7 @@ function paperInit() {
               break;
           }
         }
-        drawMenuParams(selectedItem);
+        //drawMenuParams(selectedItem);
         updateMenuParams(selectedItem);
       } else {
         alert("SELECT A GUI!");
@@ -130,7 +140,8 @@ function paperInit() {
       if (keyEvent.modifiers.shift) {
         switch (keyEvent.key) {
           case "backspace":
-            selectedItem.removeChildren();
+            selectedItem.remove();
+            //selectedItem.delate();
             hideMenuParams();
             newShape = true;
             break;
@@ -154,13 +165,14 @@ function paperInit() {
 
   ////////////// ADD_GUI
   function drawControlerFromMouse(mouseEvent) {
-    //var newItem = null;
+    var newItem = null;
     switch (e256_drawMode) {
       case "trigger":
         newItem = triggerFactory();
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
         triggerLayer.addChild(newItem);
+        //triggerLayer.activate();
         drawMenuParams(newItem);
         break;
       case "switch":
@@ -196,6 +208,7 @@ function paperInit() {
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
         gridLayer.addChild(newItem);
+        gridLayer.activate();
         drawMenuParams(newItem);
         break;
       case "path":
@@ -213,7 +226,7 @@ function paperInit() {
         }
         break;
     }
-    console.log("ITEM: " + newItem.data.type);
+    console.log("NEW_ITEM: " + newItem.data.type);
     return newItem;
   }
 

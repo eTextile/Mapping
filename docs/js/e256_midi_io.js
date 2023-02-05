@@ -1,6 +1,6 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
@@ -155,7 +155,8 @@ function onMIDIMessage(midiMsg) {
           }
           break;
         case MIDI_ERROR_CHANNEL:
-          console.log("RECEIVED: " + ERROR_CODES[value]);
+          //console.log("RECEIVED: " + ERROR_CODES[value]);
+          console.log("RECEIVED: " + ERROR_CODES_2[value]);
           break;
       }
       break;

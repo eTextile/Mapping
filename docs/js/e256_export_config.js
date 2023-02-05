@@ -1,6 +1,6 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2022 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
@@ -102,17 +102,17 @@ function listLayerParams(itemType) {
         break;
       case "path":
         delete itemParams.type;
-        delete touchParams.value;
+        delete itemParams.value;
         params.push(itemParams);
         break;  
       case "polygon":
         delete itemParams.type;
-        delete touchParams.value;
+        delete itemParams.value;
         params.push(itemParams);
         break;
       case "grid":
         delete itemParams.type;
-        //delete touchParams.value;
+        //delete itemParams.value;
         for (const param in itemParams) {
           if (param === "from" || param === "to"){
             // Nothing to do. params are already "int"
@@ -122,6 +122,14 @@ function listLayerParams(itemType) {
           }
         }
         params.push(itemParams);
+        var keysParams = [];
+        for (let j = 1; j <= items[i].data.touchs; j++) {
+          let keyParams = items[i].children[j].data;
+          delete keyParams.name;
+          delete keyParams.value;
+          keysParams.push([keyParams]);
+        }
+        params.push(keysParams);
         break;
     }
   }
