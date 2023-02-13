@@ -11,16 +11,17 @@ function gridFactory() {
   const grid_default_height = 400;
 
   var frame_width  = grid_default_width;
-  var frame_height = grid_default_height;  
-  //let margin = 35;
+  var frame_height = grid_default_height;
 
   var key_width = 0;
   var key_height = 0;
-  var hitResult = null;
+  var mouse_down = null;
 
   var locked = false;
+  var frame_offset = 10; ///
 
   var _Grid = new paper.Group({
+    name: "grid",
     data: {
       type: "grid",
       //uid: null,
@@ -31,6 +32,7 @@ function gridFactory() {
       //gap: 1,
       //mode: 1
     },
+    
     setupFromMouseEvent: function (mouseEvent) {
       //this.data.uid = global_index["uid"];
       this.data.from = [Math.round(mouseEvent.point.x - (grid_default_width / 2)), Math.round(mouseEvent.point.y - (grid_default_height / 2))];
@@ -38,6 +40,7 @@ function gridFactory() {
       key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
       key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
     },
+
     setupFromConfig: function (params) {
       this.data.from = params.from;
       this.data.to = params.to;
@@ -48,10 +51,12 @@ function gridFactory() {
       key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
       key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
     },
+    
     updateFromParams: function () {
       this.removeChildren(0);
       this.create();
     },
+
     newKey: function (y_index, x_index) {
       let index = y_index * this.data.cols + x_index;
       var _Key = new paper.Group({
@@ -68,29 +73,29 @@ function gridFactory() {
         name: "rect",
         from: [this.data.from[0] + x_index * key_width, this.data.from[1] + y_index * key_height],
         to: [this.data.from[0] + (x_index * key_width) + key_width, this.data.from[1] + (y_index * key_height) + key_height],
-        fillColor: 'pink',
-        strokeColor: 'black',
+        fillColor: "pink",
+        strokeColor: "black",
         strokeWidth: 0.2
       });
       _Key.addChild(_rect);
-      var _text = new paper.PointText({
+      var _txt = new paper.PointText({
         name: "txt",
         point: new paper.Point(_Key.children["rect"].position),
-        content: _Key.data.name.replace('key-',''),
-        fillColor: 'black'
+        content: _Key.data.name.replace("key-",""),
+        fillColor: "black"
       });
-      _Key.addChild(_text);
+      _Key.addChild(_txt);
       return _Key;
     },
 
     create: function () {
       var _frame = new paper.Path.Rectangle({
         name: "frame",
-        from: [this.data.from[0] - 4, this.data.from[1] - 4],
-        to: [this.data.to[0] + 4, this.data.to[1] + 4],
-        strokeColor: 'black',
+        from: [this.data.from[0] - frame_offset, this.data.from[1] - frame_offset],
+        to: [this.data.to[0] + frame_offset, this.data.to[1] + frame_offset],
+        strokeColor: "black",
         strokeWidth: 8,
-        fillColor: 'red'
+        fillColor: "red"
       });
       this.addChild(_frame);
       key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
@@ -104,88 +109,123 @@ function gridFactory() {
 
     onMouseEnter: function (mouseEvent) {
       // http://paperjs.org/reference/item/#hittest-point
-      var hitOptions_mouse_enter = {
+      var mouse_enter_options = {
         stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
         bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
-        fill: true,
-        tolerance: 9
+        //fill: true,
+        tolerance: 8
       }
-      hitResult = paper.project.hitTest(mouseEvent.point, hitOptions_mouse_enter);
-      if (currentMode === EDIT_MODE) {
-        if (hitResult === null){
-          return;
-        } else if (!locked) {
-          this.children["frame"].selected = true;          
-          if (hitResult.item.name === "key"){
-            hitResult.item.children["rect"].selected = true;
-            updateMenuParams(hitResult.item.parent);
-            drawMenuParams(hitResult.item.parent);
+      mouse_enter = paper.project.hitTest(mouseEvent.point, mouse_enter_options);
+      //console.log("ITEM:" + mouse_enter);
+      switch (currentMode) {
+        case EDIT_MODE:
+
+          if (!locked) {
+            this.children["frame"].selected = true;
+            this.children["frame"].strokeColor = "red";
+            
+            updateMenuParams(mouse_enter.item.parent); // arg: (item.data.type)
+            drawMenuParams(mouse_enter.item.parent);
+
+            if (mouse_enter.item.name === "key"){
+              this.children["frame"].selected = false;
+              this.children["frame"].strokeColor = "black";
+              mouse_enter.item.children["rect"].selected = true;
+              updateMenuParams(mouse_enter.item);
+              drawMenuParams(mouse_enter.item);
+            }
+            if (mouse_enter.item.name === "txt"){
+              this.children["frame"].selected = false;
+              this.children["frame"].strokeColor = "black";
+              mouse_enter.item.parent.children["rect"].selected = true;
+              updateMenuParams(mouse_enter.item.parent);
+              drawMenuParams(mouse_enter.item.parent);
+            }
           }
-        }
+        break;
+        case PLAY_MODE:
+          // TODO
+          console.log("NOT_IMPLEMENTED");
+        break;
+      }
+    },
+
+    onMouseLeave: function (mouseEvent) {
+      switch (currentMode) {
+        case EDIT_MODE:
+          // TODO!!!!!!!!!!!!!!!!!!!!!!!
+          console.log("onMouseLeave" + mouseEvent);
+        break;
       }
     },
 
     onMouseDown: function (mouseEvent) {
-      if (currentMode === EDIT_MODE) {
-        if (hitResult.item.name === 'key'){
+       var mouse_down_options = {
+        //stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
+        bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
+        fill: true,
+        tolerance: 8
+      }
+      mouse_down = paper.project.hitTest(mouseEvent.point, mouse_down_options);
+
+      switch (currentMode) {
+        case EDIT_MODE:
           if (!locked) {
             locked = true;
-            hitResult.item.children["rect"].selected = true;
-            hitResult.item.children["rect"].fillColor = 'red';
+            if (mouse_down.item.name === "key") {
+              this.children["frame"].selected = false;
+              this.children["frame"].strokeColor = "black";
+              mouse_down.item.children["rect"].selected = true;
+              mouse_down.item.children["rect"].fillColor = "red";
+            }
+            if (mouse_down.item.name === "txt") {
+              this.children["frame"].selected = false;
+              this.children["frame"].strokeColor = "black";
+              mouse_down.item.parent.children["rect"].selected = true;
+              mouse_down.item.parent.children["rect"].fillColor = "red";
+            }
           }
           else {
             locked = false;
             paper.project.deselectAll();
           }
-        }
+        break;
+        case PLAY_MODE:
+          // TODO
+          console.log("NOT_IMPLEMENTED");
+          break;
       }
     },
+
     onMouseLeave: function () {
-      if (currentMode === EDIT_MODE) {
-        if (!locked) {
-          paper.project.deselectAll();
-        }
+      switch (currentMode) {
+        case EDIT_MODE:
+          if (!locked) {
+            this.children["frame"].strokeColor = "black";
+            paper.project.deselectAll();
+          }
+        break;
+        case PLAY_MODE:
+          //TODO
+        break;
       }
     },
 
     onMouseDrag: function (mouseEvent) {
-      // http://paperjs.org/reference/item/#hittest-point
-      /*
-      var hitOptions_mouse_drag = {
-        stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
-        bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
-        //fill: true,
-        location: true,
-        tolerance: 0
-      }
-      */
-      if (currentMode === EDIT_MODE) {
-        
-        //hitResult = paper.project.hitTest(mouseEvent.point, hitOptions_mouse_drag);
-        //console.log("TYPE: " + hitResult.type);
-        
-        if (hitResult === null) {
-          return;
-        }
-        else {
-          console.log("TYPE: " + hitResult.type);
-          switch (hitResult.type) {
+      switch (currentMode) {
+        case EDIT_MODE:
+          //console.log("MY_TYPE_A: " + mouse_down);
+          switch (mouse_down.type) {
             case "fill":
               moveItem(this, mouseEvent);
               break;
             case "bounds":
-              //if (hitResult.item.children[0].name === "frame") { // FIXME!
-              if (hitResult.item.name != "key") {
-                switch (hitResult.name) {
+              if (mouse_down.item.name === "grid") {
+                switch (mouse_down.name) {
                   case "top-left":
                     this.children["frame"].segments[0].point.x = mouseEvent.point.x;
-                    this.children["frame"].segments[1].point.x = mouseEvent.point.x;
-                    this.children["frame"].segments[1].point.y = mouseEvent.point.y;
+                    this.children["frame"].segments[1].point = mouseEvent.point;
                     this.children["frame"].segments[2].point.y = mouseEvent.point.y;
-
-                    //this.data.from[0] = Math.round(mouseEvent.point.x);
-                    //this.data.from[1] = Math.round(mouseEvent.point.y);
-                    this.data.from = Math.round(mouseEvent.point); // TESTING!
 
                     frame_width = this.bounds.right - mouseEvent.point.x;
                     key_width = frame_width / this.data.cols;
@@ -194,28 +234,27 @@ function gridFactory() {
 
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
+                      let newPos_y = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + (key_height / 2)
                       for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                         let index = row_index + pos_x + 1; // +1 for frame background
+                        let newPos_x = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + (key_width / 2)
+                        this.children[index].children["rect"].position.x = newPos_x;
+                        this.children[index].children["rect"].position.y = newPos_y;
+                        this.children[index].children["txt"].position.x = newPos_x;
+                        this.children[index].children["txt"].position.y = newPos_y;
                         this.children[index].children["rect"].bounds.width = key_width;
                         this.children[index].children["rect"].bounds.height = key_height;
-                        let newPos_x = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2)
-                        this.children[index].children["rect"].position.x = newPos_x;
-                        this.children[index].children["txt"].position.x = newPos_x;
-                        let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
-                        this.children[index].children["rect"].position.y = newPos_y;
-                        this.children[index].children["txt"].position.y = newPos_y;   
+
                       }
                     }
+                    this.data.from[0] = Math.round(mouseEvent.point.x);
+                    this.data.from[1] = Math.round(mouseEvent.point.y);
                     break;
+
                   case "top-right":
                     this.children["frame"].segments[1].point.y = mouseEvent.point.y;
-                    this.children["frame"].segments[2].point.x = mouseEvent.point.x;
-                    this.children["frame"].segments[2].point.y = mouseEvent.point.y;
+                    this.children["frame"].segments[2].point = mouseEvent.point;
                     this.children["frame"].segments[3].point.x = mouseEvent.point.x;
-
-                    //this.data.from[0] = Math.round(mouseEvent.point.x);
-                    //this.data.from[1] = Math.round(mouseEvent.point.y);
-                    this.data.from = Math.round(mouseEvent.point); // TESTING!
 
                     frame_width = mouseEvent.point.x - this.bounds.left;
                     key_width = frame_width / this.data.cols;
@@ -224,29 +263,26 @@ function gridFactory() {
 
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
+                      let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
                       for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                         let index = row_index + pos_x + 1; // +1 for frame background
-                        this.children[index].children["rect"].bounds.width = key_width;
-                        this.children[index].children["rect"].bounds.height = key_height;
                         let newPos_x = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2)
                         this.children[index].children["rect"].position.x = newPos_x;
-                        this.children[index].children["txt"].position.x = newPos_x;
-                        let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
                         this.children[index].children["rect"].position.y = newPos_y;
-                        this.children[index].children["txt"].position.y = newPos_y;   
+                        this.children[index].children["txt"].position.x = newPos_x;
+                        this.children[index].children["txt"].position.y = newPos_y;
+                        this.children[index].children["rect"].bounds.width = key_width;
+                        this.children[index].children["rect"].bounds.height = key_height;
                       }
                     }
+                    this.data.from[1] = Math.round(mouseEvent.point.y);
+                    this.data.to[0] = Math.round(mouseEvent.point.x);
                     break;
 
                   case "bottom-right":
                     this.children["frame"].segments[2].point.x = mouseEvent.point.x;
-                    this.children["frame"].segments[3].point.x = mouseEvent.point.x;
-                    this.children["frame"].segments[3].point.y = mouseEvent.point.y;
+                    this.children["frame"].segments[3].point = mouseEvent.point;
                     this.children["frame"].segments[0].point.y = mouseEvent.point.y;
-  
-                    //this.data.from[0] = Math.round(mouseEvent.point.x);
-                    //this.data.from[1] = Math.round(mouseEvent.point.y);
-                    this.data.from = Math.round(mouseEvent.point); // TESTING!
 
                     frame_width = mouseEvent.point.x - this.bounds.left;
                     key_width = frame_width / this.data.cols;
@@ -255,29 +291,26 @@ function gridFactory() {
 
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
+                      let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
                       for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                         let index = row_index + pos_x + 1; // +1 for frame background
-                        this.children[index].children["rect"].bounds.width = key_width;
-                        this.children[index].children["rect"].bounds.height = key_height;
                         let newPos_x = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2)
                         this.children[index].children["rect"].position.x = newPos_x;
-                        this.children[index].children["txt"].position.x = newPos_x;
-                        let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
                         this.children[index].children["rect"].position.y = newPos_y;
-                        this.children[index].children["txt"].position.y = newPos_y;   
+                        this.children[index].children["txt"].position.x = newPos_x;
+                        this.children[index].children["txt"].position.y = newPos_y;
+                        this.children[index].children["rect"].bounds.width = key_width;
+                        this.children[index].children["rect"].bounds.height = key_height;
                       }
                     }
+                    this.data.to[0] = Math.round(mouseEvent.point.x);
+                    this.data.to[1] = Math.round(mouseEvent.point.y);
                     break;
 
                   case "bottom-left":
                     this.children["frame"].segments[3].point.y = mouseEvent.point.y;
-                    this.children["frame"].segments[0].point.x = mouseEvent.point.x;
-                    this.children["frame"].segments[0].point.y = mouseEvent.point.y;
+                    this.children["frame"].segments[0].point = mouseEvent.point;
                     this.children["frame"].segments[1].point.x = mouseEvent.point.x;
-  
-                    //this.data.from[0] = Math.round(mouseEvent.point.x);
-                    //this.data.from[1] = Math.round(mouseEvent.point.y);
-                    this.data.from = Math.round(mouseEvent.point); // TESTING!
 
                     frame_width = this.bounds.right - mouseEvent.point.x;
                     key_width = frame_width / this.data.cols;
@@ -286,43 +319,40 @@ function gridFactory() {
 
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
+                      let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
                       for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                         let index = row_index + pos_x + 1; // +1 for frame background
+                        let newPos_x = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + (key_width / 2)
+                        this.children[index].children["rect"].position.x = newPos_x;
+                        this.children[index].children["rect"].position.y = newPos_y;
+                        this.children[index].children["txt"].position.x = newPos_x;
+                        this.children[index].children["txt"].position.y = newPos_y;
                         this.children[index].children["rect"].bounds.width = key_width;
                         this.children[index].children["rect"].bounds.height = key_height;
-                        let newPos_x = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2)
-                        this.children[index].children["rect"].position.x = newPos_x;
-                        this.children[index].children["txt"].position.x = newPos_x;
-                        let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
-                        this.children[index].children["rect"].position.y = newPos_y;
-                        this.children[index].children["txt"].position.y = newPos_y;   
                       }
                     }
+                    this.data.from[0] = Math.round(mouseEvent.point.x);
+                    this.data.to[1] = Math.round(mouseEvent.point.y);
                     break;
                   default:
-                    console.log("TYPE: " + hitResult.type);
                     console.log("AAAAAAAAAA!!!!");
+                    console.log("TYPE: " + mouse_down);
                     break;
                 }
+                updateMenuParams(this);
               }
               break;
             default:
-              console.log("TYPE_NOT_USE: " + hitResult.type);
+              console.log("TYPE_NOT_USE: " + mouse_down.type);
               break;
           }
-        }
-      }
-      else if (currentMode === PLAY_MODE) {
-        if (selectedPart.name === "circle") {
-          if (mouseEvent.point.x > this.children["frame"].bounds.left &&
-            mouseEvent.point.x < this.children["frame"].bounds.right &&
-            mouseEvent.point.y > this.children["frame"].bounds.top &&
-            mouseEvent.point.y < this.children["frame"].bounds.bottom) {
-              // TODO
-          }
-        }
+        break;
+        case PLAY_MODE:
+          //TODO
+        break;
       }
     }
+
   });
   return _Grid;
 }
@@ -371,8 +401,8 @@ function touchpadFactory() {
         to: this.data.to,
         strokeWidth: 5,
         dashArray: [10, 5],
-        strokeColor: 'chartreuse',
-        fillColor: 'pink'
+        strokeColor: "chartreuse",
+        fillColor: "pink"
       });
       this.addChild(_Pad);
       for (let i = 0; i < this.data.touchs; i++) {
@@ -400,21 +430,21 @@ function touchpadFactory() {
         name: "line-x",
         from: new paper.Point(this.data.from[0], _Touch.data.value[1]),
         to: new paper.Point(this.data.to[0], _Touch.data.value[1]),
-        strokeColor: 'black',
+        strokeColor: "black",
         strokeWidth: 1
       });
       var _line_y = new paper.Path.Line({
         name: "line-y",
         from: new paper.Point(_Touch.data.value[0], this.data.from[1]),
         to: new paper.Point(_Touch.data.value[0], this.data.to[1]),
-        strokeColor: 'black',
+        strokeColor: "black",
         strokeWidth: 1
       });
       var _circle = new paper.Path.Circle({
         name: "circle",
         center: new paper.Point(_Touch.data.value[0], _Touch.data.value[1]),
         radius: 15,
-        fillColor: 'green'
+        fillColor: "green"
       });
       _Touch.addChild(_line_x);
       _Touch.addChild(_line_y);
@@ -427,12 +457,12 @@ function touchpadFactory() {
     /*
     select: function () {
       if (this.select){
-        //this.children["pad"].strokeColor = 'chartreuse';
+        //this.children["pad"].strokeColor = "chartreuse";
         //select = false;
         e256_selector(this.children["pad"], OVER_ON);
       }
       else {
-        //this.children["pad"].strokeColor = 'red';
+        //this.children["pad"].strokeColor = "red";
         //select = true;
         e256_selector(this.children["pad"], OVER_ON);
      }
@@ -592,21 +622,21 @@ function triggerFactory() {
         to: this.data.to,
         strokeWidth: 5,
         dashArray: [10, 5],
-        strokeColor: 'chartreuse',
-        fillColor: 'skyblue',
+        strokeColor: "chartreuse",
+        fillColor: "skyblue",
       });
       var _circle = new paper.Path.Circle({
         name: "circle",
         center: new paper.Point(circleCenterX, circleCenterY),
         radius: sizeX / 2.5,
-        fillColor: 'yellow'
+        fillColor: "yellow"
       });
       this.addChild(_square);
       this.addChild(_circle);
     },
     activate: function () {
       if (selectedPart.name === "circle") {
-        this.children["circle"].fillColor = 'lawngreen';
+        this.children["circle"].fillColor = "lawngreen";
         this.data.value = this.data.note;
         if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velocity, this.data.chan);
         updateMenuParams(this);
@@ -670,7 +700,7 @@ function triggerFactory() {
       }
     },
     triggerOff: function (item) {
-      item.children["circle"].fillColor = 'yellow';
+      item.children["circle"].fillColor = "yellow";
       item.data.value = 0;
       if (MIDI_device_connected) sendNoteOff(item.data.note, 0, item.data.chan);
       updateMenuParams(item);
@@ -711,22 +741,22 @@ function switchFactory() {
         to: this.data.to,
         strokeWidth: 5,
         dashArray: [10, 5],
-        strokeColor: 'chartreuse',
-        fillColor: 'yellow'
+        strokeColor: "chartreuse",
+        fillColor: "yellow"
       });
       let _line_a = new paper.Path.Line({
         name: "cross_line_x",
         from: new paper.Point(this.data.from[0], this.data.from[1]),
         to: new paper.Point(this.data.to[0], this.data.to[1]),
         strokeWidth: 1,
-        strokeColor: 'black'
+        strokeColor: "black"
       });
       let _line_b = new paper.Path.Line({
         name: "cross_line_y",
         from: new paper.Point(this.data.from[0], this.data.to[1]),
         to: new paper.Point(this.data.to[0], this.data.from[1]),
         strokeWidth: 1,
-        strokeColor: 'black'
+        strokeColor: "black"
       });
       this.addChild(_square);
       this.addChild(_line_a);
@@ -845,8 +875,8 @@ function sliderFactory() {
         //selected: true,
         strokeWidth: 5,
         dashArray: [10, 5],
-        strokeColor: 'chartreuse',
-        fillColor: 'azure'
+        strokeColor: "chartreuse",
+        fillColor: "azure"
       });
       this.addChild(_rect);
       var _handle = new paper.Path.Line({
@@ -855,7 +885,7 @@ function sliderFactory() {
         to: new paper.Point(this.data.to[0], this.data.from[1] + (slider_default_height / 2)),
         strokeWidth: 30,
         strokeCap: "round",
-        strokeColor: 'lightslategray'
+        strokeColor: "lightslategray"
       });
       this.addChild(_handle);
     },
@@ -1110,14 +1140,14 @@ function knobFactory(mouseEvent) {
         radius: this.data.radius,
         strokeWidth: 5,
         dashArray: [10, 5],
-        strokeColor: 'chartreuse',
-        fillColor: 'springGreen'
+        strokeColor: "chartreuse",
+        fillColor: "springGreen"
       });
       var _head = new paper.Path.Circle({
         name: "needle-head",
         center: new paper.Point(this.data.center[0] + headPos.x, this.data.center[1] + headPos.y),
         radius: 6,
-        strokeColor: 'black',
+        strokeColor: "black",
         strokeWidth: 5
       });
       var _foot = new paper.Path.Line({
@@ -1125,14 +1155,14 @@ function knobFactory(mouseEvent) {
         from: new paper.Point(this.data.center[0], this.data.center[1]),
         to: new paper.Point((this.data.center[0] + footPos.x), this.data.center[1] + footPos.y),
         strokeCap: "round",
-        strokeColor: 'black',
+        strokeColor: "black",
         strokeWidth: 5,
       });
       var _handle = new paper.Path.RegularPolygon({
         name: "handle",
         center: new paper.Point(this.data.center[0] + handlePos.x, this.data.center[1] + handlePos.y),
         radius: 10,
-        fillColor: 'red',
+        fillColor: "red",
         sides: 3
       });
       _handle.rotate(-30);
@@ -1344,20 +1374,20 @@ function e256_selector(item, state) {
   switch (state) {
     case MOUSE_OVER:
       //item.strokeWidth = 5;
-      //item.strokeColor = 'chartreuse';
-      //item.fillColor = 'chartreuse';
+      //item.strokeColor = "chartreuse";
+      //item.fillColor = "chartreuse";
       item.selected = true;
       break;
     case MOUSE_LEAVE:
       //item.strokeWidth = 0.2;
-      //item.strokeColor = 'black';
-      //item.fillColor = 'pink';
+      //item.strokeColor = "black";
+      //item.fillColor = "pink";
       item.selected = false;
       break;
     case SELECT_ON:
       //item.strokeWidth = 5;
-      //item.strokeColor = 'red';
-      item.fillColor = 'red';
+      //item.strokeColor = "red";
+      item.fillColor = "red";
       item.selected = true;
       break;
     case SELECT_OFF:

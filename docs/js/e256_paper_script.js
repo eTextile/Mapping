@@ -16,10 +16,8 @@ var selectedPath = null;
 var selectedSegment = null;
 
 var hitOptions = {
-  segments: true,
-  stroke: true,
-  position: true,
-  point: true, // TESTING!
+  stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
+  bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
   fill: true,
   tolerance: 5,
 }
@@ -57,7 +55,7 @@ function paperInit() {
 
   paper.settings.handleSize = 15;
   paper.settings.selectionLineWidth = 20; // FIXME!
-  paper.settings.hitTolerance = 0;
+  //paper.settings.hitTolerance = 0;
 
   var paperTool = new paper.Tool();
 
@@ -68,9 +66,11 @@ function paperInit() {
     if (currentMode === EDIT_MODE) {
       if (e256_drawMode) {
         if (!hitResult) {
-          //if (selectedItem !== null) selectedItem.free();
           selectedItem = drawControlerFromMouse(mouseEvent);
-        } else {
+          paper.project.deselectAll();
+        }
+        /*
+        else {
           selectedItem = hitResult.item.parent;
           selectedPart = hitResult.item;
           selectedPath = hitResult.type;
@@ -81,13 +81,11 @@ function paperInit() {
           //console.log("select_path : " + selectedPath.name);
           switch (selectedPath) {
             case "fill":
-              /*
               if (selectedItem.selector(selectedItem, MOUSE_CLIC)){ // FIXME!
                 drawMenuParams(selectedItem);
               } else {
                 hideMenuParams();
               }
-              */
               selectedSegment = null;
               break;
             case "stroke":
@@ -98,8 +96,10 @@ function paperInit() {
               break;
           }
         }
+        */
+
         //drawMenuParams(selectedItem);
-        updateMenuParams(selectedItem);
+        //updateMenuParams(selectedItem);
       } else {
         alert("SELECT A GUI!");
       }

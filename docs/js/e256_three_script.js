@@ -15,7 +15,8 @@ var halfCanvas = null;
 canvasHeight = $("#loadingCanvas").height();
 canvasWidth = canvasHeight;
 halfCanvas = canvasWidth / 2;
-console.log("THREE_WIDTH: " + canvasWidth + " THREE_HEIGHT: " + canvasHeight);
+console.log("THREE_WIDTH: " + canvasWidth);
+console.log("THREE_HEIGHT: " + canvasHeight);
 
 function init() {
   var threeCanvas = document.getElementById("canvas-3D");
