@@ -15,6 +15,9 @@ function gridFactory() {
 
   var key_width = 0;
   var key_height = 0;
+  var half_key_width = 0;
+  var half_key_height = 0; 
+
   var mouse_down = null;
 
   var locked = false;
@@ -231,13 +234,15 @@ function gridFactory() {
                     key_width = frame_width / this.data.cols;
                     frame_height = this.bounds.bottom - mouseEvent.point.y;
                     key_height = frame_height / this.data.rows;
+                    half_key_width = key_width / 2;
+                    half_key_height = key_height / 2; 
 
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
-                      let newPos_y = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + (key_height / 2)
+                      let newPos_y = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + half_key_height;
                       for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                         let index = row_index + pos_x + 1; // +1 for frame background
-                        let newPos_x = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + (key_width / 2)
+                        let newPos_x = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + half_key_width;
                         this.children[index].children["rect"].position.x = newPos_x;
                         this.children[index].children["rect"].position.y = newPos_y;
                         this.children[index].children["txt"].position.x = newPos_x;
@@ -260,13 +265,15 @@ function gridFactory() {
                     key_width = frame_width / this.data.cols;
                     frame_height = this.bounds.bottom - mouseEvent.point.y;
                     key_height = frame_height / this.data.rows;
+                    half_key_width = key_width / 2;
+                    half_key_height = key_height / 2; 
 
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
-                      let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
+                      let newPos_y = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + half_key_height;
                       for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                         let index = row_index + pos_x + 1; // +1 for frame background
-                        let newPos_x = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2)
+                        let newPos_x = this.children["frame"].bounds.left + pos_x * key_width + half_key_width;
                         this.children[index].children["rect"].position.x = newPos_x;
                         this.children[index].children["rect"].position.y = newPos_y;
                         this.children[index].children["txt"].position.x = newPos_x;
@@ -288,13 +295,15 @@ function gridFactory() {
                     key_width = frame_width / this.data.cols;
                     frame_height = mouseEvent.point.y - this.bounds.top;
                     key_height = frame_height / this.data.rows;
+                    half_key_width = key_width / 2;
+                    half_key_height = key_height / 2; 
 
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
-                      let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
+                      let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + half_key_height;
                       for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                         let index = row_index + pos_x + 1; // +1 for frame background
-                        let newPos_x = this.children["frame"].bounds.left + pos_x * key_width + (key_width / 2)
+                        let newPos_x = this.children["frame"].bounds.left + pos_x * key_width + half_key_width;
                         this.children[index].children["rect"].position.x = newPos_x;
                         this.children[index].children["rect"].position.y = newPos_y;
                         this.children[index].children["txt"].position.x = newPos_x;
@@ -316,13 +325,15 @@ function gridFactory() {
                     key_width = frame_width / this.data.cols;
                     frame_height = mouseEvent.point.y - this.bounds.top;
                     key_height = frame_height / this.data.rows;
+                    half_key_width = key_width / 2;
+                    half_key_height = key_height / 2; 
 
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
-                      let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + (key_height / 2)
+                      let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + half_key_height;
                       for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
                         let index = row_index + pos_x + 1; // +1 for frame background
-                        let newPos_x = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + (key_width / 2)
+                        let newPos_x = this.children["frame"].bounds.right - (this.data.cols - pos_x) * key_width + half_key_width;
                         this.children[index].children["rect"].position.x = newPos_x;
                         this.children[index].children["rect"].position.y = newPos_y;
                         this.children[index].children["txt"].position.x = newPos_x;
