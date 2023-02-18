@@ -14,7 +14,7 @@ function e256_exportParams() {
   e256_JSONconfig["mappings"]["knobs"] = listLayerParams("knob");
   e256_JSONconfig["mappings"]["paths"] = listLayerParams("path");
   e256_JSONconfig["mappings"]["touchpads"] = listLayerParams("touchpad");
-  e256_JSONconfig["mappings"]["grids"] = listLayerParams("grids");
+  e256_JSONconfig["mappings"]["grids"] = listLayerParams("grid");
 
   console.log(JSON.stringify(e256_JSONconfig));
 }
@@ -26,110 +26,120 @@ function listLayerParams(itemType) {
       type: itemType
     }
   });
-  for (let i = 0; i < items.length; i++) { // for (const item in items) -> dose not work!?
-    var itemCopy = items[i].clone();
-    var itemParams = itemCopy.data;
-    itemCopy.remove();
-    switch (itemParams.type) {
+
+  for (const item in items) {
+    var item_copy = items[item].clone();
+    //console.log("ITEM_TYPE: " + item_copy.data);
+
+    switch (item_copy.data.type) {
+      
       case "trigger":
-        delete itemParams.type;  
-        delete itemParams.value;
-        for (const param in itemParams) {
+        delete item_copy.data.type;  
+        delete item_copy.data.value;
+        for (const param in item_copy.data) {
           if (param === "from" || param === "to"){
             // Nothing to do. params are already "int"
           }
           else {
-            itemParams[param] = parseInt(itemParams[param]);
+            item_copy.data[param] = parseInt(item_copy.data[param]);
           }
         }
-        params.push(itemParams);
+        params.push(item_copy.data);
         break;
+
       case "switch":
-        delete itemParams.type;
-        delete itemParams.value;
-        for (const param in itemParams) {
+        delete item_copy.data.type;
+        delete item_copy.data.value;
+        for (const param in item_copy.data) {
           if (param === "from" || param === "to"){
             // Nothing to do (param is already an int)
           }
           else {
-            itemParams[param] = parseInt(itemParams[param]);
+            item_copy.data[param] = parseInt(item_copy.data[param]);
           }
         }
-        params.push(itemParams);
+        params.push(item_copy.data);
         break;
+
       case "slider":
-        delete itemParams.type;
-        delete itemParams.value;
-        delete itemParams.dir;
-        for (const param in itemParams) {
+        delete item_copy.data.type;
+        delete item_copy.data.value;
+        delete item_copy.data.dir;
+        for (const param in item_copy.data) {
           if (param === "from" || param === "to"){
             // Nothing to do. params are already "int"
           }
           else {
-            itemParams[param] = parseInt(itemParams[param]);
+            item_copy.data[param] = parseInt(item_copy.data[param]);
           }
         }
-        params.push(itemParams);
+        params.push(item_copy.data);
         break;
+
       case "knob":
-        delete itemParams.type;  
-        delete itemParams.theta_val;
-        delete itemParams.radius_val;
-        for (const param in itemParams) {
-          itemParams[param] = parseInt(itemParams[param]);
+        delete item_copy.data.type;  
+        delete item_copy.data.theta_val;
+        delete item_copy.data.radius_val;
+        for (const param in item_copy.data) {
+          item_copy.data[param] = parseInt(item_copy.data[param]);
         }
-        params.push(itemParams);
+        params.push(item_copy.data);
         break;
+
       case "touchpad":
-        delete itemParams.type;
-        for (const param in itemParams) {
+        delete item_copy.data.type;
+        for (const param in item_copy.data) {
           if (param === "from" || param === "to"){
             // Nothing to do. params are already "int"
           }
           else {
-            itemParams[param] = parseInt(itemParams[param]);
+            item_copy.data[param] = parseInt(item_copy.data[param]);
           }
         }
-        params.push(itemParams);
+        params.push(item_copy.data);
         var touchsParams = [];
-        for (let j = 1; j <= items[i].data.touchs; j++) {
-          let touchParams = items[i].children[j].data;
-          delete touchParams.name;
-          delete touchParams.value;
-          touchsParams.push([touchParams]);
+        for (let j = 1; j <= items[item].data.touchs; j++) {
+          let touch_params = items[item].children[j].data;
+          delete touch_params.name;
+          delete touch_params.value;
+          touchsParams.push([touch_params]);
         }
         params.push(touchsParams);
         break;
+
       case "path":
-        delete itemParams.type;
-        delete itemParams.value;
-        params.push(itemParams);
-        break;  
-      case "polygon":
-        delete itemParams.type;
-        delete itemParams.value;
-        params.push(itemParams);
+        delete item_copy.data.type;
+        delete item_copy.data.value;
+        params.push(item_copy.data);
         break;
+
+      case "polygon":
+        delete item_copy.data.type;
+        delete item_copy.data.value;
+        params.push(item_copy.data);
+        break;
+
       case "grid":
-        delete itemParams.type;
-        //delete itemParams.value;
-        for (const param in itemParams) {
+        delete item_copy.data.type;
+        for (const param in item_copy.data) {
           if (param === "from" || param === "to"){
             // Nothing to do. params are already "int"
           }
           else {
-            itemParams[param] = parseInt(itemParams[param]);
+            item_copy.data[param] = parseInt(item_copy.data[param]);
           }
         }
-        params.push(itemParams);
-        var keysParams = [];
-        for (let j = 1; j <= items[i].data.touchs; j++) {
-          let keyParams = items[i].children[j].data;
-          delete keyParams.name;
-          delete keyParams.value;
-          keysParams.push([keyParams]);
+        params.push(item_copy.data);
+        var keys_params = [];
+        for (const child in item_copy.children) {
+          if (item_copy.children[child].name === "key 1"){
+            console.log("KEY: " + item_copy.children[child].data.name);
+            delete item_copy.children[child].data.name;
+            delete item_copy.children[child].data.value;
+            keys_params.push(item_copy.children[child].data);
+          }
         }
-        params.push(keysParams);
+        params.push([keys_params]);
         break;
     }
   }

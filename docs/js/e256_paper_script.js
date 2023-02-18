@@ -62,44 +62,17 @@ function paperInit() {
   var newShape = true;
 
   paperTool.onMouseDown = function (mouseEvent) {
+    
     var hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
+    
     if (currentMode === EDIT_MODE) {
       if (e256_drawMode) {
         if (!hitResult) {
           selectedItem = drawControlerFromMouse(mouseEvent);
           paper.project.deselectAll();
+        } else {
+          //hitResult.bringToFront(); // TESTING
         }
-        /*
-        else {
-          selectedItem = hitResult.item.parent;
-          selectedPart = hitResult.item;
-          selectedPath = hitResult.type;
-          selectedCorner = hitResult.point; // Bounding box corner (testing!)
-          //console.log("selectedCorner : " + selectedCorner); // 
-          //console.log("selectedItem : " + hitResult.item.parent);
-          //console.log("select_part : " + selectedPart.name);
-          //console.log("select_path : " + selectedPath.name);
-          switch (selectedPath) {
-            case "fill":
-              if (selectedItem.selector(selectedItem, MOUSE_CLIC)){ // FIXME!
-                drawMenuParams(selectedItem);
-              } else {
-                hideMenuParams();
-              }
-              selectedSegment = null;
-              break;
-            case "stroke":
-              selectedSegment = hitResult.location.index;
-              break;
-            case "segment":
-              selectedSegment = hitResult.segment.index;
-              break;
-          }
-        }
-        */
-
-        //drawMenuParams(selectedItem);
-        //updateMenuParams(selectedItem);
       } else {
         alert("SELECT A GUI!");
       }
@@ -127,21 +100,12 @@ function paperInit() {
     }
   }
 
-  paperTool.onMouseDrag = function () {
-    if (currentMode === EDIT_MODE || currentMode === PLAY_MODE) {
-      if (selectedPath === "fill" || selectedSegment) {
-        //updateMenuParams(selectedItem);
-      }
-    }
-  }
-
   paperTool.onKeyDown = function (keyEvent) {
     if (currentMode === EDIT_MODE) {
       if (keyEvent.modifiers.shift) {
         switch (keyEvent.key) {
           case "backspace":
             selectedItem.remove();
-            //selectedItem.delate();
             hideMenuParams();
             newShape = true;
             break;

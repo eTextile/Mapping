@@ -21,7 +21,6 @@ function gridFactory() {
   var mouse_down = null;
 
   var locked = false;
-  var frame_offset = 10; ///
 
   var _Grid = new paper.Group({
     name: "grid",
@@ -32,8 +31,8 @@ function gridFactory() {
       to: [null, null],
       cols: 16,
       rows: 16,
-      //gap: 1,
-      //mode: 1
+      //mode: 1, // trig vs aftertouch
+      //gap: 1
     },
     
     setupFromMouseEvent: function (mouseEvent) {
@@ -94,8 +93,8 @@ function gridFactory() {
     create: function () {
       var _frame = new paper.Path.Rectangle({
         name: "frame",
-        from: [this.data.from[0] - frame_offset, this.data.from[1] - frame_offset],
-        to: [this.data.to[0] + frame_offset, this.data.to[1] + frame_offset],
+        from: [this.data.from[0], this.data.from[1]],
+        to: [this.data.to[0], this.data.to[1]],
         strokeColor: "black",
         strokeWidth: 8,
         fillColor: "red"
@@ -122,27 +121,25 @@ function gridFactory() {
       //console.log("ITEM:" + mouse_enter);
       switch (currentMode) {
         case EDIT_MODE:
-
           if (!locked) {
-            this.children["frame"].selected = true;
-            this.children["frame"].strokeColor = "red";
-            
-            updateMenuParams(mouse_enter.item.parent); // arg: (item.data.type)
-            drawMenuParams(mouse_enter.item.parent);
-
-            if (mouse_enter.item.name === "key"){
-              this.children["frame"].selected = false;
-              this.children["frame"].strokeColor = "black";
-              mouse_enter.item.children["rect"].selected = true;
-              updateMenuParams(mouse_enter.item);
-              drawMenuParams(mouse_enter.item);
-            }
-            if (mouse_enter.item.name === "txt"){
-              this.children["frame"].selected = false;
-              this.children["frame"].strokeColor = "black";
-              mouse_enter.item.parent.children["rect"].selected = true;
+            if (mouse_enter.item.name === "grid" || mouse_enter.item.name === "frame"){
+              this.children["frame"].selected = true;
+              this.children["frame"].strokeColor = "red";
               updateMenuParams(mouse_enter.item.parent);
               drawMenuParams(mouse_enter.item.parent);
+            } else {
+              this.children["frame"].selected = false;
+              this.children["frame"].strokeColor = "black";
+              if (mouse_enter.item.name === "key"){
+                mouse_enter.item.children["rect"].selected = true;
+                updateMenuParams(mouse_enter.item);
+                drawMenuParams(mouse_enter.item);
+              }
+              if (mouse_enter.item.name === "txt"){
+                mouse_enter.item.parent.children["rect"].selected = true;
+                updateMenuParams(mouse_enter.item.parent);
+                drawMenuParams(mouse_enter.item.parent);
+              }
             }
           }
         break;
@@ -156,8 +153,12 @@ function gridFactory() {
     onMouseLeave: function (mouseEvent) {
       switch (currentMode) {
         case EDIT_MODE:
-          // TODO!!!!!!!!!!!!!!!!!!!!!!!
-          console.log("onMouseLeave" + mouseEvent);
+          if (!locked) {
+            paper.project.deselectAll();
+          }
+        break;
+        case PLAY_MODE:
+          //TODO
         break;
       }
     },
@@ -170,47 +171,29 @@ function gridFactory() {
         tolerance: 8
       }
       mouse_down = paper.project.hitTest(mouseEvent.point, mouse_down_options);
+      paper.project.deselectAll();
 
       switch (currentMode) {
         case EDIT_MODE:
           if (!locked) {
             locked = true;
             if (mouse_down.item.name === "key") {
-              this.children["frame"].selected = false;
-              this.children["frame"].strokeColor = "black";
               mouse_down.item.children["rect"].selected = true;
               mouse_down.item.children["rect"].fillColor = "red";
             }
             if (mouse_down.item.name === "txt") {
-              this.children["frame"].selected = false;
-              this.children["frame"].strokeColor = "black";
               mouse_down.item.parent.children["rect"].selected = true;
               mouse_down.item.parent.children["rect"].fillColor = "red";
             }
           }
           else {
             locked = false;
-            paper.project.deselectAll();
           }
         break;
         case PLAY_MODE:
           // TODO
           console.log("NOT_IMPLEMENTED");
           break;
-      }
-    },
-
-    onMouseLeave: function () {
-      switch (currentMode) {
-        case EDIT_MODE:
-          if (!locked) {
-            this.children["frame"].strokeColor = "black";
-            paper.project.deselectAll();
-          }
-        break;
-        case PLAY_MODE:
-          //TODO
-        break;
       }
     },
 
@@ -1432,7 +1415,7 @@ function drawMenuParams(item) {
   if (item.data.type != null) {
     $("#summaryContent").html("Parameters");
     for (const param in item.data) {
-      $("#param-" + paramsIndex).collapse("show");
+      $("#param-" + paramsIndex).collapse("show"); //////////////////////////////:
       $("#paramInputAtribute-" + paramsIndex).html(param);
       $("#paramInputValue-" + paramsIndex).val(item.data[param]);
       paramsIndex++;

@@ -151,8 +151,7 @@
         <!--div id="param-1" class="param collapse">
           <div class="input-group">
             <span id="paramInputAtribute-1" class="input-group-text"></span>
-            <input id="paramInputValue-1" type="text" class="form-control" aria-label="Small"
-              aria-describedby="paramInputAtribute-2">
+            <input id="paramInputValue-1" type="text" class="form-control" aria-label="Small" aria-describedby="paramInputAtribute-1">
           </div>
         </div-->
 
@@ -175,7 +174,8 @@
             let inputValue = document.createElement("input");
             inputValue.setAttribute("id", "paramInputValue-" + i);
             inputValue.setAttribute("type", "text");
-            inputValue.className = "form-control";
+            //inputValue.className = "form-control";
+            inputValue.className = "form-select";
             inputValue.setAttribute("aria-label", "Small");
             inputValue.setAttribute("aria-describedby", "paramInputAtribute-" + i);
             divGroupe.appendChild(inputValue);
