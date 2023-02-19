@@ -63,14 +63,14 @@ $(".e256_setMode").click(function (event) {
       break;
     case "playMode":
       currentMode = PLAY_MODE;
-      selectedItem.free();
+      selected_item.free();
       $("#editMenu").collapse("hide");
       $("#playMenu").collapse("show");
       $("#loadMenu").collapse("show");
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#summaryContent").html("Evaluate what you have made");
       $(".param").collapse("hide");
-      //lastSelectedItem = null; 
+      //last_selected_item = null; 
       break;
   }
   if (MIDI_device_connected) {
@@ -127,29 +127,6 @@ $("#exportConfig").click(function () {
 
 // Update item parameters using the txt input fields
 $("#btnSet").click(function () {
-  let paramsIndex = 0;
-  for (const param in selectedItem.data) {
-  switch (param) {
-    case "from":
-      selectedItem.data[param].from = $("#paramInputValue-" + paramsIndex).from;
-      break;
-    case "to":
-      selectedItem.data[param].to = $("#paramInputValue-" + paramsIndex).to;
-      break;
-    case "type":
-        // Nothing to do
-      break;
-    default:
-      //selectedItem.data[param] = $("#paramInputValue-" + paramsIndex).val(); // NOT WORKING!
-      selectedItem.data[param] = parseInt($("#paramInputValue-" + paramsIndex).val(), 10);
-      //console.log("TYPE : " + typeof (selectedItem.data[param]))
-      break;
-    }
-    paramsIndex++;
-  }
-
-  // This will be added to all mapping_lib TUI feature
-  if (selectedItem.data.type === "touchpad" || selectedItem.data.type === "grid"){
-    selectedItem.updateFromParams();
-  }
+  console.log("SELECTED_PARENT: " + selected_item.parent.name)
+  selected_item.parent.updateFromParams();
 });

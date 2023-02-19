@@ -8,19 +8,22 @@ var canvasWidth = null;
 var canvasHeight = null;
 var scaleFactor = null;
 
-var selectedItem = null;
-//var lastSelectedItem = null;
-var selectedPart = null;
+var selected_parent = null;
+var selected_item = null;
+var selected_part = null;
 
-var selectedPath = null;
-var selectedSegment = null;
+var last_selected_parent = null;
+var last_selected_item = null;
+var last_selected_part = null;
 
+/*
 var hitOptions = {
   stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
   bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
   fill: true,
   tolerance: 5,
 }
+*/
 
 canvasHeight = $("#loadingCanvas").height();
 canvasWidth = canvasHeight;
@@ -55,7 +58,6 @@ function paperInit() {
 
   paper.settings.handleSize = 15;
   paper.settings.selectionLineWidth = 20; // FIXME!
-  //paper.settings.hitTolerance = 0;
 
   var paperTool = new paper.Tool();
 
@@ -63,38 +65,36 @@ function paperInit() {
 
   paperTool.onMouseDown = function (mouseEvent) {
     
-    var hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
+    var hitResult = paper.project.hitTest(mouseEvent.point);
     
     if (currentMode === EDIT_MODE) {
       if (e256_drawMode) {
         if (!hitResult) {
-          selectedItem = drawControlerFromMouse(mouseEvent);
-          paper.project.deselectAll();
+          selected_item = drawControlerFromMouse(mouseEvent);
+          selected_part = null;
         } else {
-          //hitResult.bringToFront(); // TESTING
+          //hitResult.bringToFront(); // TODO
         }
       } else {
         alert("SELECT A GUI!");
       }
     }
+
     if (currentMode === PLAY_MODE) {
       if (hitResult) {
-        let lastSelectedItem = selectedItem;
-        selectedItem = hitResult.item.parent;
-        selectedPart = hitResult.item;
-        if (selectedItem && !lastSelectedItem) {
-          drawMenuParams(selectedItem);
+        if (selected_item && !last_selected_item) {
+          //drawMenuParams(selected_item);
         }
         else {
           /*
-          if (selectedItem.data.type != lastSelectedItem.data.type) {
-            drawMenuParams(selectedItem);
+          if (selected_item.data.type != last_selected_item.data.type) {
+            drawMenuParams(selected_item);
           }
           */
         }
-        selectedItem.activate(mouseEvent);
+        selected_item.activate(mouseEvent);
       } else {
-        selectedItem = null;
+        selected_item = null;
         hideMenuParams();
       }
     }
@@ -105,7 +105,7 @@ function paperInit() {
       if (keyEvent.modifiers.shift) {
         switch (keyEvent.key) {
           case "backspace":
-            selectedItem.remove();
+            selected_item.parent.remove();
             hideMenuParams();
             newShape = true;
             break;
@@ -144,6 +144,7 @@ function paperInit() {
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
         switchLayer.addChild(newItem);
+        //switchLayer.activate();
         drawMenuParams(newItem);
         break;
       case "slider":
@@ -151,6 +152,7 @@ function paperInit() {
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
         sliderLayer.addChild(newItem);
+        //sliderLayer.activate();
         drawMenuParams(newItem);
         break;
       case "knob":
@@ -158,6 +160,7 @@ function paperInit() {
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
         knobLayer.addChild(newItem);
+        //knobLayer.activate();
         drawMenuParams(newItem);
         break;
       case "touchpad":
@@ -165,6 +168,7 @@ function paperInit() {
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
         touchpadLayer.addChild(newItem);
+        //touchpadLayer.activate();
         drawMenuParams(newItem);
         break;
       case "grid":
@@ -172,7 +176,7 @@ function paperInit() {
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
         gridLayer.addChild(newItem);
-        gridLayer.activate();
+        //gridLayer.activate();
         drawMenuParams(newItem);
         break;
       case "path":
@@ -190,7 +194,7 @@ function paperInit() {
         }
         break;
     }
-    console.log("NEW_ITEM: " + newItem.data.type);
+    console.log("NEW_ITEM: " + newItem.name);
     return newItem;
   }
 

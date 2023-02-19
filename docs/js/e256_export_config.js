@@ -32,7 +32,7 @@ function listLayerParams(itemType) {
     //console.log("ITEM_TYPE: " + item_copy.data);
 
     switch (item_copy.data.type) {
-      
+
       case "trigger":
         delete item_copy.data.type;  
         delete item_copy.data.value;
@@ -133,7 +133,7 @@ function listLayerParams(itemType) {
         var keys_params = [];
         for (const child in item_copy.children) {
           if (item_copy.children[child].name === "key 1"){
-            console.log("KEY: " + item_copy.children[child].data.name);
+            //console.log("KEY: " + item_copy.children[child].data.name);
             delete item_copy.children[child].data.name;
             delete item_copy.children[child].data.value;
             keys_params.push(item_copy.children[child].data);

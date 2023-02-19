@@ -9,24 +9,21 @@ function gridFactory() {
 
   const grid_default_width = 400;
   const grid_default_height = 400;
-
   var frame_width  = grid_default_width;
   var frame_height = grid_default_height;
+  var grid_uid = 0;
 
   var key_width = 0;
   var key_height = 0;
   var half_key_width = 0;
   var half_key_height = 0; 
 
-  var mouse_down = null;
-
   var locked = false;
 
   var _Grid = new paper.Group({
     name: "grid",
     data: {
-      type: "grid",
-      //uid: null,
+      name: "grid-" + grid_uid,
       from: [null, null],
       to: [null, null],
       cols: 16,
@@ -54,21 +51,83 @@ function gridFactory() {
       key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
     },
     
+    // IN PROGRESS!
     updateFromParams: function () {
-      this.removeChildren(0);
-      this.create();
+      let index_param = 0;
+      if (selected_item !== null) {
+        console.log("UPDATE_ITEM: " + selected_item.name);
+        switch (selected_item.name) {
+          case "grid":
+            console.log("UPDATE_GRID: " + index_param);
+            for (const param in selected_item.data) {
+              switch (param) {
+                case "name":
+                  // Nothing to do
+                  break;
+                case "from":
+                  selected_item.data[param].from = $("#paramInputValue-" + index_param).from;
+                  break;
+                case "to":
+                  selected_item.data[param].to = $("#paramInputValue-" + index_param).to;
+                  break;
+                default:
+                  selected_item.data[param] = parseInt($("#paramInputValue-" + index_param).val(), 10);
+                  break;
+              }
+              index_param++;
+            }
+            /*
+            last_keys_count = keys_count;
+            keys_count = this.data.cols * this.data.rows;
+            if (keys_count != last_keys_count){...}
+            */
+            this.removeChildren(0);
+            this.create();
+            break;
+          case "key":
+            for (const param in selected_item.data) {
+              switch (param) {
+                case "name":
+                  // Nothing to do
+                  break;
+                case "value":
+                  // Nothing to do
+                  break;
+                default:
+                  selected_item.data[param] = parseInt($("#paramInputValue-" + index_param).val(), 10);
+                  break;
+              }
+              index_param++;
+            }
+            //console.log("PARAMS: " + index_param);
+            break;
+        }
+      }
+      switch (selected_item.name) {
+        case "grid":
+          selected_item.children["frame"].strokeColor = "black";
+          selected_item = null;
+          break;
+        case "key":
+          selected_item.children["rect"].fillColor = "lightGreen";
+          selected_item = null;
+          break;
+        default:
+          break;
+      }
+      locked = false;
     },
 
     newKey: function (y_index, x_index) {
-      let index = y_index * this.data.cols + x_index;
+      let key_uid = y_index * this.data.cols + x_index;
       var _Key = new paper.Group({
         name: "key",
         data: {
-          name: "key-" + index,
+          name: "key-" + key_uid,
           value: false,
-          chan: null,
+          chan: 1,
           note: null,
-          velocity: null
+          velo: 127
         }
       });
       var _rect = new paper.Path.Rectangle({
@@ -107,6 +166,7 @@ function gridFactory() {
           this.addChild(this.newKey(pos_y, pos_x));
         }
       }
+      grid_uid++;
     },
 
     onMouseEnter: function (mouseEvent) {
@@ -114,82 +174,45 @@ function gridFactory() {
       var mouse_enter_options = {
         stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
         bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
-        //fill: true,
-        tolerance: 8
+        fill: false,
+        tolerance: 5
       }
-      mouse_enter = paper.project.hitTest(mouseEvent.point, mouse_enter_options);
-      //console.log("ITEM:" + mouse_enter);
+      var tmp_selected_item = null;
+
+      var tmp_selector = paper.project.hitTest(mouseEvent.point, mouse_enter_options);
+      if (tmp_selector === null) return;
+      if (tmp_selector.item.name === "txt" || tmp_selector.item.name === "rect") { 
+        tmp_selected_item = tmp_selector.item.parent;
+      } else {
+        tmp_selected_item = tmp_selector.item;
+      }
+
+      console.log("TMP_SELECT: " + tmp_selected_item);
+
       switch (currentMode) {
         case EDIT_MODE:
-          if (!locked) {
-            if (mouse_enter.item.name === "grid" || mouse_enter.item.name === "frame"){
-              this.children["frame"].selected = true;
-              this.children["frame"].strokeColor = "red";
-              updateMenuParams(mouse_enter.item.parent);
-              drawMenuParams(mouse_enter.item.parent);
-            } else {
-              this.children["frame"].selected = false;
-              this.children["frame"].strokeColor = "black";
-              if (mouse_enter.item.name === "key"){
-                mouse_enter.item.children["rect"].selected = true;
-                updateMenuParams(mouse_enter.item);
-                drawMenuParams(mouse_enter.item);
+          paper.project.deselectAll();
+          switch (tmp_selected_item.name) {
+            case "grid":
+              if (!locked) {
+              drawMenuParams(tmp_selected_item);
+              updateMenuParams(tmp_selected_item);
+              tmp_selected_item.children["frame"].selected = true;
+              } else {
+                tmp_selected_item.children["frame"].selected = true;
               }
-              if (mouse_enter.item.name === "txt"){
-                mouse_enter.item.parent.children["rect"].selected = true;
-                updateMenuParams(mouse_enter.item.parent);
-                drawMenuParams(mouse_enter.item.parent);
+              break;
+            case "key":
+              if (!locked) {
+              drawMenuParams(tmp_selected_item);
+              updateMenuParams(tmp_selected_item);
+              tmp_selected_item.children["rect"].selected = true;
+              } else {
+                tmp_selected_item.children["rect"].selected = true;
               }
-            }
+              break;
           }
-        break;
-        case PLAY_MODE:
-          // TODO
-          console.log("NOT_IMPLEMENTED");
-        break;
-      }
-    },
-
-    onMouseLeave: function (mouseEvent) {
-      switch (currentMode) {
-        case EDIT_MODE:
-          if (!locked) {
-            paper.project.deselectAll();
-          }
-        break;
-        case PLAY_MODE:
-          //TODO
-        break;
-      }
-    },
-
-    onMouseDown: function (mouseEvent) {
-       var mouse_down_options = {
-        //stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
-        bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
-        fill: true,
-        tolerance: 8
-      }
-      mouse_down = paper.project.hitTest(mouseEvent.point, mouse_down_options);
-      paper.project.deselectAll();
-
-      switch (currentMode) {
-        case EDIT_MODE:
-          if (!locked) {
-            locked = true;
-            if (mouse_down.item.name === "key") {
-              mouse_down.item.children["rect"].selected = true;
-              mouse_down.item.children["rect"].fillColor = "red";
-            }
-            if (mouse_down.item.name === "txt") {
-              mouse_down.item.parent.children["rect"].selected = true;
-              mouse_down.item.parent.children["rect"].fillColor = "red";
-            }
-          }
-          else {
-            locked = false;
-          }
-        break;
+          break;
         case PLAY_MODE:
           // TODO
           console.log("NOT_IMPLEMENTED");
@@ -197,17 +220,78 @@ function gridFactory() {
       }
     },
 
+    onMouseLeave: function (mouseEvent) {
+      switch (currentMode) {
+        case EDIT_MODE:
+          paper.project.deselectAll();
+          break;
+        case PLAY_MODE:
+          // TODO
+          break;
+      }
+    },
+
+    onMouseDown: function (mouseEvent) {
+
+       var mouse_down_options = {
+        stroke: false, // hit-test the stroke of path items, taking into account the setting of stroke color and width
+        bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
+        fill: true,
+        tolerance: 5
+      }
+
+      let selector = paper.project.hitTest(mouseEvent.point, mouse_down_options);
+
+      if (selector.item.name === "txt" || selector.item.name === "rect") {
+        selected_item = selector.item.parent;
+        selected_part = selector.item;
+      } else {
+        selected_item = selector.item
+        selected_part = selector;
+      }
+
+      console.log("SELECT_ITEM: " + selected_item);
+      console.log("SELECT_PART: " + selected_part);
+
+      switch (currentMode) {
+        case EDIT_MODE:
+          switch (selected_item.name) {
+            case "grid":
+                selected_item.children["frame"].strokeColor = "red";
+                drawMenuParams(selected_item);
+                updateMenuParams(selected_item);
+                locked = true;
+              break;
+            case "key":
+                if (last_selected_item != null) {
+                  last_selected_item.children["rect"].fillColor = "pink";
+                }
+                selected_item.children["rect"].fillColor = "red";
+                drawMenuParams(selected_item);
+                updateMenuParams(selected_item);
+                last_selected_item = selected_item;
+                locked = true;
+              break;
+            default:
+              break;
+          }
+          break;
+        case PLAY_MODE:
+          // TODO
+          break;
+      }
+    },
+
     onMouseDrag: function (mouseEvent) {
       switch (currentMode) {
         case EDIT_MODE:
-          //console.log("MY_TYPE_A: " + mouse_down);
-          switch (mouse_down.type) {
+          switch (selected_part.type) {
             case "fill":
               moveItem(this, mouseEvent);
               break;
             case "bounds":
-              if (mouse_down.item.name === "grid") {
-                switch (mouse_down.name) {
+              if (selected_part.item.name === "grid") {
+                switch (selected_part.name) {
                   case "top-left":
                     this.children["frame"].segments[0].point.x = mouseEvent.point.x;
                     this.children["frame"].segments[1].point = mouseEvent.point;
@@ -330,14 +414,14 @@ function gridFactory() {
                     break;
                   default:
                     console.log("AAAAAAAAAA!!!!");
-                    console.log("TYPE: " + mouse_down);
+                    console.log("TYPE: " + selected_part);
                     break;
                 }
                 updateMenuParams(this);
               }
               break;
             default:
-              console.log("TYPE_NOT_USE: " + mouse_down.type);
+              console.log("TYPE_NOT_USE: " + selected_part.type);
               break;
           }
         break;
@@ -348,6 +432,7 @@ function gridFactory() {
     }
 
   });
+  paper.project.deselectAll();
   return _Grid;
 }
 
@@ -364,6 +449,7 @@ function touchpadFactory() {
   var select = false;
 
   var _Touchpad = new paper.Group({
+    name: "touchpad",
     data: {
       type: "touchpad",
       from: [null, null],
@@ -559,14 +645,14 @@ function touchpadFactory() {
             mouseEvent.point.x < this.children["pad"].bounds.right &&
             mouseEvent.point.y > this.children["pad"].bounds.top &&
             mouseEvent.point.y < this.children["pad"].bounds.bottom) {
-            selectedItem.children["line-x"].position.y = mouseEvent.point.y;
-            selectedItem.children["line-y"].position.x = mouseEvent.point.x;
-            selectedItem.children["circle"].position = mouseEvent.point;
-            selectedItem.data.value[0] = Math.round(mapp(mouseEvent.point.x, this.data.from[0], this.data.to[0], this.data.min, this.data.max));
-            //if (MIDI_device_connected) sendControlChange(selectedItem.data.Xcc, selectedItem.data.value[0], selectedItem.data.x_chan);
-            selectedItem.data.value[1] = Math.round(mapp(mouseEvent.point.y, this.data.from[1], this.data.to[1], this.data.max, this.data.min));
-            //if (MIDI_device_connected) sendControlChange(selectedItem.data.Ycc, selectedItem.data.value[1], selectedItem.data.y_chan);
-            updateMenuParams(selectedItem);
+            selected_item.children["line-x"].position.y = mouseEvent.point.y;
+            selected_item.children["line-y"].position.x = mouseEvent.point.x;
+            selected_item.children["circle"].position = mouseEvent.point;
+            selected_item.data.value[0] = Math.round(mapp(mouseEvent.point.x, this.data.from[0], this.data.to[0], this.data.min, this.data.max));
+            //if (MIDI_device_connected) sendControlChange(selected_item.data.Xcc, selected_item.data.value[0], selected_item.data.x_chan);
+            selected_item.data.value[1] = Math.round(mapp(mouseEvent.point.y, this.data.from[1], this.data.to[1], this.data.max, this.data.min));
+            //if (MIDI_device_connected) sendControlChange(selected_item.data.Ycc, selected_item.data.value[1], selected_item.data.y_chan);
+            updateMenuParams(selected_item);
           }
         }
       }
@@ -1363,35 +1449,6 @@ function pathFactory() {
 /////////// POLYGON Factory
 // TODO
 
-/////////////////////////////////////////////////////////////////////////////
-function e256_selector(item, state) {
-  switch (state) {
-    case MOUSE_OVER:
-      //item.strokeWidth = 5;
-      //item.strokeColor = "chartreuse";
-      //item.fillColor = "chartreuse";
-      item.selected = true;
-      break;
-    case MOUSE_LEAVE:
-      //item.strokeWidth = 0.2;
-      //item.strokeColor = "black";
-      //item.fillColor = "pink";
-      item.selected = false;
-      break;
-    case SELECT_ON:
-      //item.strokeWidth = 5;
-      //item.strokeColor = "red";
-      item.fillColor = "red";
-      item.selected = true;
-      break;
-    case SELECT_OFF:
-      //item.strokeWidth = 0.2;
-      //item.strokeColor = null;
-      item.selected = false;
-      break;
-  }
-  //return item.data.type;
-}
 
 function moveItem(item, mouseEvent) {
   item.translate(mouseEvent.delta);
@@ -1401,30 +1458,27 @@ function moveItem(item, mouseEvent) {
   item.data.to[1] = Math.round(item.bounds.bottom);
 }
 
-function updateMenuParams(item) {
-  var paramsIndex = 0;
+function drawMenuParams(item) {
+  let index_param = 0;
+  $("#summaryContent").html("Parameters");
   for (const param in item.data) {
-    $("#paramInputAtribute-" + paramsIndex).html(param);
-    $("#paramInputValue-" + paramsIndex).val(item.data[param]);
-    paramsIndex++;
+    $("#param-" + index_param).collapse("show");
+    $("#paramInputAtribute-" + index_param).html(param);
+    $("#paramInputValue-" + index_param).val(item.data[param]);
+    index_param++;
   }
+  for (let i = MAX_PARAM; i >= index_param; i--) {
+    $("#param-" + i).collapse("hide");
+  }
+  $("#updateParams").collapse("show");
 }
 
-function drawMenuParams(item) {
-  let paramsIndex = 0;
-  if (item.data.type != null) {
-    $("#summaryContent").html("Parameters");
-    for (const param in item.data) {
-      $("#param-" + paramsIndex).collapse("show"); //////////////////////////////:
-      $("#paramInputAtribute-" + paramsIndex).html(param);
-      $("#paramInputValue-" + paramsIndex).val(item.data[param]);
-      paramsIndex++;
-    }
-    for (let i = MAX_PARAM; i >= paramsIndex; i--) {
-      $("#param-" + i).collapse("hide");
-    }
-    $("#updateParams").collapse("show");
-    //console.log("DRAW_MENU: " + item.data.type);
+function updateMenuParams(item) {
+  let index_param = 0;
+  for (const param in item.data) {
+    $("#paramInputAtribute-" + index_param).html(param);
+    $("#paramInputValue-" + index_param).val(item.data[param]);
+    index_param++;
   }
 }
 
