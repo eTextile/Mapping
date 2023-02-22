@@ -28,7 +28,7 @@ function gridFactory() {
       to: [null, null],
       cols: 16,
       rows: 16,
-      //mode: 1, // trig vs aftertouch
+      //mode: 1, // trigger vs aftertouch
       //gap: 1
     },
     
@@ -51,57 +51,53 @@ function gridFactory() {
       key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
     },
     
-    // IN PROGRESS!
     updateFromParams: function () {
       let index_param = 0;
-      if (selected_item !== null) {
-        console.log("UPDATE_ITEM: " + selected_item.name);
-        switch (selected_item.name) {
-          case "grid":
-            console.log("UPDATE_GRID: " + index_param);
-            for (const param in selected_item.data) {
-              switch (param) {
-                case "name":
-                  // Nothing to do
-                  break;
-                case "from":
-                  selected_item.data[param].from = $("#paramInputValue-" + index_param).from;
-                  break;
-                case "to":
-                  selected_item.data[param].to = $("#paramInputValue-" + index_param).to;
-                  break;
-                default:
-                  selected_item.data[param] = parseInt($("#paramInputValue-" + index_param).val(), 10);
-                  break;
-              }
-              index_param++;
+      console.log("UPDATE_ITEM: " + selected_item.name);
+      switch (selected_item.name) {
+        case "grid":
+          //console.log("UPDATE_GRID: " + index_param);
+          for (const param in selected_item.data) {
+            switch (param) {
+              case "name":
+                // Nothing to do
+                break;
+              case "from":
+                selected_item.data[param].from = $("#paramInputValue-" + index_param).from;
+                break;
+              case "to":
+                selected_item.data[param].to = $("#paramInputValue-" + index_param).to;
+                break;
+              default:
+                selected_item.data[param] = parseInt($("#paramInputValue-" + index_param).val(), 10);
+                break;
             }
-            /*
-            last_keys_count = keys_count;
-            keys_count = this.data.cols * this.data.rows;
-            if (keys_count != last_keys_count){...}
-            */
-            this.removeChildren(0);
-            this.create();
-            break;
-          case "key":
-            for (const param in selected_item.data) {
-              switch (param) {
-                case "name":
-                  // Nothing to do
-                  break;
-                case "value":
-                  // Nothing to do
-                  break;
-                default:
-                  selected_item.data[param] = parseInt($("#paramInputValue-" + index_param).val(), 10);
-                  break;
-              }
-              index_param++;
+            index_param++;
+          }
+          /*
+          last_keys_count = keys_count;
+          keys_count = this.data.cols * this.data.rows;
+          if (keys_count != last_keys_count){...}
+          */
+          this.removeChildren(0);
+          this.create();
+          break;
+        case "key":
+          for (const param in selected_item.data) {
+            switch (param) {
+              case "name":
+                // Nothing to do
+                break;
+              case "value":
+                // Nothing to do
+                break;
+              default:
+                selected_item.data[param] = parseInt($("#paramInputValue-" + index_param).val(), 10);
+                break;
             }
-            //console.log("PARAMS: " + index_param);
-            break;
-        }
+            index_param++;
+          }
+          break;
       }
       switch (selected_item.name) {
         case "grid":
@@ -110,6 +106,7 @@ function gridFactory() {
           break;
         case "key":
           selected_item.children["rect"].fillColor = "lightGreen";
+          selected_item.children["txt"].content = selected_item.data.note; // FIXME
           selected_item = null;
           break;
         default:
@@ -142,7 +139,8 @@ function gridFactory() {
       var _txt = new paper.PointText({
         name: "txt",
         point: new paper.Point(_Key.children["rect"].position),
-        content: _Key.data.name.replace("key-",""),
+        //content: _Key.data.name.replace("key-",""),
+        content: _Key.data.note,
         fillColor: "black"
       });
       _Key.addChild(_txt);
@@ -195,21 +193,17 @@ function gridFactory() {
           switch (tmp_selected_item.name) {
             case "grid":
               if (!locked) {
-              drawMenuParams(tmp_selected_item);
-              updateMenuParams(tmp_selected_item);
-              tmp_selected_item.children["frame"].selected = true;
-              } else {
-                tmp_selected_item.children["frame"].selected = true;
+                drawMenuParams(tmp_selected_item);
+                updateMenuParams(tmp_selected_item);
               }
+              tmp_selected_item.children["frame"].selected = true;
               break;
             case "key":
               if (!locked) {
-              drawMenuParams(tmp_selected_item);
-              updateMenuParams(tmp_selected_item);
-              tmp_selected_item.children["rect"].selected = true;
-              } else {
-                tmp_selected_item.children["rect"].selected = true;
+                drawMenuParams(tmp_selected_item);
+                updateMenuParams(tmp_selected_item);
               }
+              tmp_selected_item.children["rect"].selected = true;
               break;
           }
           break;
@@ -250,8 +244,8 @@ function gridFactory() {
         selected_part = selector;
       }
 
-      console.log("SELECT_ITEM: " + selected_item);
-      console.log("SELECT_PART: " + selected_part);
+      //console.log("SELECT_ITEM: " + selected_item);
+      //console.log("SELECT_PART: " + selected_part);
 
       switch (currentMode) {
         case EDIT_MODE:
@@ -296,14 +290,12 @@ function gridFactory() {
                     this.children["frame"].segments[0].point.x = mouseEvent.point.x;
                     this.children["frame"].segments[1].point = mouseEvent.point;
                     this.children["frame"].segments[2].point.y = mouseEvent.point.y;
-
                     frame_width = this.bounds.right - mouseEvent.point.x;
                     key_width = frame_width / this.data.cols;
                     frame_height = this.bounds.bottom - mouseEvent.point.y;
                     key_height = frame_height / this.data.rows;
                     half_key_width = key_width / 2;
-                    half_key_height = key_height / 2; 
-
+                    half_key_height = key_height / 2;
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
                       let newPos_y = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + half_key_height;
@@ -316,25 +308,21 @@ function gridFactory() {
                         this.children[index].children["txt"].position.y = newPos_y;
                         this.children[index].children["rect"].bounds.width = key_width;
                         this.children[index].children["rect"].bounds.height = key_height;
-
                       }
                     }
                     this.data.from[0] = Math.round(mouseEvent.point.x);
                     this.data.from[1] = Math.round(mouseEvent.point.y);
                     break;
-
                   case "top-right":
                     this.children["frame"].segments[1].point.y = mouseEvent.point.y;
                     this.children["frame"].segments[2].point = mouseEvent.point;
                     this.children["frame"].segments[3].point.x = mouseEvent.point.x;
-
                     frame_width = mouseEvent.point.x - this.bounds.left;
                     key_width = frame_width / this.data.cols;
                     frame_height = this.bounds.bottom - mouseEvent.point.y;
                     key_height = frame_height / this.data.rows;
                     half_key_width = key_width / 2;
                     half_key_height = key_height / 2; 
-
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
                       let newPos_y = this.children["frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + half_key_height;
@@ -352,19 +340,16 @@ function gridFactory() {
                     this.data.from[1] = Math.round(mouseEvent.point.y);
                     this.data.to[0] = Math.round(mouseEvent.point.x);
                     break;
-
                   case "bottom-right":
                     this.children["frame"].segments[2].point.x = mouseEvent.point.x;
                     this.children["frame"].segments[3].point = mouseEvent.point;
                     this.children["frame"].segments[0].point.y = mouseEvent.point.y;
-
                     frame_width = mouseEvent.point.x - this.bounds.left;
                     key_width = frame_width / this.data.cols;
                     frame_height = mouseEvent.point.y - this.bounds.top;
                     key_height = frame_height / this.data.rows;
                     half_key_width = key_width / 2;
                     half_key_height = key_height / 2; 
-
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
                       let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + half_key_height;
@@ -382,19 +367,16 @@ function gridFactory() {
                     this.data.to[0] = Math.round(mouseEvent.point.x);
                     this.data.to[1] = Math.round(mouseEvent.point.y);
                     break;
-
                   case "bottom-left":
                     this.children["frame"].segments[3].point.y = mouseEvent.point.y;
                     this.children["frame"].segments[0].point = mouseEvent.point;
                     this.children["frame"].segments[1].point.x = mouseEvent.point.x;
-
                     frame_width = this.bounds.right - mouseEvent.point.x;
                     key_width = frame_width / this.data.cols;
                     frame_height = mouseEvent.point.y - this.bounds.top;
                     key_height = frame_height / this.data.rows;
                     half_key_width = key_width / 2;
                     half_key_height = key_height / 2; 
-
                     for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
                       let row_index = pos_y * this.data.cols;
                       let newPos_y = this.children["frame"].bounds.top + pos_y * key_height + half_key_height;
@@ -413,8 +395,7 @@ function gridFactory() {
                     this.data.to[1] = Math.round(mouseEvent.point.y);
                     break;
                   default:
-                    console.log("AAAAAAAAAA!!!!");
-                    console.log("TYPE: " + selected_part);
+                    console.log("PART_NOT_USE: " + selected_part.name);
                     break;
                 }
                 updateMenuParams(this);

@@ -127,6 +127,14 @@ $("#exportConfig").click(function () {
 
 // Update item parameters using the txt input fields
 $("#btnSet").click(function () {
-  console.log("SELECTED_PARENT: " + selected_item.parent.name)
-  selected_item.parent.updateFromParams();
+  switch (selected_item.name) {
+    case "grid":
+      selected_item.updateFromParams();
+      break;
+    case "key":
+      selected_item.parent.updateFromParams();
+      break;
+    default:
+      break;
+  }
 });
