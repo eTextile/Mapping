@@ -57,19 +57,21 @@ $(".e256_setMode").click(function (event) {
       currentMode = EDIT_MODE;
       $("#editMenu").collapse("show");
       $("#playMenu").collapse("hide");
-      $("#loadMenu").collapse("hide");
+      $("#loadMenu").collapse("show");
+
       $("#summaryAction").html("CONNECTED / EDIT_MODE");
       $("#summaryContent").html("Add new components");
       break;
     case "playMode":
       currentMode = PLAY_MODE;
-      selected_item.free();
       $("#editMenu").collapse("hide");
       $("#playMenu").collapse("show");
-      $("#loadMenu").collapse("show");
+      $("#loadMenu").collapse("hide");
+
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#summaryContent").html("Evaluate what you have made");
       $(".param").collapse("hide");
+      //selected_item.free();
       //last_selected_item = null; 
       break;
   }
@@ -91,6 +93,7 @@ $("#uploadConfig").click(function () {
 
 $("#saveConfig").click(function () {
   if (MIDI_device_connected) {
+    // TODO
   } else {
   }
 });
