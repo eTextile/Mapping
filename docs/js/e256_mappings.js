@@ -122,9 +122,9 @@ function gridFactory() {
         data: {
           name: "key-" + key_uid,
           value: false,
-          chan: 1,
-          note: null,
-          velo: 127
+          chan: 1,      // Dropdown
+          note: null,   // Dropdown
+          velo: 127     // Dropdown
         }
       });
       var _rect = new paper.Path.Rectangle({
@@ -152,8 +152,8 @@ function gridFactory() {
         name: "frame",
         from: [this.data.from[0], this.data.from[1]],
         to: [this.data.to[0], this.data.to[1]],
-        strokeColor: "black",
-        strokeWidth: 8,
+        strokeColor: "green",
+        strokeWidth: 10,
         fillColor: "red"
       });
       this.addChild(_frame);
@@ -184,27 +184,24 @@ function gridFactory() {
       } else {
         tmp_selected_item = tmp_selector.item;
       }
-
-      console.log("TMP_SELECT: " + tmp_selected_item);
+      //console.log("TMP_SELECT: " + tmp_selected_item);
 
       switch (currentMode) {
         case EDIT_MODE:
           paper.project.deselectAll();
           switch (tmp_selected_item.name) {
             case "grid":
-              if (!locked) {
-                drawMenuParams(tmp_selected_item);
-                updateMenuParams(tmp_selected_item);
-              }
               tmp_selected_item.children["frame"].selected = true;
               break;
             case "key":
-              if (!locked) {
-                drawMenuParams(tmp_selected_item);
-                updateMenuParams(tmp_selected_item);
-              }
               tmp_selected_item.children["rect"].selected = true;
               break;
+            default:
+              break;
+          }
+          if (!locked) {
+            drawMenuParams(tmp_selected_item);
+            updateMenuParams(tmp_selected_item);
           }
           break;
         case PLAY_MODE:
@@ -235,40 +232,57 @@ function gridFactory() {
       }
 
       let selector = paper.project.hitTest(mouseEvent.point, mouse_down_options);
-
-      if (selector.item.name === "txt" || selector.item.name === "rect") {
-        selected_item = selector.item.parent;
-        selected_part = selector.item;
-      } else {
-        selected_item = selector.item
-        selected_part = selector;
+      if (selector != null) {
+        last_selected_item = selected_item;
+        if (selector.item.name === "txt" || selector.item.name === "rect") {
+          selected_item = selector.item.parent;
+          selected_part = selector.item;
+        }
+        else {
+          selected_item = selector.item
+          selected_part = selector;
+        }
       }
-
       //console.log("SELECT_ITEM: " + selected_item);
       //console.log("SELECT_PART: " + selected_part);
+      //console.log("LAST_ITEM: " + last_selected_item);
 
       switch (currentMode) {
         case EDIT_MODE:
           switch (selected_item.name) {
             case "grid":
-                selected_item.children["frame"].strokeColor = "red";
-                drawMenuParams(selected_item);
-                updateMenuParams(selected_item);
-                locked = true;
+              if (last_selected_item === null) return;
+              switch (last_selected_item.name) {
+                case "grid":
+                  // NA
+                  break;
+                case "key":
+                  last_selected_item.children["rect"].fillColor = "pink";
+                  break;
+                default:
+                  break;
+              }
+              selected_item.children["frame"].strokeColor = "red";
               break;
             case "key":
-                if (last_selected_item != null) {
+              switch (last_selected_item.name) {
+                case "grid":
+                  last_selected_item.children["frame"].strokeColor = "green";
+                  break;
+                case "key":
                   last_selected_item.children["rect"].fillColor = "pink";
-                }
-                selected_item.children["rect"].fillColor = "red";
-                drawMenuParams(selected_item);
-                updateMenuParams(selected_item);
-                last_selected_item = selected_item;
-                locked = true;
+                  break;
+                default:
+                  break;
+              }
+              selected_item.children["rect"].fillColor = "red";
               break;
             default:
               break;
           }
+          drawMenuParams(selected_item);
+          updateMenuParams(selected_item);
+          locked = true;
           break;
         case PLAY_MODE:
           // TODO
