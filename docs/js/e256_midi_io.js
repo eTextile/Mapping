@@ -72,8 +72,8 @@ function onMIDISuccess(midiAccess) {
       case "disconnected":
         MIDIInput = null;
         MIDIoutput = null;
-        currentMode = PENDING_MODE;
-        console.log("MODE: " + MODES_CODES[currentMode]);
+        e256_current_mode = PENDING_MODE;
+        console.log("MODE: " + MODES_CODES[e256_current_mode]);
         MIDI_device_connected = false;
         updateMenu();
         break;
@@ -139,7 +139,7 @@ function onMIDIMessage(midiMsg) {
           }
           else if (VERBOSITY_CODES[value] === SYNC_MODE_DONE) {
             console.log("RECEIVED: " + VERBOSITY_CODES[value]);
-            currentMode = SYNC_MODE;
+            e256_current_mode = SYNC_MODE;
             sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
             console.log("REQUEST: CONFIG_FILE");
           }
@@ -161,7 +161,7 @@ function onMIDIMessage(midiMsg) {
       }
       break;
     case SYSTEM_EXCLUSIVE:
-      switch (currentMode) {
+      switch (e256_current_mode) {
         case SYNC_MODE:
           console.log("RECEIVED: CONFIG_FILE");
           // JSON deserialization
@@ -170,7 +170,7 @@ function onMIDIMessage(midiMsg) {
           var e256_jsonFile = string.slice(1, -1);
           config = JSON.parse(e256_jsonFile);
           drawFromParams(config.mappings);
-          currentMode = EDIT_MODE;
+          e256_current_mode = EDIT_MODE;
           break;
         case MATRIX_MODE_RAW:
           e256_matrix.update(midiMsg.data);

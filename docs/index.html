@@ -83,7 +83,7 @@
                   <button id="grid" class="mapingTool btn btn-outline-primary" type="button">Grid</button>
                   <button id="path" class="mapingTool btn btn-outline-primary" type="button">Path</button>
                 </div>
-                <button id="exportConfig" class="btn btn-outline-primary input-group" type="button">SET CONFIG</button>
+                <button id="exportConfig" class="btn btn-outline-primary input-group" type="button">LOG_CONFIG</button>
                   <div id="loadMenu" class="collapse">
                     <input id="loadConfig" class="form-control form-control-sm" type="file" accept=".json, .wav">
                   </div>
@@ -107,9 +107,6 @@
           </div>
         </div>
       </div>
-      <script type="text/javascript">
-        containerOptions = document.getElementById("params");
-      </script>
 
     </section>
 
@@ -141,46 +138,10 @@
           <p id="summaryContent" class="text card-text">
             This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.
           </p>
-          <div id="params"></div>
+          <div id="e256_params"></div>
         </div>
 
-        <!--div id="param-1" class="param collapse">
-          <div class="input-group">
-            <span id="paramInputAtribute-1" class="input-group-text"></span>
-            <input id="paramInputValue-1" type="text" class="form-control" aria-label="Small" aria-describedby="paramInputAtribute-1">
-          </div>
-        </div-->
-
-        <script type="text/javascript">
-          containerParams = document.getElementById("params");
-
-          for (i = 0; i < MAX_PARAMS; i++) {
-            let divParam = document.createElement("div");
-            divParam.setAttribute("id", "param-" + i);
-            divParam.classList.add("param", "collapse");
-
-            let divGroupe = document.createElement("div");
-            divGroupe.className = "input-group";
-
-            let spanParam = document.createElement("span");
-            spanParam.setAttribute("id", "paramInputAtribute-" + i);
-            spanParam.className = "input-group-text";
-            divGroupe.appendChild(spanParam);
-
-            let inputValue = document.createElement("input");
-            inputValue.setAttribute("id", "paramInputValue-" + i);
-            inputValue.setAttribute("type", "text");
-            //inputValue.className = "form-control";
-            inputValue.className = "form-select";
-            inputValue.setAttribute("aria-label", "Small");
-            inputValue.setAttribute("aria-describedby", "paramInputAtribute-" + i);
-            divGroupe.appendChild(inputValue);
-            divParam.appendChild(divGroupe);
-            containerParams.appendChild(divParam);
-          }
-        </script>
-
-        <div id="updateParams" class="param collapse">
+        <div id="set_button_params" class="param collapse">
           <div class="input-group-text">
             <button id="btnSet" class="btn w-100 btn-outline-primary" type="button">SET PARAM</button>
           </div>
@@ -209,6 +170,7 @@
 
   <script type="text/javascript" src="./js/lib/paper-full.js"></script>
   <script type="text/javascript" src="./js/e256_mappings.js"></script>
+  <script type="text/javascript" src="./js/e256_mappings_functions.js"></script>
 
   <script type="text/javascript" src="./js/e256_paper_script.js"></script>
 

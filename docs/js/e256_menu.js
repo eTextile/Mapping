@@ -4,13 +4,12 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var currentMode = PENDING_MODE;
-var currentState = null;
-var e256_drawMode = null;
+var e256_current_mode = PENDING_MODE;
+var e256_draw_mode = null;
 
 console.log("PROJECT: " + PROJECT);
 console.log("NAME: " + NAME + ": " + VERSION);
-console.log("MODE: " + MODES_CODES[currentMode]);
+console.log("MODE: " + MODES_CODES[e256_current_mode]);
 
 $("#PROJECT").html(PROJECT);
 $("#NAME").html(NAME + " - " + VERSION);
@@ -30,7 +29,7 @@ $("#connectSwitch").on("change", function () {
 $(".e256_setMode").click(function (event) {
   switch (event.target.id) {
     case "matrixMode":
-      currentMode = MATRIX_MODE_RAW;
+      e256_current_mode = MATRIX_MODE_RAW;
       $("#calibrateMenu").collapse("show");
       $("#matrixMenu").collapse("show");
       $("#mappingMenu").collapse("hide");
@@ -39,10 +38,10 @@ $(".e256_setMode").click(function (event) {
       $("#mappingCanvas").collapse("hide");
       $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
-      $(".param").collapse("hide");
+      //$(".param").collapse("hide");
       break;
     case "mappingMode":
-      currentMode = EDIT_MODE;
+      e256_current_mode = EDIT_MODE;
       $("#calibrateMenu").collapse("show");
       $("#matrixMenu").collapse("hide");
       $("#mappingMenu").collapse("show");
@@ -51,10 +50,10 @@ $(".e256_setMode").click(function (event) {
       $("#mappingCanvas").collapse("show");
       $("#summaryAction").html("CONNECTED");
       $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces !");
-      $(".param").collapse("hide");
+      //$(".param").collapse("hide");
       break;
     case "editMode":
-      currentMode = EDIT_MODE;
+      e256_current_mode = EDIT_MODE;
       $("#editMenu").collapse("show");
       $("#playMenu").collapse("hide");
       $("#loadMenu").collapse("show");
@@ -63,21 +62,21 @@ $(".e256_setMode").click(function (event) {
       $("#summaryContent").html("Add new components");
       break;
     case "playMode":
-      currentMode = PLAY_MODE;
+      e256_current_mode = PLAY_MODE;
       $("#editMenu").collapse("hide");
       $("#playMenu").collapse("show");
       $("#loadMenu").collapse("hide");
 
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#summaryContent").html("Evaluate what you have made");
-      $(".param").collapse("hide");
+      //$(".param").collapse("hide");
       //selected_item.free();
       //last_selected_item = null; 
       break;
   }
   if (MIDI_device_connected) {
-    sendProgramChange(currentMode, MIDI_MODES_CHANNEL);
-    console.log("REQUEST: " + MODES_CODES[currentMode]);
+    sendProgramChange(e256_current_mode, MIDI_MODES_CHANNEL);
+    console.log("REQUEST: " + MODES_CODES[e256_current_mode]);
   } else {
     //alert("e256 NOT CONNECTED!");
   }
@@ -100,9 +99,9 @@ $("#saveConfig").click(function () {
 
 $(".mapingTool").click(function (event) {
   $("#optionsMenu").collapse("show");
-  $(".param").collapse("hide");
-  e256_drawMode = event.target.id;
-  console.log("DRAW_MODE: " + e256_drawMode);
+  //$(".param").collapse("hide");
+  e256_draw_mode = event.target.id;
+  console.log("DRAW_MODE: " + e256_draw_mode);
 });
 
 $("#calibrate").click(function () {
@@ -116,7 +115,7 @@ $("#calibrate").click(function () {
 
 $("#getConfig").click(function () {
   if (MIDI_device_connected) {
-    //currentMode = SYNC_MODE;
+    //e256_current_mode = SYNC_MODE;
     sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CONFIG_FILE");
   } else {
@@ -130,6 +129,7 @@ $("#exportConfig").click(function () {
 
 // Update item parameters using the txt input fields
 $("#btnSet").click(function () {
+  console.log("UPDATING_ITEM: " + selected_item.name);
   switch (selected_item.name) {
     case "grid":
       selected_item.updateFromParams();

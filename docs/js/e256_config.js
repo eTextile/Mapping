@@ -6,7 +6,7 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.13";
+const VERSION = "1.0.14";
 
 const MAX_PARAM = 16;
 
@@ -72,7 +72,6 @@ const SYSEX_CONF = 0x7C;       // DEC: 124
 const SYSEX_SOUND = 0x6C;      // DEC: 108
 
 const SYNC_MODE_TIMEOUT = 4000;
-const MAX_PARAMS = 15;
 
 const PENDING_MODE_DONE = "PENDING_MODE_DONE";
 const SYNC_MODE_DONE = "SYNC_MODE_DONE";
@@ -160,3 +159,16 @@ const SELECT_ON = 0;
 const SELECT_OFF = 1;
 const MOUSE_OVER = 2;
 const MOUSE_LEAVE = 3;
+
+const TRIGGER_PARAMS = 5;
+const SWITCH_PARAMS = 5;
+const SLIDER_PARAMS = 5;
+const KNOB_PARAMS = 5;
+const TOUCHPAD_PARAMS = 5;
+const GRID_PARAMS = 6;
+const PATH_PARAMS = 5;
+
+const KEY_MODES = [
+  "trigger",
+  "toggle"
+];
