@@ -35,9 +35,9 @@ function gridFactory() {
     cols: "form-select",
     rows: "form-select",
     mode: "form-select",
-    aftertouch: "btn btn-secondary btn-sm dropdown-toggle",
-    velocity: "btn btn-secondary btn-sm dropdown-toggle"
-    //gap: 1
+    aftertouch: "form-toggle",
+    velocity: "form-toggle"
+    //gap: "form-control",
   };
 
   const key_menu_style = {
@@ -157,8 +157,8 @@ function gridFactory() {
     /*
     unction updateMenuParams(item) {
       for (const param in item.data) {
-        $("#param_atribute-" + param).html(param);
-        $("#param_value-" + param).val(item.data[param]);
+        $("#param_atribute_" + param).html(param);
+        $("#param_value_" + param).val(item.data[param]);
       }
     }
     */
@@ -216,13 +216,10 @@ function gridFactory() {
     createMenuParams: function () {
       //////// Grid-params ////////
       create_params(this, grid_menu_style);
-      console.log(this.name );
-      $("#" + this.name + "-params").collapse("hide");
-
+      //hideMenuParams(this);
       //////// Key-params ////////
       create_params(this.lastChild, key_menu_style);
-      console.log(this.lastChild.name);
-      $("#" + this.lastChild.name + "-params").collapse("hide");
+      //hideMenuParams(this.lastChild);
     },
 
     onMouseEnter: function (mouseEvent) {

@@ -38,6 +38,8 @@ scaleFactor = canvasHeight / 127;
 
 function paperInit() {
 
+  console.log("BOOTSTRAP_VERSION: " + bootstrap.Tooltip.VERSION);
+
   paper.setup(document.getElementById("canvas-2D"));
   console.log("PAPER_VERSION: " + paper.version);
 
