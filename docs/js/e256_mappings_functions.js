@@ -6,13 +6,13 @@
 
 function showMenuParams(item) {
 	$("#summaryContent").html(item.name + " parameters");
-	$("#" + item.name + "-params" ).collapse("show");
+	$("#" + item.name + "_params" ).collapse("show");
 	//$("#set_button_params").collapse("show");
 };
 
 function hideMenuParams(item) {
 	$("#summaryContent").html(item.name + " Null");
-	$("#" + item.name + "-params").collapse("hide");
+	$("#" + item.name + "_params").collapse("hide");
 	//$("#set_button_params").collapse("hide");
 };
 
@@ -26,7 +26,7 @@ function create_params(item, params_style) {
 
 	let div_menu_params = document.getElementById("e256_params");
 	let div_params = document.createElement("div");
-	div_params.setAttribute("id", item.name + "-params");
+	div_params.setAttribute("id", item.name + "_params");
 	div_params.className = "collapse";
 	for (const param in params_style) {
 		switch (params_style[param]) {
