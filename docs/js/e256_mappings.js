@@ -4,14 +4,6 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var grid_uid = 0;
-var touchpad_uid = 0;
-var trigger_uid = 0;
-var switch_uid = 0;
-var slider_uid = 0;
-var knob_uid = 0;
-var path_uid = 0;
-
 /////////// GRID Factory
 function gridFactory() {
 
@@ -27,38 +19,22 @@ function gridFactory() {
   var half_key_height = 0; 
   
   var menu_locker = false;
-  
-  const grid_menu_style = {
-    grid: "form-control",
-    from: "form-control",
-    to: "form-control",
-    cols: "form-select",
-    rows: "form-select",
-    mode: "form-select",
-    aftertouch: "form-toggle",
-    velocity: "form-toggle"
-    //gap: "form-control",
-  };
 
-  const key_menu_style = {
-    key: "form-control",
-    value: "form-control",
-    chan: "form-select",
-    note: "form-select",
-    velo: "form-select"
-  };
+  var select = null;
+  var last_select = null;
+  var part_select = null;
 
   var _Grid = new paper.Group({
     name: "Grid",
+    uid: null,
     data: {
-      grid: grid_uid,
       from: [null, null],
       to: [null, null],
       cols: 16,
       rows: 16,
       mode: "trigger",
-      aftertouch: true,
-      velocity: false
+      aftertouch: "OFF",
+      velocity: "OFF"
       //gap: 1
     },
     
@@ -81,97 +57,110 @@ function gridFactory() {
       // TODO: keys setup!
     },
 
-    updateFromParams: function () {
-      console.log("UPDATE_ITEM: " + selected_item.name);
-      switch (selected_item.name) {
-        case "Grid":
+    updateMenuParams: function (item) {
+      console.log("SELECTED: " + item.name);
 
-          for (const param in this.data) {
-            switch (param) {
-              case "grid":
-                // Read-only : nothing to do
+      for (const part in item.children) {
+        console.log("part: " + part);
+      }
+
+      switch (item.name) {
+        case "Grid":
+          for (const param in this.children["grid-frame"].data) {
+            let id_param = "#" + this.uid + "_" + param;
+            switch (this.children["grid-frame"].data[param]) {
+              case "form-control":
+                $(id_param).val(item.data[param]);                
                 break;
-              case "from":
-                this.data.from = $("#param_value-" + param).val().split(",");
-                //console.log("FROM_Y: " + this.data.from[1]);
+              case "form-select":
+                $(id_param).html(item.data[param]);
                 break;
-              case "to":
-                this.data.to = $("#param_value-" + param).val().split(",");
-                //console.log("TO_X: " + this.data.to[0]);
+              case "form-toggle":
+                $(id_param).html(item.data[param]);
                 break;
               default:
-                // rows / cols
-                let input_value = $("#param_value-" + param).val();
-                if (input_value) {
-                  $("#param_value-" + param).removeClass("bg-danger text-white");
-                  this.data[param] = input_value;
-                } else {
-                  $("#param_value-" + param).addClass("bg-danger text-white");
-                }
                 break;
             }
           }
-          /*
-          last_keys_count = keys_count;
-          keys_count = this.data.cols * this.data.rows;
-          if (keys_count != last_keys_count){...}
-          */
-          this.removeChildren();
-          this.create();
           break;
         case "Key":
-          for (const param in this.data) {
-            switch (param) {
-              case "key":
-                // Read-only : nothing to do
+          for (const param in this.children["grid-keys"].data) {
+            let id_param = "#" + this.uid + "_" + param;
+            switch (this.children["grid-keys"].data[param]) {
+              case "form-control":
+                $(id_param).val(item.data[param]);
                 break;
-              case "value":
-                // Nothing to do
+              case "form-select":
+                $(id_param).html(item.data[param]);
+                break;
+              case "form-toggle":
+                $(id_param).html(item.data[param]);
                 break;
               default:
-                let input_value = $("#param_value-" + param).val();
-                if (input_value) {
-                  $("#param_value-" + param).removeClass("bg-danger text-white");
-                  this.data[param] = input_value;
-                } else {
-                  $("#param_value-" + param).addClass("bg-danger text-white");
-                }
                 break;
             }
           }
+          break;
+        default:
           break;
       }
-      switch (selected_item.name) {
+    },
+
+    updateFromParams: function () {
+      console.log("SELECTED: " + select.name);
+      switch (select.name) {
         case "Grid":
-          this.children["grid-frame"].strokeColor = "lightGreen";
+          for (const param in this.children["grid-frame"].data) {
+            let id_param = "#" + this.uid + "_" + param;
+            switch (this.children["grid-frame"].data[param]) {
+              case "form-control":
+                select.data[param] = $(id_param).val().split(",");
+                break;
+              case "form-select":
+                select.data[param] = $(id_param).html();
+                break;
+              case "form-toggle":
+                select.data[param] = $(id_param).html();
+                break;
+              default:
+                break;
+            }
+          }
           break;
         case "Key":
-          this.children["key-rect"].fillColor = "lightGreen";
-          this.children["key-txt"].content = this.data.note;
+          for (const param in this.children["grid-keys"].data) {
+            let id_param = "#" + this.uid + "_" + param;
+            switch (this.children["grid-keys"].data[param]) {
+              case "form-control":
+                select.data[param] = $(id_param).val().split(",");
+                break;
+              case "form-select":
+                select.data[param] = $(id_param).html();
+                break;
+              case "form-toggle":
+                select.data[param] = $(id_param).html();
+                break;
+              default:
+                break;
+            }
+          }
           break;
         default:
           break;
       }
       menu_locker = false;
+      //this.removeChildren(0);
+      //this.create;
     },
-    /*
-    unction updateMenuParams(item) {
-      for (const param in item.data) {
-        $("#param_atribute_" + param).html(param);
-        $("#param_value_" + param).val(item.data[param]);
-      }
-    }
-    */
+
     newKey: function (y_index, x_index) {
-      var key_uid = y_index * this.data.cols + x_index;
       var _Key = new paper.Group({
         name: "Key",
+        id: y_index * this.data.cols + x_index,
         data: {
-          key: key_uid,
-          value: false,
-          chan: 1,      // TODO: Dropdown menu!
-          note: null,   // TODO: Dropdown menu!
-          velo: 127     // TODO: Dropdown menu!
+          chan: 1,
+          note: null,
+          velo: 127
         }
       });
       var _rect = new paper.Path.Rectangle({
@@ -193,33 +182,51 @@ function gridFactory() {
       return _Key;
     },
 
-    create: function () {
+    create: function (mouseEvent) {
       var _frame = new paper.Path.Rectangle({
         name: "grid-frame",
+        //id: null,
         from: [this.data.from[0], this.data.from[1]],
         to: [this.data.to[0], this.data.to[1]],
         strokeColor: "lightGreen",
         strokeWidth: 10,
-        fillColor: "white"
+        fillColor: "white",
+        data: {
+          from: "form-control",
+          to: "form-control",
+          cols: "form-select",
+          rows: "form-select",
+          mode: "form-select",
+          aftertouch: "form-toggle",
+          velocity: "form-toggle"
+        }
       });
       this.addChild(_frame);
+
+      var _keys = new paper.Group({
+        name: "grid-keys",
+        //id: null,
+        data: {
+          chan: "form-select",
+          note: "form-select",
+          velo: "form-select"
+        }
+      });
       key_width = (this.data.to[0] - this.data.from[0]) / this.data.cols;
       key_height = (this.data.to[1] - this.data.from[1]) / this.data.rows;
       for (let pos_y = 0; pos_y < this.data.rows; pos_y++) {
         for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
-          this.addChild(this.newKey(pos_y, pos_x));
+          _keys.addChild(this.newKey(pos_y, pos_x));
         }
       }
-      grid_uid++;
-    },
-
-    createMenuParams: function () {
-      //////// Grid-params ////////
-      create_params(this, grid_menu_style);
-      //hideMenuParams(this);
-      //////// Key-params ////////
-      create_params(this.lastChild, key_menu_style);
-      //hideMenuParams(this.lastChild);
+      this.addChild(_keys);
+      this.uid = global_uid;
+      //this.setupFromMouseEvent(mouseEvent);
+      create_menu_params(this);
+      showMenuParams(this.children["grid-frame"]);
+      last_select = this.children["Grid"];
+      select = this.children["Grid"];;
+      this.updateMenuParams(this.children["grid-frame"]);
     },
 
     onMouseEnter: function (mouseEvent) {
@@ -229,13 +236,13 @@ function gridFactory() {
         fill: false,
         tolerance: 5
       }
-      tmp_selector = paper.project.hitTest(mouseEvent.point, mouse_enter_options);
-      if (tmp_selector) {
-        if (tmp_selector.item.name === "key-txt" || tmp_selector.item.name === "key-rect" || tmp_selector.item.name  === "grid-frame") {
-          highlight_item = tmp_selector.item.parent;
+      tmp_select = paper.project.hitTest(mouseEvent.point, mouse_enter_options);
+      if (tmp_select) {
+        if (tmp_select.item.name === "key-txt" || tmp_select.item.name === "key-rect" || tmp_select.item.name  === "grid-frame") {
+          highlight_item = tmp_select.item.parent;
         } 
         else {
-          highlight_item = tmp_selector.item;
+          highlight_item = tmp_select.item;
         }
       } 
       //console.log("H_ITEM: " + highlight_item);
@@ -285,61 +292,65 @@ function gridFactory() {
         fill: true,
         tolerance: 6
       }
-      tmp_selector = paper.project.hitTest(mouseEvent.point, mouse_down_options);
-      if (tmp_selector) {
-        last_selected_item = selected_item;
-        if (tmp_selector.item.name === "key-txt" || tmp_selector.item.name === "key-rect" || tmp_selector.item.name  === "grid-frame") {
-          selected_item = tmp_selector.item.parent;
-          selected_part = tmp_selector.item;
+      tmp_select = paper.project.hitTest(mouseEvent.point, mouse_down_options);
+      console.log("TMP: " + tmp_select.item.name );
+
+      if (tmp_select) {
+        last_select = select;
+        if (tmp_select.item.name === "key-txt" || tmp_select.item.name === "key-rect" || tmp_select.item.name  === "grid-frame") {
+          part_select = tmp_select.item;
+          select = part_select.parent;
         }
         else {
-          selected_item = tmp_selector.item
-          selected_part = tmp_selector;
+          select = tmp_select.item
+          part_select = tmp_select;
         }
       }
-      //console.log("ITEM: " + selected_item);
-      //console.log("L_ITEM: " + last_selected_item);
-      //console.log("PART: " + selected_part);
+
+      //console.log("ITEM: " + select.name);
+      //console.log("LAST: " + last_select.name);
+      //console.log("PART: " + part_select.name);
 
       switch (e256_current_mode) {
         case EDIT_MODE:
-          if (!last_selected_item) return;
-          switch (selected_item.name) {
+          if (!last_select) return;
+          switch (select.name) {
             case "Grid":
-              switch (last_selected_item.name) {
+              switch (last_select.name) {
                 case "Grid":
-                  updateMenuParams(selected_item);
+                  this.updateMenuParams(select);
                   break;
                 case "Key":
-                  hideMenuParams(last_selected_item);
-                  showMenuParams(selected_item);
-                  selected_item.children["grid-frame"].strokeColor = "orange";
-                  last_selected_item.children["key-rect"].fillColor = "pink";
-                  updateMenuParams(selected_item);
+                  hideMenuParams(this.children["grid-keys"]);
+                  showMenuParams(this.children["grid-frame"]);
+                  select.children["grid-frame"].strokeColor = "orange";
+                  last_select.children["key-rect"].fillColor = "pink";
+                  this.updateMenuParams(select);
                   break;
                 default:
                   break;
               }
               break;
             case "Key":
-              switch (last_selected_item.name) {
+              switch (last_select.name) {
                 case "Grid":
-                  hideMenuParams(last_selected_item);
-                  showMenuParams(selected_item);
-                  last_selected_item.children["grid-frame"].strokeColor = "lightGreen";
-                  selected_item.children["key-rect"].fillColor = "orange";
-                  updateMenuParams(selected_item);
+                  hideMenuParams(this.children["grid-frame"]);
+                  showMenuParams(this.children["grid-keys"]);
+                  last_select.children["grid-frame"].strokeColor = "lightGreen";
+                  select.children["key-rect"].fillColor = "orange";
+                  this.updateMenuParams(select);
                   break;
                 case "Key":
-                  last_selected_item.children["key-rect"].fillColor = "pink";
-                  selected_item.children["key-rect"].fillColor = "orange";
-                  updateMenuParams(selected_item);
+                  last_select.children["key-rect"].fillColor = "pink";
+                  select.children["key-rect"].fillColor = "orange";
+                  this.updateMenuParams(select);
                   break;
                 default:
                   break;
               }
               break;
             default:
+              console.log("TYPE_NOT_USE: " + select.name);
               break;
           }
           //menu_locker = true;
@@ -353,14 +364,14 @@ function gridFactory() {
     onMouseDrag: function (mouseEvent) {
       switch (e256_current_mode) {
         case EDIT_MODE:
-          switch (selected_part.type) {
+          switch (part_select.type) {
             case "fill":
               //moveItem(this, mouseEvent);
               break;
             case "bounds":
-              switch (selected_item.name) {
+              switch (select.name) {
                 case "Grid":
-                  switch (selected_part.name) {
+                  switch (part_select.name) {
                     case "top-left":
                       this.children["grid-frame"].segments[0].point.x = mouseEvent.point.x;
                       this.children["grid-frame"].segments[1].point = mouseEvent.point;
@@ -375,14 +386,14 @@ function gridFactory() {
                         let row_index = pos_y * this.data.cols;
                         let newPos_y = this.children["grid-frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + half_key_height;
                         for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
-                          let index = row_index + pos_x + 1; // +1 for grid-frame in the background
+                          let index = row_index + pos_x;
                           let newPos_x = this.children["grid-frame"].bounds.right - (this.data.cols - pos_x) * key_width + half_key_width;
-                          this.children[index].children["key-rect"].position.x = newPos_x;
-                          this.children[index].children["key-rect"].position.y = newPos_y;
-                          this.children[index].children["key-txt"].position.x = newPos_x;
-                          this.children[index].children["key-txt"].position.y = newPos_y;
-                          this.children[index].children["key-rect"].bounds.width = key_width;
-                          this.children[index].children["key-rect"].bounds.height = key_height;
+                          this.children["grid-keys"].children[index].children["key-rect"].position.x = newPos_x;
+                          this.children["grid-keys"].children[index].children["key-rect"].position.y = newPos_y;
+                          this.children["grid-keys"].children[index].children["key-txt"].position.x = newPos_x;
+                          this.children["grid-keys"].children[index].children["key-txt"].position.y = newPos_y;
+                          this.children["grid-keys"].children[index].children["key-rect"].bounds.width = key_width;
+                          this.children["grid-keys"].children[index].children["key-rect"].bounds.height = key_height;
                         }
                       }
                       this.data.from[0] = Math.round(mouseEvent.point.x);
@@ -402,14 +413,14 @@ function gridFactory() {
                         let row_index = pos_y * this.data.cols;
                         let newPos_y = this.children["grid-frame"].bounds.bottom - (this.data.rows - pos_y) * key_height + half_key_height;
                         for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
-                          let index = row_index + pos_x + 1; // +1 for frame background
+                          let index = row_index + pos_x;
                           let newPos_x = this.children["grid-frame"].bounds.left + pos_x * key_width + half_key_width;
-                          this.children[index].children["key-rect"].position.x = newPos_x;
-                          this.children[index].children["key-rect"].position.y = newPos_y;
-                          this.children[index].children["key-txt"].position.x = newPos_x;
-                          this.children[index].children["key-txt"].position.y = newPos_y;
-                          this.children[index].children["key-rect"].bounds.width = key_width;
-                          this.children[index].children["key-rect"].bounds.height = key_height;
+                          this.children["grid-keys"].children[index].children["key-rect"].position.x = newPos_x;
+                          this.children["grid-keys"].children[index].children["key-rect"].position.y = newPos_y;
+                          this.children["grid-keys"].children[index].children["key-txt"].position.x = newPos_x;
+                          this.children["grid-keys"].children[index].children["key-txt"].position.y = newPos_y;
+                          this.children["grid-keys"].children[index].children["key-rect"].bounds.width = key_width;
+                          this.children["grid-keys"].children[index].children["key-rect"].bounds.height = key_height;
                         }
                       }
                       this.data.from[1] = Math.round(mouseEvent.point.y);
@@ -429,14 +440,14 @@ function gridFactory() {
                         let row_index = pos_y * this.data.cols;
                         let newPos_y = this.children["grid-frame"].bounds.top + pos_y * key_height + half_key_height;
                         for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
-                          let index = row_index + pos_x + 1; // +1 for frame background
+                          let index = row_index + pos_x;
                           let newPos_x = this.children["grid-frame"].bounds.left + pos_x * key_width + half_key_width;
-                          this.children[index].children["key-rect"].position.x = newPos_x;
-                          this.children[index].children["key-rect"].position.y = newPos_y;
-                          this.children[index].children["key-txt"].position.x = newPos_x;
-                          this.children[index].children["key-txt"].position.y = newPos_y;
-                          this.children[index].children["key-rect"].bounds.width = key_width;
-                          this.children[index].children["key-rect"].bounds.height = key_height;
+                          this.children["grid-keys"].children[index].children["key-rect"].position.x = newPos_x;
+                          this.children["grid-keys"].children[index].children["key-rect"].position.y = newPos_y;
+                          this.children["grid-keys"].children[index].children["key-txt"].position.x = newPos_x;
+                          this.children["grid-keys"].children[index].children["key-txt"].position.y = newPos_y;
+                          this.children["grid-keys"].children[index].children["key-rect"].bounds.width = key_width;
+                          this.children["grid-keys"].children[index].children["key-rect"].bounds.height = key_height;
                         }
                       }
                       this.data.to[0] = Math.round(mouseEvent.point.x);
@@ -456,31 +467,31 @@ function gridFactory() {
                         let row_index = pos_y * this.data.cols;
                         let newPos_y = this.children["grid-frame"].bounds.top + pos_y * key_height + half_key_height;
                         for (let pos_x = 0; pos_x < this.data.cols; pos_x++) {
-                          let index = row_index + pos_x + 1; // +1 for frame background
+                          let index = row_index + pos_x;
                           let newPos_x = this.children["grid-frame"].bounds.right - (this.data.cols - pos_x) * key_width + half_key_width;
-                          this.children[index].children["key-rect"].position.x = newPos_x;
-                          this.children[index].children["key-rect"].position.y = newPos_y;
-                          this.children[index].children["key-txt"].position.x = newPos_x;
-                          this.children[index].children["key-txt"].position.y = newPos_y;
-                          this.children[index].children["key-rect"].bounds.width = key_width;
-                          this.children[index].children["key-rect"].bounds.height = key_height;
+                          this.children["grid-keys"].children[index].children["key-rect"].position.x = newPos_x;
+                          this.children["grid-keys"].children[index].children["key-rect"].position.y = newPos_y;
+                          this.children["grid-keys"].children[index].children["key-txt"].position.x = newPos_x;
+                          this.children["grid-keys"].children[index].children["key-txt"].position.y = newPos_y;
+                          this.children["grid-keys"].children[index].children["key-rect"].bounds.width = key_width;
+                          this.children["grid-keys"].children[index].children["key-rect"].bounds.height = key_height;
                         }
                       }
                       this.data.from[0] = Math.round(mouseEvent.point.x);
                       this.data.to[1] = Math.round(mouseEvent.point.y);
                       break;
                     default:
-                      console.log("PART_NOT_USE: " + selected_part.name);
+                      console.log("PART_NOT_USE: " + part_select.name);
                       break;
                   }
                 case "Key":
                   //moveItem(this, mouseEvent);
                   break;
               }
-              updateMenuParams(this);
+              this.updateMenuParams(select);
               break;
             default:
-              console.log("TYPE_NOT_USE: " + selected_part.type);
+              console.log("TYPE_NOT_USE: " + part_select.type);
               break;
           }
           break;
@@ -598,12 +609,12 @@ function touchpadFactory() {
       if (this.select){
         //this.children["pad"].strokeColor = "chartreuse";
         //select = false;
-        e256_selector(this.children["pad"], OVER_ON);
+        e256_select(this.children["pad"], OVER_ON);
       }
       else {
         //this.children["pad"].strokeColor = "red";
         //select = true;
-        e256_selector(this.children["pad"], OVER_ON);
+        e256_select(this.children["pad"], OVER_ON);
      }
      //return select;
     },
@@ -613,7 +624,7 @@ function touchpadFactory() {
         if (this.select) {
           // Nothing to do!
         } else {
-          e256_selector(this.children["frame"], OVER_ON);
+          e256_select(this.children["frame"], OVER_ON);
           //updateMenuParams(this);
           //showMenuParams(this);
         }
@@ -624,7 +635,7 @@ function touchpadFactory() {
       if (e256_current_mode === EDIT_MODE) {
         if (!select){
           //this.children["pad"].strokeWidth = OVER_OFF;
-          e256_selector(this.children["pad"], OVER_OFF);
+          e256_select(this.children["pad"], OVER_OFF);
         }
         else {
           // Nothing to do!
@@ -704,14 +715,14 @@ function touchpadFactory() {
             mouseEvent.point.x < this.children["pad"].bounds.right &&
             mouseEvent.point.y > this.children["pad"].bounds.top &&
             mouseEvent.point.y < this.children["pad"].bounds.bottom) {
-            selected_item.children["line-x"].position.y = mouseEvent.point.y;
-            selected_item.children["line-y"].position.x = mouseEvent.point.x;
-            selected_item.children["circle"].position = mouseEvent.point;
-            selected_item.data.value[0] = Math.round(mapp(mouseEvent.point.x, this.data.from[0], this.data.to[0], this.data.min, this.data.max));
-            //if (MIDI_device_connected) sendControlChange(selected_item.data.Xcc, selected_item.data.value[0], selected_item.data.x_chan);
-            selected_item.data.value[1] = Math.round(mapp(mouseEvent.point.y, this.data.from[1], this.data.to[1], this.data.max, this.data.min));
-            //if (MIDI_device_connected) sendControlChange(selected_item.data.Ycc, selected_item.data.value[1], selected_item.data.y_chan);
-            updateMenuParams(selected_item);
+            select.children["line-x"].position.y = mouseEvent.point.y;
+            select.children["line-y"].position.x = mouseEvent.point.x;
+            select.children["circle"].position = mouseEvent.point;
+            select.data.value[0] = Math.round(mapp(mouseEvent.point.x, this.data.from[0], this.data.to[0], this.data.min, this.data.max));
+            //if (MIDI_device_connected) sendControlChange(select.data.Xcc, select.data.value[0], select.data.x_chan);
+            select.data.value[1] = Math.round(mapp(mouseEvent.point.y, this.data.from[1], this.data.to[1], this.data.max, this.data.min));
+            //if (MIDI_device_connected) sendControlChange(select.data.Ycc, select.data.value[1], select.data.y_chan);
+            updateMenuParams(select);
           }
         }
       }
@@ -786,7 +797,7 @@ function triggerFactory() {
     onMouseEnter: function (mouseEvent) {
       if (e256_current_mode === EDIT_MODE) {
         if (!select) {
-          e256_selector(this.children["square"], MOUSE_OVER);
+          e256_select(this.children["square"], MOUSE_OVER);
           showMenuParams(this);
           console.log("EVENT_ID: " + mouseEvent.currentTarget.index);
           console.log("EVENT_NAME: " + mouseEvent);
@@ -799,7 +810,7 @@ function triggerFactory() {
     onMouseLeave: function(){
       if (e256_current_mode === EDIT_MODE) {
         if (!select) {
-          e256_selector(this.children["square"], MOUSE_LEAVE);
+          e256_select(this.children["square"], MOUSE_LEAVE);
         } else {
         }
       }

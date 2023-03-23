@@ -22,6 +22,8 @@ var last_selected_item = null;
 var selected_part = null;
 var last_selected_part = null;
 
+var global_uid = 0;
+
 /*
 var hitOptions = {
   stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
@@ -51,13 +53,13 @@ function paperInit() {
   var pathLayer = new paper.Layer();
   var gridLayer = new paper.Layer();
 
-  triggerLayer.name = "triggers";
-  switchLayer.name = "switchs";
-  sliderLayer.name = "sliders";
-  knobLayer.name = "knobs";
-  touchpadLayer.name = "touchpads";
-  pathLayer.name = "paths";
-  gridLayer.name = "grids";
+  triggerLayer.name = "Triggers";
+  switchLayer.name = "Switchs";
+  sliderLayer.name = "Sliders";
+  knobLayer.name = "Knobs";
+  touchpadLayer.name = "Touchpads";
+  pathLayer.name = "Paths";
+  gridLayer.name = "Grids";
 
   paper.view.viewSize.width = canvasWidth;
   paper.view.viewSize.height = canvasHeight;
@@ -77,17 +79,19 @@ function paperInit() {
       if (e256_draw_mode) {
         if (!hitResult) {
           selected_item = drawControlerFromMouse(mouseEvent);
+          global_uid++;
         } else {
           switch (selected_item.name) {
-            case "grid":
+            case "Grid":
               selected_item.bringToFront();
               break;
-            case "key":
+            case "Key":
               selected_item.parent.bringToFront();
               break;
             default:
               break;
           }
+          
         }
       } else {
         alert("SELECT A GUI!");
@@ -119,11 +123,13 @@ function paperInit() {
         switch (keyEvent.key) {
           case "backspace":
             switch (selected_item.name) {
-              case "grid":
+              case "Grid":
                 selected_item.remove();
+                // TODO: Remove the associated menu!
                 break;
-              case "key":
+              case "Key":
                 selected_item.parent.remove();
+                // TODO: Remove the associated menu!
                 break;
               default:
                 break;
@@ -132,7 +138,7 @@ function paperInit() {
             newShape = true;
             break;
           case "enter":
-            if (e256_draw_mode === "path") {
+            if (e256_draw_mode === "Path") {
               newShape = true;
             }
             break;
@@ -141,81 +147,85 @@ function paperInit() {
     }
   }
 
-  /*
-  function hideMenuParams() {
-    $(".params").collapse("hide");
-  }
-  */
-
   paper.onFrame = function (mouseEvent) {
     // Every frame
   }
 
   ////////////// ADD_GUI
   function drawControlerFromMouse(mouseEvent) {
-    let newItem = null;
+    var newItem;
     switch (e256_draw_mode) {
-      case "trigger":
+      case "Trigger":
         newItem = triggerFactory();
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
-        newItem.createMenuParams();
+        //newItem.drawMenuParams();
+        //create_menu_params(newItem);
         triggerLayer.addChild(newItem);
         //triggerLayer.activate();
         break;
-      case "switch":
+      case "Switch":
         newItem = switchFactory();
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
-        newItem.createMenuParams();
+        //newItem.drawMenuParams();
+        //create_menu_params(newItem);
         switchLayer.addChild(newItem);
         //switchLayer.activate();
         break;
-      case "slider":
+      case "Slider":
         newItem = sliderFactory();
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
-        newItem.createMenuParams();
+        //newItem.drawMenuParams();
+        //create_menu_params(newItem);
         sliderLayer.addChild(newItem);
         //sliderLayer.activate();
         break;
-      case "knob":
+      case "Knob":
         newItem = knobFactory();
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
-        newItem.createMenuParams();
+        //newItem.drawMenuParams();
+        //create_menu_params(newItem);
         knobLayer.addChild(newItem);
         //knobLayer.activate();
         break;
-      case "touchpad":
+      case "Touchpad":
         newItem = touchpadFactory();
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
-        newItem.createMenuParams();
+        //newItem.drawMenuParams();
+        //create_menu_params(newItem);
         touchpadLayer.addChild(newItem);
         //touchpadLayer.activate();
         break;
-      case "grid":
+      case "Grid":
         newItem = gridFactory();
         newItem.setupFromMouseEvent(mouseEvent);
         newItem.create();
-        newItem.createMenuParams();
+        //newItem.drawMenuParams();
+        //create_menu_params(newItem);
         gridLayer.addChild(newItem);
         //gridLayer.activate();
         break;
-      case "path":
+      case "Path":
         if (newShape) {
           newShape = false;
           newItem = pathFactory();
           newItem.setupFromMouseEvent(mouseEvent);
           newItem.create(mouseEvent);
-          newItem.createMenuParams();
+          //newItem.drawMenuParams();
+          //create_menu_params(newItem);
           pathLayer.addChild(newItem);
         } else {
           newItem.addPoint(mouseEvent);
           updateMenuParams(newItem);
           //console.log("NEW_POINT");
         }
+        break;
+      default:
+        console.log("UNKNOWN_ITEM: " + newItem.name);
         break;
     }
     //console.log("NEW_ITEM: " + newItem.name);

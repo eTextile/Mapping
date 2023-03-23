@@ -5,75 +5,66 @@
 */
 
 function showMenuParams(item) {
-	$("#summaryContent").html(item.name + " parameters");
-	$("#" + item.name + "_params" ).collapse("show");
-	//$("#set_button_params").collapse("show");
+	$("#summaryContent").html(item.name + "_" + item.parent.uid + " parameters");
+  $("#" + item.parent.uid + "_" + item.name + "_params").collapse("show");
 };
 
 function hideMenuParams(item) {
-	$("#summaryContent").html(item.name + " Null");
-	$("#" + item.name + "_params").collapse("hide");
-	//$("#set_button_params").collapse("hide");
+	//$("#summaryContent").html(item.name + " Null");
+  console.log("HIDE: " + item.parent.uid + "_" + item.name + "_params");
+	$("#" + item.parent.uid + "_" + item.name + "_params").collapse("hide");
 };
 
-function updateMenuParams(item) {
-	for (const param in item.data) {
-		$("#param_value-" + param).val(item.data[param]);
-	}
+function create_menu_params(item) {
+  // Iterate through the childrens contained within the item:
+  for (var index = 0; index < item.children.length; index++) {
+    let div_params = document.createElement("div");
+    div_params.setAttribute("id", item.uid + "_" + item.children[index].name + "_params");
+    
+    console.log("CREATE: " + item.uid + "_" + item.children[index].name + "_params");
+
+    div_params.className = "collapse";
+    for (const param in item.children[index].data) {
+      switch (item.children[index].data[param]) {
+        case "form-control":
+          div_params.appendChild(param_form_control(item.uid, param));
+          break;
+        case "form-select":
+          div_params.appendChild(param_form_select(item.uid, param));
+          break;
+        case "form-toggle":
+          div_params.appendChild(param_toggle(item.uid, param));
+          break;
+        default:
+          break;
+      }
+    }
+    let div_menu_params = document.getElementById("e256_params");
+    div_menu_params.appendChild(div_params);
+  }
+  $("#set_button_params").collapse("show");
 };
-
-function create_params(item, params_style) {
-
-	let div_menu_params = document.getElementById("e256_params");
-	let div_params = document.createElement("div");
-	div_params.setAttribute("id", item.name + "_params");
-	div_params.className = "collapse";
-	for (const param in params_style) {
-		switch (params_style[param]) {
-			case "form-control":
-				div_params.appendChild(param_form_control(param));
-				break;
-			case "form-select":
-        div_params.appendChild(param_form_select(param));
-				break;
-			case "form-toggle":
-        div_params.appendChild(param_toggle(param));
-				break;
-			default:
-				break;
-		}
-	}
-	div_menu_params.appendChild(div_params);
-};
-
 
 /*
 <div id="div_groupe" class="input-group">
-  <span id="param_atribute_param" class="input-group-text"></span>
-	<input id="param_value-param" type="text" class="form-control" aria-label="Small" aria-describedby="param_atribute_param">
+  <span id="uid_atribute_param" class="input-group-text"></span>
+	<input id="param_value_param" type="text" class="form-control" aria-label="Small" aria-describedby="uid_atribute_param">
 </div>
 */
 
-function param_form_control(param) {
-
+function param_form_control(uid, param) {
 	var div_groupe = document.createElement("div");
 	div_groupe.className = "input-group";
-
 	let span_param = document.createElement("span");
-  //span_param.setAttribute("id", "param_atribute_" + item.name + "-" + param.name);
-  span_param.setAttribute("id", "param_atribute_" + param);
+  span_param.setAttribute("id", uid + "_" + param + "_atribute");
 	span_param.className = "input-group-text";
   span_param.textContent = param;
 	div_groupe.appendChild(span_param);
-
 	let inputValue = document.createElement("input");
-  //inputValue.setAttribute("id", "param_value-" + item.name + "-" + param.name);
-  inputValue.setAttribute("id", "param_value-" + param);
+  inputValue.setAttribute("id", uid + "_" + param);
 	inputValue.className = "form-control";
 	inputValue.setAttribute("aria-label", "Small");
-  //inputValue.setAttribute("aria-describedby", "param_atribute_" + item.name + "-" + param.name);
-  inputValue.setAttribute("aria-describedby", "param_atribute_" + param);
-
+  inputValue.setAttribute("aria-describedby", uid + "_" + param + "_atribute");
 	div_groupe.appendChild(inputValue);
 	return div_groupe;
 };
@@ -94,43 +85,40 @@ function param_form_control(param) {
 </div>
 */
 
-function param_form_select(param){
+function param_form_select(uid, param){
 
 	var div_groupe = document.createElement("div");
 	div_groupe.className = "input-group";
 
 	let span_param = document.createElement("span");
-	span_param.setAttribute("id", "param_atribute_" + param);
 	span_param.className = "input-group-text";
   span_param.textContent = param;
 	div_groupe.appendChild(span_param);
-
+ 
   var dropdown = document.createElement("div");
-  dropdown.className = "dropdown ";
+  dropdown.className = "dropdown";
 
 	var dropdown_button = document.createElement("button");
 	dropdown_button.setAttribute("type", "button");
-  //dropdown_button.setAttribute("id", "dropdown_button_" + item.name + "-" + param.name);
-  dropdown_button.setAttribute("id", "dropdown_button_" + param);
+  dropdown_button.setAttribute("id", uid + "_" + param);
 	dropdown_button.setAttribute("data-bs-toggle", "dropdown"); // Used to toggle the dropdown
-	dropdown_button.className = "btn btn-outline-primary btn-block dropdown-toggle";
-  dropdown_button.setAttribute("aria-haspopup", "true");
+	dropdown_button.className = "btn btn-outline-primary dropdown-toggle";
+  dropdown_button.setAttribute("aria-haspopup", "false");
 	dropdown_button.setAttribute("aria-expanded", "false");
   dropdown_button.textContent = " SELECT ";
   dropdown.appendChild(dropdown_button);
 
-  var dropdown_menu = document.createElement("ul");
-  dropdown_menu.className = "dropdown-menu";
-  //dropdown_menu.setAttribute("id", "dropdown_button_" + item.name + "-" + param.name);
-  dropdown_menu.setAttribute("aria-labelledby", "dropdown_button_" + param);
+  var dropdown_menu = document.createElement("div");
+  dropdown_menu.className = "dropdown-menu";  
   for (let i = 0; i < 10; i++) {
-    var dropdown_list_item = document.createElement("li");
     var dropdown_item = document.createElement("a");
     dropdown_item.className = "dropdown-item";
-    //dropdown_item.setAttribute("href", "#");
-    dropdown_item.textContent = "INDEX-" + i;
-    dropdown_list_item.appendChild(dropdown_item);
-	  dropdown_menu.appendChild(dropdown_list_item);
+    dropdown_item.addEventListener('click', (event) =>{
+			dropdown_button.textContent = event.target.innerText;
+      //console.log(selected_item.name);
+		});
+    dropdown_item.textContent = i;
+	  dropdown_menu.appendChild(dropdown_item);
   }
   dropdown.appendChild(dropdown_menu);
   div_groupe.appendChild(dropdown);
@@ -138,14 +126,30 @@ function param_form_select(param){
 	return div_groupe;
 };
 
-function param_toggle(param){
+function param_toggle(uid, param){
   var div_groupe = document.createElement("div");
-	div_groupe.className = "input-group";
-  console.log("NOT_IMPLEMENTED");
+	div_groupe.className = "input-group d-flex";
+
+	let span_param = document.createElement("span");
+	span_param.className = "input-group-text";
+  span_param.textContent = param;
+	div_groupe.appendChild(span_param);
+
+	let button = document.createElement("button");
+	button.setAttribute("id", uid + "_" + param);
+  button.setAttribute("type", "button");
+	button.className = "btn btn-outline-primary flex-fill";
+  button.textContent = "OFF";
+  button.addEventListener('click', (event) =>{
+    if(button.textContent === "ON"){ 
+      button.textContent = "OFF";
+    } else {
+      button.textContent = "ON";
+    }
+  });
+	div_groupe.appendChild(button);
   return div_groupe;
 };
-
-
 
 
 function moveItem(item, mouseEvent) {

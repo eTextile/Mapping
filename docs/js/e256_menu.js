@@ -131,11 +131,11 @@ $("#exportConfig").click(function () {
 $("#btnSet").click(function () {
   console.log("UPDATING_ITEM: " + selected_item.name);
   switch (selected_item.name) {
-    case "grid":
+    case "Grid":
       selected_item.updateFromParams();
       break;
-    case "key":
-      selected_item.parent.updateFromParams();
+    case "Key":
+      selected_item.parent.parent.updateFromParams();
       break;
     default:
       break;
