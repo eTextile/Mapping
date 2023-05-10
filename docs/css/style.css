@@ -1,7 +1,7 @@
 body {
   height: inherit;
   width: inherit;
-  background-color: rgb(223, 222, 223);
+  background-image: linear-gradient(90deg, #020024 0%, #090979 35%, #00d4ff 100%);
 }
 
 .collapsing {

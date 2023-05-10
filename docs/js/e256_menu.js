@@ -70,8 +70,8 @@ $(".e256_setMode").click(function (event) {
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#summaryContent").html("Evaluate what you have made");
       //$(".param").collapse("hide");
-      //selected_item.free();
-      //last_selected_item = null; 
+      //global_selected_item.free();
+      //last_global_selected_item = null; 
       break;
   }
   if (MIDI_device_connected) {
@@ -129,15 +129,7 @@ $("#exportConfig").click(function () {
 
 // Update item parameters using the txt input fields
 $("#btnSet").click(function () {
-  console.log("UPDATING_ITEM: " + selected_item.name);
-  switch (selected_item.name) {
-    case "Grid":
-      selected_item.updateFromParams();
-      break;
-    case "Key":
-      selected_item.parent.parent.updateFromParams();
-      break;
-    default:
-      break;
-  }
+  console.log("UPDATING_ITEM: " + current_controleur.name);
+  item_update_from_params(current_controleur);
+  //item_update_from_params(current_item);
 });

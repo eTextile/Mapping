@@ -23,8 +23,9 @@ Starting from the textile design paterns placed on top of the matrix sensor, thi
 ## Technicals specifications
 
 The eTextile-Synthesizer web-app is using following frameworks:
-- MIDI communication: https://www.w3.org/TR/webmidi/
-- 3D visualisation: https://threejs.org/
+- CSS Framework: https://getbootstrap.com/
 - 2D graphic interface: http://paperjs.org/
+- 3D visualisation: https://threejs.org/
+- MIDI communication: https://www.w3.org/TR/webmidi/
 
 ## TODO
