@@ -169,7 +169,7 @@ function onMIDIMessage(midiMsg) {
           console.log(string);
           var e256_jsonFile = string.slice(1, -1);
           config = JSON.parse(e256_jsonFile);
-          drawFromParams(config.mappings);
+          //draw_controler_from_config(config);
           e256_current_mode = EDIT_MODE;
           break;
         case MATRIX_MODE_RAW:

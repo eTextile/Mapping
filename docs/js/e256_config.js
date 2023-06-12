@@ -6,7 +6,7 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.15";
+const VERSION = "1.0.16";
 
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
@@ -153,20 +153,41 @@ const ERROR_CODES_2 = [
 const H_SLIDER = 0;
 const V_SLIDER = 1;
 
+// This hill be removed!
 const SELECT_ON = 0;
 const SELECT_OFF = 1;
 const MOUSE_OVER = 2;
 const MOUSE_LEAVE = 3;
 
-const TRIGGER_PARAMS = 5;
-const SWITCH_PARAMS = 5;
-const SLIDER_PARAMS = 5;
-const KNOB_PARAMS = 5;
-const TOUCHPAD_PARAMS = 5;
-const GRID_PARAMS = 6;
-const PATH_PARAMS = 5;
+// VERBOSITY MODES CONSTANTS
+const E256_LAYERS = {
+  "TRIGGER": 0,
+  "SWITCH": 1,
+  "SLIDER": 2,
+  "KNOB": 3,
+  "TOUCHPAD": 4,
+  "GRID": 5,
+  "PATH": 6
+};
+
+const KEY_TRIGGER = "TRIGGER";
+const KEY_TOGGLE = "TOGGLE";
 
 const KEY_MODES = [
-  "trigger",
-  "toggle"
+  KEY_TRIGGER,
+  KEY_TOGGLE,
 ];
+
+// TESTING!
+const MIDI_CHANNELS = [1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+const MIDI_NOTES = [1,2,3,4,5,6,7,8,9];
+const MIDI_VELOCITYS = [1,2,3,4];
+
+/*
+var midi_note = new Item(chan=1, 64, 127);
+*/
+const midi_note = {
+  chan: null,
+  note: null,
+  velo: null
+}

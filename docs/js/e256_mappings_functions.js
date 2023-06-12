@@ -23,121 +23,113 @@ function item_create_menu_params(item) {
 
   let div_card = document.createElement("div");            // div item params
   div_card.setAttribute("id", item.name + "_" + item.id);  // div UID use to delate the div
-  div_card.className = "collapse";                         // Used to show/hide
+  div_card.className = "collapse";                         // Used to show/hide item params
 
   let card_header = document.createElement("div");         // div item name
   card_header.className = "card-header display-6";
-
-  card_header.append(item.name + " parameters");
+  card_header.append(item.name + " params");
   div_card.appendChild(card_header);
 
-  // First level
-  for (const gui_item of item.children) {
-    for (const param in gui_item.data.form_style) {
-      let gui_item_params = document.createElement("div");
-      switch (gui_item.data.form_style[param]) {
+  for (const part of item.children) {
+    let part_params = document.createElement("div");
+    part_params.setAttribute("id", part.name + "_" + item.id);  // div UID use to delate the div
+    part_params.className = "collapse";
+    //console.log("MENU_ID: " + "id", part.name + "_" + item.id); // MENU PROB
+    
+    // First level
+    for (const param in part.data.form_style) {
+      switch (part.data.form_style[param]) {
         case "form-control":
-          gui_item_params.appendChild(param_form_control(item.id, param));
+          part_params.appendChild(param_form_control(part, param));
           break;
         case "form-select":
-          gui_item_params.appendChild(param_form_select(item.id, param));
+          part_params.appendChild(param_form_select(part, param));
           break;
         case "form-toggle":
-          gui_item_params.appendChild(param_toggle(item.id, param));
+          part_params.appendChild(param_toggle(part, param));
           break;
         default:
           // No menu params!
           break;
       }
-      div_card.appendChild(gui_item_params);
+      div_card.appendChild(part_params);
     }
 
     // Second level
-    //let card_body = document.createElement("div");
-
-    for (const sub_part in gui_item.children) {
-      let sub_part_param = document.createElement("div");
-      sub_part_param.setAttribute("id", gui_item.children[sub_part].name + "_" + gui_item.children[sub_part].id); // Used to show/hide item params
-      sub_part_param.className = "collapse";
+    for (const sub_part in part.children) {
+      let sub_part_params = document.createElement("div");
+      sub_part_params.setAttribute("id", part.children[sub_part].name + "_" + part.children[sub_part].id); // Used to show/hide sub item params
+      sub_part_params.className = "collapse";
       
       let card_header = document.createElement("div");
       card_header.className = "card-header display-6";
-      card_header.append(gui_item.children[sub_part].name + " params");
-      sub_part_param.appendChild(card_header);
+      card_header.append(part.children[sub_part].name + " params");
+      sub_part_params.appendChild(card_header);
 
-      for (const param in gui_item.children[sub_part].data.form_style) {
-        switch (gui_item.children[sub_part].data.form_style[param]) {
+      for (const param in part.children[sub_part].data.form_style) {
+        switch (part.children[sub_part].data.form_style[param]) {
           case "form-control":
-            sub_part_param.appendChild(param_form_control(gui_item.children[sub_part].id, param));
+            sub_part_params.appendChild(param_form_control(part.children[sub_part], param));
             break;
           case "form-select":
-            sub_part_param.appendChild(param_form_select(gui_item.children[sub_part].id, param));
+            sub_part_params.appendChild(param_form_select(part.children[sub_part], param));
             break;
           case "form-toggle":
-            sub_part_param.appendChild(param_toggle(gui_item.children[sub_part].id, param));
+            sub_part_params.appendChild(param_toggle(part.children[sub_part], param));
             break;
           default:
             // No menu params!
             break;
         }
-        //card_body.appendChild(sub_part_param);
-        div_card.appendChild(sub_part_param);
+        div_card.appendChild(sub_part_params);
       }
-      //div_card.appendChild(card_body);
     }
-
   }
   menu_params.appendChild(div_card);
   $("#set_button_params").collapse("show");
 };
 
 function update_menu_params(item) {
-  for (const part of item.children) {
-    for (const param in part.data.form_style) {
-      let div_param_value = "#" + item.id + "_" + param + "_value";
-      switch (part.data.form_style[param]) {
-        case "form-control":
-          $(div_param_value).val(Object.values(part.data[param]));
-          break;
-        case "form-select":
-          $(div_param_value).text(part.data[param]);
-          break;
-        case "form-toggle":
-          $(div_param_value).text(part.data[param]);
-          break;
-        default:
-          break;
+  if (item.hasChildren()) {
+    for (const part of item.children) {
+      for (const param in part.data.form_style) {
+        let div_param_value = "#" + param + "_value_" + item.id;
+        switch (part.data.form_style[param]) {
+          case "form-control":
+            if(typeof part.data[param] === "object"){
+              //console.log("SET: " + div_param_value); // PROB
+              $(div_param_value).val(JSON.stringify(part.data[param]));
+            } else {
+              $(div_param_value).val(part.data[param]);
+            }
+            break;
+          case "form-select":
+            $(div_param_value).text(part.data[param]);
+            break;
+          case "form-toggle":
+            $(div_param_value).text(part.data[param]);
+            break;
+          default:
+            break;
+        }
       }
     }
   }
 };
 
-// Function: update grid GUI uing form params
-// Called using the "SET PARAMS" button #btnSet
-function item_update_from_params(item) {
-  for (const part of item.children) {
-    for (const param in part.data.form_style) {
-      let div_param_value = "#" + item.id + "_" + param + "_value";
-      switch (part.data.form_style[param]) {
-        case "form-control":
-          part.data[param] = $(div_param_value).val().split(",");
-          break;
-        case "form-select":
-          console.log("param: " + param);
-          console.log("val: " + item.data[param]);
-          part.data[param] = $(div_param_value).text();
-          break;
-        case "form-toggle":
-          part.data[param] = $(div_param_value).text();
-          break;
-        default:
-          break;
-      }
-    }
-  }
+// Function: update grid GUI using form params
+// Called by the "SET PARAMS" button #btnSet
+function item_create_from_params(item) {
+  item.save_params();
+  item_remove_menu_params(item);
+  item.removeChildren();
+  item.create();
+  item_create_menu_params(item);
+  update_menu_params(item);
+  item_menu_params(item, "show");
 };
 
-function item_delate_menu_params(item) {
+function item_remove_menu_params(item) {
   let div_params = document.getElementById("e256_params");
   let item_params = document.getElementById(item.name + "_" + item.id);
   div_params.removeChild(item_params);
@@ -148,14 +140,18 @@ function item_menu_params(item, state) {
   if (item){
     switch(state){
       case "show":
-        $("#summaryContent").html(item.name + " params");
+        //$("#summaryContent").html(item.name + " params");
         $("#" + item.name + "_" + item.id).collapse("show");
-        console.log("Show: #" + item.name + "_" + item.id);
+        for (const part of item.children) {
+          $("#" + part.name + "_" + item.id).collapse("show");
+        }
         break;
       case "hide":
-        $("#summaryContent").html(" ");
+        //$("#summaryContent").html(" ");
         $("#" + item.name + "_" + item.id).collapse("hide");
-        console.log("Hide: #" + item.name + "_" + item.id);
+        for (const part of item.children) {
+          $("#" + part.name + "_" + item.id).collapse("hide");
+        }
         break;
     }
   }
@@ -168,65 +164,39 @@ function item_menu_params(item, state) {
 </div>
 */
 
-function param_form_control(uid, param) {
-  var div_groupe = document.createElement("div");
+function param_form_control(item, param) {
+  let div_groupe = document.createElement("div");
   div_groupe.className = "input-group";
   let span_param = document.createElement("span");
-  span_param.setAttribute("id", uid + "_" + param + "_atribute");
+  span_param.setAttribute("id", param + "_atribute_" + item.parent.id);
   span_param.className = "input-group-text";
   span_param.textContent = param;
   div_groupe.appendChild(span_param);
   let inputValue = document.createElement("input");
-  inputValue.setAttribute("id", uid + "_" + param + "_value");
+  inputValue.setAttribute("id", param + "_value_" + item.parent.id);
   inputValue.className = "form-control";
   inputValue.setAttribute("aria-label", "Small");
-  inputValue.setAttribute("aria-describedby", uid + "_" + param + "_atribute");
+  inputValue.setAttribute("aria-describedby", param + "_atribute_" + item.parent.id);
+
+  inputValue.addEventListener("change", function (event) {
+    item.data[param] = JSON.parse(inputValue.value);
+  });
+
   div_groupe.appendChild(inputValue);
   return div_groupe;
 };
 
 /*
-<div id="div_groupe" class="input-group">
-  <span id="uid_param_atribute" class="input-group-text"></span>
-  <input id="param_param_value" type="text" class="form-control" aria-label="Small" aria-describedby="uid_param_atribute">
-</div>
+<select class="form-select form-select-sm" aria-label=".form-select-sm">
+  <option selected>Open</option>
+  <option value="1">One</option>
+  <option value="2">Two</option>
+  <option value="3">Three</option>
+</select>
 */
-// TODO!
-function param_form_control_double(uid, param) {
-  var div_groupe = document.createElement("div");
-  div_groupe.className = "input-group";
-  let span_param = document.createElement("span");
-  span_param.setAttribute("id", uid + "_" + param + "_atribute");
-  span_param.className = "input-group-text";
-  span_param.textContent = param;
-  div_groupe.appendChild(span_param);
-  let input_value = document.createElement("input");
-  input_value.setAttribute("id", uid + "_" + param + "_value");
-  input_value.className = "form-control";
-  input_value.setAttribute("aria-label", "Small");
-  input_value.setAttribute("aria-describedby", uid + "_" + param + "_atribute");
-  div_groupe.appendChild(inputValue);
-  return div_groupe;
-};
-/*
-<div id="div_groupe" class="input-group">
-  <span id="uid_param_value" class="input-group-text"></span>
-    <div class="dropdown">
-      <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        SELECT
-      </button>
-      <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="#">INDEX-0</a></li>
-        <li><a class="dropdown-item" href="#">INDEX-1</a></li>
-        <li><a class="dropdown-item" href="#">INDEX-2</a></li>
-      </ul>
-  </div>
-</div>
-*/
+function param_form_select(item, param) {
 
-function param_form_select(uid, param) {
-
-  var div_groupe = document.createElement("div");
+  let div_groupe = document.createElement("div");
   div_groupe.className = "input-group";
 
   let span_param = document.createElement("span");
@@ -234,37 +204,35 @@ function param_form_select(uid, param) {
   span_param.textContent = param;
   div_groupe.appendChild(span_param);
 
-  var dropdown = document.createElement("div");
-  dropdown.className = "dropdown";
+  let select = document.createElement("select");
+  select.className = "form-select form-select-sm";
+  select.setAttribute("aria-label", ".form-select-sm select"); //select
+  select.setAttribute("id", param + "_value_" + item.id);
 
-  var dropdown_button = document.createElement("button");
-  dropdown_button.setAttribute("type", "button");
-  dropdown_button.setAttribute("id", uid + "_" + param + "_value");
-  dropdown_button.setAttribute("data-bs-toggle", "dropdown"); // Used to toggle the dropdown
-  dropdown_button.className = "btn btn-outline-primary dropdown-toggle";
-  dropdown_button.setAttribute("aria-haspopup", "false");
-  dropdown_button.setAttribute("aria-expanded", "false");
-  dropdown_button.textContent = "SELECT";
-  dropdown.appendChild(dropdown_button);
-
-  var dropdown_menu = document.createElement("div");
-  dropdown_menu.className = "dropdown-menu";
-  for (let i = 0; i < 10; i++) {
-    var dropdown_item = document.createElement("a");
-    dropdown_item.className = "dropdown-item";
-    dropdown_item.addEventListener('click', (event) => {
-      dropdown_button.textContent = event.target.innerText;
-    });
-    dropdown_item.textContent = i; // This will be a liste of modes!?
-    dropdown_menu.appendChild(dropdown_item);
+  // https://developer.mozilla.org/fr/docs/Web/API/HTMLOptionElement
+  let _index = 0;
+  for (const value in item.data.form_select_params[param]) {
+    let option = document.createElement("option");
+    option.value = _index;
+    if (item.data.form_select_params[param][value] === item.data[param]) {
+      option.defaultSelected = true;
+    }
+    option.textContent = item.data.form_select_params[param][value];
+    select.appendChild(option);
+    _index++;
   }
-  dropdown.appendChild(dropdown_menu);
-  div_groupe.appendChild(dropdown);
+  
+  select.addEventListener("change", function (event) {
+    item.data[param] = item.data.form_select_params[param][this.value];
+  });
+  
+  div_groupe.appendChild(select);
   return div_groupe;
 };
 
-function param_toggle(uid, param) {
-  var div_groupe = document.createElement("div");
+
+function param_toggle(item, param) {
+  let div_groupe = document.createElement("div");
   div_groupe.className = "input-group d-flex";
 
   let span_param = document.createElement("span");
@@ -273,35 +241,40 @@ function param_toggle(uid, param) {
   div_groupe.appendChild(span_param);
 
   let button = document.createElement("button");
-  button.setAttribute("id", uid + "_" + param + "_atribute");
+  button.setAttribute("id", param + "_value_" + item.id);
   button.setAttribute("type", "button");
   button.className = "btn btn-outline-primary flex-fill";
-  button.textContent = "OFF";
-  button.addEventListener('click', (event) => {
+  button.textContent = item.data[param];
+
+  button.addEventListener("click", () => {
     if (button.textContent === "ON") {
       button.textContent = "OFF";
     } else {
       button.textContent = "ON";
     }
+    item.data[param] = button.textContent;
   });
+
   div_groupe.appendChild(button);
   return div_groupe;
 };
 
+
+
+
 function moveItem(item, mouseEvent) {
+  //console.log("MOVE: " + item.name);
   item.translate(mouseEvent.delta);
-  item.data.from.x = Math.round(item.bounds.left);
-  item.data.from.y = Math.round(item.bounds.top);
-  item.data.to.x = Math.round(item.bounds.right);
-  item.data.to.y = Math.round(item.bounds.bottom);
+  item.firstChild.from = Math.round(item.bounds.topLeft);
+  item.firstChild.to = Math.round(item.bounds.bottomRight);
 };
 
 function scale2d(item, mouseEvent) {
-  var x = mouseEvent.point.x - item.data.x;
-  var y = mouseEvent.point.y - item.data.y;
-  var radius = Math.sqrt((x * x) + (y * y));
-  var newRadius = radius - (item.children[0].strokeWidth / 2);
-  var oldRadius = (item.data.to.x - item.data.from.x) / 2;
+  let x = mouseEvent.point.x - item.data.x;
+  let y = mouseEvent.point.y - item.data.y;
+  let radius = Math.sqrt((x * paramx) + (y * y));
+  let newRadius = radius - (item.children[0].strokeWidth / 2);
+  let oldRadius = (item.data.to.x - item.data.from.x) / 2;
   item.scale(newRadius / oldRadius);
   item.data.size = Math.round(item.children[0].bounds.width);
 };
