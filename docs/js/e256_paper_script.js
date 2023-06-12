@@ -109,7 +109,7 @@ function paperInit() {
       if (keyEvent.modifiers.shift) {
         switch (keyEvent.key) {
           case "backspace":
-            item_delate_menu_params(current_controleur);
+            item_remove_menu_params(current_controleur);
             current_controleur.remove();
             current_controleur = previous_controleur;
             previous_controleur = null; // TODO: add linked list...
