@@ -66,8 +66,8 @@ function gridFactory() {
     },
 
     setup_from_config: function (params) {
-      this.data.from = new paper.Point(params.from);
-      this.data.to = new paper.Point(params.to);
+      this.data.from = new paper.Point(params.from); // ["Point",13,22]
+      this.data.to = new paper.Point(params.to); // ["Point",141,144]
       this.data.cols = params.cols;
       this.data.rows = params.rows;
       this.data.mode = params.mode;
@@ -81,7 +81,7 @@ function gridFactory() {
       this.data.to = this.children["grid-frame"].data.to;
       this.data.cols = this.children["grid-frame"].data.cols;
       this.data.rows = this.children["grid-frame"].data.rows;
-      this.data.mode = this.children["grid-frame"].data.mode; // FIXME!!!!!!!!!!!!!!!!!!
+      this.data.mode = this.children["grid-frame"].data.mode;
       this.data.velocity = this.children["grid-frame"].data.velocity;
       this.data.aftertouch = this.children["grid-frame"].data.aftertouch;
       // TODO: save keys PARAMS!
