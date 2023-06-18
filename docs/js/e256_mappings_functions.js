@@ -4,18 +4,6 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-/*
-<div class="card-body"> // div_part_params
-  <div class="card text-bg-warning mb-3" style="max-width: 18rem;">
-    <div class="card-header">Header</div>
-    <div class="card-body">
-      <h5 class="card-title">Warning card title</h5>
-      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-    </div>
-  </div>
-</div>
-*/
-
 function item_create_menu_params(item) {
 
   let menu_params = document.getElementById("e256_params");
@@ -99,6 +87,7 @@ function update_menu_params(item) {
       switch (part.data.form_style[param]) {
         case "form-control":
           if (typeof part.data[param] === "object") {
+            //$(div_param_value).val(part.data[param]);
             $(div_param_value).val(JSON.stringify(part.data[param]));
           } else {
             $(div_param_value).val(part.data[param]);
@@ -189,7 +178,7 @@ function param_form_control(item, param) {
   span_param.className = "input-group-text";
   span_param.textContent = param;
   div_groupe.appendChild(span_param);
-  var inputValue = document.createElement("input");
+  let inputValue = document.createElement("input");
   inputValue.setAttribute("id", param + "_value_" + item.parent.id);
   inputValue.className = "form-control";
   inputValue.setAttribute("aria-label", "Small");
