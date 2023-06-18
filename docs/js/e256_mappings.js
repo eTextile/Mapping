@@ -269,7 +269,7 @@ function gridFactory() {
         }
         else if (tmp_select.item.name === "frame-rect" || tmp_select.item.name === "key-rect") {
           current_item = tmp_select.item.parent;
-          current_part = tmp_select.item;
+          current_part = tmp_select;
         }
         else {
           //console.log("NOT_USED : " + tmp_select.item.name);
@@ -310,12 +310,11 @@ function gridFactory() {
     onMouseDrag: function (mouseEvent) {
       switch (e256_current_mode) {
         case EDIT_MODE:
-          let newPos = new paper.Point();
           if (current_part.type === "fill") {
-            console.log("FILL");
-            //moveItem(this, mouseEvent);
+            moveItem(this, mouseEvent);
           }
           else if (current_part.type === "bounds") {
+            let newPos = new paper.Point();
             if (current_item.name === "grid-frame") {
               switch (current_part.name) {
                 case "top-left":
@@ -666,6 +665,8 @@ function touchpadFactory() {
 
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
 
+      console.log(tmp_select.item.name);
+
       if (tmp_select) {
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;
@@ -677,13 +678,13 @@ function touchpadFactory() {
           current_item = tmp_select.item.firstChild;
           current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "pad-frame" || tmp_select.item.name === "pad-touch"){
+        else if (tmp_select.item.name === "pad-frame" || tmp_select.item.name === "pad-touch") {
           current_item = tmp_select.item;
           current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "frame-rect" || tmp_select.item.name === "touch-circle"){
+        else if (tmp_select.item.name === "frame-rect" || tmp_select.item.name === "touch-circle") {
           current_item = tmp_select.item.parent;
-          current_part = tmp_select.item;
+          current_part = tmp_select;
         }
         else {
           //console.log("NOT_USED : " + tmp_select.item.name);
@@ -692,7 +693,7 @@ function touchpadFactory() {
         //onsole.log("CTL_PEV: " + previous_controleur.name);
         //console.log("ITEM_CUR: " + current_item.name);
         //console.log("ITEM_PEV: " + previous_item.name);
-        //console.log("PART_CUR: " + current_part.name);
+        //console.log("PART_CUR: " + current_part.type);
         //console.log("PART_PEV: " + previous_part.name);
         
         switch (e256_current_mode) {
@@ -724,13 +725,12 @@ function touchpadFactory() {
     onMouseDrag: function (mouseEvent) {
       switch (e256_current_mode) {
         case EDIT_MODE:
-          let newSize = new paper.Point();
-          let newPos = new paper.Point();
           if (current_part.type === "fill") {
-            console.log("FILL");
-            //moveItem(this, mouseEvent);
+            moveItem(this, mouseEvent);
           }
           else if (current_part.type === "bounds") {
+            let newSize = new paper.Point();
+            let newPos = new paper.Point();
             if (current_item.name === "pad-frame") {
               switch (current_part.name) {
                 case "top-left":

@@ -94,7 +94,7 @@ function update_menu_params(item) {
           }
           break;
         case "form-select":
-          console.log("UPDATE_1ST: " + div_param_value); // PROB!!!
+          //console.log("UPDATE_1ST: " + div_param_value); // PROB!!!
           $(div_param_value).text(part.data[param]);
           break;
         case "form-toggle":
@@ -268,10 +268,9 @@ function param_toggle(item, param) {
 };
 
 function moveItem(item, mouseEvent) {
-  //console.log("MOVE: " + item.name);
   item.translate(mouseEvent.delta);
-  item.firstChild.from = Math.round(item.bounds.topLeft);
-  item.firstChild.to = Math.round(item.bounds.bottomRight);
+  item.firstChild.data.from = new paper.Point(Math.round(item.bounds.left), Math.round(item.bounds.top));
+  item.firstChild.data.to = new paper.Point(Math.round(item.bounds.right), Math.round(item.bounds.bottom));
 };
 
 function scale2d(item, mouseEvent) {
