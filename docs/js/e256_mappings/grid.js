@@ -41,12 +41,12 @@ function gridFactory() {
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.from = new paper.Point(
-        Math.round(mouseEvent.point.x - (DEFAULT_GRID_WIDTH / 2)),
-        Math.round(mouseEvent.point.y - (DEFAULT_GRID_HEIGHT / 2))
+        mouseEvent.point.x - (DEFAULT_GRID_WIDTH / 2),
+        mouseEvent.point.y - (DEFAULT_GRID_HEIGHT / 2)
         );
       this.data.to = new paper.Point(
-        Math.round(mouseEvent.point.x + (DEFAULT_GRID_WIDTH / 2)),
-        Math.round(mouseEvent.point.y + (DEFAULT_GRID_HEIGHT / 2))
+        mouseEvent.point.x + (DEFAULT_GRID_WIDTH / 2),
+        mouseEvent.point.y + (DEFAULT_GRID_HEIGHT / 2)
         );
       this.data.cols = DEFAULT_GRID_COLS;
       this.data.rows = DEFAULT_GRID_ROWS;
@@ -176,18 +176,17 @@ function gridFactory() {
         strokeWidth: 15
       };
       _grid_group.addChild(_grid_frame);
-
       this.addChild(_grid_group);
 
-      var _keys = new paper.Group({
-        name: "grid-keys"
+      var _keys_group = new paper.Group({
+        name: "keys-group"
       });
       for (let index_y = 0; index_y < this.data.rows; index_y++) {
         for (let index_x = 0; index_x < this.data.cols; index_x++) {
-          _keys.addChild(this.new_key(index_y, index_x, key_width, key_height));
+          _keys_group.addChild(this.new_key(index_y, index_x, key_width, key_height));
         }
       }
-      this.addChild(_keys);
+      this.addChild(_keys_group);
       this.bringToFront();
     },
 
@@ -325,7 +324,7 @@ function gridFactory() {
                   frame_height = Math.max(GRID_MIN_SIZE, this.bounds.bottom - mouseEvent.point.y);
                   key_height = frame_height / this.data.rows;
                   half_key_height = key_height / 2;
-                  for (const key of this.children["grid-keys"].children) {
+                  for (const key of this.children["keys-group"].children) {
                     newPos.x = this.children["grid-group"].children["grid-frame"].bounds.right - (this.data.cols - key.pos.x) * key_width + half_key_width;
                     newPos.y = this.children["grid-group"].children["grid-frame"].bounds.bottom - (this.data.rows - key.pos.y) * key_height + half_key_height;
                     key.children["key-frame"].position = newPos;
@@ -333,7 +332,7 @@ function gridFactory() {
                     key.children["key-frame"].bounds.width = key_width;
                     key.children["key-frame"].bounds.height = key_height;
                   }
-                  this.children["grid-group"].data.from = new paper.Point(Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y));
+                  this.children["grid-group"].data.from = new paper.Point(mouseEvent.point.x, mouseEvent.point.y);
                   break;
 
                 case "top-right":
@@ -346,7 +345,7 @@ function gridFactory() {
                   frame_height = Math.max(GRID_MIN_SIZE, this.bounds.bottom - mouseEvent.point.y);
                   key_height = frame_height / this.data.rows;
                   half_key_height = key_height / 2;this.children["grid-group"].children["grid-frame"].segments[2].point.y = mouseEvent.point.y;
-                  for (const key of this.children["grid-keys"].children) {
+                  for (const key of this.children["keys-group"].children) {
                     newPos.x = this.children["grid-group"].children["grid-frame"].bounds.left + key.pos.x * key_width + half_key_width;
                     newPos.y = this.children["grid-group"].children["grid-frame"].bounds.bottom - (this.data.rows - key.pos.y) * key_height + half_key_height;
                     key.children["key-frame"].position = newPos;
@@ -354,8 +353,8 @@ function gridFactory() {
                     key.children["key-frame"].bounds.width = key_width;
                     key.children["key-frame"].bounds.height = key_height;
                   }
-                  this.children["grid-group"].data.from.y = Math.round(mouseEvent.point.y);
-                  this.children["grid-group"].data.to.x = Math.round(mouseEvent.point.x);
+                  this.children["grid-group"].data.from.y = mouseEvent.point.y;
+                  this.children["grid-group"].data.to.x = mouseEvent.point.x;
                   break;
 
                 case "bottom-right":
@@ -368,7 +367,7 @@ function gridFactory() {
                   frame_height = Math.max(GRID_MIN_SIZE, mouseEvent.point.y - this.bounds.top);
                   key_height = frame_height / this.data.rows;
                   half_key_height = key_height / 2;
-                  for (const key of this.children["grid-keys"].children) {
+                  for (const key of this.children["keys-group"].children) {
                     newPos.x = this.children["grid-group"].children["grid-frame"].bounds.left + key.pos.x * key_width + half_key_width;
                     newPos.y = this.children["grid-group"].children["grid-frame"].bounds.top + key.pos.y * key_height + half_key_height;
                     key.children["key-frame"].position = newPos;
@@ -376,7 +375,7 @@ function gridFactory() {
                     key.children["key-frame"].bounds.width = key_width;
                     key.children["key-frame"].bounds.height = key_height;
                   }
-                  this.children["grid-group"].data.to = new paper.Point(Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y));
+                  this.children["grid-group"].data.to = new paper.Point(mouseEvent.point.x, mouseEvent.point.y);
                   break;
 
                 case "bottom-left":
@@ -389,7 +388,7 @@ function gridFactory() {
                   frame_height = Math.max(GRID_MIN_SIZE, mouseEvent.point.y - this.bounds.top);
                   key_height = frame_height / this.data.rows;
                   half_key_height = key_height / 2;
-                  for (const key of this.children["grid-keys"].children) {
+                  for (const key of this.children["keys-group"].children) {
                     newPos.x = this.children["grid-group"].children["grid-frame"].bounds.right - (this.data.cols - key.pos.x) * key_width + half_key_width;
                     newPos.y = this.children["grid-group"].children["grid-frame"].bounds.top + key.pos.y * key_height + half_key_height;
                     key.children["key-frame"].position = newPos;
@@ -397,8 +396,8 @@ function gridFactory() {
                     key.children["key-frame"].bounds.width = key_width;
                     key.children["key-frame"].bounds.height = key_height;
                   }
-                  this.children["grid-group"].data.from.x = Math.round(mouseEvent.point.x);
-                  this.children["grid-group"].data.to.y = Math.round(mouseEvent.point.y);
+                  this.children["grid-group"].data.from.x = mouseEvent.point.x;
+                  this.children["grid-group"].data.to.y = mouseEvent.point.y;
                   break;
                 default:
                   console.log("PART_NOT_USE: " + current_part.name);
