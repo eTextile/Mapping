@@ -4,28 +4,29 @@
   This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-/////////// TRIGGER Factory
-function triggerFactory() {
-  const DEFAULT_TRIGER_WIDTH = 45;
-  const DEFAULT_TRIGER_HEIGHT = 45;
-  const DEFAULT_TRIGER_RADIUS = 45;
-  const DEFAULT_TRIGER_MODE = KEY_TRIGGER;
-  const DEFAULT_TRIGER_SIZE_MIN = 30;
+/////////// SWITCH Factory
+function switchFactory() {
+  const DEFAULT_SWITCH_WIDTH = 45;
+  const DEFAULT_SWITCH_HEIGHT = 45;
+  const DEFAULT_SWITCH_MODE = KEY_TRIGGER;
+  const DEFAULT_SWITCH_VELOCITY = "OFF";
+  const DEFAULT_SWITCH_AFTERTOUCH = "ON";
+  const SWITCH_MIN_radius = 30;
 
-  var size = new paper.Point();
-  var center = new paper.Point();
-  let radius = new paper.Point();
+  let _center = null;
+  let _radius = null;
+  let current_part = null;
+  let highlight_item = null;
   let select = false;
 
-  let half_width = DEFAULT_TRIGER_WIDTH / 2;
-  let half_height = DEFAULT_TRIGER_WIDTH / 2;
-
-  var _trigger = new paper.Group({
-    name: "trigger",
+  var _switch = new paper.Group({
+    name: "SWITCH",
     data: {
-      from: [null, null],
-      to: [null, null],
+      from: null,
+      to: null,
       mode: null,
+      velocity: null,
+      aftertouch: null,
       chan: null,
       note: null,
       velo: null
@@ -33,40 +34,58 @@ function triggerFactory() {
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.from = new paper.Point(
-        Math.round(mouseEvent.point.x - DEFAULT_TRIGER_WIDTH / 2),
-        Math.round(mouseEvent.point.y - DEFAULT_TRIGER_HEIGHT / 2)
+        mouseEvent.point.x - (DEFAULT_SWITCH_WIDTH / 2),
+        mouseEvent.point.y - (DEFAULT_SWITCH_HEIGHT / 2)
       );
       this.data.to = new paper.Point(
-        Math.round(mouseEvent.point.x + DEFAULT_TRIGER_WIDTH / 2),
-        Math.round(mouseEvent.point.y + DEFAULT_TRIGER_HEIGHT / 2)
+        mouseEvent.point.x + (DEFAULT_SWITCH_WIDTH / 2),
+        mouseEvent.point.y + (DEFAULT_SWITCH_HEIGHT / 2)
       );
-      this.data.mode = DEFAULT_TRIGER_MODE;
+      this.data.mode = DEFAULT_SWITCH_MODE;
+      this.data.velocity = DEFAULT_SWITCH_VELOCITY;
+      this.data.aftertouch = DEFAULT_SWITCH_AFTERTOUCH;
+      this.data.chan = DEFAULT_SWITCH_MODE;
+      this.data.note = DEFAULT_SWITCH_MODE;
+      this.data.velo = DEFAULT_SWITCH_MODE;
     },
 
     setup_from_config: function (params) {
-      this.data.from = params.from;
-      this.data.to = params.to;
+      this.data.from = new paper.Point(params.from.x, params.from.y);
+      this.data.to = new paper.Point(params.to.x, params.to.y);
+      this.data.mode = params.mode;
+      this.data.velocity = params.velo;
+      this.data.aftertouch = params.after;
       this.data.chan = params.chan;
       this.data.note = params.note;
       this.data.velo = params.velo;
     },
 
     create: function () {
-      size.x = this.bounds.right - this.bounds.left;
-      size.y = this.bounds.bottom - this.bounds.top;
-      center.x = this.bounds.left + (size.x / 2);
-      center.y = this.bounds.top + (size.y / 2);
+      
+      _radius = new paper.Point(
+        (this.data.to.x - this.data.from.x) / 2,
+        (this.data.to.y - this.data.from.y) / 2
+      );
 
-      var _frame = new paper.Group({
-        name: "trigger-frame",
+      _center = new paper.Point(
+        this.data.from.x + _radius.x,
+        this.data.from.y + _radius.y
+      );
+
+      let _switch_group = new paper.Group({
+        name: "switch-group",
         data: {
           from: this.data.from,
           to: this.data.to,
           mode: this.data.mode,
+          velocity: this.data.velocity,
+          aftertouch: this.data.aftertouch,
           form_style: {
             from: "form-control",
             to: "form-control",
             mode: "form-select",
+            aftertouch: "form-toggle",
+            velocity: "form-toggle"
           },
           form_select_params: {
             mode: KEY_MODES,
@@ -74,30 +93,142 @@ function triggerFactory() {
         }
       });
 
-      var _square = new paper.Path.Rectangle({
-        name: "square",
+      let _switch_frame = new paper.Path.Rectangle({
+        name: "switch-frame",
         from: this.data.from,
-        to: this.data.to,
+        to: this.data.to
       });
-      _square.style = {
-        strokeWidth: 5,
-        dashArray: [10, 5],
+      _switch_frame.style = {
         strokeColor: "chartreuse",
+        strokeWidth: 3,
         fillColor: "skyblue"
       }
-      this.addChild(_square);
+      _switch_group.addChild(_switch_frame);
 
-      var _circle = new paper.Path.Circle({
-        name: "circle",
-        center: new paper.Point(circleCenterX, circleCenterY),
-        radius: size.x / 2.5
+      //let _switch_button = new paper.Path.Circle({
+      let _switch_button = new paper.Path.Ellipse({
+        name: "switch-button",
+        center: _center,
+        radius: _radius,
       });
-      _circle.style = {
-        fillColor: "yellow"
+      _switch_button.style = {
+        fillColor: "black"
       }
-      this.addChild(_circle);
+      _switch_group.addChild(_switch_button);
+
+      this.addChild(_switch_group);
     },
 
+    onMouseEnter: function (mouseEvent) {
+      var mouse_enter_options = {
+        stroke: true,
+        bounds: true,
+        fill: true,
+        tolerance: 8
+      }
+      tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
+      switch (e256_current_mode) {
+        case EDIT_MODE:
+          if (tmp_select) {
+            if (tmp_select.item.name === "SWITCH") {
+              highlight_item = tmp_select.item.firstChild;
+              //console.log("A");
+            }
+            else if (tmp_select.item.name === "switch-group") {
+              highlight_item = tmp_select.item.firstChild;
+              //console.log("B");
+            }
+            else if (tmp_select.item.name === "switch-frame") {
+              highlight_item = tmp_select.item;
+              //console.log("C");
+            }
+            else {
+              console.log("NOT_USED: " + tmp_select);
+              return;
+            }
+            highlight_item.selected = true;
+          }
+          break;
+        case PLAY_MODE:
+          console.log("PLAY_MODE: NOT IMPLEMENTED!");
+          break;
+        default:
+          break;
+      }
+    },
+
+    onMouseLeave: function () {
+      switch (e256_current_mode) {
+        case EDIT_MODE:
+          if (highlight_item) highlight_item.selected = false;
+          break;
+        case PLAY_MODE:
+          break;
+        default:
+          break;
+      }
+    },
+
+    onMouseDown: function (mouseEvent) {
+
+      //this.bringToFront();
+
+      var mouse_down_options = {
+        stroke: false,
+        bounds: true,
+        fill: true,
+        tolerance: 8
+      }
+      tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
+
+      if (tmp_select) {
+        previous_controleur = current_controleur; // DONE in paper_script.js
+        current_controleur = this;
+
+        previous_item = current_item;
+        previous_part = current_part;
+
+        if (tmp_select.item.name === "SWITCH") {
+          current_item = tmp_select.item.firstChild;
+          current_part = tmp_select;
+        }
+        else if (tmp_select.item.name === "switch-group") {
+          current_item = tmp_select.item;
+          current_part = tmp_select;
+        }
+        else if (tmp_select.item.name === "switch-frame") {
+          current_item = tmp_select.item.parent;
+          current_part = tmp_select;
+        }
+        else {
+          //console.log("NOT_USED : " + tmp_select.item.name);
+        }
+        //console.log("CTL_CUR: " + current_controleur.name);
+        //onsole.log("CTL_PEV: " + previous_controleur.name);
+        //console.log("ITEM_CUR: " + current_item.name);
+        //console.log("ITEM_PEV: " + previous_item.name);
+        //console.log("PART_CUR: " + current_part.name);
+        //console.log("PART_PEV: " + previous_part.name);
+        
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            if (current_item.name === "switch-group") {
+              //previous_item.firstChild.style.fillColor = "pink";
+              //current_item.firstChild.style.fillColor = "orange";
+            }
+            else {
+              //console.log("NOT_USED - CUR: " + current_item.name + "- PREV - " + previous_item.name );
+            }
+            //update_menu_params(this);
+            break;
+          case PLAY_MODE:
+            // TODO
+            break;
+        }
+      }
+    },
+
+  /*
     activate: function () {
       if (selectedPart.name === "circle") {
         this.children["circle"].fillColor = "lawngreen";
@@ -107,193 +238,89 @@ function triggerFactory() {
         setTimeout(this.triggerOff, 300, this);
       }
     },
-
-    onMouseEnter: function (mouseEvent) {
-      if (e256_current_mode === EDIT_MODE) {
-        if (!select) {
-          e256_select(this.children["square"], MOUSE_OVER);
-          show_item_menu_params(this);
-          console.log("EVENT_ID: " + mouseEvent.currentTarget.index);
-          console.log("EVENT_NAME: " + mouseEvent);
-        } else {
-          // NA
-        }
-      }
-    },
-
-    onMouseLeave: function () {
-      if (e256_current_mode === EDIT_MODE) {
-        if (!select) {
-          e256_select(this.children["square"], MOUSE_LEAVE);
-        } else {
-        }
-      }
-    },
+    */
 
     onMouseDrag: function (mouseEvent) {
-      if (e256_current_mode === EDIT_MODE) {
-        switch (selectedPath) {
-          case "fill":
-            moveItem(this, mouseEvent);
-            break;
-          case "stroke":
-            if (selectedPart.name === "square") {
-              previous_radius = radius;
-              radius = new paper.Point(
-                (this.bounds.right - this.bounds.left) / 2,
-                (this.bounds.bottom - this.bounds.top) / 2
-              );
-              center.x = this.bounds.left + radius.x;
-              center.y = this.bounds.top + radius.y;
-              let x = mouseEvent.point.x - trigger_center_x;
-              let y = mouseEvent.point.y - trigger_center_y;
-              radius.x = Math.sqrt((x * x) + (y * y)) - (this.children["square"].strokeWidth / 2);
-
-              if (radius.x > DEFAULT_TRIGER_SIZE_MIN && radius.y > DEFAULT_TRIGER_SIZE_MIN &&) {
-                this.scale(radius.x / previous_radius.x);
-                this.data.from.x = Math.round(this.children["square"].bounds.left);
-                this.data.from.y = Math.round(this.children["square"].bounds.top);
-                this.data.to.x = Math.round(this.children["square"].bounds.right);
-                this.data.to.y = Math.round(this.children["square"].bounds.bottom);
-              }
-            }
-            else if (selectedPart.name === "circle") {
-              moveItem(this, mouseEvent);
-            }
-            break;
-        }
-        update_menu_params(this);
-      }
-    },
-    triggerOff: function (item) {
-      item.children["circle"].fillColor = "yellow";
-      item.data.value = 0;
-      if (MIDI_device_connected) sendNoteOff(item.data.note, 0, item.data.chan);
-      update_menu_params(item);
-    }
-  });
-  return _trigger;
-};
-
-/////////// SWITCH Factory
-function switchFactory() {
-  var defaulSize = 80;
-  var _Switch = new paper.Group({
-    data: {
-      type: "switch",
-      from: [null, null],
-      to: [null, null],
-      value: true,
-      chan: null,
-      note: null,
-      velo: null
-    },
-    setup_from_mouse_event: function (mouseEvent) {
-      let halfSize = defaulSize / 2
-      this.data.from.y = [Math.round(mouseEvent.point.x - halfSize), Math.round(mouseEvent.point.y - halfSize)];
-      this.data.to.y = [Math.round(mouseEvent.point.x + halfSize), Math.round(mouseEvent.point.y + halfSize)];
-    },
-    setup_from_config: function (params) {
-      this.data.from.y = params.from;
-      this.data.to.y = params.to;
-      this.data.chan = params.chan;
-      this.data.note = params.note;
-      this.data.velo = params.velo;
-    },
-    create: function () {
-      let _square = new paper.Path.Rectangle({
-        name: "square",
-        from: this.data.from.y,
-        to: this.data.to.y,
-        strokeWidth: 5,
-        dashArray: [10, 5],
-        strokeColor: "chartreuse",
-        fillColor: "yellow"
-      });
-      let _line_a = new paper.Path.Line({
-        name: "cross_line_x",
-        from: new paper.Point(this.data.from.x, this.data.from.y),
-        to: new paper.Point(this.data.to.x, this.data.to.y),
-        strokeWidth: 1,
-        strokeColor: "black"
-      });
-      let _line_b = new paper.Path.Line({
-        name: "cross_line_y",
-        from: new paper.Point(this.data.from.x, this.data.to.y),
-        to: new paper.Point(this.data.to.x, this.data.from.y),
-        strokeWidth: 1,
-        strokeColor: "black"
-      });
-      this.addChild(_square);
-      this.addChild(_line_a);
-      this.addChild(_line_b);
-    },
-    activate: function () {
-      this.data.value = !this.data.value;
-      if (this.data.value) {
-        this.children["cross_line_x"].visible = true;
-        this.children["cross_line_y"].visible = true;
-        if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velo, this.data.chan);
-      } else {
-        this.children["cross_line_x"].visible = false;
-        this.children["cross_line_y"].visible = false;
-        if (MIDI_device_connected) sendNoteOff(this.data.note, 0, this.data.chan);
-      }
-      update_menu_params(this);
-    },
-    select: function () {
-      this.children["square"].opacity = 1;
-      update_menu_params(this);
-    },
-    free: function () {
-      this.children["square"].opacity = 0;
-    },
-    onMouseEnter: function () {
       switch (e256_current_mode) {
         case EDIT_MODE:
-          this.select();
+          if (current_part.type === "fill") {
+            moveItem(this, mouseEvent);
+          }
+          else if (current_part.type === "bounds") {
+            if (current_item.name === "switch-group") {
+              switch (current_part.name) {
+                case "top-left":
+                  this.children["switch-group"].children["switch-frame"].segments[0].point.x = mouseEvent.point.x;
+                  this.children["switch-group"].children["switch-frame"].segments[1].point = mouseEvent.point;
+                  this.children["switch-group"].children["switch-frame"].segments[2].point.y = mouseEvent.point.y;
+                  this.children["switch-group"].data.from = mouseEvent.point;
+
+                  _radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  _center.x = this.children["switch-group"].data.from.x + _radius.x;
+                  _radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  _center.y = this.children["switch-group"].data.from.y + _radius.y;
+                  
+                  this.children["switch-group"].children["switch-button"].center = [_center.x, _center.y];
+                  this.children["switch-group"].children["switch-button"].radius = [_radius.x, _radius.y];
+                  break;
+
+                case "top-right":
+                  this.children["switch-group"].children["switch-frame"].segments[1].point.y = mouseEvent.point.y;
+                  this.children["switch-group"].children["switch-frame"].segments[2].point = mouseEvent.point;
+                  this.children["switch-group"].children["switch-frame"].segments[3].point.x = mouseEvent.point.x;
+                  this.children["switch-group"].data.from.y = mouseEvent.point.y;
+                  this.children["switch-group"].data.to.x = mouseEvent.point.x;
+                  
+                  _radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  _center.x = this.children["switch-group"].data.from.x + _radius.x;
+                  _radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  _center.y = this.children["switch-group"].data.from.y + _radius.y;
+
+                  this.children["switch-group"].children["switch-button"].center = _center;
+                  this.children["switch-group"].children["switch-button"].radius = _radius;
+                  break;
+
+                case "bottom-right":
+                  this.children["switch-group"].children["switch-frame"].segments[2].point.x = mouseEvent.point.x;
+                  this.children["switch-group"].children["switch-frame"].segments[3].point = mouseEvent.point;
+                  this.children["switch-group"].children["switch-frame"].segments[0].point.y = mouseEvent.point.y;
+                  this.children["switch-group"].data.to = mouseEvent.point;
+
+                  _radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  _center.x = this.children["switch-group"].data.from.x + _radius.x;
+                  _radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  _center.y = this.children["switch-group"].data.from.y + _radius.y;
+
+                  this.children["switch-group"].children["switch-button"].center = _center;
+                  this.children["switch-group"].children["switch-button"].radius = _radius;
+                  break;
+
+                case "bottom-left":
+                  this.children["switch-group"].children["switch-frame"].segments[3].point.y = mouseEvent.point.y;
+                  this.children["switch-group"].children["switch-frame"].segments[0].point = mouseEvent.point;
+                  this.children["switch-group"].children["switch-frame"].segments[1].point.x = mouseEvent.point.x;
+                  this.children["switch-group"].data.from.x = mouseEvent.point.x;
+                  this.children["switch-group"].data.to.y = mouseEvent.point.y;
+
+                  _radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  _center.x = this.children["switch-group"].data.from.x + _radius.x;
+                  _radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  _center.y = this.children["switch-group"].data.from.y + _radius.y;
+
+                  this.children["switch-group"].children["switch-button"].center = _center;
+                  this.children["switch-group"].children["switch-button"].radius = _radius;
+                  break;
+                default:
+                  console.log("PART_NOT_USE: " + current_part.name);
+                  break;
+              }
+            }
+          }
+          update_menu_params(this);
           break;
         case PLAY_MODE:
-          //
+          //TODO
           break;
-      }
-      show_item_menu_params(this);
-      update_menu_params(this);
-    },
-    onMouseLeave: function () {
-      if (e256_current_mode === EDIT_MODE) {
-        this.free();
-      }
-    },
-    onMouseDrag: function (mouseEvent) {
-      if (e256_current_mode === EDIT_MODE) {
-        switch (selectedPath) {
-          case "fill":
-            moveItem(this, mouseEvent);
-            break;
-          case "stroke":
-            if (selectedPart.name === "square") {
-              var switchRadius_x = (this.bounds.right - this.bounds.left) / 2;
-              var switchRadius_y = (this.bounds.bottom - this.bounds.top) / 2;
-              var switchRadius = switchRadius_x;
-              var switchCenter_x = this.bounds.left + switchRadius_x;
-              var switchCenter_y = this.bounds.top + switchRadius_y;
-              var x = mouseEvent.point.x - switchCenter_x;
-              var y = mouseEvent.point.y - switchCenter_y;
-              var previous_switch_radius = switchRadius;
-              var switchRadius = Math.sqrt((x * x) + (y * y)) - (this.children["square"].strokeWidth / 2);
-              this.scale(switchRadius / previous_switch_radius);
-              this.data.from.x = Math.round(this.children["square"].bounds.left);
-              this.data.from.y = Math.round(this.children["square"].bounds.top);
-              this.data.to.x = Math.round(this.children["square"].bounds.right);
-              this.data.to.y = Math.round(this.children["square"].bounds.bottom);
-            }
-            else if (selectedPart.name === "line") {
-              moveItem(this, mouseEvent);
-            }
-            break;
-        }
-        update_menu_params(this);
       }
     }
   });

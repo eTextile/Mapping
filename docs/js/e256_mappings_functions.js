@@ -87,8 +87,7 @@ function update_menu_params(item) {
       switch (part.data.form_style[param]) {
         case "form-control":
           if (typeof part.data[param] === "object") {
-            //$(div_param_value).val(part.data[param]);
-            $(div_param_value).val(JSON.stringify(part.data[param]));
+            $(div_param_value).val(Math.round(part.data[param].x) + " " + Math.round(part.data[param].y));
           } else {
             $(div_param_value).val(part.data[param]);
           }

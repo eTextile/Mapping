@@ -6,16 +6,18 @@
 
 /////////// KNOB Factory
 function knobFactory() {
-  var default_knob_stroke_width = 10;
-  var default_knob_radius = 150;
-  var default_knob_offet = 90;
+
+  const DEFAULT_KNOB_STROKE_WIDTH = 10;
+  const DEFAULT_KNOB_RADIUS = 150;
+  const DEFAULT_KNOB_OFFSET = 90;
+
   var previous_knob_offset = 0;
   var previous_knob_radius = 0;
   var previous_knob_theta = 0;
 
   var _Knob = new paper.Group({
+    name: "KNOB",
     data: {
-      type: "knob",
       center: [null, null],
       offset: 60,
       radius: 50,
@@ -26,7 +28,7 @@ function knobFactory() {
     setup_from_mouse_event: function (mouseEvent) {
       this.data.center[0] = Math.round(mouseEvent.point.x);
       this.data.center[1] = Math.round(mouseEvent.point.y);
-      this.data.radius = default_knob_radius;
+      this.data.radius = DEFAULT_KNOB_RA;
     },
 
     setup_from_config: function (params) {
@@ -44,9 +46,10 @@ function knobFactory() {
     },
 
     create: function () {
-      var headPos = pol_to_cart(this.data.radius - default_knob_stroke_width, deg_to_rad(default_knob_offet));
-      var footPos = pol_to_cart(this.data.radius - default_knob_stroke_width * 2, deg_to_rad(default_knob_offet));
-      var handlePos = pol_to_cart(this.data.radius + default_knob_stroke_width, deg_to_rad(default_knob_offet));
+      var headPos = pol_to_cart(this.data.radius - DEFAULT_KNOB_STROKE_WIDTH, deg_to_rad(DEFAULT_KNOB_OFFSET));
+      var footPos = pol_to_cart(this.data.radius - DEFAULT_KNOB_STROKE_WIDTH * 2, deg_to_rad(DEFAULT_KNOB_OFFSET));
+      var handlePos = pol_to_cart(this.data.radius + DEFAULT_KNOB_STROKE_WIDTH, deg_to_rad(DEFAULT_KNOB_OFFSET));
+      
       var _circle = new paper.Path.Circle({
         name: "circle",
         center: new paper.Point(this.data.center[0], this.data.center[1]),
@@ -56,6 +59,7 @@ function knobFactory() {
         strokeColor: "chartreuse",
         fillColor: "springGreen"
       });
+      
       var _head = new paper.Path.Circle({
         name: "needle-head",
         center: new paper.Point(this.data.center[0] + headPos.x, this.data.center[1] + headPos.y),
@@ -63,6 +67,7 @@ function knobFactory() {
         strokeColor: "black",
         strokeWidth: 5
       });
+      
       var _foot = new paper.Path.Line({
         name: "needle-foot",
         from: new paper.Point(this.data.center[0], this.data.center[1]),
@@ -71,6 +76,7 @@ function knobFactory() {
         strokeColor: "black",
         strokeWidth: 5,
       });
+      
       var _handle = new paper.Path.RegularPolygon({
         name: "handle",
         center: new paper.Point(this.data.center[0] + handlePos.x, this.data.center[1] + handlePos.y),
