@@ -11,10 +11,10 @@ function switchFactory() {
   const DEFAULT_SWITCH_MODE = KEY_TRIGGER;
   const DEFAULT_SWITCH_VELOCITY = "OFF";
   const DEFAULT_SWITCH_AFTERTOUCH = "ON";
-  const SWITCH_MIN_radius = 30;
+  const SWITCH_MIN_button_radius = 30;
 
-  let _center = null;
-  let _radius = null;
+  let _button_center = null;
+  let _button_radius = null;
   let current_part = null;
   let highlight_item = null;
   let select = false;
@@ -61,15 +61,13 @@ function switchFactory() {
     },
 
     create: function () {
-      
-      _radius = new paper.Point(
+      _button_radius = new paper.Point(
         (this.data.to.x - this.data.from.x) / 2,
         (this.data.to.y - this.data.from.y) / 2
       );
-
-      _center = new paper.Point(
-        this.data.from.x + _radius.x,
-        this.data.from.y + _radius.y
+      _button_center = new paper.Point(
+        this.data.from.x + _button_radius.x,
+        this.data.from.y + _button_radius.y
       );
 
       let _switch_group = new paper.Group({
@@ -108,8 +106,8 @@ function switchFactory() {
       //let _switch_button = new paper.Path.Circle({
       let _switch_button = new paper.Path.Ellipse({
         name: "switch-button",
-        center: _center,
-        radius: _radius,
+        center: _button_center,
+        radius: _button_radius,
       });
       _switch_button.style = {
         fillColor: "black"
@@ -255,13 +253,13 @@ function switchFactory() {
                   this.children["switch-group"].children["switch-frame"].segments[2].point.y = mouseEvent.point.y;
                   this.children["switch-group"].data.from = mouseEvent.point;
 
-                  _radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  _center.x = this.children["switch-group"].data.from.x + _radius.x;
-                  _radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  _center.y = this.children["switch-group"].data.from.y + _radius.y;
+                  _button_radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  _button_center.x = this.children["switch-group"].data.from.x + _button_radius.x;
+                  _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
                   
-                  this.children["switch-group"].children["switch-button"].center = [_center.x, _center.y];
-                  this.children["switch-group"].children["switch-button"].radius = [_radius.x, _radius.y];
+                  this.children["switch-group"].children["switch-button"].center = [_button_center.x, _button_center.y];
+                  this.children["switch-group"].children["switch-button"].radius = [_button_radius.x, _button_radius.y];
                   break;
 
                 case "top-right":
@@ -271,13 +269,13 @@ function switchFactory() {
                   this.children["switch-group"].data.from.y = mouseEvent.point.y;
                   this.children["switch-group"].data.to.x = mouseEvent.point.x;
                   
-                  _radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  _center.x = this.children["switch-group"].data.from.x + _radius.x;
-                  _radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  _center.y = this.children["switch-group"].data.from.y + _radius.y;
+                  _button_radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  _button_center.x = this.children["switch-group"].data.from.x + _button_radius.x;
+                  _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].center = _center;
-                  this.children["switch-group"].children["switch-button"].radius = _radius;
+                  this.children["switch-group"].children["switch-button"].center = _button_center;
+                  this.children["switch-group"].children["switch-button"].radius = _button_radius;
                   break;
 
                 case "bottom-right":
@@ -286,13 +284,13 @@ function switchFactory() {
                   this.children["switch-group"].children["switch-frame"].segments[0].point.y = mouseEvent.point.y;
                   this.children["switch-group"].data.to = mouseEvent.point;
 
-                  _radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  _center.x = this.children["switch-group"].data.from.x + _radius.x;
-                  _radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  _center.y = this.children["switch-group"].data.from.y + _radius.y;
+                  _button_radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  _button_center.x = this.children["switch-group"].data.from.x + _button_radius.x;
+                  _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].center = _center;
-                  this.children["switch-group"].children["switch-button"].radius = _radius;
+                  this.children["switch-group"].children["switch-button"].center = _button_center;
+                  this.children["switch-group"].children["switch-button"].radius = _button_radius;
                   break;
 
                 case "bottom-left":
@@ -302,13 +300,13 @@ function switchFactory() {
                   this.children["switch-group"].data.from.x = mouseEvent.point.x;
                   this.children["switch-group"].data.to.y = mouseEvent.point.y;
 
-                  _radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  _center.x = this.children["switch-group"].data.from.x + _radius.x;
-                  _radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  _center.y = this.children["switch-group"].data.from.y + _radius.y;
+                  _button_radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  _button_center.x = this.children["switch-group"].data.from.x + _button_radius.x;
+                  _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].center = _center;
-                  this.children["switch-group"].children["switch-button"].radius = _radius;
+                  this.children["switch-group"].children["switch-button"].center = _button_center;
+                  this.children["switch-group"].children["switch-button"].radius = _button_radius;
                   break;
                 default:
                   console.log("PART_NOT_USE: " + current_part.name);
