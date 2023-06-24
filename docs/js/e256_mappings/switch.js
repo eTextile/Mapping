@@ -104,7 +104,7 @@ function switchFactory() {
       _switch_group.addChild(_switch_frame);
 
       //let _switch_button = new paper.Path.Circle({
-      let _switch_button = new paper.Path.Ellipse({
+      let _switch_button = new paper.Shape.Ellipse({
         name: "switch-button",
         center: _button_center,
         radius: _button_radius,
@@ -258,7 +258,7 @@ function switchFactory() {
                   _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
                   _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
                   
-                  this.children["switch-group"].children["switch-button"].center = [_button_center.x, _button_center.y];
+                  this.children["switch-group"].children["switch-button"].position = [_button_center.x, _button_center.y];
                   this.children["switch-group"].children["switch-button"].radius = [_button_radius.x, _button_radius.y];
                   break;
 
@@ -274,7 +274,7 @@ function switchFactory() {
                   _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
                   _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].center = _button_center;
+                  this.children["switch-group"].children["switch-button"].position = _button_center;
                   this.children["switch-group"].children["switch-button"].radius = _button_radius;
                   break;
 
@@ -289,7 +289,7 @@ function switchFactory() {
                   _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
                   _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].center = _button_center;
+                  this.children["switch-group"].children["switch-button"].position = _button_center;
                   this.children["switch-group"].children["switch-button"].radius = _button_radius;
                   break;
 
@@ -305,7 +305,7 @@ function switchFactory() {
                   _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
                   _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].center = _button_center;
+                  this.children["switch-group"].children["switch-button"].position = _button_center;
                   this.children["switch-group"].children["switch-button"].radius = _button_radius;
                   break;
                 default:
