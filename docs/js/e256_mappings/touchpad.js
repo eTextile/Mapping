@@ -12,7 +12,15 @@ function touchpadFactory() {
   const DEFAULT_PAD_MIN = 0;
   const DEFAULT_PAD_MAX = 127;
   const DEFAULT_PAD_SIZE_MIN = 30;
-  const MARGIN = 35;
+  const DEFAULT_PAD_MARGIN = 35;
+  const DEFAULT_MIDI_TOUCH = {
+    "x_chan": 1,
+    "x_cc": 33,
+    "y_chan": 1,
+    "y_cc": 34,
+    "z_chan": 1,
+    "z_cc": 35
+  };
 
   let frame_width = null;
   let frame_height = null;
@@ -24,11 +32,12 @@ function touchpadFactory() {
   var _touchpad = new paper.Group({
     name: "TOUCHPAD",
     data: {
-      from: null,
-      to: null,
-      touchs: null,
-      min: null,
-      max: null
+      "from": null,
+      "to": null,
+      "touchs": null,
+      "min": null,
+      "max": null,
+      "midi": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
@@ -43,6 +52,10 @@ function touchpadFactory() {
       this.data.touchs = DEFAULT_PAD_TOUCHS;
       this.data.min = DEFAULT_PAD_MIN;
       this.data.max = DEFAULT_PAD_MAX;
+      this.data.midi = [];
+      for (let touch = 0; touch < DEFAULT_PAD_TOUCHS; touch++) {
+        this.data.midi.push(DEFAULT_MIDI_TOUCH);
+      }
     },
 
     setup_from_config: function (params) {
@@ -51,148 +64,148 @@ function touchpadFactory() {
       this.data.touchs = params.touchs;
       this.data.min = params.min;
       this.data.max = params.max;
+      this.data.midi = [];
+      for (const touch in params.touchs) {
+        this.data.midi.push(touch);
+      }
     },
 
     save_params: function () {
-      this.data.from = this.children["pad-frame"].data.from;
-      this.data.to = this.children["pad-frame"].data.to;
-      this.data.touchs = this.children["pad-frame"].data.touchs;
-      this.data.min = this.children["pad-frame"].data.min;
-      this.data.max = this.children["pad-frame"].data.max;
-      // TODO: save touchs
-      console.log("ITEM_PARAMS_SAVED: " + this.name);
+      this.data.from = this.children["pad-group"].data.from;
+      this.data.to = this.children["pad-group"].data.to;
+      this.data.touchs = this.children["pad-group"].data.touchs;
+      this.data.min = this.children["pad-group"].data.min;
+      this.data.max = this.children["pad-group"].data.max;
+      this.data.midi = [];
+      for (const touch of this.children["touchs-group"].children) {
+        this.data.midi.push(touch.data.midi);
+      }
     },
 
     newTouch: function (index) {
-      var _touch = new paper.Group({
-        name: "pad-touch",
-        index: index,
-        pos: new paper.Point(
-          getRandomInt(this.data.from.x + MARGIN, this.data.to.x - MARGIN),
-          getRandomInt(this.data.from.y + MARGIN, this.data.to.y - MARGIN)
+      //console.log("INDEX: " + index);
+      var _touch_group = new paper.Group({
+        "name": "touch-group",
+        "index": index,
+        "pos": new paper.Point(
+          getRandomInt(this.data.from.x + DEFAULT_PAD_MARGIN, this.data.to.x - DEFAULT_PAD_MARGIN),
+          getRandomInt(this.data.from.y + DEFAULT_PAD_MARGIN, this.data.to.y - DEFAULT_PAD_MARGIN)
         ),
-        data: {
-          midi_params: {
-            x_chan: null,
-            x_cc: null,
-            y_chan: null,
-            y_cc: null,
-            z_chan: null,
-            z_cc: null
+        "data": {
+          "midi": this.data.midi[index],
+          "form_style": {
+            "x_chan": "form-select",
+            "x_cc": "form-select",
+            "y_chan": "form-select",
+            "y_cc": "form-select",
+            "z_chan": "form-select",
+            "z_cc": "form-select"
           },
-          form_style: {
-            x_chan: "form-select",
-            x_cc: "form-select",
-            y_chan: "form-select",
-            y_cc: "form-select",
-            z_chan: "form-select",
-            z_cc: "form-select"
-          },
-          form_select_params: {
-            x_chan: MIDI_CHANNELS,
-            x_cc: MIDI_CCHANGE,
-            y_chan: MIDI_CHANNELS,
-            y_cc: MIDI_CCHANGE,
-            z_chan: MIDI_CHANNELS,
-            z_cc: MIDI_CCHANGE
+          "form_select_params": {
+            "x_chan": MIDI_CHANNELS,
+            "x_cc": MIDI_CCHANGE,
+            "y_chan": MIDI_CHANNELS,
+            "y_cc": MIDI_CCHANGE,
+            "z_chan": MIDI_CHANNELS,
+            "z_cc": MIDI_CCHANGE
           }
         }
       });
 
       var _circle = new paper.Path.Circle({
-        name: "touch-circle",
-        center: new paper.Point(_touch.pos.x, _touch.pos.y),
-        radius: 15
+        "name": "touch-circle",
+        "center": new paper.Point(_touch_group.pos.x, _touch_group.pos.y),
+        "radius": 15
       });
       _circle.style = {
-        fillColor: "green"
+        "fillColor": "green"
       };
-      _touch.addChild(_circle);
+      _touch_group.addChild(_circle);
 
       var _line_x = new paper.Path.Line({
-        name: "touch-line-x",
-        from: new paper.Point(this.data.from.x, _touch.pos.y),
-        to: new paper.Point(this.data.to.x, _touch.pos.y),
-        locked: true
+        "name": "touch-line-x",
+        "from": new paper.Point(this.data.from.x, _touch_group.pos.y),
+        "to": new paper.Point(this.data.to.x, _touch_group.pos.y),
+        "locked": true
       });
       _line_x.style = {
-        strokeWidth: 1,
-        strokeColor: "black"
+        "strokeWidth": 1,
+        "strokeColor": "black"
       }
-      _touch.addChild(_line_x);
+      _touch_group.addChild(_line_x);
 
       var _line_y = new paper.Path.Line({
-        name: "touch-line-y",
-        from: new paper.Point(_touch.pos.x, this.data.from.y),
-        to: new paper.Point(_touch.pos.x, this.data.to.y),
-        locked: true
+        "name": "touch-line-y",
+        "from": new paper.Point(_touch_group.pos.x, this.data.from.y),
+        "to": new paper.Point(_touch_group.pos.x, this.data.to.y),
+        "locked": true
       });
       _line_y.style = {
-        strokeWidth: 1,
-        strokeColor: "black"
+        "strokeWidth": 1,
+        "strokeColor": "black"
       };
-      _touch.addChild(_line_y);
-      _touch.firstChild.bringToFront();
-      return _touch;
+      _touch_group.addChild(_line_y);
+      _touch_group.firstChild.bringToFront();
+      return _touch_group;
     },
 
     create: function () {
       frame_width = this.data.to.x - this.data.from.x;
       frame_height = this.data.to.y - this.data.from.y;
 
-      var _frame = new paper.Group({
-        name: "pad-frame",
+      var _pad_group = new paper.Group({
+        name: "pad-group",
         data: {
-          from: this.data.from,
-          to: this.data.to,
-          touchs: null,
-          min: null,
-          max: null,
-          form_style: {
-            from: "form-control",
-            to: "form-control",
-            touchs: "form-select",
-            min: "form-select",
-            max: "form-select"
+          "from": this.data.from,
+          "to": this.data.to,
+          "touchs": null,
+          "min": null,
+          "max": null,
+          "form_style": {
+            "from": "form-control",
+            "to": "form-control",
+            "touchs": "form-select",
+            "min": "form-select",
+            "max": "form-select"
           },
           form_select_params: {
-            touchs: MIDI_CHANNELS,
-            min: MIDI_NOTES,
-            max: MIDI_NOTES
+            "touchs": MIDI_CHANNELS,
+            "min": MIDI_NOTES,
+            "max": MIDI_NOTES
           }
         }
       });
 
-      var _rect = new paper.Path.Rectangle({
-        name: "frame-rect",
-        from: this.data.from,
-        to: this.data.to
+      var _pad_frame = new paper.Path.Rectangle({
+        "name": "pad-frame",
+        "from": this.data.from,
+        "to": this.data.to
       });
-      _rect.style = {
-        strokeWidth: 5,
-        dashArray: [10, 5],
-        strokeColor: "chartreuse",
-        fillColor: "pink"
+      _pad_frame.style = {
+        "strokeWidth": 5,
+        "dashArray": [10, 5],
+        "strokeColor": "chartreuse",
+        "fillColor": "pink"
       };
-      _frame.addChild(_rect);
-      this.addChild(_frame);
+      _pad_group.addChild(_pad_frame);
+      this.addChild(_pad_group);
 
-      var _touchs = new paper.Group({
-        name: "pad-touchs"
+      var _touchs_group = new paper.Group({
+        "name": "touchs-group"
       });
-      for (let index = 0; index < this.data.touchs; index++) {
-        _touchs.addChild(this.newTouch(index));
+      for (let touch = 0; touch < this.data.touchs; touch++) {
+        _touchs_group.addChild(this.newTouch(touch));
       }
-      this.addChild(_touchs);
+      this.addChild(_touchs_group);
       this.bringToFront();
     },
 
     onMouseEnter: function (mouseEvent) {
       var mouse_enter_options = {
-        stroke: true,
-        bounds: true,
-        fill: true,
-        tolerance: 8
+        "stroke": true,
+        "bounds": true,
+        "fill": true,
+        "tolerance": 8
       }
       tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
       switch (e256_current_mode) {
@@ -201,10 +214,10 @@ function touchpadFactory() {
             if (tmp_select.item.name === "TOUCHPAD") {
               highlight_item = tmp_select.item.firstChild;
             }
-            else if (tmp_select.item.name === "pad-frame" || tmp_select.item.name === "pad-touch") {
+            else if (tmp_select.item.name === "pad-group" || tmp_select.item.name === "touch-group") {
               highlight_item = tmp_select.item.firstChild;
             }
-            else if (tmp_select.item.name === "frame-rect" || tmp_select.item.name === "touch-circle") {
+            else if (tmp_select.item.name === "pad-frame" || tmp_select.item.name === "touch-circle") {
               highlight_item = tmp_select.item;
             }
             else {
@@ -239,10 +252,10 @@ function touchpadFactory() {
       this.bringToFront();
 
       var mouse_down_options = {
-        stroke: false,
-        bounds: true,
-        fill: true,
-        tolerance: 8
+        "stroke": false,
+        "bounds": true,
+        "fill": true,
+        "tolerance": 8
       }
 
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
@@ -260,11 +273,11 @@ function touchpadFactory() {
           current_item = tmp_select.item.firstChild;
           current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "pad-frame" || tmp_select.item.name === "pad-touch") {
+        else if (tmp_select.item.name === "pad-group" || tmp_select.item.name === "touch-group") {
           current_item = tmp_select.item;
           current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "frame-rect" || tmp_select.item.name === "touch-circle") {
+        else if (tmp_select.item.name === "pad-frame" || tmp_select.item.name === "touch-circle") {
           current_item = tmp_select.item.parent;
           current_part = tmp_select;
         }
@@ -313,17 +326,17 @@ function touchpadFactory() {
           else if (current_part.type === "bounds") {
             let newSize = new paper.Point();
             let newPos = new paper.Point();
-            if (current_item.name === "pad-frame") {
+            if (current_item.name === "pad-group") {
               switch (current_part.name) {
                 case "top-left":
-                  this.children["pad-frame"].children["frame-rect"].segments[0].point.x = mouseEvent.point.x;
-                  this.children["pad-frame"].children["frame-rect"].segments[1].point = mouseEvent.point;
-                  this.children["pad-frame"].children["frame-rect"].segments[2].point.y = mouseEvent.point.y;
+                  this.children["pad-group"].children["pad-frame"].segments[0].point.x = mouseEvent.point.x;
+                  this.children["pad-group"].children["pad-frame"].segments[1].point = mouseEvent.point;
+                  this.children["pad-group"].children["pad-frame"].segments[2].point.y = mouseEvent.point.y;
                   previous_frame_width = frame_width;
                   previous_frame_height = frame_height;
                   frame_width = Math.max(DEFAULT_PAD_SIZE_MIN, this.bounds.right - mouseEvent.point.x);
                   frame_height = Math.max(DEFAULT_PAD_SIZE_MIN, this.bounds.bottom - mouseEvent.point.y);
-                  for (const touch of this.children["pad-touchs"].children) {
+                  for (const touch of this.children["touchs-group"].children) {
                     touch.children["touch-line-x"].segments[0].point.x = mouseEvent.point.x;
                     touch.children["touch-line-y"].segments[0].point.y = mouseEvent.point.y;
                     newSize.x = ((this.bounds.right - touch.children["touch-circle"].position.x) * frame_width) / previous_frame_width;
@@ -334,17 +347,17 @@ function touchpadFactory() {
                     touch.children["touch-line-x"].position.y = newPos.y;
                     touch.children["touch-line-y"].position.x = newPos.x;
                   }
-                  this.children["pad-frame"].data.from = new paper.Point(Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y));
+                  this.children["pad-group"].data.from = new paper.Point(Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y));
                   break;
                 case "top-right":
-                  this.children["pad-frame"].children["frame-rect"].segments[1].point.y = mouseEvent.point.y;
-                  this.children["pad-frame"].children["frame-rect"].segments[2].point = mouseEvent.point;
-                  this.children["pad-frame"].children["frame-rect"].segments[3].point.x = mouseEvent.point.x;
+                  this.children["pad-group"].children["pad-frame"].segments[1].point.y = mouseEvent.point.y;
+                  this.children["pad-group"].children["pad-frame"].segments[2].point = mouseEvent.point;
+                  this.children["pad-group"].children["pad-frame"].segments[3].point.x = mouseEvent.point.x;
                   previous_frame_width = frame_width;
                   previous_frame_height = frame_height;
                   frame_width = Math.max(DEFAULT_PAD_SIZE_MIN, mouseEvent.point.x - this.bounds.left);
                   frame_height = Math.max(DEFAULT_PAD_SIZE_MIN, this.bounds.bottom - mouseEvent.point.y);
-                  for (const touch of this.children["pad-touchs"].children) {
+                  for (const touch of this.children["touchs-group"].children) {
                     touch.children["touch-line-x"].segments[1].point.x = mouseEvent.point.x;
                     touch.children["touch-line-y"].segments[0].point.y = mouseEvent.point.y;
                     newSize.x = ((touch.children["touch-circle"].position.x - this.bounds.left) * frame_width) / previous_frame_width;
@@ -355,18 +368,18 @@ function touchpadFactory() {
                     touch.children["touch-line-x"].position.y = newPos.y;
                     touch.children["touch-line-y"].position.x = newPos.x;
                   }
-                  this.children["pad-frame"].data.from.y = Math.round(mouseEvent.point.y);
-                  this.children["pad-frame"].data.to.x = Math.round(mouseEvent.point.x);
+                  this.children["pad-group"].data.from.y = Math.round(mouseEvent.point.y);
+                  this.children["pad-group"].data.to.x = Math.round(mouseEvent.point.x);
                   break;
                 case "bottom-right":
-                  this.children["pad-frame"].children["frame-rect"].segments[2].point.x = mouseEvent.point.x;
-                  this.children["pad-frame"].children["frame-rect"].segments[3].point = mouseEvent.point;
-                  this.children["pad-frame"].children["frame-rect"].segments[0].point.y = mouseEvent.point.y;
+                  this.children["pad-group"].children["pad-frame"].segments[2].point.x = mouseEvent.point.x;
+                  this.children["pad-group"].children["pad-frame"].segments[3].point = mouseEvent.point;
+                  this.children["pad-group"].children["pad-frame"].segments[0].point.y = mouseEvent.point.y;
                   previous_frame_width = frame_width;
                   previous_frame_height = frame_height;
                   frame_width = Math.max(DEFAULT_PAD_SIZE_MIN, mouseEvent.point.x - this.bounds.left);
                   frame_height = Math.max(DEFAULT_PAD_SIZE_MIN, mouseEvent.point.y - this.bounds.top);
-                  for (const touch of this.children["pad-touchs"].children) {
+                  for (const touch of this.children["touchs-group"].children) {
                     touch.children["touch-line-x"].segments[1].point.x = mouseEvent.point.x;
                     touch.children["touch-line-y"].segments[1].point.y = mouseEvent.point.y;
                     newSize.x = ((touch.children["touch-circle"].position.x - this.bounds.left) * frame_width) / previous_frame_width;
@@ -377,17 +390,17 @@ function touchpadFactory() {
                     touch.children["touch-line-x"].position.y = newPos.y;
                     touch.children["touch-line-y"].position.x = newPos.x;
                   }
-                  this.children["pad-frame"].data.to = new paper.Point(Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y));
+                  this.children["pad-group"].data.to = new paper.Point(Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y));
                   break;
                 case "bottom-left":
-                  this.children["pad-frame"].children["frame-rect"].segments[3].point.y = mouseEvent.point.y;
-                  this.children["pad-frame"].children["frame-rect"].segments[0].point = mouseEvent.point;
-                  this.children["pad-frame"].children["frame-rect"].segments[1].point.x = mouseEvent.point.x;
+                  this.children["pad-group"].children["pad-frame"].segments[3].point.y = mouseEvent.point.y;
+                  this.children["pad-group"].children["pad-frame"].segments[0].point = mouseEvent.point;
+                  this.children["pad-group"].children["pad-frame"].segments[1].point.x = mouseEvent.point.x;
                   previous_frame_width = frame_width;
                   previous_frame_height = frame_height;
                   frame_width = Math.max(DEFAULT_PAD_SIZE_MIN, this.bounds.right - mouseEvent.point.x);
                   frame_height = Math.max(DEFAULT_PAD_SIZE_MIN, mouseEvent.point.y - this.bounds.top);
-                  for (const touch of this.children["pad-touchs"].children) {
+                  for (const touch of this.children["touchs-group"].children) {
                     touch.children["touch-line-x"].segments[0].point.x = mouseEvent.point.x;
                     touch.children["touch-line-y"].segments[1].point.y = mouseEvent.point.y;
                     newSize.x = ((this.bounds.right - touch.children["touch-circle"].position.x) * frame_width) / previous_frame_width;
@@ -398,8 +411,8 @@ function touchpadFactory() {
                     touch.children["touch-line-x"].position.y = newPos.y;
                     touch.children["touch-line-y"].position.x = newPos.x;
                   }
-                  this.children["pad-frame"].data.from.x = Math.round(mouseEvent.point.x);
-                  this.children["pad-frame"].data.to.y = Math.round(mouseEvent.point.y);
+                  this.children["pad-group"].data.from.x = Math.round(mouseEvent.point.x);
+                  this.children["pad-group"].data.to.y = Math.round(mouseEvent.point.y);
                   break;
                 default:
                   console.log("PART_NOT_USE: " + current_part.name);

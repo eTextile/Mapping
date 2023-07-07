@@ -21,10 +21,14 @@ function item_create_menu_params(item) {
   // ITEMS_1ST_LEVEL
   for (const part of item.children) {
     let part_params = document.createElement("div");
-    //console.log("MENU_1ST: " + part.name + "_" + item.id); // PROB_MENU
+
+    console.log("MENU_1ST: " + part.name + "_" + item.index); // PROB_MENU
+
     part_params.setAttribute("id", part.name + "_" + item.id);  // UID use to delate the div menu
     part_params.className = "collapse";
+
     for (const param in part.data.form_style) {
+
       switch (part.data.form_style[param]) {
         case "form-control":
           part_params.appendChild(param_form_control(part, param));
@@ -45,10 +49,12 @@ function item_create_menu_params(item) {
     // ITEMS_2ND_LEVEL
     for (const sub_part in part.children) {
       let sub_part_params = document.createElement("div");
-      //console.log("MENU_2ND: " + part.children[sub_part].name + "_" + part.children[sub_part].id); // PROB_MENU
+
+      //console.log("MENU_2ND: " + part.children[sub_part].name + "_" + part.children[sub_part].index); // PROB_MENU
+
       sub_part_params.setAttribute("id", part.children[sub_part].name + "_" + part.children[sub_part].id); // Used to show/hide sub item params
       sub_part_params.className = "collapse";
-      
+
       let card_header = document.createElement("div");
       card_header.className = "card-title display-6";
       card_header.append(part.children[sub_part].name + " params");
@@ -78,7 +84,6 @@ function item_create_menu_params(item) {
 };
 
 function update_menu_params(item) {
-
   // ITEMS_1ST_LEVEL
   for (const part of item.children) {
     for (const param in part.data.form_style) {
@@ -104,11 +109,12 @@ function update_menu_params(item) {
     // ITEMS_2ND_LEVEL
     for (const sub_part in part.children) {
       for (const param in part.children[sub_part].data.form_style) {
-        //console.log("UPDATE_2ND: " + part.children[sub_part].name + "_value_" + part.children[sub_part].id); // PROB_MENU
+        //console.log("UPDATE_2ND: " + part.children[sub_part].name + "_value_" + part.children[sub_part].id); // PROB
         let div_param_value = "#" + part.children[sub_part].name + "_value_" + part.children[sub_part].id;
         switch (part.children[sub_part].data.form_style[param]) {
           case "form-control":
             if (typeof part.data[param] === "object") {
+              console.log("OBJ: " + part.data[param].name);
               $(div_param_value).val(JSON.stringify(part.children[sub_part].data[param]));
             } else {
               $(div_param_value).val(part.children[sub_part].data[param]);
@@ -147,8 +153,8 @@ function item_remove_menu_params(item) {
 };
 
 function item_menu_params(item, state) {
-  if (item){
-    switch(state){
+  if (item) {
+    switch (state) {
       case "show":
         //$("#summaryContent").html(item.name + " params");
         $("#" + item.name + "_" + item.id).collapse("show");
@@ -184,8 +190,8 @@ function param_form_control(item, param) {
   inputValue.setAttribute("aria-describedby", param + "_atribute_" + item.parent.id);
 
   inputValue.addEventListener("input", function (event) {
-    let input = JSON.parse(event.target.value);
-    if (typeof input === "object") {
+    if (typeof event.target.value === "object") {
+      let input = JSON.parse(event.target.value);
       item.data[param] = new paper.Point(input[1], input[2]);
     }
     else {
@@ -199,7 +205,7 @@ function param_form_control(item, param) {
 
 // For details on the html form-select structure refer to
 // https://getbootstrap.com/docs/5.0/forms/select/
-// https://developer.mozilla.org/fr/docs/Web/API/HTMLOptionElement
+// https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptionElement
 function param_form_select(item, param) {
 
   let div_groupe = document.createElement("div");
@@ -210,29 +216,43 @@ function param_form_select(item, param) {
   span_param.textContent = param;
   div_groupe.appendChild(span_param);
 
-  let select = document.createElement("select");
-  select.className = "form-select form-select-sm";
-  select.setAttribute("aria-label", ".form-select-sm select");
-  //console.log("DIV_NAME: " + item.name + "_value_" + item.id);
-  select.setAttribute("id", item.name + "_value_" + item.id);
+  let _params_list = document.createElement("select");
 
-  let _index = 0;
-  for (const value in item.data.form_select_params[param]) {
-    let option = document.createElement("option");
-    option.value = _index;
-    if (item.data.form_select_params[param][value] === item.data[param]) {
-      option.defaultSelected = true;
+  _params_list.className = "form-select form-select-sm";
+  _params_list.setAttribute("aria-label", ".form-select-sm select");
+  _params_list.setAttribute("id", item.name + "_value_" + item.id);
+
+  for (const value of MAPING_TYPES[param]) {
+    let _option = document.createElement("option");
+    _option.textContent = value;
+
+    if (item.data.midiMsg) {
+      if (item.data.midiMsg[param] === value) {
+        _option.defaultSelected = true;
+      } else {
+        //_option.defaultSelected = false;
+      }
     }
-    option.textContent = item.data.form_select_params[param][value];
-    select.appendChild(option);
-    _index++;
+    else {
+      if (item.data[param] === value) {
+        _option.defaultSelected = true;
+      } else {
+        //_option.defaultSelected = false;
+      }
+    }
+    _params_list.appendChild(_option);
   }
-  
-  select.addEventListener("change", function (event) {
-    item.data[param] = item.data.form_select_params[param][event.target.value];
+
+  _params_list.addEventListener("change", function (event) {
+    if (item.data.midiMsg) {
+      current_item.data.midiMsg[param] = JSON.parse(event.target.value);
+    }
+    else {
+      current_item.data[param] = event.target.value;
+    }
   });
-  
-  div_groupe.appendChild(select);
+
+  div_groupe.appendChild(_params_list);
   return div_groupe;
 };
 
@@ -253,7 +273,7 @@ function param_toggle(item, param) {
   button.className = "btn btn-outline-primary flex-fill";
   button.textContent = item.data[param];
 
-  button.addEventListener("click", (event) => {
+  button.addEventListener("click", function (event) {
     if (event.target.textContent === "OFF") {
       button.textContent = "ON";
     } else {
@@ -292,8 +312,8 @@ function rad_to_deg(radian) {
 
 // Returning radian
 function cart_to_pol(x, y) {
-  var radius = Math.sqrt((x * x) + (y * y));
-  var theta = 0;
+  let radius = Math.sqrt((x * x) + (y * y));
+  let theta = 0;
   if (x == 0 && 0 < y) {
     theta = (Math.PI / 2);
   } else if (x == 0 && y < 0) {
@@ -312,8 +332,8 @@ function cart_to_pol(x, y) {
 };
 
 function pol_to_cart(radius, theta) {
-  var x = radius * Math.cos(theta);
-  var y = radius * Math.sin(theta);
+  let x = radius * Math.cos(theta);
+  let y = radius * Math.sin(theta);
   return {
     "x": x,
     "y": y
@@ -335,3 +355,17 @@ function getRandomInt(min, max) {
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min) + min);
 };
+
+/*
+//MIDI object constructur
+function Midi(midiMsg) {
+  let midiMsg
+  this.midiMsg.status = midi[NoteOn];         // Set the MIDI status
+  this.midiMsg.channel = midiMsg.channel;     // Set the MIDI channel
+  this.midiMsg.data1 = midiMsg.data1;         // Set the MIDI note
+  this.midiMsg.data2 = midiMsg.data2;         // Set the MIDI velocity
+  this.midiMsg = function() {
+    return this.midiMsg;
+  };
+}
+*/

@@ -11,13 +11,18 @@ function switchFactory() {
   const DEFAULT_SWITCH_MODE = KEY_TRIGGER;
   const DEFAULT_SWITCH_VELOCITY = "OFF";
   const DEFAULT_SWITCH_AFTERTOUCH = "ON";
-  const SWITCH_MIN_button_radius = 30;
+  const DEFAULT_SWITCH_BUTTON_RADIUS = 30;
+  const DEFAULT_MIDI_SWITCH = {
+    "chan": 1,
+    "note": 64,
+    "velo": 127
+  };
 
   let _button_center = null;
   let _button_radius = null;
   let current_part = null;
   let highlight_item = null;
-  let select = false;
+  let state = false;
 
   var _switch = new paper.Group({
     name: "SWITCH",
@@ -27,9 +32,7 @@ function switchFactory() {
       mode: null,
       velocity: null,
       aftertouch: null,
-      chan: null,
-      note: null,
-      velo: null
+      midi: null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
@@ -44,9 +47,7 @@ function switchFactory() {
       this.data.mode = DEFAULT_SWITCH_MODE;
       this.data.velocity = DEFAULT_SWITCH_VELOCITY;
       this.data.aftertouch = DEFAULT_SWITCH_AFTERTOUCH;
-      this.data.chan = DEFAULT_SWITCH_MODE;
-      this.data.note = DEFAULT_SWITCH_MODE;
-      this.data.velo = DEFAULT_SWITCH_MODE;
+      this.data.midi = [DEFAULT_MIDI_SWITCH];
     },
 
     setup_from_config: function (params) {
@@ -55,9 +56,17 @@ function switchFactory() {
       this.data.mode = params.mode;
       this.data.velocity = params.velo;
       this.data.aftertouch = params.after;
-      this.data.chan = params.chan;
-      this.data.note = params.note;
-      this.data.velo = params.velo;
+      this.data.midi = params.midi; // {"chan": x, "note": x, "velo": x}
+    },
+
+    save_params: function () {
+      this.data.from = this.children["switch-group"].data.from;
+      this.data.to = this.children["switch-group"].data.to;
+      this.data.mode = this.children["switch-group"].data.mode;
+      this.data.velocity = this.children["switch-group"].data.velocity;
+      this.data.aftertouch = this.children["switch-group"].data.aftertouch;
+
+      this.data.midi = this.children["button-group"].data.midi;
     },
 
     create: function () {
@@ -102,8 +111,25 @@ function switchFactory() {
         fillColor: "skyblue"
       }
       _switch_group.addChild(_switch_frame);
+      this.addChild(_switch_group);
 
-      //let _switch_button = new paper.Path.Circle({
+      var _button_group = new paper.Group({
+        name: "button-group",
+        data: {
+          midi: this.data.midi,
+          form_style: {
+            chan: "form-select",
+            note: "form-select", // "form-control"
+            velo: "form-select" // "form-control"
+          },
+          form_select_params: {
+            chan: MIDI_CHANNELS,
+            note: MIDI_NOTES,
+            velo: MIDI_VELOCITYS
+          }
+        }
+      });
+
       let _switch_button = new paper.Shape.Ellipse({
         name: "switch-button",
         center: _button_center,
@@ -112,9 +138,8 @@ function switchFactory() {
       _switch_button.style = {
         fillColor: "black"
       }
-      _switch_group.addChild(_switch_button);
-
-      this.addChild(_switch_group);
+      _button_group.addChild(_switch_button);
+      this.addChild(_button_group);
     },
 
     onMouseEnter: function (mouseEvent) {
@@ -130,15 +155,12 @@ function switchFactory() {
           if (tmp_select) {
             if (tmp_select.item.name === "SWITCH") {
               highlight_item = tmp_select.item.firstChild;
-              //console.log("A");
             }
             else if (tmp_select.item.name === "switch-group") {
               highlight_item = tmp_select.item.firstChild;
-              //console.log("B");
             }
             else if (tmp_select.item.name === "switch-frame") {
               highlight_item = tmp_select.item;
-              //console.log("C");
             }
             else {
               console.log("NOT_USED: " + tmp_select);
@@ -180,6 +202,8 @@ function switchFactory() {
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
 
       if (tmp_select) {
+        //console.log("TMP: " + tmp_select.item.name);
+
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;
 
@@ -190,19 +214,20 @@ function switchFactory() {
           current_item = tmp_select.item.firstChild;
           current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "switch-group") {
+        else if (tmp_select.item.name === "switch-group" || tmp_select.item.name === "button-group") {
           current_item = tmp_select.item;
           current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "switch-frame") {
+        else if (tmp_select.item.name === "switch-frame" ) {
           current_item = tmp_select.item.parent;
           current_part = tmp_select;
         }
         else {
           //console.log("NOT_USED : " + tmp_select.item.name);
         }
+
         //console.log("CTL_CUR: " + current_controleur.name);
-        //onsole.log("CTL_PEV: " + previous_controleur.name);
+        //console.log("CTL_PEV: " + previous_controleur.name);
         //console.log("ITEM_CUR: " + current_item.name);
         //console.log("ITEM_PEV: " + previous_item.name);
         //console.log("PART_CUR: " + current_part.name);
@@ -210,17 +235,29 @@ function switchFactory() {
         
         switch (e256_current_mode) {
           case EDIT_MODE:
-            if (current_item.name === "switch-group") {
-              //previous_item.firstChild.style.fillColor = "pink";
-              //current_item.firstChild.style.fillColor = "orange";
+            if (current_item.name === "switch-button") {
+              // TODO
             }
             else {
-              //console.log("NOT_USED - CUR: " + current_item.name + "- PREV - " + previous_item.name );
+              // TODO
             }
-            //update_menu_params(this);
             break;
           case PLAY_MODE:
-            // TODO
+            if (current_item.name === "switch-button") {
+              console.log("MODE: " + this.data.mode);
+              if (this.data.mode === KEY_TOGGLE) {
+                state = !state;
+                if (state) {
+                  this.children["switch-group"].children["switch-button"].fillColor = "red";
+                } else {
+                  this.children["switch-group"].children["switch-button"].fillColor = "black";
+                }
+              }
+              else if (this.data.mode === KEY_TRIGGER) {
+                // TODO
+              }
+
+            }
             break;
         }
       }
@@ -258,8 +295,8 @@ function switchFactory() {
                   _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
                   _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
                   
-                  this.children["switch-group"].children["switch-button"].position = [_button_center.x, _button_center.y];
-                  this.children["switch-group"].children["switch-button"].radius = [_button_radius.x, _button_radius.y];
+                  this.children["button-group"].children["switch-button"].position = [_button_center.x, _button_center.y];
+                  this.children["button-group"].children["switch-button"].radius = [_button_radius.x, _button_radius.y];
                   break;
 
                 case "top-right":
@@ -274,8 +311,8 @@ function switchFactory() {
                   _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
                   _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].position = _button_center;
-                  this.children["switch-group"].children["switch-button"].radius = _button_radius;
+                  this.children["button-group"].children["switch-button"].position = _button_center;
+                  this.children["button-group"].children["switch-button"].radius = _button_radius;
                   break;
 
                 case "bottom-right":
@@ -289,8 +326,8 @@ function switchFactory() {
                   _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
                   _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].position = _button_center;
-                  this.children["switch-group"].children["switch-button"].radius = _button_radius;
+                  this.children["button-group"].children["switch-button"].position = _button_center;
+                  this.children["button-group"].children["switch-button"].radius = _button_radius;
                   break;
 
                 case "bottom-left":
@@ -305,8 +342,8 @@ function switchFactory() {
                   _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
                   _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
 
-                  this.children["switch-group"].children["switch-button"].position = _button_center;
-                  this.children["switch-group"].children["switch-button"].radius = _button_radius;
+                  this.children["button-group"].children["switch-button"].position = _button_center;
+                  this.children["button-group"].children["switch-button"].radius = _button_radius;
                   break;
                 default:
                   console.log("PART_NOT_USE: " + current_part.name);

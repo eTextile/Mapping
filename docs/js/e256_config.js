@@ -161,7 +161,7 @@ const MOUSE_LEAVE = 3;
 
 // VERBOSITY MODES CONSTANTS
 const E256_LAYERS = {
-  "TRIGGER": 0,
+  "TRIGGER": 0, // ob·so·let!
   "SWITCH": 1,
   "SLIDER": 2,
   "KNOB": 3,
@@ -175,20 +175,27 @@ const KEY_TOGGLE = "TOGGLE";
 
 const KEY_MODES = [
   KEY_TRIGGER,
-  KEY_TOGGLE,
+  KEY_TOGGLE
 ];
 
-// TESTING!
-const MIDI_CHANNELS = [1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-const MIDI_CCHANGE = [1,2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-const MIDI_NOTES = [1,2,3,4,5,6,7,8,9];
-const MIDI_VELOCITYS = [1,2,3,4];
+const MIDI_CHANNELS = [];
+const MIDI_CCHANGES = [];
+for (let index = 1; index<16; index++){
+  MIDI_CHANNELS.push(index);
+  MIDI_CCHANGES.push(index);
+};
 
-/*
-var midi_note = new Item(chan=1, 64, 127);
-*/
-const midi_note = {
-  chan: null,
-  note: null,
-  velo: null
-}
+const MIDI_NOTES = [];
+const MIDI_VELOCITYS = [];
+for (let index = 0; index<128; index++){
+  MIDI_NOTES.push(index);
+  MIDI_VELOCITYS.push(index);
+};
+
+const MAPING_TYPES = {
+  "mode": KEY_MODES,
+  "chan": MIDI_CHANNELS,
+  "note": MIDI_NOTES,
+  "velo": MIDI_VELOCITYS,
+  "cc": MIDI_CCHANGES
+};
