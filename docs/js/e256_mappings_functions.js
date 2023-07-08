@@ -22,7 +22,7 @@ function item_create_menu_params(item) {
   for (const part of item.children) {
     let part_params = document.createElement("div");
 
-    console.log("MENU_1ST: " + part.name + "_" + item.index); // PROB_MENU
+    //console.log("MENU_1ST: " + part.name + "_" + item.index); // PROB_MENU
 
     part_params.setAttribute("id", part.name + "_" + item.id);  // UID use to delate the div menu
     part_params.className = "collapse";
@@ -245,10 +245,12 @@ function param_form_select(item, param) {
 
   _params_list.addEventListener("change", function (event) {
     if (item.data.midiMsg) {
-      current_item.data.midiMsg[param] = JSON.parse(event.target.value);
+      item.data.midiMsg[param] = JSON.parse(event.target.value);
+      console.log("cur " + JSON.stringify(item.data.midiMsg));
+      console.log("pre " + JSON.stringify(previous_item.data.midiMsg));
     }
     else {
-      current_item.data[param] = event.target.value;
+      item.data[param] = event.target.value; // current_item
     }
   });
 
@@ -356,16 +358,21 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 };
 
-/*
-//MIDI object constructur
-function Midi(midiMsg) {
-  let midiMsg
-  this.midiMsg.status = midi[NoteOn];         // Set the MIDI status
-  this.midiMsg.channel = midiMsg.channel;     // Set the MIDI channel
-  this.midiMsg.data1 = midiMsg.data1;         // Set the MIDI note
-  this.midiMsg.data2 = midiMsg.data2;         // Set the MIDI velocity
-  this.midiMsg = function() {
-    return this.midiMsg;
-  };
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
 }
-*/
+
+// MIDI object constructur
+function MidiMsg(status, channel, data1, data2) {
+  this.status = status;     // Set the MIDI status
+  this.channel = channel;   // Set the MIDI channel
+  this.data1 = data1;       // Set the MIDI note
+  this.data2 = data2;       // Set the MIDI velocity
+}
+
+// MIDI object constructur
+function Midi_Key(chan, note, velo) {
+  this.chan = chan;     // Set the MIDI status
+  this.note = note;   // Set the MIDI channel
+  this.velo = velo;       // Set the MIDI velocity
+}
