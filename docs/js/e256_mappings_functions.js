@@ -245,9 +245,8 @@ function param_form_select(item, param) {
 
   _params_list.addEventListener("change", function (event) {
     if (item.data.midiMsg) {
+      //item.data.midiMsg[param] = JSON.stringify(event.target.value);
       item.data.midiMsg[param] = JSON.parse(event.target.value);
-      console.log("cur " + JSON.stringify(item.data.midiMsg));
-      console.log("pre " + JSON.stringify(previous_item.data.midiMsg));
     }
     else {
       item.data[param] = event.target.value; // current_item
