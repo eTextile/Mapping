@@ -3,9 +3,6 @@
   Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
-const DEFAULT_MIDI_CHANNEL = 1;
-const DEFAULT_MIDI_NOTE = 64;
-const DEFAULT_MIDI_VELOCITY = 127;
 
 /////////// GRID Factory
 function gridFactory() {
@@ -56,6 +53,17 @@ function gridFactory() {
       this.data.mode = DEFAULT_GRID_MODE;
       this.data.velocity = DEFAULT_GRID_VELOCITY;
       this.data.aftertouch = DEFAULT_GRID_AFTERTOUCH;
+      this.data.midiMsg = [];
+
+      keys_count = this.data.cols * this.data.rows;
+      for (let _key = 0; _key < keys_count; _key++) {
+        let _midiMsg = new Midi_key(
+          DEFAULT_MIDI_CHANNEL,
+          DEFAULT_MIDI_NOTE,
+          DEFAULT_MIDI_VELOCITY
+          );
+        this.data.midiMsg.push(_midiMsg);
+      }
     },
 
     setup_from_config: function (params) {
@@ -67,14 +75,9 @@ function gridFactory() {
       this.data.velocity = params.velocity;
       this.data.aftertouch = params.aftertouch;
       this.data.midiMsg = [];
-      for (const _key in params.keys) {
-        let midiMsg = new Midi_Key;
-        /*
-        midiMsg.chan = _key.chan;
-        midiMsg.note = _key.note;
-        midiMsg.velo = _key.velo;
-        */
-        midiMsg = _key;
+      for (const _grid_key in params.keys) {
+        let midiMsg = new Midi_key;
+        midiMsg = _grid_key;
         this.data.midiMsg.push(midiMsg);
       }
     },
@@ -87,17 +90,12 @@ function gridFactory() {
       this.data.mode = this.children["grid-group"].data.mode;
       this.data.velocity = this.children["grid-group"].data.velocity;
       this.data.aftertouch = this.children["grid-group"].data.aftertouch;
+
       this.data.midiMsg = [];
       for (const _grid_key of this.children["keys-group"].children) {
-        let midiMsg = new Midi_Key;
-        /*
-        midiMsg.chan = _grid_key.data.midiMsg.chan;
-        midiMsg.note = _grid_key.data.midiMsg.note;
-        midiMsg.velo = _grid_key.data.midiMsg.velo;  
-        */
-        midiMsg = _grid_key.data.midiMsg;
-        this.data.midiMsg.push(midiMsg);
+        this.data.midiMsg.push(_grid_key.data.midiMsg);
       }
+    
     },
 
     new_key: function (index_x, index_y) {
@@ -154,17 +152,6 @@ function gridFactory() {
       frame_height = this.data.to.y - this.data.from.y;
       key_width = frame_width / this.data.cols;
       key_height = frame_height / this.data.rows;
-      this.data.midiMsg = [];
-
-      keys_count = this.data.cols * this.data.rows;
-      for (let _key = 0; _key < keys_count; _key++) {
-        let midiMsg = new Midi_Key(
-          DEFAULT_MIDI_CHANNEL,
-          DEFAULT_MIDI_NOTE,
-          DEFAULT_MIDI_VELOCITY
-          );
-        this.data.midiMsg.push(midiMsg);
-      }
 
       var _grid_group = new paper.Group({
         "name": "grid-group",

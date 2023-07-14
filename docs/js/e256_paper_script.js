@@ -43,7 +43,6 @@ function paperInit() {
   paper.settings.handleSize = 15;
   //paper.settings.selectionLineWidth = 20; // FIXME!
 
-  new paper.Layer({ project: paper.project, name: "Triggers", insert: true });
   new paper.Layer({ project: paper.project, name: "Switchs", insert: true });
   new paper.Layer({ project: paper.project, name: "Sliders", insert: true });
   new paper.Layer({ project: paper.project, name: "Knobs", insert: true });

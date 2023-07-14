@@ -6,21 +6,13 @@
 
 /////////// TOUCHPAD Factory
 function touchpadFactory() {
-  const DEFAULT_PAD_WIDTH = 400;
-  const DEFAULT_PAD_HEIGHT = 400;
-  const DEFAULT_PAD_TOUCHS = 3;
+  const DEFAULT_PAD_WIDTH = 450
+  const DEFAULT_PAD_HEIGHT = 450;
+  const DEFAULT_PAD_MARGIN = 35;
+  const DEFAULT_PAD_SIZE_MIN = 30;
+  const DEFAULT_PAD_TOUCH = 3;
   const DEFAULT_PAD_MIN = 0;
   const DEFAULT_PAD_MAX = 127;
-  const DEFAULT_PAD_SIZE_MIN = 30;
-  const DEFAULT_PAD_MARGIN = 35;
-  const DEFAULT_MIDI_TOUCH = {
-    "x_chan": 1,
-    "x_cc": 33,
-    "y_chan": 1,
-    "y_cc": 34,
-    "z_chan": 1,
-    "z_cc": 35
-  };
 
   let frame_width = null;
   let frame_height = null;
@@ -34,10 +26,10 @@ function touchpadFactory() {
     data: {
       "from": null,
       "to": null,
-      "touchs": null,
+      "touch": null,
       "min": null,
       "max": null,
-      "midi": null
+      "midiMsg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
@@ -49,50 +41,62 @@ function touchpadFactory() {
         Math.round(mouseEvent.point.x + (DEFAULT_PAD_WIDTH / 2)),
         Math.round(mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2))
       );
-      this.data.touchs = DEFAULT_PAD_TOUCHS;
+      this.data.touch = DEFAULT_PAD_TOUCH;
       this.data.min = DEFAULT_PAD_MIN;
       this.data.max = DEFAULT_PAD_MAX;
-      this.data.midi = [];
-      for (let touch = 0; touch < DEFAULT_PAD_TOUCHS; touch++) {
-        this.data.midi.push(DEFAULT_MIDI_TOUCH);
+
+      this.data.midiMsg = [];
+      for (let _touch = 0; _touch < DEFAULT_PAD_TOUCH; _touch++) {
+        let _midiMsg = new Midi_touch(
+          DEFAULT_MIDI_CHANNEL,
+          DEFAULT_MIDI_CC,
+          DEFAULT_MIDI_CHANNEL,
+          DEFAULT_MIDI_CC,
+          DEFAULT_MIDI_CHANNEL,
+          DEFAULT_MIDI_CC
+        );
+        this.data.midiMsg.push(_midiMsg);
       }
     },
 
     setup_from_config: function (params) {
       this.data.from = new paper.Point(params.from);
       this.data.to = new paper.Point(params.to);
-      this.data.touchs = params.touchs;
+      this.data.touch = params.touch;
       this.data.min = params.min;
       this.data.max = params.max;
-      this.data.midi = [];
-      for (const touch in params.touchs) {
-        this.data.midi.push(touch);
+      this.data.midiMsg = [];
+      for (const _key in params.keys) {
+        let midiMsg = new Midi_touch;
+        midiMsg = _key;
+        this.data.midiMsg.push(midiMsg);
       }
     },
 
     save_params: function () {
       this.data.from = this.children["pad-group"].data.from;
       this.data.to = this.children["pad-group"].data.to;
-      this.data.touchs = this.children["pad-group"].data.touchs;
+      this.data.touch = this.children["pad-group"].data.touch;
       this.data.min = this.children["pad-group"].data.min;
       this.data.max = this.children["pad-group"].data.max;
-      this.data.midi = [];
-      for (const touch of this.children["touchs-group"].children) {
-        this.data.midi.push(touch.data.midi);
+      this.data.midiMsg = [];
+      for (const _grid_key of this.children["touchs-group"].children) {
+        this.data.midiMsg.push(_grid_key.data.midiMsg);
+        //console.log("SAVE: " + JSON.stringify(_grid_key.data.midiMsg));
       }
     },
 
-    newTouch: function (index) {
+    newTouch: function (_touch_index) {
       //console.log("INDEX: " + index);
       var _touch_group = new paper.Group({
         "name": "touch-group",
-        "index": index,
+        "index": _touch_index,
         "pos": new paper.Point(
           getRandomInt(this.data.from.x + DEFAULT_PAD_MARGIN, this.data.to.x - DEFAULT_PAD_MARGIN),
           getRandomInt(this.data.from.y + DEFAULT_PAD_MARGIN, this.data.to.y - DEFAULT_PAD_MARGIN)
         ),
         "data": {
-          "midi": this.data.midi[index],
+          "midiMsg": this.data.midiMsg[_touch_index],
           "form_style": {
             "x_chan": "form-select",
             "x_cc": "form-select",
@@ -100,21 +104,12 @@ function touchpadFactory() {
             "y_cc": "form-select",
             "z_chan": "form-select",
             "z_cc": "form-select"
-          },
-          "form_select_params": {
-            "x_chan": MIDI_CHANNELS,
-            "x_cc": MIDI_CCHANGE,
-            "y_chan": MIDI_CHANNELS,
-            "y_cc": MIDI_CCHANGE,
-            "z_chan": MIDI_CHANNELS,
-            "z_cc": MIDI_CCHANGE
           }
         }
       });
-
       var _circle = new paper.Path.Circle({
         "name": "touch-circle",
-        "center": new paper.Point(_touch_group.pos.x, _touch_group.pos.y),
+        "center": _touch_group.pos,
         "radius": 15
       });
       _circle.style = {
@@ -158,20 +153,15 @@ function touchpadFactory() {
         data: {
           "from": this.data.from,
           "to": this.data.to,
-          "touchs": null,
-          "min": null,
-          "max": null,
+          "touch": this.data.touch,
+          "min": this.data.min,
+          "max": this.data.max,
           "form_style": {
             "from": "form-control",
             "to": "form-control",
-            "touchs": "form-select",
+            "touch": "form-select",
             "min": "form-select",
             "max": "form-select"
-          },
-          form_select_params: {
-            "touchs": MIDI_CHANNELS,
-            "min": MIDI_NOTES,
-            "max": MIDI_NOTES
           }
         }
       });
@@ -193,8 +183,8 @@ function touchpadFactory() {
       var _touchs_group = new paper.Group({
         "name": "touchs-group"
       });
-      for (let touch = 0; touch < this.data.touchs; touch++) {
-        _touchs_group.addChild(this.newTouch(touch));
+      for (let _touch = 0; _touch < this.data.touch; _touch++) {
+        _touchs_group.addChild(this.newTouch(_touch));
       }
       this.addChild(_touchs_group);
       this.bringToFront();
@@ -293,17 +283,18 @@ function touchpadFactory() {
 
         switch (e256_current_mode) {
           case EDIT_MODE:
-            if (current_item.name === "grid-key" && previous_item.name === "grid-key") {
-              //previous_item.firstChild.style.fillColor = "pink";
-              //current_item.firstChild.style.fillColor = "orange";
+            if (current_item.name === "touch-group" && previous_item.name === "touch-group") {
+              //console.log("ping");
+              previous_item.firstChild.style.fillColor = "green";
+              current_item.firstChild.style.fillColor = "orange"; // FEXME!
             }
-            else if (current_item.name === "grid-frame" && previous_item.name === "grid-key") {
-              //previous_item.firstChild.style.fillColor = "pink";
-              //current_item.firstChild.style.strokeColor = "orange";
+            else if (current_item.name === "pad-group" && previous_item.name === "touch-group") {
+              previous_item.firstChild.style.fillColor = "green";
+              current_item.firstChild.style.strokeColor = "lightGreen";
             }
-            else if (previous_item.name === "grid-frame" && current_item.name === "grid-key") {
-              //previous_item.firstChild.style.strokeColor = "lightGreen";
-              //current_item.firstChild.style.fillColor = "orange";
+            else if (current_item.name === "touch-group" && previous_item.name === "pad-group") {
+              previous_item.firstChild.style.strokeColor = "lightGreen";
+              current_item.firstChild.style.fillColor = "green";
             }
             else {
               //console.log("NOT_USED - CUR: " + current_item.name + "- PREV - " + previous_item.name );

@@ -208,6 +208,8 @@ function param_form_control(item, param) {
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptionElement
 function param_form_select(item, param) {
 
+  //console.log("PARAM: " + param)
+
   let div_groupe = document.createElement("div");
   div_groupe.className = "input-group";
 
@@ -249,7 +251,7 @@ function param_form_select(item, param) {
       item.data.midiMsg[param] = JSON.parse(event.target.value);
     }
     else {
-      item.data[param] = event.target.value; // current_item
+      item.data[param] = event.target.value;
     }
   });
 
@@ -357,21 +359,37 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 };
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
-}
-
+/*
 // MIDI object constructur
 function MidiMsg(status, channel, data1, data2) {
   this.status = status;     // Set the MIDI status
   this.channel = channel;   // Set the MIDI channel
   this.data1 = data1;       // Set the MIDI note
   this.data2 = data2;       // Set the MIDI velocity
-}
+};
+*/
 
 // MIDI object constructur
-function Midi_Key(chan, note, velo) {
-  this.chan = chan;     // Set the MIDI status
-  this.note = note;   // Set the MIDI channel
-  this.velo = velo;       // Set the MIDI velocity
-}
+function Midi_key(chan, note, velo) {
+  this.chan = chan;   // Set the MIDI channel
+  this.note = note;   // Set the MIDI note
+  this.velo = velo;   // Set the MIDI velocinnty
+};
+
+// MIDI object constructur
+function Midi_slider(chan, cc, min, max) {
+  this.chan = chan;   // Set the MIDI channel
+  this.cc = cc;       // Set the MIDI control change
+  this.min = min;     // Set the MIDI ...
+  this.max = max;     // Set the MIDI ...
+};
+
+// MIDI object constructur
+function Midi_touch(x_chan, x_cc, y_chan, y_cc, z_chan, z_cc) {
+  this.x_chan = x_chan;   // Set the MIDI channel
+  this.x_cc = x_cc;       // Set the MIDI control change
+  this.y_chan = y_chan;   // Set the MIDI channel
+  this.y_cc = y_cc;       // Set the MIDI control change
+  this.z_chan = z_chan;   // Set the MIDI channel
+  this.z_cc = z_cc;       // Set the MIDI control change
+};

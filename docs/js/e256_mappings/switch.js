@@ -10,14 +10,14 @@ function switchFactory() {
   const DEFAULT_SWITCH_HEIGHT = 45;
   const DEFAULT_SWITCH_MODE = KEY_TRIGGER;
   const DEFAULT_SWITCH_VELOCITY = "OFF";
-  const DEFAULT_SWITCH_AFTERTOUCH = "ON";
-  const DEFAULT_SWITCH_BUTTON_RADIUS = 30;
-  const DEFAULT_MIDI_SWITCH = {
-    "chan": 1,
-    "note": 64,
-    "velo": 127
-  };
+  const DEFAULT_SWITCH_AFTERTOUCH = "OFF";
+  const DEFAULT_button_switch_RADIUS = 30;
 
+  let frame_width = null;
+  let frame_height = null;
+  let previous_frame_width = null;
+  let previous_frame_height = null;
+  var previous_slider_val = null;
   let _button_center = null;
   let _button_radius = null;
   let current_part = null;
@@ -25,14 +25,14 @@ function switchFactory() {
   let state = false;
 
   var _switch = new paper.Group({
-    name: "SWITCH",
-    data: {
-      from: null,
-      to: null,
-      mode: null,
-      velocity: null,
-      aftertouch: null,
-      midi: null
+    "name": "SWITCH",
+    "data": {
+      "from": null,
+      "to": null,
+      "mode": null,
+      "velocity": null,
+      "aftertouch": null,
+      "midiMsg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
@@ -47,7 +47,12 @@ function switchFactory() {
       this.data.mode = DEFAULT_SWITCH_MODE;
       this.data.velocity = DEFAULT_SWITCH_VELOCITY;
       this.data.aftertouch = DEFAULT_SWITCH_AFTERTOUCH;
-      this.data.midi = [DEFAULT_MIDI_SWITCH];
+      let _midiMsg = new Midi_key(
+        DEFAULT_MIDI_CHANNEL,
+        DEFAULT_MIDI_NOTE,
+        DEFAULT_MIDI_VELOCITY
+      );
+      this.data.midiMsg = _midiMsg;
     },
 
     setup_from_config: function (params) {
@@ -56,7 +61,7 @@ function switchFactory() {
       this.data.mode = params.mode;
       this.data.velocity = params.velo;
       this.data.aftertouch = params.after;
-      this.data.midi = params.midi; // {"chan": x, "note": x, "velo": x}
+      this.data.midiMsg = params.midiMsg;
     },
 
     save_params: function () {
@@ -66,88 +71,74 @@ function switchFactory() {
       this.data.velocity = this.children["switch-group"].data.velocity;
       this.data.aftertouch = this.children["switch-group"].data.aftertouch;
 
-      this.data.midi = this.children["button-group"].data.midi;
+      this.data.midiMsg = this.children["button-group"].data.midiMsg;
     },
 
     create: function () {
-      _button_radius = new paper.Point(
-        (this.data.to.x - this.data.from.x) / 2,
-        (this.data.to.y - this.data.from.y) / 2
-      );
-      _button_center = new paper.Point(
-        this.data.from.x + _button_radius.x,
-        this.data.from.y + _button_radius.y
-      );
+      half_frame_width = (this.data.to.x - this.data.from.x) / 2;
+      half_frame_height = (this.data.to.y - this.data.from.y) / 2;
 
       let _switch_group = new paper.Group({
-        name: "switch-group",
-        data: {
-          from: this.data.from,
-          to: this.data.to,
-          mode: this.data.mode,
-          velocity: this.data.velocity,
-          aftertouch: this.data.aftertouch,
-          form_style: {
-            from: "form-control",
-            to: "form-control",
-            mode: "form-select",
-            aftertouch: "form-toggle",
-            velocity: "form-toggle"
-          },
-          form_select_params: {
-            mode: KEY_MODES,
+        "name": "switch-group",
+        "data": {
+          "from": this.data.from,
+          "to": this.data.to,
+          "mode": this.data.mode,
+          "velocity": this.data.velocity,
+          "aftertouch": this.data.aftertouch,
+          "form_style": {
+            "from": "form-control",
+            "to": "form-control",
+            "mode": "form-select",
+            "aftertouch": "form-toggle",
+            "velocity": "form-toggle"
           }
         }
       });
 
       let _switch_frame = new paper.Path.Rectangle({
-        name: "switch-frame",
-        from: this.data.from,
-        to: this.data.to
+        "name": "switch-frame",
+        "from": this.data.from,
+        "to": this.data.to
       });
       _switch_frame.style = {
-        strokeColor: "chartreuse",
-        strokeWidth: 3,
-        fillColor: "skyblue"
+        "strokeColor": "chartreuse",
+        "strokeWidth": 3,
+        "fillColor": "skyblue"
       }
       _switch_group.addChild(_switch_frame);
       this.addChild(_switch_group);
 
       var _button_group = new paper.Group({
-        name: "button-group",
-        data: {
-          midi: this.data.midi,
-          form_style: {
-            chan: "form-select",
-            note: "form-select", // "form-control"
-            velo: "form-select" // "form-control"
-          },
-          form_select_params: {
-            chan: MIDI_CHANNELS,
-            note: MIDI_NOTES,
-            velo: MIDI_VELOCITYS
+        "name": "button-group",
+        "data": {
+          "midiMsg": this.data.midiMsg,
+          "form_style": {
+            "chan": "form-select",
+            "note": "form-select", // "form-control"
+            "velo": "form-select" // "form-control"
           }
         }
       });
 
-      let _switch_button = new paper.Shape.Ellipse({
-        name: "switch-button",
-        center: _button_center,
-        radius: _button_radius,
+      let _button_switch = new paper.Shape.Ellipse({
+        "name": "button-switch",
+        "center": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
+        "radius": new paper.Point(half_frame_width, half_frame_height)
       });
-      _switch_button.style = {
-        fillColor: "black"
+      _button_switch.style = {
+        "fillColor": "black"
       }
-      _button_group.addChild(_switch_button);
+      _button_group.addChild(_button_switch);
       this.addChild(_button_group);
     },
 
     onMouseEnter: function (mouseEvent) {
       var mouse_enter_options = {
-        stroke: true,
-        bounds: true,
-        fill: true,
-        tolerance: 8
+        "stroke": true,
+        "bounds": true,
+        "fill": true,
+        "tolerance": 8
       }
       tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
       switch (e256_current_mode) {
@@ -194,10 +185,10 @@ function switchFactory() {
       //this.bringToFront();
 
       var mouse_down_options = {
-        stroke: false,
-        bounds: true,
-        fill: true,
-        tolerance: 8
+        "stroke": false,
+        "bounds": true,
+        "fill": true,
+        "tolerance": 8
       }
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
 
@@ -235,7 +226,7 @@ function switchFactory() {
         
         switch (e256_current_mode) {
           case EDIT_MODE:
-            if (current_item.name === "switch-button") {
+            if (current_item.name === "button-switch") {
               // TODO
             }
             else {
@@ -243,14 +234,14 @@ function switchFactory() {
             }
             break;
           case PLAY_MODE:
-            if (current_item.name === "switch-button") {
+            if (current_item.name === "button-switch") {
               console.log("MODE: " + this.data.mode);
               if (this.data.mode === KEY_TOGGLE) {
                 state = !state;
                 if (state) {
-                  this.children["switch-group"].children["switch-button"].fillColor = "red";
+                  this.children["switch-group"].children["button-switch"].fillColor = "red";
                 } else {
-                  this.children["switch-group"].children["switch-button"].fillColor = "black";
+                  this.children["switch-group"].children["button-switch"].fillColor = "black";
                 }
               }
               else if (this.data.mode === KEY_TRIGGER) {
@@ -289,14 +280,13 @@ function switchFactory() {
                   this.children["switch-group"].children["switch-frame"].segments[1].point = mouseEvent.point;
                   this.children["switch-group"].children["switch-frame"].segments[2].point.y = mouseEvent.point.y;
                   this.children["switch-group"].data.from = mouseEvent.point;
-
-                  _button_radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  _button_center.x = this.children["switch-group"].data.from.x + _button_radius.x;
-                  _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
-                  
-                  this.children["button-group"].children["switch-button"].position = [_button_center.x, _button_center.y];
-                  this.children["button-group"].children["switch-button"].radius = [_button_radius.x, _button_radius.y];
+                  half_frame_width = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  half_frame_height = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  this.children["button-group"].children["button-switch"].position = [
+                    this.children["switch-group"].data.to.x - half_frame_width,
+                    this.children["switch-group"].data.to.y - half_frame_height
+                  ];
+                  this.children["button-group"].children["button-switch"].radius = [half_frame_width, half_frame_height];
                   break;
 
                 case "top-right":
@@ -305,14 +295,13 @@ function switchFactory() {
                   this.children["switch-group"].children["switch-frame"].segments[3].point.x = mouseEvent.point.x;
                   this.children["switch-group"].data.from.y = mouseEvent.point.y;
                   this.children["switch-group"].data.to.x = mouseEvent.point.x;
-                  
-                  _button_radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  _button_center.x = this.children["switch-group"].data.from.x + _button_radius.x;
-                  _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
-
-                  this.children["button-group"].children["switch-button"].position = _button_center;
-                  this.children["button-group"].children["switch-button"].radius = _button_radius;
+                  half_frame_width = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  half_frame_height = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  this.children["button-group"].children["button-switch"].position = [
+                    this.children["switch-group"].data.from.x + half_frame_width,
+                    this.children["switch-group"].data.to.y - half_frame_height
+                  ];
+                  this.children["button-group"].children["button-switch"].radius = [half_frame_width, half_frame_height];
                   break;
 
                 case "bottom-right":
@@ -320,14 +309,13 @@ function switchFactory() {
                   this.children["switch-group"].children["switch-frame"].segments[3].point = mouseEvent.point;
                   this.children["switch-group"].children["switch-frame"].segments[0].point.y = mouseEvent.point.y;
                   this.children["switch-group"].data.to = mouseEvent.point;
-
-                  _button_radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  _button_center.x = this.children["switch-group"].data.from.x + _button_radius.x;
-                  _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
-
-                  this.children["button-group"].children["switch-button"].position = _button_center;
-                  this.children["button-group"].children["switch-button"].radius = _button_radius;
+                  half_frame_width = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  half_frame_height = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  this.children["button-group"].children["button-switch"].position = [
+                    this.children["switch-group"].data.from.x + half_frame_width,
+                    this.children["switch-group"].data.from.y + half_frame_height
+                  ];
+                  this.children["button-group"].children["button-switch"].radius = [half_frame_width, half_frame_height];
                   break;
 
                 case "bottom-left":
@@ -336,14 +324,13 @@ function switchFactory() {
                   this.children["switch-group"].children["switch-frame"].segments[1].point.x = mouseEvent.point.x;
                   this.children["switch-group"].data.from.x = mouseEvent.point.x;
                   this.children["switch-group"].data.to.y = mouseEvent.point.y;
-
-                  _button_radius.x = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  _button_center.x = this.children["switch-group"].data.from.x + _button_radius.x;
-                  _button_radius.y = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  _button_center.y = this.children["switch-group"].data.from.y + _button_radius.y;
-
-                  this.children["button-group"].children["switch-button"].position = _button_center;
-                  this.children["button-group"].children["switch-button"].radius = _button_radius;
+                  half_frame_width = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
+                  half_frame_height = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
+                  this.children["button-group"].children["button-switch"].position = [
+                    this.children["switch-group"].data.to.x - half_frame_width,
+                    this.children["switch-group"].data.from.y + half_frame_height
+                  ];
+                  this.children["button-group"].children["button-switch"].radius = [half_frame_width, half_frame_height];
                   break;
                 default:
                   console.log("PART_NOT_USE: " + current_part.name);

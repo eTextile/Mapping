@@ -173,29 +173,45 @@ const E256_LAYERS = {
 const KEY_TRIGGER = "TRIGGER";
 const KEY_TOGGLE = "TOGGLE";
 
-const KEY_MODES = [
+const KEY_MODE = [
   KEY_TRIGGER,
   KEY_TOGGLE
 ];
 
-const MIDI_CHANNELS = [];
-const MIDI_CCHANGES = [];
+const MIDI_CHANNEL = [];
+const MIDI_CCHANGE = [];
+const MIDI_TOUCH = [];
 for (let index = 1; index<16; index++){
-  MIDI_CHANNELS.push(index);
-  MIDI_CCHANGES.push(index);
+  MIDI_CHANNEL.push(index);
+  MIDI_CCHANGE.push(index);
+  MIDI_TOUCH.push(index);
 };
 
 const MIDI_NOTES = [];
-const MIDI_VELOCITYS = [];
+const MIDI_VELOCITY = [];
 for (let index = 0; index<128; index++){
   MIDI_NOTES.push(index);
-  MIDI_VELOCITYS.push(index);
+  MIDI_VELOCITY.push(index);
 };
 
 const MAPING_TYPES = {
-  "mode": KEY_MODES,
-  "chan": MIDI_CHANNELS,
+  "mode": KEY_MODE,
+  "chan": MIDI_CHANNEL,
   "note": MIDI_NOTES,
-  "velo": MIDI_VELOCITYS,
-  "cc": MIDI_CCHANGES
+  "velo": MIDI_VELOCITY,
+  "cc": MIDI_CCHANGE,
+  "touch": MIDI_TOUCH,
+  "min": MIDI_NOTES, // renaming!
+  "max": MIDI_NOTES, // renaming!
+  "x_chan": MIDI_CHANNEL,
+  "x_cc": MIDI_CCHANGE,
+  "y_chan": MIDI_CHANNEL,
+  "y_cc": MIDI_CCHANGE,
+  "z_chan": MIDI_CHANNEL,
+  "z_cc": MIDI_CCHANGE
 };
+
+const DEFAULT_MIDI_CHANNEL = 1;
+const DEFAULT_MIDI_NOTE = 64;
+const DEFAULT_MIDI_VELOCITY = 127;
+const DEFAULT_MIDI_CC = 23;
