@@ -10,21 +10,25 @@ function pathFactory() {
   var path_default_stroke_width = 20;
 
   var _Path = new paper.Group({
-    data: {
-      type: "path",
+    "name": "path",
+
+    "data": {
       segments: [],
       min: 0,
       max: 127
     },
+
     setup_from_mouse_event: function (mouseEvent) {
       this.data.segments.push([Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y)]);
       //this.path.closed = true;
     },
+
     setup_from_config: function (params) {
       this.data.segments = params.segments; // vertex!?
       this.data.min = params.min;
       this.data.max = params.max;
     },
+    
     create: function () {
       var _path = new paper.Path({
         name: "path",
@@ -37,28 +41,21 @@ function pathFactory() {
       });
       this.addChild(_path);
     },
+
     addPoint: function (mouseEvent) {
       var newPoint = [Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y)];
       this.data.segments.push(newPoint);
       this.children["path"].add(newPoint);
       this.children["path"].smooth();
     },
-    activate: function () {
-      this.children[0].selected = true;
-    },
-    select: function () {
-      this.children["rect"].opacity = 1;
-      update_menu_params(this);
-    },
-    free: function () {
-      this.children["rect"].opacity = 0;
-    },
+    
     onMouseEnter: function () {
       if (e256_current_mode === EDIT_MODE) {
         this.select();
       }
       show_item_menu_params(this);
     },
+    
     onMouseLeave: function () {
       if (e256_current_mode === EDIT_MODE) {
         this.free();

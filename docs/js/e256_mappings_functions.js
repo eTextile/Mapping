@@ -224,11 +224,11 @@ function param_form_select(item, param) {
   _params_list.setAttribute("aria-label", ".form-select-sm select");
   _params_list.setAttribute("id", item.name + "_value_" + item.id);
 
-  for (const value of MAPING_TYPES[param]) {
+  for (const value of MAPING_MENU[param]) {
     let _option = document.createElement("option");
     _option.textContent = value;
 
-    if (item.data.midiMsg) {
+    if (item.data.midiMsg) { // Refact!
       if (item.data.midiMsg[param] === value) {
         _option.defaultSelected = true;
       } else {
@@ -291,61 +291,8 @@ function param_toggle(item, param) {
 
 function moveItem(item, mouseEvent) {
   item.translate(mouseEvent.delta);
-  item.firstChild.data.from = new paper.Point(Math.round(item.bounds.left), Math.round(item.bounds.top));
-  item.firstChild.data.to = new paper.Point(Math.round(item.bounds.right), Math.round(item.bounds.bottom));
-};
-
-function scale2d(item, mouseEvent) {
-  let x = mouseEvent.point.x - item.data.x;
-  let y = mouseEvent.point.y - item.data.y;
-  let radius = Math.sqrt((x * paramx) + (y * y));
-  let newRadius = radius - (item.children[0].strokeWidth / 2);
-  let oldRadius = (item.data.to.x - item.data.from.x) / 2;
-  item.scale(newRadius / oldRadius);
-  item.data.size = Math.round(item.children[0].bounds.width);
-};
-
-function deg_to_rad(degree) {
-  return degree * (Math.PI / 180);
-};
-
-function rad_to_deg(radian) {
-  return radian * (180 / Math.PI);
-};
-
-// Returning radian
-function cart_to_pol(x, y) {
-  let radius = Math.sqrt((x * x) + (y * y));
-  let theta = 0;
-  if (x == 0 && 0 < y) {
-    theta = (Math.PI / 2);
-  } else if (x == 0 && y < 0) {
-    theta = (3 * Math.PI) / 2;
-  } else if (x < 0) {
-    theta = Math.atan(y / x) + Math.PI;
-  } else if (y < 0) {
-    theta = Math.atan(y / x) + (2 * Math.PI);
-  } else {
-    theta = Math.atan(y / x);
-  }
-  return {
-    "radius": radius,
-    "theta": theta
-  }
-};
-
-function pol_to_cart(radius, theta) {
-  let x = radius * Math.cos(theta);
-  let y = radius * Math.sin(theta);
-  return {
-    "x": x,
-    "y": y
-  }
-};
-
-function rotatePolar(degree, offset) {
-  // return (Math.abs(degree - 380) + offset) % 380; // Anti-clockwise direction
-  return (Math.abs(degree + 380) - offset) % 380;    // Clockwise direction
+  item.firstChild.data.from = new paper.Point(item.bounds.left, item.bounds.top);
+  item.firstChild.data.to = new paper.Point(item.bounds.right, item.bounds.bottom);
 };
 
 function mapp(value, low1, high1, low2, high2) {
@@ -359,16 +306,6 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 };
 
-/*
-// MIDI object constructur
-function MidiMsg(status, channel, data1, data2) {
-  this.status = status;     // Set the MIDI status
-  this.channel = channel;   // Set the MIDI channel
-  this.data1 = data1;       // Set the MIDI note
-  this.data2 = data2;       // Set the MIDI velocity
-};
-*/
-
 // MIDI object constructur
 function Midi_key(chan, note, velo) {
   this.chan = chan;   // Set the MIDI channel
@@ -380,8 +317,6 @@ function Midi_key(chan, note, velo) {
 function Midi_slider(chan, cc, min, max) {
   this.chan = chan;   // Set the MIDI channel
   this.cc = cc;       // Set the MIDI control change
-  this.min = min;     // Set the MIDI ...
-  this.max = max;     // Set the MIDI ...
 };
 
 // MIDI object constructur
@@ -392,4 +327,28 @@ function Midi_touch(x_chan, x_cc, y_chan, y_cc, z_chan, z_cc) {
   this.y_cc = y_cc;       // Set the MIDI control change
   this.z_chan = z_chan;   // Set the MIDI channel
   this.z_cc = z_cc;       // Set the MIDI control change
+};
+
+// MIDI object constructur
+function Midi_touch(x_chan, x_cc, y_chan, y_cc, z_chan, z_cc) {
+  this.x_chan = x_chan;   // Set the MIDI channel
+  this.x_cc = x_cc;       // Set the MIDI control change
+  this.y_chan = y_chan;   // Set the MIDI channel
+  this.y_cc = y_cc;       // Set the MIDI control change
+  this.z_chan = z_chan;   // Set the MIDI channel
+  this.z_cc = z_cc;       // Set the MIDI control change
+};
+
+function Midi_knob(
+  t_chan, t_cc, t_min, t_max,
+  r_chan, r_cc, r_min, r_max
+  ) {
+  this.t_chan = t_chan;
+  this.t_cc = t_cc;
+  this.t_min = t_min;
+  this.t_max = t_max;
+  this.r_chan = r_chan;
+  this.r_cc = r_cc;
+  this.r_min = r_min;
+  this.r_max = r_max;
 };

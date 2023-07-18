@@ -9,12 +9,14 @@ let blobPath = [];
 let blobPathSmooth = [];
 
 function onBlobDown() {
-  let circle = new paper.Path.Circle({
-    center: [0, 0],
+  let blob_circle = new paper.Path.Circle({
+    center: [0, 0], // TODO! new paper.Point();
     radius: 10,
-    fillColor: "red"
   });
-  blobTouch.push(circle);
+  blob_circle.style = {
+    "fillColor": "red"
+  }
+  blobTouch.push(blob_circle);
   path = new paper.Path();
   path.strokeColor = "#00000";
   blobPath.push(path);

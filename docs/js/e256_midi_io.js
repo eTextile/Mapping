@@ -8,8 +8,17 @@ var MIDIInput = null;
 var MIDIoutput = null;
 var MIDI_device_connected = false;
 var fileType = null;
-var config = null;
 var confSize = 0;
+
+/*
+// MIDI struct
+function MidiMsg(status, channel, data1, data2) {
+  this.status = status;     // Set the MIDI status
+  this.channel = channel;   // Set the MIDI channel
+  this.data1 = data1;       // Set the MIDI note
+  this.data2 = data2;       // Set the MIDI velocity
+};
+*/
 
 async function MIDIrequest() {
   if (navigator.requestMIDIAccess) {
@@ -145,7 +154,7 @@ function onMIDIMessage(midiMsg) {
           }
           else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_ALLOC_DONE) {
             console.log("RECEIVED: " + VERBOSITY_CODES[value]);
-            sysex_upload(string_to_bytes(JSON.stringify(config))); // JSON serialization
+            sysex_upload(string_to_bytes(JSON.stringify(e256_config))); // JSON serialization
           }
           else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_LOAD_DONE) {
             console.log("RECEIVED: " + VERBOSITY_CODES[value]);
@@ -164,12 +173,10 @@ function onMIDIMessage(midiMsg) {
       switch (e256_current_mode) {
         case SYNC_MODE:
           console.log("RECEIVED: CONFIG_FILE");
-          // JSON deserialization
           var string = new TextDecoder().decode(midiMsg.data);
-          console.log(string);
-          var e256_jsonFile = string.slice(1, -1);
-          config = JSON.parse(e256_jsonFile);
-          //draw_controler_from_config(config);
+          var _conf_file = string.slice(1, -1);
+          let e256_json_conf = JSON.parse(_conf_file);
+          draw_controler_from_config(e256_json_conf);
           e256_current_mode = EDIT_MODE;
           break;
         case MATRIX_MODE_RAW:

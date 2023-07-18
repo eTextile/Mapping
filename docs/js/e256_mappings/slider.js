@@ -10,8 +10,6 @@ function sliderFactory() {
   const DEFAULT_SLIDER_HEIGHT = 450;
   const SLIDER_MIN_WIDTH = 20;
   const SLIDER_MIN_HEIGHT = 100;
-  const DEFAULT_SLIDER_MIN = 0;
-  const DEFAULT_SLIDER_MAX = 127;
 
   let frame_width = null;
   let frame_height = null;
@@ -23,7 +21,7 @@ function sliderFactory() {
   var slider_dir = null;
 
   var _slider = new paper.Group({
-    "name": "SLIDER",
+    "name": "slider",
     "value": null,
     "data": {
       "from": null,
@@ -42,23 +40,25 @@ function sliderFactory() {
         Math.round(mouseEvent.point.x + (DEFAULT_SLIDER_WIDTH / 2)),
         Math.round(mouseEvent.point.y + (DEFAULT_SLIDER_HEIGHT / 2))
       );
-      this.data.min = DEFAULT_SLIDER_MIN;
-      this.data.max = DEFAULT_SLIDER_MAX;
-      let _midiMsg = new Midi_slider(
+      this.data.min = DEFAULT_MIDI_MIN;
+      this.data.max = DEFAULT_MIDI_MAX;
+      this.data.midiMsg = new Midi_slider(
         DEFAULT_MIDI_CHANNEL,
         DEFAULT_MIDI_CC,
-        DEFAULT_SLIDER_MIN,
-        DEFAULT_SLIDER_MAX
+        DEFAULT_MIDI_MIN,
+        DEFAULT_MIDI_MAX
       );
-      this.data.midiMsg = _midiMsg;
     },
 
     setup_from_config: function (params) {
-      this.data.from = params.from;
-      this.data.to = params.to;
+      this.data.from = new paper.Point(params.from);
+      this.data.to = new paper.Point(params.to);
       this.data.min = params.min;
       this.data.max = params.max;
-      this.data.midiMsg = params.midiMsg;
+      this.data.midiMsg = new Midi_slider(
+        params.midiMsg.chan,
+        params.midiMsg.cc
+      );
     },
 
     save_params: function () {
@@ -117,7 +117,6 @@ function sliderFactory() {
         "name": "slider-handle",
         "from": new paper.Point(this.data.from.x, this.data.from.y + (DEFAULT_SLIDER_HEIGHT / 2)),
         "to": new paper.Point(this.data.to.x, this.data.from.y + (DEFAULT_SLIDER_HEIGHT / 2)),
-        //"locked": true
       });
       _handle.style = {
         "strokeWidth": 30,
@@ -129,7 +128,7 @@ function sliderFactory() {
     },
 
     onMouseEnter: function (mouseEvent) {
-      var mouse_enter_options = {
+      let mouse_enter_options = {
         "stroke": true,
         "bounds": true,
         "fill": true,
@@ -139,7 +138,7 @@ function sliderFactory() {
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (tmp_select) {
-            if (tmp_select.item.name === "SLIDER") {
+            if (tmp_select.item.name === "slider") {
               highlight_item = tmp_select.item.firstChild;
             }
             else if (tmp_select.item.name === "slider-group" || tmp_select.item.name === "handle-group") {
@@ -177,7 +176,7 @@ function sliderFactory() {
 
     onMouseDown: function (mouseEvent) {
       this.bringToFront();
-      var mouse_down_options = {
+      let mouse_down_options = {
         "stroke": false,
         "bounds": true,
         "fill": true,
@@ -191,7 +190,7 @@ function sliderFactory() {
         previous_item = current_item;
         previous_part = current_part;
 
-        if (tmp_select.item.name === "SLIDER") {
+        if (tmp_select.item.name === "slider") {
           current_item = tmp_select.item.firstChild;
           current_part = tmp_select;
         }

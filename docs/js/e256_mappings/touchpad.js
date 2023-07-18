@@ -11,8 +11,6 @@ function touchpadFactory() {
   const DEFAULT_PAD_MARGIN = 35;
   const DEFAULT_PAD_SIZE_MIN = 30;
   const DEFAULT_PAD_TOUCH = 3;
-  const DEFAULT_PAD_MIN = 0;
-  const DEFAULT_PAD_MAX = 127;
 
   let frame_width = null;
   let frame_height = null;
@@ -22,7 +20,7 @@ function touchpadFactory() {
   let current_part = null;
 
   var _touchpad = new paper.Group({
-    name: "TOUCHPAD",
+    name: "touchpad",
     data: {
       "from": null,
       "to": null,
@@ -42,8 +40,8 @@ function touchpadFactory() {
         Math.round(mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2))
       );
       this.data.touch = DEFAULT_PAD_TOUCH;
-      this.data.min = DEFAULT_PAD_MIN;
-      this.data.max = DEFAULT_PAD_MAX;
+      this.data.min = DEFAULT_MIDI_MIN;
+      this.data.max = DEFAULT_MIDI_MAX;
 
       this.data.midiMsg = [];
       for (let _touch = 0; _touch < DEFAULT_PAD_TOUCH; _touch++) {
@@ -67,8 +65,14 @@ function touchpadFactory() {
       this.data.max = params.max;
       this.data.midiMsg = [];
       for (const _key in params.keys) {
-        let midiMsg = new Midi_touch;
-        midiMsg = _key;
+        let midiMsg = new Midi_touch(
+          _key.x_chan,
+          _key.x_cc,
+          _key.y_chan,
+          _key.y_cc,
+          _key.z_chan,
+          _key.z_cc
+        );
         this.data.midiMsg.push(midiMsg);
       }
     },
@@ -82,13 +86,12 @@ function touchpadFactory() {
       this.data.midiMsg = [];
       for (const _grid_key of this.children["touchs-group"].children) {
         this.data.midiMsg.push(_grid_key.data.midiMsg);
-        //console.log("SAVE: " + JSON.stringify(_grid_key.data.midiMsg));
       }
     },
 
     newTouch: function (_touch_index) {
       //console.log("INDEX: " + index);
-      var _touch_group = new paper.Group({
+      let _touch_group = new paper.Group({
         "name": "touch-group",
         "index": _touch_index,
         "pos": new paper.Point(
@@ -107,7 +110,7 @@ function touchpadFactory() {
           }
         }
       });
-      var _circle = new paper.Path.Circle({
+      let _circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": _touch_group.pos,
         "radius": 15
@@ -117,7 +120,7 @@ function touchpadFactory() {
       };
       _touch_group.addChild(_circle);
 
-      var _line_x = new paper.Path.Line({
+      let _line_x = new paper.Path.Line({
         "name": "touch-line-x",
         "from": new paper.Point(this.data.from.x, _touch_group.pos.y),
         "to": new paper.Point(this.data.to.x, _touch_group.pos.y),
@@ -129,7 +132,7 @@ function touchpadFactory() {
       }
       _touch_group.addChild(_line_x);
 
-      var _line_y = new paper.Path.Line({
+      let _line_y = new paper.Path.Line({
         "name": "touch-line-y",
         "from": new paper.Point(_touch_group.pos.x, this.data.from.y),
         "to": new paper.Point(_touch_group.pos.x, this.data.to.y),
@@ -140,7 +143,7 @@ function touchpadFactory() {
         "strokeColor": "black"
       };
       _touch_group.addChild(_line_y);
-      _touch_group.firstChild.bringToFront();
+
       return _touch_group;
     },
 
@@ -148,7 +151,7 @@ function touchpadFactory() {
       frame_width = this.data.to.x - this.data.from.x;
       frame_height = this.data.to.y - this.data.from.y;
 
-      var _pad_group = new paper.Group({
+      let _pad_group = new paper.Group({
         name: "pad-group",
         data: {
           "from": this.data.from,
@@ -166,7 +169,7 @@ function touchpadFactory() {
         }
       });
 
-      var _pad_frame = new paper.Path.Rectangle({
+      let _pad_frame = new paper.Path.Rectangle({
         "name": "pad-frame",
         "from": this.data.from,
         "to": this.data.to
@@ -180,7 +183,7 @@ function touchpadFactory() {
       _pad_group.addChild(_pad_frame);
       this.addChild(_pad_group);
 
-      var _touchs_group = new paper.Group({
+      let _touchs_group = new paper.Group({
         "name": "touchs-group"
       });
       for (let _touch = 0; _touch < this.data.touch; _touch++) {
@@ -191,17 +194,18 @@ function touchpadFactory() {
     },
 
     onMouseEnter: function (mouseEvent) {
-      var mouse_enter_options = {
+      let mouse_enter_options = {
         "stroke": true,
         "bounds": true,
         "fill": true,
         "tolerance": 8
       }
+
       tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (tmp_select) {
-            if (tmp_select.item.name === "TOUCHPAD") {
+            if (tmp_select.item.name === "touchpad") {
               highlight_item = tmp_select.item.firstChild;
             }
             else if (tmp_select.item.name === "pad-group" || tmp_select.item.name === "touch-group") {
@@ -238,10 +242,8 @@ function touchpadFactory() {
     },
 
     onMouseDown: function (mouseEvent) {
-
       this.bringToFront();
-
-      var mouse_down_options = {
+      let mouse_down_options = {
         "stroke": false,
         "bounds": true,
         "fill": true,
@@ -259,7 +261,7 @@ function touchpadFactory() {
         previous_item = current_item;
         previous_part = current_part;
 
-        if (tmp_select.item.name === "TOUCHPAD") {
+        if (tmp_select.item.name === "touchpad") {
           current_item = tmp_select.item.firstChild;
           current_part = tmp_select;
         }

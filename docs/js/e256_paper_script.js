@@ -43,12 +43,12 @@ function paperInit() {
   paper.settings.handleSize = 15;
   //paper.settings.selectionLineWidth = 20; // FIXME!
 
-  new paper.Layer({ project: paper.project, name: "Switchs", insert: true });
-  new paper.Layer({ project: paper.project, name: "Sliders", insert: true });
-  new paper.Layer({ project: paper.project, name: "Knobs", insert: true });
-  new paper.Layer({ project: paper.project, name: "Touchpads", insert: true });
-  new paper.Layer({ project: paper.project, name: "Grids", insert: true });
-  new paper.Layer({ project: paper.project, name: "Paths", insert: true });
+  new paper.Layer({ project: paper.project, name: "switch", insert: true });
+  new paper.Layer({ project: paper.project, name: "slider", insert: true });
+  new paper.Layer({ project: paper.project, name: "knob", insert: true });
+  new paper.Layer({ project: paper.project, name: "touchpad", insert: true });
+  new paper.Layer({ project: paper.project, name: "grid", insert: true });
+  new paper.Layer({ project: paper.project, name: "path", insert: true });
 
   var paperTool = new paper.Tool();
 
@@ -63,7 +63,7 @@ function paperInit() {
 
           if (!hitResult) {
             previous_controleur = current_controleur;
-            paper.project.layers[E256_LAYERS[e256_draw_mode]].activate();
+            paper.project.layers[e256_draw_mode].activate();
             current_controleur = draw_controler_from_mouse(mouseEvent);
             item_menu_params(previous_controleur, "hide"); // if (previous_controleur != null)
             item_menu_params(previous_item, "hide");  // if (previous_item != null)
@@ -141,21 +141,40 @@ function paperInit() {
   }
 
   function draw_controler_from_mouse(mouseEvent) {
-    let ctl = controleur_factory(e256_draw_mode);
-    ctl.setup_from_mouse_event(mouseEvent);
-    ctl.create();
-    return ctl;
+    let _ctl = controleur_factory(e256_draw_mode);
+    _ctl.setup_from_mouse_event(mouseEvent);
+    _ctl.create();
+    return _ctl;
   }
 
   function draw_controler_from_config(configFile) {
-    let ctl = null;
-    clearLayers();
-    for (const ctl_type in configFile.mappings) {
-      paper.project.layers[E256_LAYERS[ctl_type]].activate();
-      for (const ctl_conf in ctl_type) {
-        ctl = controleur_factory(ctl_conf);
-        ctl.setup_from_config(ctl_type[ctl_conf]);
-        ctl.create();
+    let _ctl = null;
+
+    // Clear al meunu params
+    for (const layer of paper.project.layers) {
+      if (layer.hasChildren()) {
+        for (item of layer.children) {
+          item_remove_menu_params(item);
+        }
+      }
+    }
+    // Clear all layers
+    for (const layer of paper.project.layers) {
+      if (layer.hasChildren()) {
+        layer.removeChildren();
+      }
+    }
+
+    for (const _ctl_type in configFile.mappings) {
+      paper.project.layers[_ctl_type].activate();
+      for (const _ctl_conf of configFile.mappings[_ctl_type]) {
+        _ctl = controleur_factory(_ctl_type);
+        _ctl.setup_from_config(_ctl_conf);
+        _ctl.create();
+        //testing
+        item_create_menu_params(_ctl);
+        update_menu_params(_ctl);
+        item_menu_params(_ctl, "hide");
       }
     }
   }
@@ -163,39 +182,26 @@ function paperInit() {
   function controleur_factory(item_type) {
     var controleur = null;
     switch (item_type) {
-      case "SWITCH":
+      case "switch":
         controleur = switchFactory();
         break;
-      case "SLIDER":
+      case "slider":
         controleur = sliderFactory();
         break;
-      case "KNOB":
+      case "knob":
         controleur = knobFactory();
         break;
-      case "TOUCHPAD":
+      case "touchpad":
         controleur = touchpadFactory();
         break;
-      case "GRID":
+      case "grid":
         controleur = gridFactory();
         break;
-      case "PATH":
+      case "path":
         controleur = pathFactory();
         break;
     }
     return controleur;
-  }
-
-  // Not tested!
-  function clearLayers() {
-    for (const layer in paper.project.layers) {
-      clearLayer(paper.project.layers[layer]);
-    }
-  }
-
-  function clearLayer(layer) {
-    if (layer.hasChildren()) {
-      layer.removeChildren();
-    }
   }
 
   // FIXME: whenever the view is resized
@@ -211,10 +217,9 @@ function paperInit() {
   }
 
   function onReaderLoad(event) {
-    config = JSON.parse(event.target.result);
-    confSize = Object.keys(JSON.stringify(config)).length;
-    clearLayers();
-    draw_controler_from_config(config);
+    let config_import = JSON.parse(event.target.result);
+    confSize = Object.keys(JSON.stringify(config_import)).length;
+    draw_controler_from_config(config_import);
   }
 
   function loadFile(event) {

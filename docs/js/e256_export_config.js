@@ -4,33 +4,24 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var e256_JSONconfig = ({}); // empty JSON declaration
+var e256_config = ({}); // empty JSON declaration
 
 function e256_exportParams() {
-  e256_JSONconfig["mappings"] = {};
-  e256_JSONconfig["mappings"]["grids"] = listLayerParams("GRID");
-  e256_JSONconfig["mappings"]["touchpads"] = listLayerParams("TOUCHPAD");
-  e256_JSONconfig["mappings"]["sliders"] = listLayerParams("SLIDER");
-  e256_JSONconfig["mappings"]["switchs"] = listLayerParams("SWITCH");
-  e256_JSONconfig["mappings"]["knobs"] = listLayerParams("KNOB");
-  e256_JSONconfig["mappings"]["paths"] = listLayerParams("PATH");
-
-  console.log(JSON.stringify(e256_JSONconfig));
+  e256_config["mappings"] = {};
+  for (const layer of paper.project.layers) {
+    if (layer.hasChildren()) {
+      e256_config["mappings"][layer.name] = listLayerParams(layer);
+    }
+  }
 }
 
-function listLayerParams(itemName) {
-
+function listLayerParams(layer) {
   var e256_params = [];
-  var items = paper.project.getItems({
-    "name": itemName
-  });
-
-  for (const item of items) {
-
+  
+  for (const item of layer.children) {
     item.save_params();
-
     switch (item.name) {
-      case "GRID":
+      case "grid":
         let grid_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
@@ -43,7 +34,7 @@ function listLayerParams(itemName) {
         e256_params.push(grid_params);
         break;
 
-      case "TOUCHPAD":
+      case "touchpad":
         let touchpad_params = {};
         for (const param in item.data) {
           console.log("PARAM: " + param);
@@ -58,28 +49,26 @@ function listLayerParams(itemName) {
         e256_params.push(touchpad_params);
         break;
 
-        case "SLIDER":
-          delete item.value;
-          let slider_params = {};
-          for (const param in item.data) {
-            if (param === "from" || param === "to") {
+      case "slider":
+        let slider_params = {};
+        for (const param in item.data) {
+          if (param === "from" || param === "to") {
             // TODO: mapping with matrix size!
             slider_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
-            }
-            else {
-              slider_params[param] = item.data[param];
-            }
           }
-          e256_params.push(slider_params);
-          break;
+          else {
+            slider_params[param] = item.data[param];
+          }
+        }
+        e256_params.push(slider_params);
+        break;
 
-      case "SWITCH":
-        delete item.value;
+      case "switch":
         let switch_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
             // TODO: mapping with matrix size!
-            switch_params[param] =  [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            switch_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
           }
           else {
             switch_params[param] = item.data[param];
@@ -88,26 +77,34 @@ function listLayerParams(itemName) {
         e256_params.push(switch_params);
         break;
 
-      case "KNOB":
-        delete item_copy.data.type;
-        delete item_copy.data.theta_val;
-        delete item_copy.data.radius_val;
-        for (const param in item_copy.data) {
-          item_copy.data[param] = parseInt(item_copy.data[param]);
+      case "knob":
+        let knob_params = {};
+        for (const param in item.data) {
+          if (param === "from" || param === "to") {
+            // TODO: mapping with matrix size!
+            knob_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+          }
+          else {
+            knob_params[param] = item.data[param];
+          }
         }
-        e256_params.push(item_copy.data);
+        e256_params.push(knob_params);
         break;
 
-      case "PATH":
-        delete item_copy.data.type;
-        delete item_copy.data.value;
-        e256_params.push(item_copy.data);
+      case "path":
+        let path_params = {};
+        for (const param in item.data) {
+          path_params.data[param] = parseInt(item.data[param]);
+        }
+        e256_params.push(path_params);
         break;
 
-      case "POLYGON":
-        delete item_copy.data.type;
-        delete item_copy.data.value;
-        e256_params.push(item_copy.data);
+      case "polygon":
+        let polygon_params = {};
+        for (const param in item.data) {
+          polygon_params.data[param] = parseInt(item.data[param]);
+        }
+        e256_params.push(polygon_params);
         break;
     }
   }

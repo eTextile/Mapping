@@ -153,37 +153,25 @@ const ERROR_CODES_2 = [
 const H_SLIDER = 0;
 const V_SLIDER = 1;
 
-// This hill be removed!
-const SELECT_ON = 0;
-const SELECT_OFF = 1;
-const MOUSE_OVER = 2;
-const MOUSE_LEAVE = 3;
-
-// VERBOSITY MODES CONSTANTS
-const E256_LAYERS = {
-  "TRIGGER": 0, // ob·so·let!
-  "SWITCH": 1,
-  "SLIDER": 2,
-  "KNOB": 3,
-  "TOUCHPAD": 4,
-  "GRID": 5,
-  "PATH": 6
-};
-
 const KEY_TRIGGER = "TRIGGER";
 const KEY_TOGGLE = "TOGGLE";
+const KEY_OMNI = "OMNI";
 
 const KEY_MODE = [
   KEY_TRIGGER,
-  KEY_TOGGLE
+  KEY_TOGGLE,
+  KEY_OMNI
 ];
 
 const MIDI_CHANNEL = [];
 const MIDI_CCHANGE = [];
-const MIDI_TOUCH = [];
 for (let index = 1; index<16; index++){
   MIDI_CHANNEL.push(index);
   MIDI_CCHANGE.push(index);
+};
+
+const MIDI_TOUCH = [];
+for (let index = 1; index<11; index++){
   MIDI_TOUCH.push(index);
 };
 
@@ -194,24 +182,34 @@ for (let index = 0; index<128; index++){
   MIDI_VELOCITY.push(index);
 };
 
-const MAPING_TYPES = {
+const MAPING_MENU = {
   "mode": KEY_MODE,
   "chan": MIDI_CHANNEL,
   "note": MIDI_NOTES,
   "velo": MIDI_VELOCITY,
   "cc": MIDI_CCHANGE,
   "touch": MIDI_TOUCH,
-  "min": MIDI_NOTES, // renaming!
-  "max": MIDI_NOTES, // renaming!
+  "min": MIDI_NOTES, // renaming!?
+  "max": MIDI_NOTES, // renaming!?
   "x_chan": MIDI_CHANNEL,
   "x_cc": MIDI_CCHANGE,
   "y_chan": MIDI_CHANNEL,
   "y_cc": MIDI_CCHANGE,
   "z_chan": MIDI_CHANNEL,
-  "z_cc": MIDI_CCHANGE
+  "z_cc": MIDI_CCHANGE,
+  "t_chan": MIDI_CHANNEL,
+  "t_cc": MIDI_CCHANGE,
+  "t_min": MIDI_NOTES, // renaming!?
+  "t_max": MIDI_NOTES, // renaming!?
+  "r_chan": MIDI_CHANNEL,
+  "r_cc": MIDI_CCHANGE,
+  "r_min": MIDI_NOTES, // renaming!?
+  "r_max": MIDI_NOTES // renaming!?
 };
 
 const DEFAULT_MIDI_CHANNEL = 1;
 const DEFAULT_MIDI_NOTE = 64;
 const DEFAULT_MIDI_VELOCITY = 127;
 const DEFAULT_MIDI_CC = 23;
+const DEFAULT_MIDI_MIN = 0;
+const DEFAULT_MIDI_MAX = 127;

@@ -27,7 +27,7 @@ function gridFactory() {
   let current_part = null;
 
   var _Grid = new paper.Group({
-    "name": "GRID",
+    "name": "grid",
     "data": {
       "from": null,
       "to": null,
@@ -67,8 +67,8 @@ function gridFactory() {
     },
 
     setup_from_config: function (params) {
-      this.data.from = new paper.Point(params.from.x, params.from.y);
-      this.data.to = new paper.Point(params.to.x, params.to.y);
+      this.data.from = new paper.Point(params.from);
+      this.data.to = new paper.Point(params.to);
       this.data.cols = params.cols;
       this.data.rows = params.rows;
       this.data.mode = params.mode;
@@ -76,8 +76,11 @@ function gridFactory() {
       this.data.aftertouch = params.aftertouch;
       this.data.midiMsg = [];
       for (const _grid_key in params.keys) {
-        let midiMsg = new Midi_key;
-        midiMsg = _grid_key;
+        let midiMsg = new Midi_key(
+          _grid_key.chan,
+          _grid_key.note,
+          _grid_key.velo
+        );
         this.data.midiMsg.push(midiMsg);
       }
     },
@@ -90,12 +93,10 @@ function gridFactory() {
       this.data.mode = this.children["grid-group"].data.mode;
       this.data.velocity = this.children["grid-group"].data.velocity;
       this.data.aftertouch = this.children["grid-group"].data.aftertouch;
-
       this.data.midiMsg = [];
       for (const _grid_key of this.children["keys-group"].children) {
         this.data.midiMsg.push(_grid_key.data.midiMsg);
       }
-    
     },
 
     new_key: function (index_x, index_y) {
@@ -153,7 +154,7 @@ function gridFactory() {
       key_width = frame_width / this.data.cols;
       key_height = frame_height / this.data.rows;
 
-      var _grid_group = new paper.Group({
+      let _grid_group = new paper.Group({
         "name": "grid-group",
         "data": {
           "from": this.data.from,
@@ -175,7 +176,7 @@ function gridFactory() {
         }
       });
 
-      var _grid_frame = new paper.Path.Rectangle({
+      let _grid_frame = new paper.Path.Rectangle({
         "name": "grid-frame",
         "from": _grid_group.data.from,
         "to": _grid_group.data.to
@@ -187,15 +188,8 @@ function gridFactory() {
       _grid_group.addChild(_grid_frame);
       this.addChild(_grid_group);
 
-      var _keys_group = new paper.Group({
+      let _keys_group = new paper.Group({
         "name": "keys-group"
-        /*
-        "form_style": {
-          "chan": "form-select",
-          "note": "form-select",
-          "velo": "form-select"
-        }
-        */
       });
 
       for (let index_y = 0; index_y < this.data.rows; index_y++) {
@@ -208,7 +202,7 @@ function gridFactory() {
     },
 
     onMouseEnter: function (mouseEvent) {
-      var mouse_enter_options = {
+      let mouse_enter_options = {
         "stroke": true,
         "bounds": true,
         "fill": true,
@@ -218,7 +212,7 @@ function gridFactory() {
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (tmp_select) {
-            if (tmp_select.item.name === "GRID") {
+            if (tmp_select.item.name === "grid") {
               highlight_item = tmp_select.item.firstChild;
             }
             else if (tmp_select.item.name === "grid-group" || tmp_select.item.name === "key-group") {
@@ -258,7 +252,7 @@ function gridFactory() {
 
       this.bringToFront();
 
-      var mouse_down_options = {
+      let mouse_down_options = {
         "stroke": false,
         "bounds": true,
         "fill": true,
@@ -273,7 +267,7 @@ function gridFactory() {
         previous_item = current_item;
         previous_part = current_part;
 
-        if (tmp_select.item.name === "GRID") {
+        if (tmp_select.item.name === "grid") {
           current_item = tmp_select.item.firstChild;
           current_part = tmp_select;
         }

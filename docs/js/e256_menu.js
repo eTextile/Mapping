@@ -89,10 +89,10 @@ $("#uploadConfig").click(function () {
 });
 
 $("#saveConfig").click(function () {
-  if (MIDI_device_connected) {
-    // TODO
-  } else {
-  }
+    e256_exportParams();
+    console.log(JSON.stringify(e256_config));
+    var file = new File([JSON.stringify(e256_config)], {type: "text/plain;charset=utf-8"});
+    saveAs(file, "e256_mapping.json");
 });
 
 $(".mapingTool").click(function (event) {
