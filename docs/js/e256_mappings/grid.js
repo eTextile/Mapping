@@ -319,7 +319,7 @@ function gridFactory() {
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (current_part.type === "fill") {
-            moveItem(this, mouseEvent);
+            move_item(this, mouseEvent);
           }
           else if (current_part.type === "bounds") {
             let newPos = new paper.Point();

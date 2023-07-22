@@ -32,12 +32,12 @@ function touchpadFactory() {
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.from = new paper.Point(
-        Math.round(mouseEvent.point.x - (DEFAULT_PAD_WIDTH / 2)),
-        Math.round(mouseEvent.point.y - (DEFAULT_PAD_HEIGHT / 2))
+        mouseEvent.point.x - (DEFAULT_PAD_WIDTH / 2),
+        mouseEvent.point.y - (DEFAULT_PAD_HEIGHT / 2)
       );
       this.data.to = new paper.Point(
-        Math.round(mouseEvent.point.x + (DEFAULT_PAD_WIDTH / 2)),
-        Math.round(mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2))
+        mouseEvent.point.x + (DEFAULT_PAD_WIDTH / 2),
+        mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2)
       );
       this.data.touch = DEFAULT_PAD_TOUCH;
       this.data.min = DEFAULT_MIDI_MIN;
@@ -95,8 +95,8 @@ function touchpadFactory() {
         "name": "touch-group",
         "index": _touch_index,
         "pos": new paper.Point(
-          getRandomInt(this.data.from.x + DEFAULT_PAD_MARGIN, this.data.to.x - DEFAULT_PAD_MARGIN),
-          getRandomInt(this.data.from.y + DEFAULT_PAD_MARGIN, this.data.to.y - DEFAULT_PAD_MARGIN)
+          get_random_int(this.data.from.x + DEFAULT_PAD_MARGIN, this.data.to.x - DEFAULT_PAD_MARGIN),
+          get_random_int(this.data.from.y + DEFAULT_PAD_MARGIN, this.data.to.y - DEFAULT_PAD_MARGIN)
         ),
         "data": {
           "midiMsg": this.data.midiMsg[_touch_index],
@@ -252,7 +252,7 @@ function touchpadFactory() {
 
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
 
-      console.log(tmp_select.item.name);
+      //console.log(tmp_select.item.name); // PROB!
 
       if (tmp_select) {
         previous_controleur = current_controleur; // DONE in paper_script.js
@@ -315,7 +315,7 @@ function touchpadFactory() {
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (current_part.type === "fill") {
-            moveItem(this, mouseEvent);
+            move_item(this, mouseEvent);
           }
           else if (current_part.type === "bounds") {
             let newSize = new paper.Point();
@@ -341,7 +341,7 @@ function touchpadFactory() {
                     touch.children["touch-line-x"].position.y = newPos.y;
                     touch.children["touch-line-y"].position.x = newPos.x;
                   }
-                  this.children["pad-group"].data.from = new paper.Point(Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y));
+                  this.children["pad-group"].data.from = new paper.Point(mouseEvent.point.x, mouseEvent.point.y);
                   break;
                 case "top-right":
                   this.children["pad-group"].children["pad-frame"].segments[1].point.y = mouseEvent.point.y;
@@ -362,8 +362,8 @@ function touchpadFactory() {
                     touch.children["touch-line-x"].position.y = newPos.y;
                     touch.children["touch-line-y"].position.x = newPos.x;
                   }
-                  this.children["pad-group"].data.from.y = Math.round(mouseEvent.point.y);
-                  this.children["pad-group"].data.to.x = Math.round(mouseEvent.point.x);
+                  this.children["pad-group"].data.from.y = mouseEvent.point.y;
+                  this.children["pad-group"].data.to.x = mouseEvent.point.x;
                   break;
                 case "bottom-right":
                   this.children["pad-group"].children["pad-frame"].segments[2].point.x = mouseEvent.point.x;
@@ -384,7 +384,7 @@ function touchpadFactory() {
                     touch.children["touch-line-x"].position.y = newPos.y;
                     touch.children["touch-line-y"].position.x = newPos.x;
                   }
-                  this.children["pad-group"].data.to = new paper.Point(Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y));
+                  this.children["pad-group"].data.to = new paper.Point(mouseEvent.point.x, mouseEvent.point.y);
                   break;
                 case "bottom-left":
                   this.children["pad-group"].children["pad-frame"].segments[3].point.y = mouseEvent.point.y;
@@ -405,8 +405,8 @@ function touchpadFactory() {
                     touch.children["touch-line-x"].position.y = newPos.y;
                     touch.children["touch-line-y"].position.x = newPos.x;
                   }
-                  this.children["pad-group"].data.from.x = Math.round(mouseEvent.point.x);
-                  this.children["pad-group"].data.to.y = Math.round(mouseEvent.point.y);
+                  this.children["pad-group"].data.from.x = mouseEvent.point.x;
+                  this.children["pad-group"].data.to.y = mouseEvent.point.y;
                   break;
                 default:
                   console.log("PART_NOT_USE: " + current_part.name);

@@ -24,11 +24,6 @@ var previous_item = null;
 
 function paperInit() {
 
-  //current_controleur = new paper.Item({ name: null });
-  //previous_controleur = new paper.Item({ name: null });
-  //current_item = new paper.Item({ name: null });
-  //previous_item = new paper.Item({ name: null });
-
   console.log("BOOTSTRAP_VERSION: " + bootstrap.Tooltip.VERSION);
   console.log("JQUERY_VERSION: " + jQuery().jquery);
   
@@ -60,7 +55,6 @@ function paperInit() {
     switch (e256_current_mode) {
       case EDIT_MODE:
         if (e256_draw_mode) {
-
           if (!hitResult) {
             previous_controleur = current_controleur;
             paper.project.layers[e256_draw_mode].activate();

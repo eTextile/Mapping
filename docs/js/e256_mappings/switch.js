@@ -267,7 +267,7 @@ function switchFactory() {
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (current_part.type === "fill") {
-            moveItem(this, mouseEvent);
+            move_item(this, mouseEvent);
           }
           else if (current_part.type === "bounds") {
             if (current_item.name === "switch-group") {

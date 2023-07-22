@@ -213,3 +213,50 @@ const DEFAULT_MIDI_VELOCITY = 127;
 const DEFAULT_MIDI_CC = 23;
 const DEFAULT_MIDI_MIN = 0;
 const DEFAULT_MIDI_MAX = 127;
+
+// MIDI object constructur
+function Midi_key(chan, note, velo) {
+  this.chan = chan;   // Set the MIDI channel
+  this.note = note;   // Set the MIDI note
+  this.velo = velo;   // Set the MIDI velocinnty
+};
+
+// MIDI object constructur
+function Midi_slider(chan, cc, min, max) {
+  this.chan = chan;   // Set the MIDI channel
+  this.cc = cc;       // Set the MIDI control change
+};
+
+// MIDI object constructur
+function Midi_touch(x_chan, x_cc, y_chan, y_cc, z_chan, z_cc) {
+  this.x_chan = x_chan;   // Set the MIDI channel
+  this.x_cc = x_cc;       // Set the MIDI control change
+  this.y_chan = y_chan;   // Set the MIDI channel
+  this.y_cc = y_cc;       // Set the MIDI control change
+  this.z_chan = z_chan;   // Set the MIDI channel
+  this.z_cc = z_cc;       // Set the MIDI control change
+};
+
+// MIDI object constructur
+function Midi_touch(x_chan, x_cc, y_chan, y_cc, z_chan, z_cc) {
+  this.x_chan = x_chan;   // Set the MIDI channel
+  this.x_cc = x_cc;       // Set the MIDI control change
+  this.y_chan = y_chan;   // Set the MIDI channel
+  this.y_cc = y_cc;       // Set the MIDI control change
+  this.z_chan = z_chan;   // Set the MIDI channel
+  this.z_cc = z_cc;       // Set the MIDI control change
+};
+
+function Midi_knob(
+  t_chan, t_cc, t_min, t_max,
+  r_chan, r_cc, r_min, r_max
+  ) {
+  this.t_chan = t_chan;
+  this.t_cc = t_cc;
+  this.t_min = t_min;
+  this.t_max = t_max;
+  this.r_chan = r_chan;
+  this.r_cc = r_cc;
+  this.r_min = r_min;
+  this.r_max = r_max;
+};

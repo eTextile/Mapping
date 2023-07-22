@@ -7,7 +7,7 @@
 /////////// KNOB Factory
 function knobFactory() {
   const DEFAULT_KNOB_SIZE = 500;
-  const DEFAULT_KNOB_OFFSET = -45;
+  const DEFAULT_KNOB_OFFSET = -45; // In deg
   const DEFAULT_KNOB_TOUCH = 2;
   const KNOB_MIN_SIZE = 30;
 
@@ -34,12 +34,12 @@ function knobFactory() {
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.from = new paper.Point(
-        Math.round(mouseEvent.point.x - (DEFAULT_KNOB_SIZE / 2)),
-        Math.round(mouseEvent.point.y - (DEFAULT_KNOB_SIZE / 2))
+        mouseEvent.point.x - (DEFAULT_KNOB_SIZE / 2),
+        mouseEvent.point.y - (DEFAULT_KNOB_SIZE / 2)
       );
       this.data.to = new paper.Point(
-        Math.round(mouseEvent.point.x + (DEFAULT_KNOB_SIZE / 2)),
-        Math.round(mouseEvent.point.y + (DEFAULT_KNOB_SIZE / 2))
+        mouseEvent.point.x + (DEFAULT_KNOB_SIZE / 2),
+        mouseEvent.point.y + (DEFAULT_KNOB_SIZE / 2)
       );
       this.data.touch = DEFAULT_KNOB_TOUCH;
       this.data.offset = DEFAULT_KNOB_OFFSET;
@@ -90,90 +90,14 @@ function knobFactory() {
       }
     },
 
-    create: function () {
-
-      _knob_radius = (this.data.to.x - this.data.from.x) / 2;
-      _knob_center = new paper.Point(
-        this.data.from.x + _knob_radius,
-        this.data.from.y + _knob_radius
-      );
-
-      let _knob_group = new paper.Group({
-        "name": "knob-group",
-        "data": {
-          "from": this.data.from,
-          "to": this.data.to,
-          "touch": this.data.touch,
-          "offset": this.data.offset,
-          "form_style": {
-            "from": "form-control",
-            "to": "form-control",
-            "touch": "form-select",
-            "offset": "form-control"
-          }
-        }
-      });
-
-      let _knob_frame = new paper.Path.Rectangle({
-        "name": "knob-frame",
-        "from": this.data.from,
-        "to": this.data.to
-      });
-      _knob_frame.style = {
-        "strokeWidth": 1,
-        "strokeColor": "black",
-        "fillColor": "white"
-      }
-      _knob_group.addChild(_knob_frame);
-
-      let _knob_circle = new paper.Shape.Circle({
-        "name": "knob-circle",
-        "center": _knob_center,
-        "radius": _knob_radius
-      });
-      _knob_circle.style = {
-        "strokeWidth": 6,
-        "strokeColor": "chartreuse",
-        "fillColor": "springGreen"
-      }
-      _knob_group.addChild(_knob_circle);
-
-      let _knob_offset = new paper.Path.RegularPolygon({
-        "name": "knob-offset",
-        "center": new paper.Point(
-          _knob_center.x + pol_to_cart(_knob_radius, deg_to_rad(getRandomInt(0, 360))).x,
-          _knob_center.y + pol_to_cart(_knob_radius, deg_to_rad(getRandomInt(0, 360))).y
-        ),
-        "sides": 3,
-        "size": 20
-      });
-      _knob_offset.style = {
-        "fillColor": "red",
-      }
-      _knob_group.addChild(_knob_offset);
-
-      this.addChild(_knob_group);
-
-      let _touchs_group = new paper.Group({
-        "name": "touchs-group"
-      });
-
-      for (let _touch = 0; _touch < this.data.touch; _touch++) {
-        _touchs_group.addChild(this.newTouch(_touch));
-      }
-      this.addChild(_touchs_group);
-    },
-
-    newTouch: function (_touch_index) {
-
-      let _teta = pol_to_cart(_knob_radius, deg_to_rad(getRandomInt(0, 360)));
-
+    new_touch: function (_touch_index) {
+      let _knob_target_theta = pol_to_cart(get_random_int(10, _knob_radius), deg_to_rad(get_random_int(0, 360)));
       let _touch_group = new paper.Group({
         "name": "touch-group",
         "index": _touch_index,
         "target": new paper.Point(
-          _knob_center.x + _teta.x,
-          _knob_center.y + _teta.y
+          _knob_center.x + _knob_target_theta.x,
+          _knob_center.y + _knob_target_theta.y
         ),
         "data": {
           "midiMsg": this.data.midiMsg[_touch_index],
@@ -217,6 +141,77 @@ function knobFactory() {
       return _touch_group;
     },
 
+    create: function () {
+      _knob_radius = (this.data.to.x - this.data.from.x) / 2;
+      _knob_center = new paper.Point(
+        this.data.from.x + _knob_radius,
+        this.data.from.y + _knob_radius
+      );
+
+      let _knob_group = new paper.Group({
+        "name": "knob-group",
+        "data": {
+          "from": this.data.from,
+          "to": this.data.to,
+          "touch": this.data.touch,
+          "offset": this.data.offset,
+          "form_style": {
+            "from": "form-control",
+            "to": "form-control",
+            "touch": "form-select",
+            "offset": "form-control"
+          }
+        }
+      });
+
+      let _knob_frame = new paper.Path.Rectangle({
+        "name": "knob-frame",
+        "from": this.data.from,
+        "to": this.data.to
+      });
+      _knob_frame.style = {
+        "strokeWidth": 1,
+        "strokeColor": "black",
+        "fillColor": "white"
+      }
+      _knob_group.addChild(_knob_frame);
+
+      let _knob_circle = new paper.Shape.Circle({
+        "name": "knob-circle",
+        "center": _knob_center,
+        "radius": _knob_radius
+      });
+      _knob_circle.style = {
+        "fillColor": "chartreuse"
+      }
+      _knob_group.addChild(_knob_circle);
+
+      let _knob_offset_theta = pol_to_cart(_knob_radius, deg_to_rad(_knob_group.data.offset));
+
+      let _knob_offset = new paper.Shape.Circle({
+        "name": "knob-offset",
+        "center": new paper.Point(
+          _knob_center.x + _knob_offset_theta.x,
+          _knob_center.y + _knob_offset_theta.y
+        ),
+        "radius": 20
+      });
+      _knob_offset.style = {
+        "fillColor": "red"
+      }
+      _knob_group.addChild(_knob_offset);
+
+      this.addChild(_knob_group);
+
+      let _touchs_group = new paper.Group({
+        "name": "touchs-group"
+      });
+
+      for (let _touch = 0; _touch < this.data.touch; _touch++) {
+        _touchs_group.addChild(this.new_touch(_touch));
+      }
+      this.addChild(_touchs_group);
+    },
 
     onMouseEnter: function (mouseEvent) {
       let mouse_enter_options = {
@@ -278,7 +273,9 @@ function knobFactory() {
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
 
       if (tmp_select) {
-        //console.log("TMP: " + tmp_select.item.name);
+        
+        //console.log("TMP: " + tmp_select.item.name); // PROB!
+        
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;
 
@@ -293,7 +290,7 @@ function knobFactory() {
           current_item = tmp_select.item;
           current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "knob-frame" || "knob-circle") {
+        else if (tmp_select.item.name === "knob-frame" || tmp_select.item.name === "knob-circle" || tmp_select.item.name === "knob-offset") {
           current_item = tmp_select.item.parent;
           current_part = tmp_select;
         }
@@ -346,7 +343,19 @@ function knobFactory() {
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (current_part.type === "fill") {
-            moveItem(this, mouseEvent);
+            if (current_part.item.name === "knob-offset") {
+              let x = mouseEvent.point.x - _knob_center.x; // Place the x origin to the circle center
+              let y = mouseEvent.point.y - _knob_center.y; // Place the y origin to the circle center
+              let _knob_offset_theta = cart_to_pol(x, y).theta;
+              let new_offset_pos = pol_to_cart(_knob_radius, _knob_offset_theta);
+              new_offset_pos.x += _knob_center.x;
+              new_offset_pos.y += _knob_center.y;
+              this.children["knob-group"].children["knob-offset"].position = new_offset_pos;
+              this.children["knob-group"].data.offset = rad_to_deg(_knob_offset_theta);
+            } else {
+              move_item(this, mouseEvent);
+              _knob_center = this.position;
+            }
           }
           else if (current_part.type === "bounds") {
             if (current_item.name === "knob-group") {
@@ -434,41 +443,8 @@ function knobFactory() {
       if (e256_current_mode === EDIT_MODE) {
         switch (selectedPath) {
           case "fill":
-            if (selectedPart.name === "knob-offset") {
-              let x = mouseEvent.point.x - this.data.center.x; // Place the x origin to the circle center
-              let y = mouseEvent.point.y - this.data.center.y; // Place the y origin to the circle center
-              previous_knob_offset = this.data.offset;
-              this.data.offset = Math.round(rad_to_deg(cart_to_pol(x, y).theta));
-              let delta = this.data.offset - previous_knob_offset;
-              this.children["knob-offset"].rotate(delta, new paper.Point(this.data.center.x, this.data.center.y));
-            } else {
-              //moveItem(this, mouseEvent);
-              this.translate(mouseEvent.delta);
-              this.data.center.x += Math.round(mouseEvent.delta.x);
-              this.data.center.y += Math.round(mouseEvent.delta.y);
-            }
-            break;
-          case "stroke":
-            switch (selectedPart.name) {
-              case "circle":
-                let x = mouseEvent.point.x - this.data.center[0];
-                let y = mouseEvent.point.y - this.data.center[1];
-                let polar = cart_to_pol(x, y);
-                this.scale(polar.radius / _knob_radius);
-                _knob_radius = Math.round(polar.radius); // FIXME!
-                console.log("RADIUS : " + Math.round(polar.radius));
-                break;
-              case "knob-target" || "knob-needle":
-                //moveItem(this, mouseEvent);
-                this.translate(mouseEvent.delta);
-                this.data.center.x += Math.round(mouseEvent.delta.x);
-                this.data.center.y += Math.round(mouseEvent.delta.y);
-                break;
-            }
-        }
-        update_menu_params(this);
-      }
-      else if (e256_current_mode === PLAY_MODE) {
+            
+       if (e256_current_mode === PLAY_MODE) {
         let x = mouseEvent.point.x - this.data.center.x; // Place the x origin to the circle center
         let y = mouseEvent.point.y - this.data.center.y; // Place the y origin to the circle center
         let polar = cart_to_pol(x, y);
@@ -502,47 +478,4 @@ function knobFactory() {
 
   });
   return _Knob;
-};
-
-function deg_to_rad(degree) {
-  return degree * (Math.PI / 180);
-};
-
-function rad_to_deg(radian) {
-  return radian * (180 / Math.PI);
-};
-
-// Returning radian
-function cart_to_pol(x, y) {
-  let radius = Math.sqrt((x * x) + (y * y));
-  let theta = 0;
-  if (x == 0 && 0 < y) {
-    theta = (Math.PI / 2);
-  } else if (x == 0 && y < 0) {
-    theta = (3 * Math.PI) / 2;
-  } else if (x < 0) {
-    theta = Math.atan(y / x) + Math.PI;
-  } else if (y < 0) {
-    theta = Math.atan(y / x) + (2 * Math.PI);
-  } else {
-    theta = Math.atan(y / x);
-  }
-  return {
-    "radius": radius,
-    "theta": theta
-  }
-};
-
-function pol_to_cart(radius, theta) {
-  let pos_x = radius * Math.cos(theta);
-  let pos_y = radius * Math.sin(theta);
-  return {
-    "x": pos_x,
-    "y": pos_y
-  };
-}
-
-function rotatePolar(degree, offset) {
-  // return (Math.abs(degree - 380) + offset) % 380; // Anti-clockwise direction
-  return (Math.abs(degree + 380) - offset) % 380;    // Clockwise direction
 };

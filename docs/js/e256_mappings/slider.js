@@ -33,12 +33,12 @@ function sliderFactory() {
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.from = new paper.Point(
-        Math.round(mouseEvent.point.x - (DEFAULT_SLIDER_WIDTH / 2)),
-        Math.round(mouseEvent.point.y - (DEFAULT_SLIDER_HEIGHT / 2))
+        mouseEvent.point.x - (DEFAULT_SLIDER_WIDTH / 2),
+        mouseEvent.point.y - (DEFAULT_SLIDER_HEIGHT / 2)
       );
       this.data.to = new paper.Point(
-        Math.round(mouseEvent.point.x + (DEFAULT_SLIDER_WIDTH / 2)),
-        Math.round(mouseEvent.point.y + (DEFAULT_SLIDER_HEIGHT / 2))
+        mouseEvent.point.x + (DEFAULT_SLIDER_WIDTH / 2),
+        mouseEvent.point.y + (DEFAULT_SLIDER_HEIGHT / 2)
       );
       this.data.min = DEFAULT_MIDI_MIN;
       this.data.max = DEFAULT_MIDI_MAX;
@@ -236,7 +236,7 @@ function sliderFactory() {
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (current_part.type === "fill") {
-            moveItem(this, mouseEvent);
+            move_item(this, mouseEvent);
           }
           else if (current_part.type === "bounds") {
             let newSize = new paper.Point();
