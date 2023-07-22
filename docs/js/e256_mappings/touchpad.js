@@ -232,7 +232,7 @@ function touchpadFactory() {
     onMouseLeave: function () {
       switch (e256_current_mode) {
         case EDIT_MODE:
-          highlight_item.selected = false;
+          highlight_item.selected = false; // This have to be check!
           break;
         case PLAY_MODE:
           break;
@@ -288,7 +288,8 @@ function touchpadFactory() {
             if (current_item.name === "touch-group" && previous_item.name === "touch-group") {
               //console.log("ping");
               previous_item.firstChild.style.fillColor = "green";
-              current_item.firstChild.style.fillColor = "orange"; // FEXME!
+              current_item.firstChild.style.fillColor = "red";
+              current_item.selected = false;
             }
             else if (current_item.name === "pad-group" && previous_item.name === "touch-group") {
               previous_item.firstChild.style.fillColor = "green";

@@ -127,5 +127,5 @@ $("#exportConfig").click(function () {
 
 // Update item parameters using the txt input fields
 $("#btnSet").click(function () {
-  item_create_from_params(current_controleur);
+  draw_controler_from_params(current_controleur);
 });

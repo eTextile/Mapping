@@ -133,18 +133,6 @@ function update_menu_params(item) {
   }
 };
 
-// Function: update grid GUI using form params
-// Called by the "SET PARAMS" button #btnSet
-function item_create_from_params(item) {
-  item.save_params();
-  item_remove_menu_params(item);
-  item.removeChildren();
-  item.create();
-  item_create_menu_params(item);
-  update_menu_params(item);
-  item_menu_params(item, "show");
-};
-
 function item_remove_menu_params(item) {
   let div_params = document.getElementById("e256_params");
   let item_params = document.getElementById(item.name + "_" + item.id);
@@ -152,6 +140,7 @@ function item_remove_menu_params(item) {
   $("#summaryContent").html(" ");
 };
 
+// show / hide menu params
 function item_menu_params(item, state) {
   if (item) {
     switch (state) {

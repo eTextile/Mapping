@@ -147,9 +147,19 @@ function paperInit() {
     return _ctl;
   }
 
-  function draw_controler_from_config(configFile) {
-    let _ctl = null;
+// Function: update grid GUI using form params
+// Called by the "SET PARAMS" button #btnSet
+function draw_controler_from_params(item) {
+  item.save_params();
+  item_remove_menu_params(item);
+  item.removeChildren();
+  item.create();
+  item_create_menu_params(item);
+  update_menu_params(item);
+  item_menu_params(item, "show");
+};
 
+  function draw_controler_from_config(configFile) {
     // Clear al meunu params
     for (const layer of paper.project.layers) {
       if (layer.hasChildren()) {
@@ -164,14 +174,12 @@ function paperInit() {
         layer.removeChildren();
       }
     }
-
     for (const _ctl_type in configFile.mappings) {
       paper.project.layers[_ctl_type].activate();
       for (const _ctl_conf of configFile.mappings[_ctl_type]) {
-        _ctl = controleur_factory(_ctl_type);
+        let _ctl = controleur_factory(_ctl_type);
         _ctl.setup_from_config(_ctl_conf);
         _ctl.create();
-        //testing
         item_create_menu_params(_ctl);
         update_menu_params(_ctl);
         item_menu_params(_ctl, "hide");
