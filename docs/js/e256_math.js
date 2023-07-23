@@ -63,4 +63,3 @@ function rotatePolar(degree, offset) {
 	// return (Math.abs(degree - 380) + offset) % 380; // Anti-clockwise direction
 	return (Math.abs(degree + 380) - offset) % 380;    // Clockwise direction
 };
-

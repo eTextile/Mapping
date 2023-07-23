@@ -182,7 +182,7 @@ function knobFactory() {
         "radius": _knob_radius
       });
       _knob_circle.style = {
-        "fillColor": "chartreuse"
+        "fillColor": "Purple"
       }
       _knob_group.addChild(_knob_circle);
 
@@ -273,9 +273,9 @@ function knobFactory() {
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
 
       if (tmp_select) {
-        
+
         //console.log("TMP: " + tmp_select.item.name); // PROB!
-        
+
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;
 
@@ -354,26 +354,34 @@ function knobFactory() {
               this.children["knob-group"].data.offset = rad_to_deg(_knob_offset_theta);
             } else {
               move_item(this, mouseEvent);
-              _knob_center = this.position;
+              _knob_center = this.children["knob-group"].children["knob-circle"].position; //
+              //console.log(JSON.stringify(_knob_center));
             }
           }
           else if (current_part.type === "bounds") {
+            let _rect_whdth = null;
+
             if (current_item.name === "knob-group") {
               switch (current_part.name) {
                 case "top-left":
                   this.children["knob-group"].children["knob-frame"].segments[0].point.x = mouseEvent.point.x;
-                  //this.children["knob-group"].children["knob-frame"].segments[0].point.y; // TODO!
                   this.children["knob-group"].children["knob-frame"].segments[1].point = mouseEvent.point;
                   this.children["knob-group"].children["knob-frame"].segments[2].point.y = mouseEvent.point.y;
 
+                  _rect_whdth = this.children["knob-group"].children["knob-frame"].bounds.right - mouseEvent.point.x;
+                  this.children["knob-group"].children["knob-frame"].segments[0].point.y = mouseEvent.point.y + _rect_whdth;
+                  this.children["knob-group"].children["knob-frame"].segments[3].point.y = mouseEvent.point.y + _rect_whdth;
+
+                  this.children["knob-group"].data.from = mouseEvent.point;
+                  this.children["knob-group"].data.to.y = mouseEvent.point.y + _rect_whdth;
+
                   _knob_radius = (this.children["knob-group"].data.to.x - this.children["knob-group"].data.from.x) / 2;
                   this.children["knob-group"].children["knob-circle"].radius = _knob_radius;
-
                   this.children["knob-group"].children["knob-circle"].position = new paper.Point(
                     this.children["knob-group"].data.to.x - _knob_radius,
                     this.children["knob-group"].data.to.y - _knob_radius
                   );
-                  this.children["knob-group"].data.from = mouseEvent.point;
+  
                   break;
 
                 case "top-right":
@@ -381,16 +389,21 @@ function knobFactory() {
                   this.children["knob-group"].children["knob-frame"].segments[2].point = mouseEvent.point;
                   this.children["knob-group"].children["knob-frame"].segments[3].point.x = mouseEvent.point.x;
 
+                  _rect_whdth = mouseEvent.point.x - this.children["knob-group"].children["knob-frame"].bounds.left;
+                  this.children["knob-group"].children["knob-frame"].segments[0].point.y = mouseEvent.point.y + _rect_whdth;
+                  this.children["knob-group"].children["knob-frame"].segments[3].point.y = mouseEvent.point.y + _rect_whdth;
+
+                  this.children["knob-group"].data.from.y = mouseEvent.point.y;
+                  this.children["knob-group"].data.to.x = mouseEvent.point.x;
+                  this.children["knob-group"].data.to.y = mouseEvent.point.y + _rect_whdth;
+
                   _knob_radius = (this.children["knob-group"].data.to.x - this.children["knob-group"].data.from.x) / 2;
                   this.children["knob-group"].children["knob-circle"].radius = _knob_radius;
-
                   this.children["knob-group"].children["knob-circle"].position = new paper.Point(
                     this.children["knob-group"].data.from.x + _knob_radius,
                     this.children["knob-group"].data.to.y - _knob_radius
                   );
 
-                  this.children["knob-group"].data.from.y = mouseEvent.point.y;
-                  this.children["knob-group"].data.to.x = mouseEvent.point.x; 
                   break;
 
                 case "bottom-right":
@@ -398,30 +411,42 @@ function knobFactory() {
                   this.children["knob-group"].children["knob-frame"].segments[3].point = mouseEvent.point;
                   this.children["knob-group"].children["knob-frame"].segments[0].point.y = mouseEvent.point.y;
 
-                    _knob_radius = (this.children["knob-group"].data.to.x - this.children["knob-group"].data.from.x) / 2;
-                    this.children["knob-group"].children["knob-circle"].position = new paper.Point(
-                      this.children["knob-group"].data.from.x + _knob_radius,
+                  _rect_whdth = mouseEvent.point.x - this.children["knob-group"].children["knob-frame"].bounds.left;
+                  this.children["knob-group"].children["knob-frame"].segments[1].point.y = mouseEvent.point.y - _rect_whdth;
+                  this.children["knob-group"].children["knob-frame"].segments[2].point.y = mouseEvent.point.y - _rect_whdth;
+
+                  this.children["knob-group"].data.from.y = mouseEvent.point.y - _rect_whdth;
+                  this.children["knob-group"].data.to = mouseEvent.point;
+
+                  _knob_radius = (this.children["knob-group"].data.to.x - this.children["knob-group"].data.from.x) / 2;
+                  this.children["knob-group"].children["knob-circle"].radius = _knob_radius;
+                  this.children["knob-group"].children["knob-circle"].position = new paper.Point(
+                    this.children["knob-group"].data.from.x + _knob_radius,
                     this.children["knob-group"].data.from.y + _knob_radius
                   );
-                  this.children["knob-group"].children["knob-circle"].radius = _knob_radius;
-
-                  this.children["knob-group"].data.to = mouseEvent.point;
                   break;
 
                 case "bottom-left":
+
                   this.children["knob-group"].children["knob-frame"].segments[3].point.y = mouseEvent.point.y;
                   this.children["knob-group"].children["knob-frame"].segments[0].point = mouseEvent.point;
                   this.children["knob-group"].children["knob-frame"].segments[1].point.x = mouseEvent.point.x;
 
+                  _rect_whdth = this.children["knob-group"].children["knob-frame"].bounds.right - mouseEvent.point.x;
+                  this.children["knob-group"].children["knob-frame"].segments[1].point.y = mouseEvent.point.y - _rect_whdth;
+                  this.children["knob-group"].children["knob-frame"].segments[2].point.y = mouseEvent.point.y - _rect_whdth;
+
+                  this.children["knob-group"].data.from.x = mouseEvent.point.x;
+                  this.children["knob-group"].data.from.y = mouseEvent.point.y - _rect_whdth;
+                  this.children["knob-group"].data.to.y = mouseEvent.point.y;
+
+
                   _knob_radius = (this.children["knob-group"].data.to.x - this.children["knob-group"].data.from.x) / 2;
+                  this.children["knob-group"].children["knob-circle"].radius = _knob_radius;
                   this.children["knob-group"].children["knob-circle"].position = new paper.Point(
                     this.children["knob-group"].data.to.x - _knob_radius,
                     this.children["knob-group"].data.from.y + _knob_radius
                   );
-                  this.children["knob-group"].children["knob-circle"].radius = _knob_radius;
-                  
-                  this.children["knob-group"].data.from.x = mouseEvent.point.x;
-                  this.children["knob-group"].data.to.y = mouseEvent.point.y;
                   break;
                 default:
                   console.log("PART_NOT_USE: " + current_part.name);
