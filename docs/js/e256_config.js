@@ -165,19 +165,19 @@ const KEY_MODE = [
 
 const MIDI_CHANNEL = [];
 const MIDI_CCHANGE = [];
-for (let index = 1; index<16; index++){
+for (let index = 1; index < 16; index++) {
   MIDI_CHANNEL.push(index);
   MIDI_CCHANGE.push(index);
 };
 
 const MIDI_TOUCH = [];
-for (let index = 1; index<11; index++){
+for (let index = 1; index < 11; index++) {
   MIDI_TOUCH.push(index);
 };
 
 const MIDI_NOTES = [];
 const MIDI_VELOCITY = [];
-for (let index = 0; index<128; index++){
+for (let index = 0; index < 128; index++) {
   MIDI_NOTES.push(index);
   MIDI_VELOCITY.push(index);
 };
@@ -221,13 +221,11 @@ function Midi_key(chan, note, velo) {
   this.velo = velo;   // Set the MIDI velocinnty
 };
 
-// MIDI object constructur
 function Midi_slider(chan, cc, min, max) {
   this.chan = chan;   // Set the MIDI channel
   this.cc = cc;       // Set the MIDI control change
 };
 
-// MIDI object constructur
 function Midi_touch(x_chan, x_cc, y_chan, y_cc, z_chan, z_cc) {
   this.x_chan = x_chan;   // Set the MIDI channel
   this.x_cc = x_cc;       // Set the MIDI control change
@@ -237,20 +235,7 @@ function Midi_touch(x_chan, x_cc, y_chan, y_cc, z_chan, z_cc) {
   this.z_cc = z_cc;       // Set the MIDI control change
 };
 
-// MIDI object constructur
-function Midi_touch(x_chan, x_cc, y_chan, y_cc, z_chan, z_cc) {
-  this.x_chan = x_chan;   // Set the MIDI channel
-  this.x_cc = x_cc;       // Set the MIDI control change
-  this.y_chan = y_chan;   // Set the MIDI channel
-  this.y_cc = y_cc;       // Set the MIDI control change
-  this.z_chan = z_chan;   // Set the MIDI channel
-  this.z_cc = z_cc;       // Set the MIDI control change
-};
-
-function Midi_knob(
-  t_chan, t_cc, t_min, t_max,
-  r_chan, r_cc, r_min, r_max
-  ) {
+function Midi_knob(t_chan, t_cc, t_min, t_max, r_chan, r_cc, r_min, r_max) {
   this.t_chan = t_chan;
   this.t_cc = t_cc;
   this.t_min = t_min;
