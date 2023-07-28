@@ -89,7 +89,7 @@ function touchpadFactory() {
       }
     },
 
-    newTouch: function (_touch_index) {
+    new_touch: function (_touch_index) {
       //console.log("INDEX: " + index);
       let _touch_group = new paper.Group({
         "name": "touch-group",
@@ -187,10 +187,10 @@ function touchpadFactory() {
         "name": "touchs-group"
       });
       for (let _touch = 0; _touch < this.data.touch; _touch++) {
-        _touchs_group.addChild(this.newTouch(_touch));
+        _touchs_group.addChild(this.new_touch(_touch));
       }
       this.addChild(_touchs_group);
-      this.bringToFront();
+      //this.bringToFront();
     },
 
     onMouseEnter: function (mouseEvent) {

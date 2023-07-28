@@ -198,7 +198,7 @@ function gridFactory() {
         }
       }
       this.addChild(_keys_group);
-      this.bringToFront();
+      //this.bringToFront();
     },
 
     onMouseEnter: function (mouseEvent) {

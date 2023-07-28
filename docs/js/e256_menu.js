@@ -89,10 +89,10 @@ $("#uploadConfig").click(function () {
 });
 
 $("#saveConfig").click(function () {
-    e256_exportParams();
-    console.log(JSON.stringify(e256_config));
-    var file = new File([JSON.stringify(e256_config)], {type: "text/plain;charset=utf-8"});
-    saveAs(file, "e256_mapping.json");
+  e256_exportParams();
+  console.log(JSON.stringify(e256_config));
+  var file = new File([JSON.stringify(e256_config)], { type: "text/plain;charset=utf-8" });
+  saveAs(file, "e256_mapping.json");
 });
 
 $(".mapingTool").click(function (event) {
@@ -109,7 +109,7 @@ $("#calibrate").click(function () {
   } else {
     alert("e256 NOT CONNECTED!");
   }
-}); 
+});
 
 $("#getConfig").click(function () {
   if (MIDI_device_connected) {
@@ -125,7 +125,13 @@ $("#exportConfig").click(function () {
   e256_exportParams();
 });
 
-// Update item parameters using the txt input fields
+// Update graphic item using form params
 $("#btnSet").click(function () {
-  draw_controler_from_params(current_controleur);
+  current_controleur.save_params();
+  item_remove_menu_params(current_controleur);
+  current_controleur.removeChildren();
+  current_controleur.create();
+  item_create_menu_params(current_controleur);
+  update_menu_params(current_controleur);
+  item_menu_params(current_controleur, "show");
 });

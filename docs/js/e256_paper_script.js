@@ -26,7 +26,7 @@ function paperInit() {
 
   console.log("BOOTSTRAP_VERSION: " + bootstrap.Tooltip.VERSION);
   console.log("JQUERY_VERSION: " + jQuery().jquery);
-  
+
   paper.setup(document.getElementById("canvas-2D"));
   console.log("PAPER_VERSION: " + paper.version);
 
@@ -84,7 +84,7 @@ function paperInit() {
               }
             }
           }
-        } 
+        }
         else {
           alert("SELECT A GUI!");
         }
@@ -95,7 +95,7 @@ function paperInit() {
         }
         break;
     }
-  }
+  };
 
   paperTool.onKeyDown = function (keyEvent) {
     if (e256_current_mode === EDIT_MODE) {
@@ -128,30 +128,18 @@ function paperInit() {
         }
       }
     }
-  }
+  };
 
   paper.onFrame = function (mouseEvent) {
     // Every frame
-  }
+  };
 
   function draw_controler_from_mouse(mouseEvent) {
     let _ctl = controleur_factory(e256_draw_mode);
     _ctl.setup_from_mouse_event(mouseEvent);
     _ctl.create();
     return _ctl;
-  }
-
-// Function: update grid GUI using form params
-// Called by the "SET PARAMS" button #btnSet
-function draw_controler_from_params(item) {
-  item.save_params();
-  item_remove_menu_params(item);
-  item.removeChildren();
-  item.create();
-  item_create_menu_params(item);
-  update_menu_params(item);
-  item_menu_params(item, "show");
-};
+  };
 
   function draw_controler_from_config(configFile) {
     // Clear al meunu params
@@ -179,7 +167,7 @@ function draw_controler_from_params(item) {
         item_menu_params(_ctl, "hide");
       }
     }
-  }
+  };
 
   function controleur_factory(item_type) {
     var controleur = null;
@@ -204,7 +192,7 @@ function draw_controler_from_params(item) {
         break;
     }
     return controleur;
-  }
+  };
 
   // FIXME: whenever the view is resized
   paper.view.onResize = function () {
@@ -216,13 +204,13 @@ function draw_controler_from_params(item) {
     paper.view.viewSize.height = canvasHeight;
     paper.view.setZoom(canvasWidth / canvasHeight);
     paper.view.center = new paper.Point(canvasWidth / 2, canvasHeight / 2);
-  }
+  };
 
   function onReaderLoad(event) {
     let config_import = JSON.parse(event.target.result);
     confSize = Object.keys(JSON.stringify(config_import)).length;
     draw_controler_from_config(config_import);
-  }
+  };
 
   function loadFile(event) {
     var file = event.target.files[0];
@@ -238,7 +226,7 @@ function draw_controler_from_params(item) {
     else {
       alert("WRONG FILE TYPE!");
     }
-  }
+  };
 
   $("#loadConfig").change(function (event) {
     loadFile(event);
