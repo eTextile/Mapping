@@ -178,23 +178,18 @@ function switchFactory() {
     },
 
     onMouseDown: function (mouseEvent) {
-
-      //this.bringToFront();
-
       let mouse_down_options = {
         "stroke": false,
         "bounds": true,
         "fill": true,
         "tolerance": 8
       }
+
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
 
       if (tmp_select) {
-        //console.log("TMP: " + tmp_select.item.name);
-
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;
-
         previous_item = current_item;
         previous_part = current_part;
 

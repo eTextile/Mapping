@@ -175,14 +175,17 @@ function sliderFactory() {
     },
 
     onMouseDown: function (mouseEvent) {
-      this.bringToFront();
+      //this.bringToFront();
+      
       let mouse_down_options = {
         "stroke": false,
         "bounds": true,
         "fill": true,
         "tolerance": 8
       }
+      
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
+
       if (tmp_select) {
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;

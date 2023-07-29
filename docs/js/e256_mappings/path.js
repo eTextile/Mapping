@@ -7,39 +7,65 @@
 /////////// PATH Factory
 // http://paperjs.org/reference/path/#path
 function pathFactory() {
-  var path_default_stroke_width = 20;
+  var DEFAULT_PATH_STROKE_WIDTH = 20;
 
   var _Path = new paper.Group({
     "name": "path",
-
     "data": {
-      segments: [],
-      min: 0,
-      max: 127
+      "min": 0,
+      "max": 127,
+      "segments": []
     },
 
     setup_from_mouse_event: function (mouseEvent) {
+      this.data.min = params.min;
+      this.data.max = params.max;
       this.data.segments.push([Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y)]);
       //this.path.closed = true;
     },
 
     setup_from_config: function (params) {
-      this.data.segments = params.segments; // vertex!?
       this.data.min = params.min;
       this.data.max = params.max;
+      this.data.segments = params.segments; // vertex!?
     },
     
+    save_params: function () {
+      this.data.min = this.children["path-group"].data.min;
+      this.data.max = this.children["path-group"].data.max;
+
+      this.data.midiMsg = [];
+      for (const _knob_touch of this.children["touchs-group"].children) {
+        this.data.midiMsg.push(_knob_touch.data.midiMsg);
+      }
+    },
+
     create: function () {
-      var _path = new paper.Path({
-        name: "path",
-        segments: this.data.segments, // vertex!?
-        strokeWidth: path_default_stroke_width,
-        strokeColor: new paper.Color(0.7, 0, 0.5),
-        //selected: true,
-        strokeCap: "round",
-        strokeJoin: "round"
+      let _path_group = new paper.Group({
+        "name": "path-group",
+        "data": {
+          "min": this.data.min,
+          "max": this.data.max,
+          "segments": this.data.segments,
+          "form_style": {
+            "min": "form-control",
+            "max": "form-select"
+          }
+        }
       });
-      this.addChild(_path);
+
+      var _path = new paper.Path({
+        "name": "path",
+        "segments": _path_group.data.segments, // vertex!?
+      });
+      _path.style = {
+        "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
+        "strokeColor": new paper.Color(0.7, 0, 0.5),
+        "strokeCap": "round",
+        "strokeJoin": "round"
+      }
+      _path_group.addChild(_path);
+      this.addChild(_path_group);
     },
 
     addPoint: function (mouseEvent) {

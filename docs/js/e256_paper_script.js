@@ -59,6 +59,7 @@ function paperInit() {
             previous_controleur = current_controleur;
             paper.project.layers[e256_draw_mode].activate();
             current_controleur = draw_controler_from_mouse(mouseEvent);
+            current_controleur.bringToFront();
             item_menu_params(previous_controleur, "hide"); // if (previous_controleur != null)
             item_menu_params(previous_item, "hide");  // if (previous_item != null)
             item_create_menu_params(current_controleur);
@@ -68,6 +69,7 @@ function paperInit() {
           else {
             if (previous_controleur) {
               if (current_controleur.id !== previous_controleur.id) {
+                current_controleur.bringToFront();
                 //console.log("A_CTL_C: " + current_controleur.name + " " + current_controleur.id);
                 //console.log("A_CTL_L: " + previous_controleur.name + " " + previous_controleur.id);
                 item_menu_params(previous_controleur, "hide");
@@ -130,12 +132,13 @@ function paperInit() {
     }
   };
 
-  paper.onFrame = function (mouseEvent) {
+  paper.onFrame = function () {
     // Every frame
   };
 
   function draw_controler_from_mouse(mouseEvent) {
     let _ctl = controleur_factory(e256_draw_mode);
+    //let _ctl = controleur_factory[e256_draw_mode];
     _ctl.setup_from_mouse_event(mouseEvent);
     _ctl.create();
     return _ctl;
@@ -160,6 +163,7 @@ function paperInit() {
       paper.project.layers[_ctl_type].activate();
       for (const _ctl_conf of configFile.mappings[_ctl_type]) {
         let _ctl = controleur_factory(_ctl_type);
+        //let _ctl = controleur_factory[_ctl_type];
         _ctl.setup_from_config(_ctl_conf);
         _ctl.create();
         item_create_menu_params(_ctl);
@@ -193,6 +197,18 @@ function paperInit() {
     }
     return controleur;
   };
+
+  /*
+  // NOT WORKING!  :-(
+  const controleur_factory = {
+    "switch": switchFactory(),
+    "slider": sliderFactory(),
+    "knob": knobFactory(),
+    "touchpad": touchpadFactory(),
+    "grid": gridFactory(),
+    "path": pathFactory()
+  };
+  */
 
   // FIXME: whenever the view is resized
   paper.view.onResize = function () {

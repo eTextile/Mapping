@@ -110,40 +110,42 @@ function touchpadFactory() {
           }
         }
       });
-      let _circle = new paper.Path.Circle({
+      let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": _touch_group.pos,
         "radius": 15
       });
-      _circle.style = {
+      _touch_circle.style = {
         "fillColor": "green"
       };
-      _touch_group.addChild(_circle);
+      _touch_group.addChild(_touch_circle);
 
-      let _line_x = new paper.Path.Line({
+      let _touch_line_x = new paper.Path.Line({
         "name": "touch-line-x",
         "from": new paper.Point(this.data.from.x, _touch_group.pos.y),
         "to": new paper.Point(this.data.to.x, _touch_group.pos.y),
         "locked": true
       });
-      _line_x.style = {
-        "strokeWidth": 1,
+      _touch_line_x.style = {
+        "strokeWidth": .5,
+        "dashArray": [15, 4],
         "strokeColor": "black"
       }
-      _touch_group.addChild(_line_x);
-
-      let _line_y = new paper.Path.Line({
+      _touch_group.addChild(_touch_line_x);
+      
+      let _touch_line_y = new paper.Path.Line({
         "name": "touch-line-y",
         "from": new paper.Point(_touch_group.pos.x, this.data.from.y),
         "to": new paper.Point(_touch_group.pos.x, this.data.to.y),
         "locked": true
       });
-      _line_y.style = {
-        "strokeWidth": 1,
+      _touch_line_y.style = {
+        "strokeWidth": .5,
+        "dashArray": [15, 4],
         "strokeColor": "black"
       };
-      _touch_group.addChild(_line_y);
-
+      _touch_group.addChild(_touch_line_y);
+      _touch_group.children["touch-circle"].bringToFront();
       return _touch_group;
     },
 
@@ -175,9 +177,6 @@ function touchpadFactory() {
         "to": this.data.to
       });
       _pad_frame.style = {
-        "strokeWidth": 5,
-        "dashArray": [10, 5],
-        "strokeColor": "chartreuse",
         "fillColor": "pink"
       };
       _pad_group.addChild(_pad_frame);
@@ -190,7 +189,6 @@ function touchpadFactory() {
         _touchs_group.addChild(this.new_touch(_touch));
       }
       this.addChild(_touchs_group);
-      //this.bringToFront();
     },
 
     onMouseEnter: function (mouseEvent) {
@@ -241,8 +239,7 @@ function touchpadFactory() {
       }
     },
 
-    onMouseDown: function (mouseEvent) {
-      this.bringToFront();
+    onMouseDown: function (mouseEvent) {      
       let mouse_down_options = {
         "stroke": false,
         "bounds": true,
@@ -251,30 +248,26 @@ function touchpadFactory() {
       }
 
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
-
       //console.log(tmp_select.item.name); // PROB!
 
       if (tmp_select) {
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;
-
         previous_item = current_item;
         previous_part = current_part;
+        current_part = tmp_select;
 
         if (tmp_select.item.name === "touchpad") {
           current_item = tmp_select.item.firstChild;
-          current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "pad-group" || tmp_select.item.name === "touch-group") {
+        else if (tmp_select.item.name === "pad-group") {
           current_item = tmp_select.item;
-          current_part = tmp_select;
         }
         else if (tmp_select.item.name === "pad-frame" || tmp_select.item.name === "touch-circle") {
           current_item = tmp_select.item.parent;
-          current_part = tmp_select;
         }
         else {
-          //console.log("NOT_USED : " + tmp_select.item.name);
+          console.log("NOT_USED : " + tmp_select.item.name);
         }
         //console.log("CTL_CUR: " + current_controleur.name);
         //onsole.log("CTL_PEV: " + previous_controleur.name);
@@ -286,10 +279,9 @@ function touchpadFactory() {
         switch (e256_current_mode) {
           case EDIT_MODE:
             if (current_item.name === "touch-group" && previous_item.name === "touch-group") {
-              //console.log("ping");
               previous_item.firstChild.style.fillColor = "green";
               current_item.firstChild.style.fillColor = "red";
-              current_item.selected = false;
+              //current_item.selected = false;
             }
             else if (current_item.name === "pad-group" && previous_item.name === "touch-group") {
               previous_item.firstChild.style.fillColor = "green";

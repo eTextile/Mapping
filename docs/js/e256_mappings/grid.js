@@ -198,7 +198,6 @@ function gridFactory() {
         }
       }
       this.addChild(_keys_group);
-      //this.bringToFront();
     },
 
     onMouseEnter: function (mouseEvent) {
@@ -249,8 +248,7 @@ function gridFactory() {
     },
 
     onMouseDown: function (mouseEvent) {
-
-      this.bringToFront();
+      //this.bringToFront();
 
       let mouse_down_options = {
         "stroke": false,
@@ -258,12 +256,12 @@ function gridFactory() {
         "fill": true,
         "tolerance": 8
       }
+
       tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
 
       if (tmp_select) {
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;
-
         previous_item = current_item;
         previous_part = current_part;
 
