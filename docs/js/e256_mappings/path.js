@@ -7,20 +7,32 @@
 /////////// PATH Factory
 // http://paperjs.org/reference/path/#path
 function pathFactory() {
-  var DEFAULT_PATH_STROKE_WIDTH = 20;
+  const DEFAULT_PATH_MIN = 0;
+  const DEFAULT_PATH_MAX = 127;
+  const DEFAULT_PATH_STROKE_WIDTH = 20;
+  const DEFAULT_PATH_HANDLE_RADIUS = 15;
 
   var _Path = new paper.Group({
     "name": "path",
+    "radius": null,
     "data": {
-      "min": 0,
-      "max": 127,
-      "segments": []
+      "min": null,
+      "max": null,
+      "segments": [],
+      "midiMsg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.min = params.min;
-      this.data.max = params.max;
-      this.data.segments.push([Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y)]);
+      this.radius = DEFAULT_PATH_HANDLE_RADIUS;
+      this.data.min = DEFAULT_PATH_MIN;
+      this.data.max = DEFAULT_PATH_MAX;
+      this.data.segments.push(new paper.Point(mouseEvent.point.x, mouseEvent.point.y));
+      this.data.midiMsg = new Midi_slider(
+        DEFAULT_MIDI_CHANNEL,
+        DEFAULT_MIDI_CC,
+        DEFAULT_MIDI_MIN,
+        DEFAULT_MIDI_MAX
+      );
       //this.path.closed = true;
     },
 
@@ -28,16 +40,17 @@ function pathFactory() {
       this.data.min = params.min;
       this.data.max = params.max;
       this.data.segments = params.segments; // vertex!?
+      this.data.midiMsg = new Midi_slider(
+        params.midiMsg.chan,
+        params.midiMsg.cc
+      );
     },
     
     save_params: function () {
       this.data.min = this.children["path-group"].data.min;
       this.data.max = this.children["path-group"].data.max;
-
-      this.data.midiMsg = [];
-      for (const _knob_touch of this.children["touchs-group"].children) {
-        this.data.midiMsg.push(_knob_touch.data.midiMsg);
-      }
+      this.data.segments = this.children["path-group"].data.segments;
+      this.data.midiMsg = this.children["path-group"].data.midiMsg;
     },
 
     create: function () {
@@ -48,12 +61,11 @@ function pathFactory() {
           "max": this.data.max,
           "segments": this.data.segments,
           "form_style": {
-            "min": "form-control",
+            "min": "form-select",
             "max": "form-select"
           }
         }
       });
-
       var _path = new paper.Path({
         "name": "path",
         "segments": _path_group.data.segments, // vertex!?
@@ -66,44 +78,94 @@ function pathFactory() {
       }
       _path_group.addChild(_path);
       this.addChild(_path_group);
+
+      var _handle_group = new paper.Group({
+        "name": "handle-group",
+        "data": {
+          "midiMsg": this.data.midiMsg,
+          "form_style": {
+            "chan": "form-select",
+            "cc": "form-select"
+          }
+        }
+      });
+
+      let _path_handle = new paper.Path.Circle({
+        "name": "path-handle",
+        "center": new paper.Point(_path_group.data.segments[0].x, _path_group.data.segments[0].y),
+        "radius": this.radius,
+      });
+      _path_handle.style = {
+        "fillColor": "red"
+      };
+      _handle_group.addChild(_path_handle);
+      this.addChild(_handle_group); 
     },
 
-    addPoint: function (mouseEvent) {
-      var newPoint = [Math.round(mouseEvent.point.x), Math.round(mouseEvent.point.y)];
-      this.data.segments.push(newPoint);
-      this.children["path"].add(newPoint);
-      this.children["path"].smooth();
+    graw: function (mouseEvent) {
+      this.children["path-group"].children["path"].add(new paper.Point(mouseEvent.point.x, mouseEvent.point.y));
+      //this.children["path-group"].children["path"].smooth();
     },
-    
-    onMouseEnter: function () {
-      if (e256_current_mode === EDIT_MODE) {
-        this.select();
+
+    /*
+    onMouseEnter: function (mouseEvent) {
+      let mouse_enter_options = {
+        "stroke": true,
+        "bounds": true,
+        "fill": true,
+        "tolerance": 8
       }
-      show_item_menu_params(this);
+      tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
+      switch (e256_current_mode) {
+        case EDIT_MODE:
+          if (tmp_select) {
+            if (tmp_select.item.name === "path") {
+              highlight_item = tmp_select.item.firstChild;
+            }
+            else if (tmp_select.item.name === "path-group") {
+              highlight_item = tmp_select.item.firstChild;
+            }
+            else {
+              console.log("NOT_USED: " + tmp_select.item.name);
+              return;
+            }
+            highlight_item.selected = true;
+          }
+          break;
+        case PLAY_MODE:
+          console.log("PLAY_MODE: NOT IMPLEMENTED!");
+          break;
+        default:
+          break;
+      }
     },
-    
+
     onMouseLeave: function () {
-      if (e256_current_mode === EDIT_MODE) {
-        this.free();
+      switch (e256_current_mode) {
+        case EDIT_MODE:
+          highlight_item.selected = false;
+          break;
+        case PLAY_MODE:
+          break;
+        default:
+          break;
       }
     },
-
-    // controleur.addPoint(mouseEvent);   // Move it to the path_factory mose_down!
-
+  
     onMouseDrag: function (mouseEvent) {
       if (e256_current_mode === EDIT_MODE) {
         if (selectedSegment) {
-          this.children["path"].segments[selectedSegment].point.x = mouseEvent.point.x;
-          this.children["path"].segments[selectedSegment].point.y = mouseEvent.point.y;
-          this.data.segments[selectedSegment][0] = Math.round(mouseEvent.point.x);
-          this.data.segments[selectedSegment][1] = Math.round(mouseEvent.point.y);
-          update_menu_params(this);
+          this.children["path-group"].children["path"].segments[selectedSegment].point.x = mouseEvent.point.x;
+          this.children["path-group"].children["path"].segments[selectedSegment].point.y = mouseEvent.point.y;
+          //update_menu_params(this);
         }
       }
       else if (e256_current_mode === PLAY_MODE) {
         // TODO!
       }
     }
+    */
+
   });
   return _Path;
 };

@@ -85,6 +85,7 @@ function sliderFactory() {
           }
         }
       });
+      
       var _rect = new paper.Path.Rectangle({
         "name": "slider-frame",
         "from": this.data.from,
@@ -174,9 +175,9 @@ function sliderFactory() {
       }
     },
 
-    onMouseDown: function (mouseEvent) {
-      //this.bringToFront();
-      
+    onMouseDown: function (mouseEvent) {   
+      console.log("PING");
+
       let mouse_down_options = {
         "stroke": false,
         "bounds": true,
@@ -189,7 +190,6 @@ function sliderFactory() {
       if (tmp_select) {
         previous_controleur = current_controleur; // DONE in paper_script.js
         current_controleur = this;
-
         previous_item = current_item;
         previous_part = current_part;
 

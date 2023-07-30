@@ -100,6 +100,7 @@ $(".mapingTool").click(function (event) {
   //$(".param").collapse("hide");
   e256_draw_mode = event.target.id;
   console.log("DRAW_MODE: " + e256_draw_mode);
+  create_once = false;
 });
 
 $("#calibrate").click(function () {

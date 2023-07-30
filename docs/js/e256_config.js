@@ -155,12 +155,10 @@ const V_SLIDER = 1;
 
 const KEY_TRIGGER = "TRIGGER";
 const KEY_TOGGLE = "TOGGLE";
-const KEY_OMNI = "OMNI";
 
 const KEY_MODE = [
   KEY_TRIGGER,
   KEY_TOGGLE,
-  KEY_OMNI
 ];
 
 const MIDI_CHANNEL = [];

@@ -158,7 +158,7 @@ function switchFactory() {
           }
           break;
         case PLAY_MODE:
-          console.log("PLAY_MODE: NOT IMPLEMENTED!");
+          //console.log("PLAY_MODE: NOT IMPLEMENTED!");
           break;
         default:
           break;
@@ -209,13 +209,6 @@ function switchFactory() {
           //console.log("NOT_USED : " + tmp_select.item.name);
         }
 
-        //console.log("CTL_CUR: " + current_controleur.name);
-        //console.log("CTL_PEV: " + previous_controleur.name);
-        //console.log("ITEM_CUR: " + current_item.name);
-        //console.log("ITEM_PEV: " + previous_item.name);
-        //console.log("PART_CUR: " + current_part.name);
-        //console.log("PART_PEV: " + previous_part.name);
-
         switch (e256_current_mode) {
           case EDIT_MODE:
             if (current_item.name === "button-switch") {
@@ -228,35 +221,26 @@ function switchFactory() {
           case PLAY_MODE:
             if (current_item.name === "button-switch") {
               console.log("MODE: " + this.data.mode);
-              if (this.data.mode === KEY_TOGGLE) {
+              if (this.data.mode === "TOGGLE") {
                 state = !state;
                 if (state) {
                   this.children["switch-group"].children["button-switch"].fillColor = "red";
+                  if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velo, this.data.chan);
                 } else {
-                  this.children["switch-group"].children["button-switch"].fillColor = "black";
+                  this.children["switch-group"].children["button-switch"].fillColor = "gray";
+                  if (MIDI_device_connected) sendNoteOn(this.data.note, 0, this.data.chan);
                 }
               }
-              else if (this.data.mode === KEY_TRIGGER) {
-                // TODO
+              else if (this.data.mode === "TRIGGER") {
+                this.children["switch-group"].children["button-switch"].fillColor = "red";
+                if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velo, this.data.chan);
+                setTimeout(this.triggerOff, 300, this);
               }
-
             }
             break;
         }
       }
     },
-
-    /*
-      activate: function () {
-        if (selectedPart.name === "circle") {
-          this.children["circle"].fillColor = "lawngreen";
-          this.data.value = this.data.note;
-          if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velo, this.data.chan);
-          update_menu_params(this);
-          setTimeout(this.triggerOff, 300, this);
-        }
-      },
-      */
 
     onMouseDrag: function (mouseEvent) {
       switch (e256_current_mode) {

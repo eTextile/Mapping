@@ -21,6 +21,7 @@ var current_controleur = null;
 var previous_controleur = null;
 var current_item = null;
 var previous_item = null;
+var create_once = false;
 
 function paperInit() {
 
@@ -55,16 +56,22 @@ function paperInit() {
     switch (e256_current_mode) {
       case EDIT_MODE:
         if (e256_draw_mode) {
-          if (!hitResult) {
-            previous_controleur = current_controleur;
-            paper.project.layers[e256_draw_mode].activate();
-            current_controleur = draw_controler_from_mouse(mouseEvent);
-            current_controleur.bringToFront();
-            item_menu_params(previous_controleur, "hide"); // if (previous_controleur != null)
-            item_menu_params(previous_item, "hide");  // if (previous_item != null)
-            item_create_menu_params(current_controleur);
-            item_menu_params(current_controleur, "show");
-            update_menu_params(current_controleur);
+          if (!hitResult) { // create_ctl
+            if (!create_once){
+              if (e256_draw_mode === "path") create_once = true;
+              previous_controleur = current_controleur;
+              paper.project.layers[e256_draw_mode].activate();
+              current_controleur = draw_controler_from_mouse(mouseEvent);
+              current_controleur.bringToFront();
+              item_menu_params(previous_controleur, "hide"); // if (previous_controleur != null)
+              item_menu_params(previous_item, "hide");  // if (previous_item != null)
+              item_create_menu_params(current_controleur);
+              item_menu_params(current_controleur, "show");
+              update_menu_params(current_controleur);
+            }
+            else {
+              current_controleur.graw(mouseEvent); 
+            }
           }
           else {
             if (previous_controleur) {
@@ -110,11 +117,9 @@ function paperInit() {
             previous_controleur = null; // TODO: add linked list...
             break;
           case "enter":
-            /*
-            if (e256_draw_mode === "PATH") {
+            if (e256_draw_mode === "path") {
               newShape = true;
             }
-            */
             break;
           default:
             break;
@@ -145,7 +150,7 @@ function paperInit() {
   };
 
   function draw_controler_from_config(configFile) {
-    // Clear al meunu params
+    // Clear all meunu params
     for (const layer of paper.project.layers) {
       if (layer.hasChildren()) {
         for (item of layer.children) {

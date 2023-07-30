@@ -13,6 +13,7 @@ function gridFactory() {
   const DEFAULT_GRID_MODE = KEY_TRIGGER;
   const DEFAULT_GRID_VELOCITY = "OFF";
   const DEFAULT_GRID_AFTERTOUCH = "ON";
+  const DEFAULT_GRID_AUTOMAP = "ON";
   const GRID_MIN_SIZE = 30;
   //const DEFAULT_GRID_FRAME_OFFSET = 10;
 
@@ -36,6 +37,7 @@ function gridFactory() {
       "mode": null,
       "velocity": null,
       "aftertouch": null,
+      "automap": null,
       "midiMsg": null
     },
 
@@ -53,8 +55,8 @@ function gridFactory() {
       this.data.mode = DEFAULT_GRID_MODE;
       this.data.velocity = DEFAULT_GRID_VELOCITY;
       this.data.aftertouch = DEFAULT_GRID_AFTERTOUCH;
+      this.data.automap = DEFAULT_GRID_AUTOMAP;
       this.data.midiMsg = [];
-
       keys_count = this.data.cols * this.data.rows;
       for (let _key = 0; _key < keys_count; _key++) {
         let _midiMsg = new Midi_key(
@@ -74,6 +76,7 @@ function gridFactory() {
       this.data.mode = params.mode;
       this.data.velocity = params.velocity;
       this.data.aftertouch = params.aftertouch;
+      this.data.automap = params.automap;
       this.data.midiMsg = [];
       for (const _grid_key in params.keys) {
         let midiMsg = new Midi_key(
@@ -93,6 +96,7 @@ function gridFactory() {
       this.data.mode = this.children["grid-group"].data.mode;
       this.data.velocity = this.children["grid-group"].data.velocity;
       this.data.aftertouch = this.children["grid-group"].data.aftertouch;
+      this.data.automap = this.children["grid-group"].data.automap;
       this.data.midiMsg = [];
       for (const _grid_key of this.children["keys-group"].children) {
         this.data.midiMsg.push(_grid_key.data.midiMsg);
@@ -164,14 +168,16 @@ function gridFactory() {
           "mode": this.data.mode,
           "velocity": this.data.velocity,
           "aftertouch": this.data.aftertouch,
+          "automap": this.data.automap,
           "form_style": {
             "from": "form-control",
             "to": "form-control",
             "cols": "form-control",
             "rows": "form-control",
             "mode": "form-select",
+            "velocity": "form-toggle",
             "aftertouch": "form-toggle",
-            "velocity": "form-toggle"
+            "automap": "form-toggle"
           }
         }
       });
@@ -192,8 +198,8 @@ function gridFactory() {
         "name": "keys-group"
       });
 
-      for (let index_y = 0; index_y < this.data.rows; index_y++) {
-        for (let index_x = 0; index_x < this.data.cols; index_x++) {
+      for (let index_y = 0; index_y < _grid_group.data.rows; index_y++) {
+        for (let index_x = 0; index_x < _grid_group.data.cols; index_x++) {
           _keys_group.addChild(this.new_key(index_x, index_y));
         }
       }
@@ -248,8 +254,6 @@ function gridFactory() {
     },
 
     onMouseDown: function (mouseEvent) {
-      //this.bringToFront();
-
       let mouse_down_options = {
         "stroke": false,
         "bounds": true,
