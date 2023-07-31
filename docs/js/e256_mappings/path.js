@@ -12,6 +12,9 @@ function pathFactory() {
   const DEFAULT_PATH_STROKE_WIDTH = 20;
   const DEFAULT_PATH_HANDLE_RADIUS = 15;
 
+  let highlight_item = null;
+  let current_part = null;
+  
   var _Path = new paper.Group({
     "name": "path",
     "radius": null,

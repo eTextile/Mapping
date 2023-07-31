@@ -9,7 +9,7 @@ function knobFactory() {
   const DEFAULT_KNOB_RADIUS = 250;
   const DEFAULT_KNOB_OFFSET = -45;
   const DEFAULT_KNOB_TOUCH = 2;
-  const KNOB_MIN_SIZE = 30;
+  const DEFAULT_KNOB_MIN_SIZE = 30;
 
   let highlight_item = null;
   let current_part = null;
