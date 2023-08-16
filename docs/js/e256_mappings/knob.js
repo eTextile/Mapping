@@ -205,7 +205,6 @@ function knobFactory() {
         _touchs_group.addChild(this.new_touch(_touch));
       }
       this.addChild(_touchs_group);
-
     },
 
     onMouseEnter: function (mouseEvent) {

@@ -9,7 +9,9 @@ function sliderFactory() {
   const DEFAULT_SLIDER_WIDTH = 60;
   const DEFAULT_SLIDER_HEIGHT = 400;
   const DEFAULT_SLIDER_MIN_WIDTH = 50;
-  const DEFAULT_SLIDER_MIN_HEIGHT = 50;
+  const DEFAULT_SLIDER_MIN_HEIGHT = 100;
+
+  const DEFAULT_SLIDER_TOUCH = 1;
   const DEFAULT_SLIDER_TOUCH_RADIUS = 20;
 
   let frame_width = null;
@@ -29,11 +31,14 @@ function sliderFactory() {
       "to": null,
       "min": null,
       "max": null,
+      "touch": null, // IN PROGRESS!
       "midiMsg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
       this.radius = DEFAULT_SLIDER_TOUCH_RADIUS;
+
+      this.data.touch = DEFAULT_SLIDER_TOUCH;
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_SLIDER_WIDTH / 2),
         mouseEvent.point.y - (DEFAULT_SLIDER_HEIGHT / 2)
@@ -68,14 +73,62 @@ function sliderFactory() {
       this.data.to = this.children["slider-group"].data.to;
       this.data.min = this.children["slider-group"].data.min;
       this.data.max = this.children["slider-group"].data.max;
-      this.data.midiMsg = this.children["handle-group"].data.midiMsg;
+      this.data.midiMsg = this.children["touch-group"].data.midiMsg;
+    },
+
+
+    // touch-group
+    new_touch: function (_touch_index) {
+      var _touch_group = new paper.Group({
+        "name": "touch-group",
+        "index": _touch_index,
+        "pos": new paper.Point(
+          this.data.to.x - this.data.from.x + (DEFAULT_SLIDER_HEIGHT / 2),
+          get_random_int(this.data.from.y, this.data.to.y)
+        ),
+        "data": {
+          "midiMsg": this.data.midiMsg,
+          "form_style": {
+            "chan": "form-select",
+            "cc": "form-select",
+          }
+        }
+      });
+
+      // _touch_circle is alwase the first childe
+      let _touch_circle = new paper.Path.Circle({
+        "name": "touch-circle",
+        "center": new paper.Point(
+          _slider_group.data.from.x + (DEFAULT_SLIDER_WIDTH / 2),
+          _slider_group.data.from.y + (DEFAULT_SLIDER_HEIGHT / 2)
+        ),
+        "radius": this.radius,
+      });
+      _touch_circle.style = {
+        "fillColor": "red"
+      };
+      _touch_group.addChild(_touch_circle);
+
+      var _touch_line = new paper.Path.Line({
+        "name": "touch-line",
+        "from": new paper.Point(_slider_group.data.from.x, _slider_group.data.from.y + (DEFAULT_SLIDER_HEIGHT / 2)),
+        "to": new paper.Point(_slider_group.data.to.x, _slider_group.data.from.y + (DEFAULT_SLIDER_HEIGHT / 2)),
+        "locked": true
+      });
+      _touch_line.style = {
+        "strokeWidth": 1,
+        "strokeCap": "round",
+        "strokeColor": "lightslategray"
+      };
+      _touch_group.addChild(_touch_line);
+      _touch_group.children["touch-circle"].bringToFront();
+
     },
 
     create: function () {
       slider_dir = V_SLIDER;
       frame_width = this.data.to.x - this.data.from.x;
       frame_height = this.data.to.y - this.data.from.y;
-
 
       var _slider_group = new paper.Group({
         "name": "slider-group",
@@ -107,45 +160,16 @@ function sliderFactory() {
       _slider_group.addChild(_rect);
       this.addChild(_slider_group);
 
-      var _handle_group = new paper.Group({
-        "name": "handle-group",
-        "data": {
-          "midiMsg": this.data.midiMsg,
-          "form_style": {
-            "chan": "form-select",
-            "cc": "form-select",
-          }
-        }
-      });
 
-      let _touch_circle = new paper.Path.Circle({
-        "name": "touch-circle",
-        "center": new paper.Point(
-          _slider_group.data.from.x + (DEFAULT_SLIDER_WIDTH / 2),
-          _slider_group.data.from.y + (DEFAULT_SLIDER_HEIGHT / 2)
-        ),
-        "radius": this.radius,
+      let _touchs_group = new paper.Group({
+        "name": "touchs-group"
       });
-      _touch_circle.style = {
-        "fillColor": "red"
-      };
-      _handle_group.addChild(_touch_circle);
-
-      var _touch_line = new paper.Path.Line({
-        "name": "touch-line",
-        "from": new paper.Point(_slider_group.data.from.x, _slider_group.data.from.y + (DEFAULT_SLIDER_HEIGHT / 2)),
-        "to": new paper.Point(_slider_group.data.to.x, _slider_group.data.from.y + (DEFAULT_SLIDER_HEIGHT / 2)),
-        "locked": true
-      });
-      _touch_line.style = {
-        "strokeWidth": 1,
-        "strokeCap": "round",
-        "strokeColor": "lightslategray"
-      };
-      _handle_group.addChild(_touch_line);
-      _handle_group.children["touch-circle"].bringToFront();
-
-      this.addChild(_handle_group);
+      for (let _touch = 0; _touch < this.data.touch; _touch++) {
+        _touchs_group.addChild(this.new_touch(_touch));
+      }
+      this.addChild(_touchs_group);
+      
+      this.addChild(_touch_group);
     },
 
     onMouseEnter: function (mouseEvent) {
@@ -162,7 +186,7 @@ function sliderFactory() {
             if (tmp_select.item.name === "slider") {
               highlight_item = tmp_select.item.firstChild;
             }
-            else if (tmp_select.item.name === "slider-group" || tmp_select.item.name === "handle-group") {
+            else if (tmp_select.item.name === "slider-group" || tmp_select.item.name === "touch-group") {
               highlight_item = tmp_select.item.firstChild;
             }
             else if (tmp_select.item.name === "slider-frame" || tmp_select.item.name === "touch-circle") {
@@ -196,7 +220,7 @@ function sliderFactory() {
     },
 
     onMouseDown: function (mouseEvent) {
-      console.log("PING");
+      //console.log("PING");
 
       let mouse_down_options = {
         "stroke": false,
@@ -217,7 +241,7 @@ function sliderFactory() {
           current_item = tmp_select.item.firstChild;
           current_part = tmp_select;
         }
-        else if (tmp_select.item.name === "slider-group" || tmp_select.item.name === "handle-group") {
+        else if (tmp_select.item.name === "slider-group" || tmp_select.item.name === "touch-group") {
           current_item = tmp_select.item;
           current_part = tmp_select;
         }
@@ -273,24 +297,24 @@ function sliderFactory() {
                   if (frame_width > DEFAULT_SLIDER_MIN_WIDTH) {
                     this.children["slider-group"].children["slider-frame"].segments[0].point.x = mouseEvent.point.x;
                     this.children["slider-group"].children["slider-frame"].segments[1].point.x = mouseEvent.point.x;
-                    this.children["handle-group"].children["touch-line"].segments[0].point.x = mouseEvent.point.x;
+                    this.children["touch-group"].children["touch-line"].segments[0].point.x = mouseEvent.point.x;
 
-                    newSize.x = ((this.bounds.right - this.children["handle-group"].children["touch-line"].position.x) * frame_width) / previous_frame_width;
+                    newSize.x = ((this.bounds.right - this.children["touch-group"].children["touch-line"].position.x) * frame_width) / previous_frame_width;
                     newPos.x = this.bounds.right - newSize.x;
-                    this.children["handle-group"].children["touch-circle"].position.x = newPos.x;
+                    this.children["touch-group"].children["touch-circle"].position.x = newPos.x;
                     this.children["slider-group"].data.from.x = mouseEvent.point.x;
                   }
-                  
+
                   previous_frame_height = frame_height;
                   frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
                   if (frame_height > DEFAULT_SLIDER_MIN_HEIGHT) {
                     this.children["slider-group"].children["slider-frame"].segments[1].point.y = mouseEvent.point.y;
                     this.children["slider-group"].children["slider-frame"].segments[2].point.y = mouseEvent.point.y;
 
-                    newSize.y = ((this.bounds.bottom - this.children["handle-group"].children["touch-line"].position.y) * frame_height) / previous_frame_height;
+                    newSize.y = ((this.bounds.bottom - this.children["touch-group"].children["touch-line"].position.y) * frame_height) / previous_frame_height;
                     newPos.y = this.bounds.bottom - newSize.y;
-                    this.children["handle-group"].children["touch-line"].position.y = newPos.y;
-                    this.children["handle-group"].children["touch-circle"].position.y = newPos.y;
+                    this.children["touch-group"].children["touch-line"].position.y = newPos.y;
+                    this.children["touch-group"].children["touch-circle"].position.y = newPos.y;
                     this.children["slider-group"].data.from.y = mouseEvent.point.y;
                   }
                   break;
@@ -301,11 +325,11 @@ function sliderFactory() {
                   if (frame_width > DEFAULT_SLIDER_MIN_WIDTH) {
                     this.children["slider-group"].children["slider-frame"].segments[2].point.x = mouseEvent.point.x;
                     this.children["slider-group"].children["slider-frame"].segments[3].point.x = mouseEvent.point.x;
-                    this.children["handle-group"].children["touch-line"].segments[1].point.x = mouseEvent.point.x;
+                    this.children["touch-group"].children["touch-line"].segments[1].point.x = mouseEvent.point.x;
 
-                    newSize.x = ((this.children["handle-group"].children["touch-line"].position.x - this.bounds.left) * frame_width) / previous_frame_width;
+                    newSize.x = ((this.children["touch-group"].children["touch-line"].position.x - this.bounds.left) * frame_width) / previous_frame_width;
                     newPos.x = this.bounds.left + newSize.x;
-                    this.children["handle-group"].children["touch-circle"].position.x = newPos.x;
+                    this.children["touch-group"].children["touch-circle"].position.x = newPos.x;
                     this.children["slider-group"].data.to.x = mouseEvent.point.x;
                   }
 
@@ -315,10 +339,10 @@ function sliderFactory() {
                     this.children["slider-group"].children["slider-frame"].segments[1].point.y = mouseEvent.point.y;
                     this.children["slider-group"].children["slider-frame"].segments[2].point.y = mouseEvent.point.y;
 
-                    newSize.y = ((this.bounds.bottom - this.children["handle-group"].children["touch-line"].position.y) * frame_height) / previous_frame_height;
+                    newSize.y = ((this.bounds.bottom - this.children["touch-group"].children["touch-line"].position.y) * frame_height) / previous_frame_height;
                     newPos.y = this.bounds.bottom - newSize.y;
-                    this.children["handle-group"].children["touch-line"].position.y = newPos.y;
-                    this.children["handle-group"].children["touch-circle"].position.y = newPos.y;
+                    this.children["touch-group"].children["touch-line"].position.y = newPos.y;
+                    this.children["touch-group"].children["touch-circle"].position.y = newPos.y;
                     this.children["slider-group"].data.from.y = mouseEvent.point.y;
                   }
                   break;
@@ -329,11 +353,11 @@ function sliderFactory() {
                   if (frame_width > DEFAULT_SLIDER_MIN_WIDTH) {
                     this.children["slider-group"].children["slider-frame"].segments[2].point.x = mouseEvent.point.x;
                     this.children["slider-group"].children["slider-frame"].segments[3].point.x = mouseEvent.point.x;
-                    this.children["handle-group"].children["touch-line"].segments[1].point.x = mouseEvent.point.x;
+                    this.children["touch-group"].children["touch-line"].segments[1].point.x = mouseEvent.point.x;
 
-                    newSize.x = ((this.children["handle-group"].children["touch-line"].position.x - this.bounds.left) * frame_width) / previous_frame_width;
+                    newSize.x = ((this.children["touch-group"].children["touch-line"].position.x - this.bounds.left) * frame_width) / previous_frame_width;
                     newPos.x = this.bounds.left + newSize.x;
-                    this.children["handle-group"].children["touch-circle"].position.x = newPos.x;
+                    this.children["touch-group"].children["touch-circle"].position.x = newPos.x;
                     this.children["slider-group"].data.to.x = mouseEvent.point.x;
                   }
 
@@ -343,10 +367,10 @@ function sliderFactory() {
                     this.children["slider-group"].children["slider-frame"].segments[0].point.y = mouseEvent.point.y;
                     this.children["slider-group"].children["slider-frame"].segments[3].point.y = mouseEvent.point.y;
 
-                    newSize.y = ((this.children["handle-group"].children["touch-line"].position.y - this.bounds.top) * frame_height) / previous_frame_height;
+                    newSize.y = ((this.children["touch-group"].children["touch-line"].position.y - this.bounds.top) * frame_height) / previous_frame_height;
                     newPos.y = this.bounds.top + newSize.y;
-                    this.children["handle-group"].children["touch-line"].position.y = newPos.y;
-                    this.children["handle-group"].children["touch-circle"].position.y = newPos.y;
+                    this.children["touch-group"].children["touch-line"].position.y = newPos.y;
+                    this.children["touch-group"].children["touch-circle"].position.y = newPos.y;
                     this.children["slider-group"].data.to.y = mouseEvent.point.y;
                   }
                   break;
@@ -357,10 +381,10 @@ function sliderFactory() {
                     frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
                     this.children["slider-group"].children["slider-frame"].segments[0].point.x = mouseEvent.point.x;
                     this.children["slider-group"].children["slider-frame"].segments[1].point.x = mouseEvent.point.x;
-                    this.children["handle-group"].children["touch-line"].segments[0].point.x = mouseEvent.point.x;
-                    newSize.x = ((this.bounds.right - this.children["handle-group"].children["touch-line"].position.x) * frame_width) / previous_frame_width;
+                    this.children["touch-group"].children["touch-line"].segments[0].point.x = mouseEvent.point.x;
+                    newSize.x = ((this.bounds.right - this.children["touch-group"].children["touch-line"].position.x) * frame_width) / previous_frame_width;
                     newPos.x = this.bounds.right - newSize.x;
-                    this.children["handle-group"].children["touch-circle"].position.x = newPos.x;
+                    this.children["touch-group"].children["touch-circle"].position.x = newPos.x;
                     this.children["slider-group"].data.from.x = mouseEvent.point.x;
                   }
 
@@ -369,10 +393,10 @@ function sliderFactory() {
                   if (frame_height > DEFAULT_SLIDER_MIN_HEIGHT) {
                     this.children["slider-group"].children["slider-frame"].segments[3].point.y = mouseEvent.point.y;
                     this.children["slider-group"].children["slider-frame"].segments[0].point.y = mouseEvent.point.y;
-                    newSize.y = ((this.children["handle-group"].children["touch-line"].position.y - this.bounds.top) * frame_height) / previous_frame_height;
+                    newSize.y = ((this.children["touch-group"].children["touch-line"].position.y - this.bounds.top) * frame_height) / previous_frame_height;
                     newPos.y = this.bounds.top + newSize.y;
-                    this.children["handle-group"].children["touch-line"].position.y = newPos.y;
-                    this.children["handle-group"].children["touch-circle"].position.y = newPos.y;
+                    this.children["touch-group"].children["touch-line"].position.y = newPos.y;
+                    this.children["touch-group"].children["touch-circle"].position.y = newPos.y;
                     this.children["slider-group"].data.to.y = mouseEvent.point.y;
                   }
                   break;
@@ -407,14 +431,16 @@ function sliderFactory() {
           switch (slider_dir) {
             case V_SLIDER:
               if (mouseEvent.point.y > this.bounds.top && mouseEvent.point.y < this.bounds.bottom) {
+                this.children["touch-group"].children["touch-line"].position.y = mouseEvent.point.y;
+                this.children["touch-group"].children["touch-circle"].position.y = mouseEvent.point.y;
                 //this.value = mapp(mouseEvent.point.y, this.bounds.top, this.bounds.bottom, this.data.max, this.data.min);
-                this.children["handle-group"].children["touch-line"].position.y = mouseEvent.point.y;
               }
               break;
             case H_SLIDER:
               if (mouseEvent.point.x > this.bounds.left && mouseEvent.point.x < this.bounds.right) {
+                this.children["touch-group"].children["touch-line"].position.x = mouseEvent.point.x;
+                this.children["touch-group"].children["touch-circle"].position.x = mouseEvent.point.x;
                 //this.value = mapp(mouseEvent.point.x, this.bounds.left, this.bounds.right, this.data.min, this.data.max);
-                this.children["handle-group"].children["touch-line"].position.x = mouseEvent.point.x;
               }
               break;
           }

@@ -26,7 +26,7 @@ function gridFactory() {
   let highlight_item = null;
   let keys_count = null;
   let current_part = null;
-
+  
   var _Grid = new paper.Group({
     "name": "grid",
     "data": {
@@ -63,7 +63,7 @@ function gridFactory() {
           DEFAULT_MIDI_CHANNEL,
           DEFAULT_MIDI_NOTE,
           DEFAULT_MIDI_VELOCITY
-          );
+        );
         this.data.midiMsg.push(_midiMsg);
       }
     },
@@ -213,17 +213,23 @@ function gridFactory() {
         "fill": true,
         "tolerance": 8
       }
+
       tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
+
       switch (e256_current_mode) {
         case EDIT_MODE:
           if (tmp_select) {
-            if (tmp_select.item.name === "grid") {
+            if (
+              tmp_select.item.name === "grid" ||
+              tmp_select.item.name === "grid-group" ||
+              tmp_select.item.name === "key-group"
+            ) {
               highlight_item = tmp_select.item.firstChild;
             }
-            else if (tmp_select.item.name === "grid-group" || tmp_select.item.name === "key-group") {
-              highlight_item = tmp_select.item.firstChild;
-            }
-            else if (tmp_select.item.name === "grid-frame" || tmp_select.item.name === "key-frame") {
+            else if (
+              tmp_select.item.name === "grid-frame" ||
+              tmp_select.item.name === "key-frame"
+            ) {
               highlight_item = tmp_select.item;
             }
             else {
@@ -235,6 +241,27 @@ function gridFactory() {
           break;
         case PLAY_MODE:
           console.log("PLAY_MODE: NOT IMPLEMENTED!");
+          //console.log(highlight_item.data.midiMsg); // Smoking!?
+          if (tmp_select) {
+            if (
+              tmp_select.item.name === "grid" ||
+              tmp_select.item.name === "grid-group" ||
+              tmp_select.item.name === "key-group"
+            ) {
+              global_select = tmp_select.item;
+            }
+            else if (
+              tmp_select.item.name === "grid-frame" ||
+              tmp_select.item.name === "key-frame"
+            ) {
+              global_select = tmp_select.parent.item;
+            }
+            else {
+              console.log("NOT_USED: " + tmp_select.item.name);
+              return;
+            }
+            //global_select.children["touch"]. = true;
+          }
           break;
         default:
           break;

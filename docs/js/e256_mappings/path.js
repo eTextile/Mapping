@@ -9,19 +9,21 @@
 function pathFactory() {
   const DEFAULT_PATH_MIN = 0;
   const DEFAULT_PATH_MAX = 127;
-  const DEFAULT_PATH_STROKE_WIDTH = 20;
+  const DEFAULT_PATH_STROKE_WIDTH = 50;
   const DEFAULT_PATH_HANDLE_RADIUS = 15;
 
   let highlight_item = null;
   let current_part = null;
-  
+  //let current_segment = null;
+
   var _Path = new paper.Group({
     "name": "path",
-    "radius": null,
+    "radius": null, // Move it to midiMsg!?
     "data": {
       "min": null,
       "max": null,
       "segments": [],
+      "vectors": [],
       "midiMsg": null
     },
 
@@ -29,14 +31,13 @@ function pathFactory() {
       this.radius = DEFAULT_PATH_HANDLE_RADIUS;
       this.data.min = DEFAULT_PATH_MIN;
       this.data.max = DEFAULT_PATH_MAX;
-      this.data.segments.push(new paper.Point(mouseEvent.point.x, mouseEvent.point.y));
+      this.data.segments.push(mouseEvent.point);
       this.data.midiMsg = new Midi_slider(
         DEFAULT_MIDI_CHANNEL,
         DEFAULT_MIDI_CC,
         DEFAULT_MIDI_MIN,
         DEFAULT_MIDI_MAX
       );
-      //this.path.closed = true;
     },
 
     setup_from_config: function (params) {
@@ -48,7 +49,7 @@ function pathFactory() {
         params.midiMsg.cc
       );
     },
-    
+
     save_params: function () {
       this.data.min = this.children["path-group"].data.min;
       this.data.max = this.children["path-group"].data.max;
@@ -63,26 +64,41 @@ function pathFactory() {
           "min": this.data.min,
           "max": this.data.max,
           "segments": this.data.segments,
+          "vectors": [],
           "form_style": {
             "min": "form-select",
             "max": "form-select"
           }
         }
       });
-      var _path = new paper.Path({
-        "name": "path",
-        "segments": _path_group.data.segments, // vertex!?
+
+      let _path_curve = new paper.Path({
+        "name": "path-curve",
+        "segments": _path_group.data.segments,
+        "closed": false
       });
-      _path.style = {
+      _path_curve.style = {
         "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
         "strokeColor": new paper.Color(0.7, 0, 0.5),
         "strokeCap": "round",
         "strokeJoin": "round"
       }
-      _path_group.addChild(_path);
-      this.addChild(_path_group);
+      _path_group.addChild(_path_curve);
 
-      var _handle_group = new paper.Group({
+      let _path_graduations = new paper.Path({
+        "name": "path-graduations",
+        "segments": _path_curve.segments,
+        "closed": false,
+        "locked": true
+      });
+      _path_graduations.style = {
+        "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
+        "strokeColor": "black",
+        "dashArray": [50, 1]
+      };
+      _path_group.addChild(_path_graduations);
+
+      let _handle_group = new paper.Group({
         "name": "handle-group",
         "data": {
           "midiMsg": this.data.midiMsg,
@@ -92,31 +108,35 @@ function pathFactory() {
           }
         }
       });
-
       let _path_handle = new paper.Path.Circle({
         "name": "path-handle",
-        "center": new paper.Point(_path_group.data.segments[0].x, _path_group.data.segments[0].y),
-        "radius": this.radius,
+        "center": new paper.Point(_path_group.data.segments[0]),
+        "radius": this.radius
       });
       _path_handle.style = {
         "fillColor": "red"
       };
       _handle_group.addChild(_path_handle);
-      this.addChild(_handle_group); 
+      _path_group.addChild(_handle_group);
+      _path_group.children["handle-group"].bringToFront();
+
+      this.addChild(_path_group);
     },
 
+    // Call on mouse downe event
     graw: function (mouseEvent) {
-      this.children["path-group"].children["path"].add(new paper.Point(mouseEvent.point.x, mouseEvent.point.y));
-      //this.children["path-group"].children["path"].smooth();
+      this.children["path-group"].children["path-curve"].add(mouseEvent.point);
+      this.children["path-group"].children["path-graduations"].add(mouseEvent.point);
+      let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (this.data.max - this.data.min);
+      this.children["path-group"].children["path-graduations"].dashArray = [1, _path_graduation_interval];
     },
 
-    /*
     onMouseEnter: function (mouseEvent) {
       let mouse_enter_options = {
         "stroke": true,
         "bounds": true,
         "fill": true,
-        "tolerance": 8
+        "tolerance": 5
       }
       tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
       switch (e256_current_mode) {
@@ -125,8 +145,11 @@ function pathFactory() {
             if (tmp_select.item.name === "path") {
               highlight_item = tmp_select.item.firstChild;
             }
-            else if (tmp_select.item.name === "path-group") {
+            else if (tmp_select.item.name === "path-group" || tmp_select.item.name === "handle-group") {
               highlight_item = tmp_select.item.firstChild;
+            }
+            else if (tmp_select.item.name === "path-curve" || tmp_select.item.name === "path-graduations" || tmp_select.item.name === "path-handle") {
+              highlight_item = tmp_select.item;
             }
             else {
               console.log("NOT_USED: " + tmp_select.item.name);
@@ -154,20 +177,97 @@ function pathFactory() {
           break;
       }
     },
-  
+
+    onMouseDown: function (mouseEvent) {
+      let _mouse_down_options = {
+        "segments": true,
+        "stroke": false,
+        "fill": true,
+        "tolerance": 8
+      }
+
+      tmp_select = this.hitTest(mouseEvent.point, _mouse_down_options);
+      //console.log("GLOBAL_TMP_SELECT: " + tmp_select);
+
+
+      if (tmp_select) {
+        previous_controleur = current_controleur; // DONE in paper_script.js
+        current_controleur = this;
+        previous_item = current_item;
+        previous_part = current_part;
+
+        if (tmp_select.item.name === "path") {
+          current_item = tmp_select.item.firstChild;
+          current_part = tmp_select;
+        }
+        else if (
+          tmp_select.item.name === "path-group" ||
+          tmp_select.item.name === "handle-group") {
+          current_item = tmp_select.item;
+          current_part = tmp_select;
+        }
+        else if (
+          tmp_select.item.name === "path-curve" ||
+          tmp_select.item.name === "path-handle") {
+          current_item = tmp_select.item.parent;
+          current_part = tmp_select;
+        }
+        else {
+          console.log("NOT_USED: " + tmp_select.item.name);
+        }
+
+        /*
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            if (current_item.name === "touch-circle" && previous_item.name === "touch-circle") {
+              previous_item.firstChild.style.strokeColor = "lightslategray";
+              current_item.firstChild.style.strokeColor = "orange";
+            }
+            else if (current_item.name === "slider-frame" && previous_item.name === "touch-circle") {
+              //previous_item.firstChild.style.fillColor = "pink";
+              //current_item.firstChild.style.strokeColor = "orange";
+            }
+            else if (previous_item.name === "slider-frame" && current_item.name === "touch-circle") {
+              //previous_item.firstChild.style.strokeColor = "lightGreen";
+              //current_item.firstChild.style.fillColor = "orange";
+            }
+            else {
+              //console.log("NOT_USED - CUR: " + current_item.name + "- PREV - " + previous_item.name );
+            }
+            //update_menu_params(this);
+            break;
+          case PLAY_MODE:
+            // TODO
+            break;
+        }
+        */
+      }
+    },
+
     onMouseDrag: function (mouseEvent) {
       if (e256_current_mode === EDIT_MODE) {
-        if (selectedSegment) {
-          this.children["path-group"].children["path"].segments[selectedSegment].point.x = mouseEvent.point.x;
-          this.children["path-group"].children["path"].segments[selectedSegment].point.y = mouseEvent.point.y;
-          //update_menu_params(this);
+        if (current_part.type === "fill") {
+          move_item(this, mouseEvent);
         }
+        else if (current_part.type === "segment") {
+          current_part.segment.point = mouseEvent.point;
+          this.children["path-group"].children["path-graduations"].segments[current_part.segment.index].point = mouseEvent.point;
+        }
+    
       }
       else if (e256_current_mode === PLAY_MODE) {
         // TODO!
       }
-    }
-    */
+    },
+    
+    onMouseUp: function () {
+      switch (e256_current_mode) {
+        case EDIT_MODE:
+          break;
+        case PLAY_MODE:
+          break;
+      }
+    },
 
   });
   return _Path;

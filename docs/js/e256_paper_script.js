@@ -11,16 +11,31 @@ var scaleFactor = canvasHeight / 127;
 console.log("PAPER_WIDTH: " + canvasWidth + " PAPER_HEIGHT: " + canvasHeight);
 
 var hitOptions = {
-  stroke: false, // hit-test the stroke of path items, taking into account the setting of stroke color and width
+  stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
   bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
   fill: true,
   tolerance: 5
+  /*
+  "stroke": true,
+  "bounds": true,
+  "handles": true,
+  //"point": true,
+  //"internal": false,
+  "fill": true,
+  //"segment": true,
+  //"curve": true,
+  "tolerance": 4
+  */
 }
 
 var current_controleur = null;
 var previous_controleur = null;
 var current_item = null;
 var previous_item = null;
+let global_select = null
+
+var tmp_select = null;
+
 var create_once = false;
 
 function paperInit() {
@@ -36,7 +51,7 @@ function paperInit() {
   paper.view.setZoom(canvasWidth / canvasHeight);
   paper.view.center = new paper.Point(canvasWidth / 2, canvasHeight / 2);
 
-  paper.settings.handleSize = 15;
+  paper.settings.handleSize = 20;
   //paper.settings.selectionLineWidth = 20; // FIXME!
 
   new paper.Layer({ project: paper.project, name: "switch", insert: true });
@@ -51,14 +66,16 @@ function paperInit() {
   paperTool.onMouseDown = function (mouseEvent) {
 
     let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
-    //console.log("GLOBAL: " + hitResult);
+    //console.log("SELECT_LOCAL: " + hitResult);
 
     switch (e256_current_mode) {
       case EDIT_MODE:
         if (e256_draw_mode) {
-          if (!hitResult) { // create_ctl
-            if (!create_once){
-              if (e256_draw_mode === "path") create_once = true;
+          if (!hitResult) { // Create_ctl if cliking any umty screen space.
+            if (!create_once){ // Check if the controleur needs to be draw with more that one clic
+              if (e256_draw_mode === "path") {
+                create_once = true;
+              }
               previous_controleur = current_controleur;
               paper.project.layers[e256_draw_mode].activate();
               current_controleur = draw_controler_from_mouse(mouseEvent);
@@ -70,7 +87,7 @@ function paperInit() {
               update_menu_params(current_controleur);
             }
             else {
-              current_controleur.graw(mouseEvent); 
+              current_controleur.graw(mouseEvent); // Used by path() & ...
             }
           }
           else {
@@ -114,11 +131,12 @@ function paperInit() {
             item_remove_menu_params(current_controleur);
             current_controleur.remove();
             current_controleur = previous_controleur;
-            previous_controleur = null; // TODO: add linked list...
+            previous_controleur = null; // TODO: add linked list controleur managment.
             break;
           case "enter":
             if (e256_draw_mode === "path") {
-              newShape = true;
+              // TODO: remove last path point
+              current_controleur.back();
             }
             break;
           default:
@@ -128,7 +146,8 @@ function paperInit() {
       else {
         switch (keyEvent.key) {
           case "space":
-            console.log("SPACE")
+            console.log("SPACE");
+            create_once = false;
             break;
           default:
             break;

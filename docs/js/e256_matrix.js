@@ -10,11 +10,13 @@ function Matrix(width, height) {
     this.matrix[i] = 0;
   }
 }
+
 Matrix.prototype.update = function (sysExMsg) {
   for (var i = 0; i < RAW_FRAME; i++) {
     this.matrix[i] = sysExMsg[i + 1] / 10;
   }
 }
+
 Matrix.prototype.getZ = function (index) {
   var val = this.matrix[index];
   if (val != null) {
