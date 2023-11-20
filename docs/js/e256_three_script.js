@@ -1,6 +1,6 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
@@ -8,15 +8,17 @@ import * as THREE from 'three';
 
 let camera, scene, geometry, renderer;
 
-var canvasWidth = null;
-var canvasHeight = null;
-var halfCanvas = null;
+var canvas_width = null;
+var canvas_height = null;
+var half_canvas = null;
 
-canvasHeight = $("#loadingCanvas").height();
-canvasWidth = canvasHeight;
-halfCanvas = canvasWidth / 2;
-console.log("THREE_WIDTH: " + canvasWidth);
-console.log("THREE_HEIGHT: " + canvasHeight);
+//console.log("THREE.JS: " + THREE.version);
+
+canvas_height = $("#loadingCanvas").height();
+canvas_width = canvas_height;
+half_canvas = canvas_width / 2;
+//console.log("THREE_WIDTH: " + canvas_width + " THREE_HEIGHT: " + canvas_height);
+
 
 function init() {
   var threeCanvas = document.getElementById("canvas-3D");
@@ -99,19 +101,19 @@ function init() {
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(canvasWidth, canvasHeight);
+  renderer.setSize(canvas_width, canvas_height);
   threeCanvas.appendChild(renderer.domElement);
 
   window.addEventListener('resize', onWindowResize);
 }
 
 function onWindowResize() {
-  canvasHeight = $("#loadingCanvas").height();
-  canvasWidth = canvasHeight;
-  halfCanvas = canvasWidth / 2;
-  console.log("THREE_WIDTH: " + canvasWidth + " THREE_HEIGHT: " + canvasHeight);  
-  renderer.setSize(canvasWidth, canvasHeight);
-  camera.aspect = canvasWidth / canvasHeight;
+  canvas_height = $("#loadingCanvas").height();
+  canvas_width = canvas_height;
+  half_canvas = canvas_width / 2;
+  console.log("THREE_WIDTH: " + canvas_width + " THREE_HEIGHT: " + canvas_height);  
+  renderer.setSize(canvas_width, canvas_height);
+  camera.aspect = canvas_width / canvas_height;
   camera.updateProjectionMatrix();
 }
 

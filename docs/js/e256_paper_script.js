@@ -1,55 +1,46 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var canvasHeight = $("#loadingCanvas").height();
-var canvasWidth = canvasHeight;
-var scaleFactor = canvasHeight / 127;
+var canvas_height = $("#loadingCanvas").height();
+var canvas_width = canvas_height;
+var scaleFactor = canvas_height / 127;
 
-console.log("PAPER_WIDTH: " + canvasWidth + " PAPER_HEIGHT: " + canvasHeight);
+//.log("PAPER_WIDTH: " + canvas_width + " PAPER_HEIGHT: " + canvas_height);
 
 var hitOptions = {
-  stroke: true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
-  bounds: true, // hit-test the corners and side-centers of the bounding rectangle of items
-  fill: true,
-  tolerance: 5
-  /*
-  "stroke": true,
-  "bounds": true,
-  "handles": true,
-  //"point": true,
-  //"internal": false,
+  "segments": true,
+  "stroke": true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
+  "bounds": true, // hit-test the corners and side-centers of the bounding rectangle of items
   "fill": true,
-  //"segment": true,
-  //"curve": true,
-  "tolerance": 4
-  */
+  "tolerance": 5
 }
 
-var current_controleur = null;
-var previous_controleur = null;
-var current_item = null;
-var previous_item = null;
-let global_select = null
+var current_controleur = { "id": null };
+var previous_controleur = { "id": null };
 
-var tmp_select = null;
+var current_item = { "id": null };
+var previous_item = { "id": null };
+
+var current_part = { "id": null };
 
 var create_once = false;
+var global_midi_chan_index = 1;
 
 function paperInit() {
 
-  console.log("BOOTSTRAP_VERSION: " + bootstrap.Tooltip.VERSION);
-  console.log("JQUERY_VERSION: " + jQuery().jquery);
+  console.log("BOOTSTRAP: " + bootstrap.Tooltip.VERSION);
+  console.log("JQUERY: " + jQuery().jquery);
 
   paper.setup(document.getElementById("canvas-2D"));
-  console.log("PAPER_VERSION: " + paper.version);
+  console.log("PAPER.JS: " + paper.version);
 
-  paper.view.viewSize.width = canvasWidth;
-  paper.view.viewSize.height = canvasHeight;
-  paper.view.setZoom(canvasWidth / canvasHeight);
-  paper.view.center = new paper.Point(canvasWidth / 2, canvasHeight / 2);
+  paper.view.viewSize.width = canvas_width;
+  paper.view.viewSize.height = canvas_height;
+  paper.view.setZoom(canvas_width / canvas_height);
+  paper.view.center = new paper.Point(canvas_width / 2, canvas_height / 2);
 
   paper.settings.handleSize = 20;
   //paper.settings.selectionLineWidth = 20; // FIXME!
@@ -67,47 +58,48 @@ function paperInit() {
 
     let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
     //console.log("SELECT_LOCAL: " + hitResult);
-
+    current_part = hitResult;
+    
     switch (e256_current_mode) {
       case EDIT_MODE:
         if (e256_draw_mode) {
           if (!hitResult) { // Create_ctl if cliking any umty screen space.
-            if (!create_once){ // Check if the controleur needs to be draw with more that one clic
+            if (!create_once) { // Check if the controleur needs to be draw with more that one clic.
               if (e256_draw_mode === "path") {
                 create_once = true;
               }
               previous_controleur = current_controleur;
               paper.project.layers[e256_draw_mode].activate();
               current_controleur = draw_controler_from_mouse(mouseEvent);
-              current_controleur.bringToFront();
-              item_menu_params(previous_controleur, "hide"); // if (previous_controleur != null)
-              item_menu_params(previous_item, "hide");  // if (previous_item != null)
-              item_create_menu_params(current_controleur);
+              item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
+              item_menu_params(previous_item, "hide"); // if (previous_item !== null)
+              create_item_menu_params(current_controleur);
+              update_item_menu_params(current_controleur);
+              update_item_touch_menu_params(current_controleur);
               item_menu_params(current_controleur, "show");
-              update_menu_params(current_controleur);
             }
             else {
               current_controleur.graw(mouseEvent); // Used by path() & ...
             }
           }
           else {
-            if (previous_controleur) {
-              if (current_controleur.id !== previous_controleur.id) {
-                current_controleur.bringToFront();
-                //console.log("A_CTL_C: " + current_controleur.name + " " + current_controleur.id);
-                //console.log("A_CTL_L: " + previous_controleur.name + " " + previous_controleur.id);
+            let controleur = null;
+            while (hitResult.item.parent){ // Get current_controleur
+              controleur = hitResult.item
+              hitResult.item = hitResult.item.parent;
+            }
+            previous_controleur = current_controleur;
+            current_controleur = controleur;           
+            if (current_controleur.id !== previous_controleur.id) {
+              current_controleur.bringToFront();
+              if (previous_controleur) {
                 item_menu_params(previous_controleur, "hide");
-                item_menu_params(previous_item, "hide");
-                item_menu_params(current_controleur, "show");
-                update_menu_params(current_controleur);
               }
-              else if (current_item !== previous_item) {
-                item_menu_params(previous_item, "hide");
-                item_menu_params(current_item, "show");
-                //console.log("B_PONG_C: " + current_item.name + " " + current_item.id);
-                //console.log("B_PONG_L: " + previous_item.name + " " + previous_item.id);
-                update_menu_params(current_item);
-              }
+              item_menu_params(current_controleur, "show");
+            }
+            else if (current_item.id !== previous_item.id) {
+              item_menu_params(previous_item, "hide");
+              item_menu_params(current_item, "show");
             }
           }
         }
@@ -116,9 +108,7 @@ function paperInit() {
         }
         break;
       case PLAY_MODE:
-        if (hitResult) {
-          //current_controleur.activate(mouseEvent);
-        }
+        // NA
         break;
     }
   };
@@ -128,7 +118,7 @@ function paperInit() {
       if (keyEvent.modifiers.shift) {
         switch (keyEvent.key) {
           case "backspace":
-            item_remove_menu_params(current_controleur);
+            remove_item_menu_params(current_controleur);
             current_controleur.remove();
             current_controleur = previous_controleur;
             previous_controleur = null; // TODO: add linked list controleur managment.
@@ -162,9 +152,9 @@ function paperInit() {
 
   function draw_controler_from_mouse(mouseEvent) {
     let _ctl = controleur_factory(e256_draw_mode);
-    //let _ctl = controleur_factory[e256_draw_mode];
     _ctl.setup_from_mouse_event(mouseEvent);
     _ctl.create();
+    _ctl.bringToFront();
     return _ctl;
   };
 
@@ -173,7 +163,7 @@ function paperInit() {
     for (const layer of paper.project.layers) {
       if (layer.hasChildren()) {
         for (item of layer.children) {
-          item_remove_menu_params(item);
+          remove_item_menu_params(item);
         }
       }
     }
@@ -187,11 +177,10 @@ function paperInit() {
       paper.project.layers[_ctl_type].activate();
       for (const _ctl_conf of configFile.mappings[_ctl_type]) {
         let _ctl = controleur_factory(_ctl_type);
-        //let _ctl = controleur_factory[_ctl_type];
         _ctl.setup_from_config(_ctl_conf);
         _ctl.create();
-        item_create_menu_params(_ctl);
-        update_menu_params(_ctl);
+        create_item_menu_params(_ctl);
+        update_item_menu_params(_ctl);
         item_menu_params(_ctl, "hide");
       }
     }
@@ -236,14 +225,14 @@ function paperInit() {
 
   // FIXME: whenever the view is resized
   paper.view.onResize = function () {
-    canvasHeight = $("#loadingCanvas").height();
-    canvasWidth = canvasHeight;
-    console.log("WIDTH: " + canvasWidth + " HEIGHT: " + canvasHeight);
-    scaleFactor = canvasHeight / 127;
-    paper.view.viewSize.width = canvasWidth;
-    paper.view.viewSize.height = canvasHeight;
-    paper.view.setZoom(canvasWidth / canvasHeight);
-    paper.view.center = new paper.Point(canvasWidth / 2, canvasHeight / 2);
+    canvas_height = $("#loadingCanvas").height();
+    canvas_width = canvas_height;
+    console.log("WIDTH: " + canvas_width + " HEIGHT: " + canvas_height);
+    scaleFactor = canvas_height / 127;
+    paper.view.viewSize.width = canvas_width;
+    paper.view.viewSize.height = canvas_height;
+    paper.view.setZoom(canvas_width / canvas_height);
+    paper.view.center = new paper.Point(canvas_width / 2, canvas_height / 2);
   };
 
   function onReaderLoad(event) {
@@ -261,7 +250,7 @@ function paperInit() {
       reader.readAsText(event.target.files[0]);
     }
     else if (fileType === "application/wav") {
-      //TODO
+      // TODO
     }
     else {
       alert("WRONG FILE TYPE!");

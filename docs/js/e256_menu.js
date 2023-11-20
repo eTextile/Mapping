@@ -1,6 +1,6 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
@@ -28,6 +28,7 @@ $("#connectSwitch").on("change", function () {
 
 $(".e256_setMode").click(function (event) {
   switch (event.target.id) {
+
     case "matrixMode":
       e256_current_mode = MATRIX_MODE_RAW;
       $("#calibrateMenu").collapse("show");
@@ -37,9 +38,10 @@ $(".e256_setMode").click(function (event) {
       $("#matrixCanvas").collapse("show");
       $("#mappingCanvas").collapse("hide");
       $("#summaryAction").html("CONNECTED");
-      $("#summaryContent").html("This 3D visualisation is made to check all the eTextile matrix piezoresistive pressure sensors");
+      $("#contextualContent").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
       //$(".param").collapse("hide");
       break;
+
     case "mappingMode":
       e256_current_mode = EDIT_MODE;
       $("#calibrateMenu").collapse("show");
@@ -49,30 +51,31 @@ $(".e256_setMode").click(function (event) {
       $("#matrixCanvas").collapse("hide");
       $("#mappingCanvas").collapse("show");
       $("#summaryAction").html("CONNECTED");
-      $("#summaryContent").html("This 2D graphic user interface is made to draw your own eTextile custom interfaces !");
+      $("#contextualContent").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces !");
       //$(".param").collapse("hide");
       break;
+
     case "editMode":
       e256_current_mode = EDIT_MODE;
       $("#editMenu").collapse("show");
       $("#playMenu").collapse("hide");
       $("#loadMenu").collapse("show");
-
+      $("#set_button_params").collapse("show");
       $("#summaryAction").html("CONNECTED / EDIT_MODE");
-      $("#summaryContent").html("Add new components");
+      $("#contextualContent").html("Using EDIT MODE you can add components to the matrix controler");
       break;
+
     case "playMode":
       e256_current_mode = PLAY_MODE;
       $("#editMenu").collapse("hide");
       $("#playMenu").collapse("show");
       $("#loadMenu").collapse("hide");
-
+      $("#set_button_params").collapse("hide");
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
-      $("#summaryContent").html("Evaluate what you have made");
-      //$(".param").collapse("hide");
+      $("#contextualContent").html("Using PLAY MODE you can evaluate what you have made");
       break;
   }
-  if (MIDI_device_connected) {
+  if (midi_device_connected) {
     sendProgramChange(e256_current_mode, MIDI_MODES_CHANNEL);
     console.log("REQUEST: " + MODES_CODES[e256_current_mode]);
   } else {
@@ -81,7 +84,7 @@ $(".e256_setMode").click(function (event) {
 });
 
 $("#uploadConfig").click(function () {
-  if (MIDI_device_connected) {
+  if (midi_device_connected) {
     e256_alocate_memory();
   } else {
     alert("e256 NOT CONNECTED!");
@@ -96,7 +99,7 @@ $("#saveConfig").click(function () {
 });
 
 $(".mapingTool").click(function (event) {
-  $("#optionsMenu").collapse("show");
+  //$("#optionsMenu").collapse("show");
   //$(".param").collapse("hide");
   e256_draw_mode = event.target.id;
   console.log("DRAW_MODE: " + e256_draw_mode);
@@ -104,7 +107,7 @@ $(".mapingTool").click(function (event) {
 });
 
 $("#calibrate").click(function () {
-  if (MIDI_device_connected) {
+  if (midi_device_connected) {
     sendProgramChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CALIBRATE");
   } else {
@@ -113,7 +116,7 @@ $("#calibrate").click(function () {
 });
 
 $("#getConfig").click(function () {
-  if (MIDI_device_connected) {
+  if (midi_device_connected) {
     //e256_current_mode = SYNC_MODE;
     sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CONFIG_FILE");
@@ -129,10 +132,11 @@ $("#exportConfig").click(function () {
 // Update graphic item using form params
 $("#btnSet").click(function () {
   current_controleur.save_params();
-  item_remove_menu_params(current_controleur);
+  remove_item_menu_params(current_controleur);
   current_controleur.removeChildren();
   current_controleur.create();
-  item_create_menu_params(current_controleur);
-  update_menu_params(current_controleur);
+  create_item_menu_params(current_controleur);
+  update_item_menu_params(current_controleur);
+  update_item_touch_menu_params(current_controleur);
   item_menu_params(current_controleur, "show");
 });

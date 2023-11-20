@@ -1,36 +1,36 @@
 /*
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
-  This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
+This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
+This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
 /////////// SWITCH Factory
 function switchFactory() {
-  const DEFAULT_SWITCH_WIDTH = 45;
-  const DEFAULT_SWITCH_HEIGHT = 45;
-  const DEFAULT_SWITCH_MODE = KEY_TRIGGER;
+  const DEFAULT_SWITCH_WIDTH = 60;
+  const DEFAULT_SWITCH_HEIGHT = 60;
+  const DEFAULT_SWITCH_MIN_SIZE = 60;
+  const DEFAULT_SWITCH_MODE = "TRIGGER";
   const DEFAULT_SWITCH_VELOCITY = "OFF";
   const DEFAULT_SWITCH_AFTERTOUCH = "OFF";
-  const DEFAULT_BUTTON_PADDING = 5;
+  const DEFAULT_SWITCH_BUTTON_PADDING = 8;
 
   let half_frame_width = null;
   let half_frame_height = null;
-  let current_part = null;
-  let highlight_item = null;
-  let state = false;
 
   var _switch = new paper.Group({
     "name": "switch",
+    "modes": null,
     "data": {
       "from": null,
       "to": null,
       "mode": null,
       "velocity": null,
       "aftertouch": null,
-      "midiMsg": null
+      "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
+      this.modes = KEY_MODES;
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_SWITCH_WIDTH / 2),
         mouseEvent.point.y - (DEFAULT_SWITCH_HEIGHT / 2)
@@ -42,11 +42,10 @@ function switchFactory() {
       this.data.mode = DEFAULT_SWITCH_MODE;
       this.data.velocity = DEFAULT_SWITCH_VELOCITY;
       this.data.aftertouch = DEFAULT_SWITCH_AFTERTOUCH;
-      this.data.midiMsg = new Midi_key(
-        DEFAULT_MIDI_CHANNEL,
-        DEFAULT_MIDI_NOTE,
-        DEFAULT_MIDI_VELOCITY
-      );
+      this.data.msg = new midi_key_touch_msg(0);
+      //console.log("AAA"); 
+      //console.log("AA " + JSON.stringify(new midi_key_touch_msg(0)));
+      console.log("A " + JSON.stringify(this.data.msg.note));
     },
 
     setup_from_config: function (params) {
@@ -55,11 +54,7 @@ function switchFactory() {
       this.data.mode = params.mode;
       this.data.velocity = params.velocity;
       this.data.aftertouch = params.aftertouch;
-      this.data.midiMsg = new Midi_touch(
-        params.midiMsg.chan,
-        params.midiMsg.note,
-        params.midiMsg.velo
-      );
+      this.data.msg = new midi_key_touch_msg(0);
     },
 
     save_params: function () {
@@ -68,178 +63,230 @@ function switchFactory() {
       this.data.mode = this.children["switch-group"].data.mode;
       this.data.velocity = this.children["switch-group"].data.velocity;
       this.data.aftertouch = this.children["switch-group"].data.aftertouch;
-      this.data.midiMsg = this.children["button-group"].data.midiMsg;
+      this.data.msg = this.children["touchs-group"].firstChild.data;
+    },
+
+    // TOUCH_GROUP
+    new_touch: function (touch_id) {
+
+      let _touch_group = new paper.Group({
+        "name": "touch-" + touch_id,
+        "data": this.data.msg
+      });
+
+      let _touch_ellipse = new paper.Shape.Ellipse({
+        "name": "touch-ellipse",
+        "center": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
+        "radius": new paper.Point(half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING, half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING),
+      });
+
+      _touch_ellipse.style = {
+        "fillColor": "pink"
+      }
+
+      _touch_ellipse.onMouseEnter = function () {
+        this.style.fillColor = "orange";
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            // NA
+            break;
+          case PLAY_MODE:
+            if (midi_device_connected) {
+              switch (this.data.mode) {
+                case "TOGGLE":
+                  //sendNoteOn(this.data.note, this.data.velo, this.data.chan);
+                  break;
+                case "TRIGGER":
+                  //sendNoteOn(this.data.note, this.data.velo, this.data.chan);
+                  //setTimeout(this.triggerOff, 300, this);
+                  break;
+              }
+            }
+            break;
+        }
+      }
+
+      _touch_ellipse.onMouseLeave = function () {
+        this.style.fillColor = "pink";
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            break;
+          case PLAY_MODE:
+            if (midi_device_connected) {
+              if (this.data.mode === "TOGGLE") {
+                //sendNoteOn(this.data.note, 0, this.data.chan);
+              }
+            }
+            break;
+        }
+      }
+
+      _touch_ellipse.onMouseDown = function () {
+        previous_item = current_item;
+        current_item = this.parent;
+      }
+
+      _touch_group.addChild(_touch_ellipse);
+
+      return _touch_group;
     },
 
     create: function () {
-      half_frame_width = (this.data.to.x - this.data.from.x) / 2;
-      half_frame_height = (this.data.to.y - this.data.from.y) / 2;
 
       let _switch_group = new paper.Group({
         "name": "switch-group",
+        "modes": this.modes,
         "data": {
           "from": this.data.from,
           "to": this.data.to,
           "mode": this.data.mode,
           "velocity": this.data.velocity,
-          "aftertouch": this.data.aftertouch,
-          "form_style": {
-            "from": "form-control",
-            "to": "form-control",
-            "mode": "form-select",
-            "aftertouch": "form-toggle",
-            "velocity": "form-toggle"
-          }
+          "aftertouch": this.data.aftertouch
         }
       });
+
+      half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
+      half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+
+      let _touchs_group = new paper.Group({
+        "name": "touchs-group"
+      });
+
+      _touchs_group.addChild(this.new_touch(0));
 
       let _switch_frame = new paper.Path.Rectangle({
         "name": "switch-frame",
-        "from": this.data.from,
-        "to": this.data.to
+        "from": _switch_group.data.from,
+        "to": _switch_group.data.to
       });
+
       _switch_frame.style = {
-        "strokeColor": "chartreuse",
-        "strokeWidth": 3,
         "fillColor": "skyblue"
       }
-      _switch_group.addChild(_switch_frame);
-      this.addChild(_switch_group);
 
-      let _button_group = new paper.Group({
-        "name": "button-group",
-        "data": {
-          "midiMsg": this.data.midiMsg,
-          "form_style": {
-            "chan": "form-select",
-            "note": "form-select",
-            "velo": "form-select"
-          }
-        }
-      });
-
-      let _button_switch = new paper.Shape.Ellipse({
-        "name": "button-switch",
-        "center": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
-        "radius": new paper.Point(half_frame_width, half_frame_height)
-      });
-      _button_switch.style = {
-        "fillColor": "black"
-      }
-      _button_group.addChild(_button_switch);
-      this.addChild(_button_group);
-    },
-
-    onMouseEnter: function (mouseEvent) {
-      let mouse_enter_options = {
-        "stroke": true,
-        "bounds": true,
-        "fill": true,
-        "tolerance": 8
-      }
-      tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
-      switch (e256_current_mode) {
-        case EDIT_MODE:
-          if (tmp_select) {
-            if (tmp_select.item.name === "switch") {
-              highlight_item = tmp_select.item.firstChild;
-            }
-            else if (tmp_select.item.name === "switch-group") {
-              highlight_item = tmp_select.item.firstChild;
-            }
-            else if (tmp_select.item.name === "switch-frame" || "button-switch") {
-              highlight_item = tmp_select.item;
-            }
-            else {
-              console.log("NOT_USED: " + tmp_select);
-              return;
-            }
-            highlight_item.selected = true;
-          }
-          break;
-        case PLAY_MODE:
-          //console.log("PLAY_MODE: NOT IMPLEMENTED!");
-          break;
-        default:
-          break;
-      }
-    },
-
-    onMouseLeave: function () {
-      switch (e256_current_mode) {
-        case EDIT_MODE:
-          if (highlight_item) highlight_item.selected = false;
-          break;
-        case PLAY_MODE:
-          break;
-        default:
-          break;
-      }
-    },
-
-    onMouseDown: function (mouseEvent) {
-      let mouse_down_options = {
-        "stroke": false,
-        "bounds": true,
-        "fill": true,
-        "tolerance": 8
-      }
-
-      tmp_select = this.hitTest(mouseEvent.point, mouse_down_options);
-
-      if (tmp_select) {
-        previous_controleur = current_controleur; // DONE in paper_script.js
-        current_controleur = this;
-        previous_item = current_item;
-        previous_part = current_part;
-
-        if (tmp_select.item.name === "switch") {
-          current_item = tmp_select.item.firstChild;
-          current_part = tmp_select;
-        }
-        else if (tmp_select.item.name === "switch-group" || tmp_select.item.name === "button-group") {
-          current_item = tmp_select.item;
-          current_part = tmp_select;
-        }
-        else if (tmp_select.item.name === "switch-frame" || "button-switch") {
-          current_item = tmp_select.item.parent;
-          current_part = tmp_select;
-        }
-        else {
-          //console.log("NOT_USED : " + tmp_select.item.name);
-        }
-
+      _switch_frame.onMouseEnter = function () {
         switch (e256_current_mode) {
           case EDIT_MODE:
-            if (current_item.name === "button-switch") {
-              // TODO
-            }
-            else {
-              // TODO
-            }
+            this.selected = true;
             break;
           case PLAY_MODE:
-            if (current_item.name === "button-switch") {
-              console.log("MODE: " + this.data.mode);
-              if (this.data.mode === "TOGGLE") {
-                state = !state;
-                if (state) {
-                  this.children["switch-group"].children["button-switch"].fillColor = "red";
-                  if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velo, this.data.chan);
-                } else {
-                  this.children["switch-group"].children["button-switch"].fillColor = "gray";
-                  if (MIDI_device_connected) sendNoteOn(this.data.note, 0, this.data.chan);
-                }
-              }
-              else if (this.data.mode === "TRIGGER") {
-                this.children["switch-group"].children["button-switch"].fillColor = "red";
-                if (MIDI_device_connected) sendNoteOn(this.data.note, this.data.velo, this.data.chan);
-                setTimeout(this.triggerOff, 300, this);
-              }
-            }
             break;
         }
       }
+
+      _switch_frame.onMouseLeave = function () {
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            this.selected = false;
+            break;
+          case PLAY_MODE:
+            break;
+        }
+      }
+
+      _switch_frame.onMouseDown = function () {
+        previous_item = current_item;
+        current_item = _switch_group;
+      }
+
+      _switch_frame.onMouseDrag = function (mouseEvent) {
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            if (current_part.type === "bounds") {
+              switch (current_part.name) {
+                case "top-left":
+                  this.segments[0].point.x = mouseEvent.point.x;
+                  this.segments[1].point = mouseEvent.point;
+                  this.segments[2].point.y = mouseEvent.point.y;
+                  _switch_group.data.from = mouseEvent.point;
+                  half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
+                  half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+                  for (const _touch of _touchs_group.children) {
+                    _touch.children["touch-ellipse"].position = new paper.Point(
+                      _switch_group.data.to.x - half_frame_width,
+                      _switch_group.data.to.y - half_frame_height
+                    );
+                    _touch.children["touch-ellipse"].radius = [
+                      half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
+                      half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
+                    ];
+                  }
+                  break;
+
+                case "top-right":
+                  this.segments[1].point.y = mouseEvent.point.y;
+                  this.segments[2].point = mouseEvent.point;
+                  this.segments[3].point.x = mouseEvent.point.x;
+                  _switch_group.data.from.y = mouseEvent.point.y;
+                  _switch_group.data.to.x = mouseEvent.point.x;
+                  half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
+                  half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+                  for (const _touch of _touchs_group.children) {
+                    _touch.children["touch-ellipse"].position = new paper.Point(
+                      _switch_group.data.from.x + half_frame_width,
+                      _switch_group.data.to.y - half_frame_height
+                    );
+                    _touch.children["touch-ellipse"].radius = [
+                      half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
+                      half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
+                    ];
+                  }
+                  break;
+
+                case "bottom-right":
+                  this.segments[2].point.x = mouseEvent.point.x;
+                  this.segments[3].point = mouseEvent.point;
+                  this.segments[0].point.y = mouseEvent.point.y;
+                  _switch_group.data.to = mouseEvent.point;
+                  half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
+                  half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+                  for (const _touch of _touchs_group.children) {
+                    _touch.children["touch-ellipse"].position = new paper.Point(
+                      _switch_group.data.from.x + half_frame_width,
+                      _switch_group.data.from.y + half_frame_height
+                    );
+                    _touch.children["touch-ellipse"].radius = [
+                      half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
+                      half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
+                    ];
+                  }
+                  break;
+
+                case "bottom-left":
+                  this.segments[3].point.y = mouseEvent.point.y;
+                  this.segments[0].point = mouseEvent.point;
+                  this.segments[1].point.x = mouseEvent.point.x;
+                  _switch_group.data.from.x = mouseEvent.point.x;
+                  _switch_group.data.to.y = mouseEvent.point.y;
+                  half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
+                  half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+                  for (const _touch of _touchs_group.children) {
+                     _touch.children["touch-ellipse"].position = new paper.Point(
+                      _switch_group.data.to.x - half_frame_width,
+                      _switch_group.data.from.y + half_frame_height
+                    );
+                    _touch.children["touch-ellipse"].radius = [
+                      half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
+                      half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
+                    ];
+                  }
+                  break;
+                default:
+                  console.log("PART_NOT_USE: " + current_part.name);
+                  break;
+              }
+            }
+            update_item_menu_params(_switch_group.parent);
+            break;
+          case PLAY_MODE:
+            //TODO
+            break;
+        }
+      }
+
+      _switch_group.addChild(_switch_frame);
+      this.addChild(_switch_group);
+      this.addChild(_touchs_group);
     },
 
     onMouseDrag: function (mouseEvent) {
@@ -247,77 +294,11 @@ function switchFactory() {
         case EDIT_MODE:
           if (current_part.type === "fill") {
             move_item(this, mouseEvent);
+            update_item_menu_params(this);
           }
-          else if (current_part.type === "bounds") {
-            if (current_item.name === "switch-group") {
-              switch (current_part.name) {
-                case "top-left":
-                  this.children["switch-group"].children["switch-frame"].segments[0].point.x = mouseEvent.point.x;
-                  this.children["switch-group"].children["switch-frame"].segments[1].point = mouseEvent.point;
-                  this.children["switch-group"].children["switch-frame"].segments[2].point.y = mouseEvent.point.y;
-                  this.children["switch-group"].data.from = mouseEvent.point;
-                  half_frame_width = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  half_frame_height = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  this.children["button-group"].children["button-switch"].position = new paper.Point(
-                    this.children["switch-group"].data.to.x - half_frame_width,
-                    this.children["switch-group"].data.to.y - half_frame_height
-                  );
-                  this.children["button-group"].children["button-switch"].radius = [half_frame_width, half_frame_height];
-                  break;
-
-                case "top-right":
-                  this.children["switch-group"].children["switch-frame"].segments[1].point.y = mouseEvent.point.y;
-                  this.children["switch-group"].children["switch-frame"].segments[2].point = mouseEvent.point;
-                  this.children["switch-group"].children["switch-frame"].segments[3].point.x = mouseEvent.point.x;
-                  this.children["switch-group"].data.from.y = mouseEvent.point.y;
-                  this.children["switch-group"].data.to.x = mouseEvent.point.x;
-                  half_frame_width = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  half_frame_height = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  this.children["button-group"].children["button-switch"].position = new paper.Point(
-                    this.children["switch-group"].data.from.x + half_frame_width,
-                    this.children["switch-group"].data.to.y - half_frame_height
-                  );
-                  this.children["button-group"].children["button-switch"].radius = [half_frame_width, half_frame_height];
-                  break;
-
-                case "bottom-right":
-                  this.children["switch-group"].children["switch-frame"].segments[2].point.x = mouseEvent.point.x;
-                  this.children["switch-group"].children["switch-frame"].segments[3].point = mouseEvent.point;
-                  this.children["switch-group"].children["switch-frame"].segments[0].point.y = mouseEvent.point.y;
-                  this.children["switch-group"].data.to = mouseEvent.point;
-                  half_frame_width = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  half_frame_height = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  this.children["button-group"].children["button-switch"].position = new paper.Point(
-                    this.children["switch-group"].data.from.x + half_frame_width,
-                    this.children["switch-group"].data.from.y + half_frame_height
-                  );
-                  this.children["button-group"].children["button-switch"].radius = [half_frame_width, half_frame_height];
-                  break;
-
-                case "bottom-left":
-                  this.children["switch-group"].children["switch-frame"].segments[3].point.y = mouseEvent.point.y;
-                  this.children["switch-group"].children["switch-frame"].segments[0].point = mouseEvent.point;
-                  this.children["switch-group"].children["switch-frame"].segments[1].point.x = mouseEvent.point.x;
-                  this.children["switch-group"].data.from.x = mouseEvent.point.x;
-                  this.children["switch-group"].data.to.y = mouseEvent.point.y;
-                  half_frame_width = (this.children["switch-group"].data.to.x - this.children["switch-group"].data.from.x) / 2;
-                  half_frame_height = (this.children["switch-group"].data.to.y - this.children["switch-group"].data.from.y) / 2;
-                  this.children["button-group"].children["button-switch"].position = new paper.Point(
-                    this.children["switch-group"].data.to.x - half_frame_width,
-                    this.children["switch-group"].data.from.y + half_frame_height
-                  );
-                  this.children["button-group"].children["button-switch"].radius = [half_frame_width, half_frame_height];
-                  break;
-                default:
-                  console.log("PART_NOT_USE: " + current_part.name);
-                  break;
-              }
-            }
-          }
-          update_menu_params(this);
           break;
         case PLAY_MODE:
-          //TODO
+          // NA
           break;
       }
     }

@@ -1,14 +1,16 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
 function move_item(item, mouseEvent) {
   item.translate(mouseEvent.delta);
   item.firstChild.data.from = new paper.Point(item.bounds.left, item.bounds.top);
+		//item.data.from = new paper.Point(item.bounds.left, item.bounds.top);
   item.firstChild.data.to = new paper.Point(item.bounds.right, item.bounds.bottom);
-};
+  //item.data.to = new paper.Point(item.bounds.right, item.bounds.bottom);
+	};
 
 function mapp(value, low1, high1, low2, high2) {
   return low2 + (high2 - low2) * (value - low1) / (high1 - low1);

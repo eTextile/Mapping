@@ -1,12 +1,12 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
 var MIDIInput = null;
-var MIDIoutput = null;
-var MIDI_device_connected = false;
+var MIDIOutput = null;
+var midi_device_connected = false;
 var fileType = null;
 var confSize = 0;
 
@@ -23,6 +23,7 @@ function MidiMsg(status, channel, data1, data2) {
 async function MIDIrequest() {
   if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
+    //console.log("WEBMIDI.JS: " + WebMidi.version); // FIXME!
   } else {
     alert("No MIDI support in this browser!");
   }
@@ -41,12 +42,12 @@ function onMIDISuccess(midiAccess) {
     }
     for (var entry of midiAccess.outputs.values()) {
       if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
-        MIDIoutput = entry;
+        MIDIOutput = entry;
         outputSetup = true;
       }
     }
     if (inputSetup && outputSetup) {
-      MIDI_device_connected = true;
+      midi_device_connected = true;
       sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
       setTimeout(isConnected, SYNC_MODE_TIMEOUT);
       console.log("SYNC_MODE_REQUEST_A - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
@@ -66,12 +67,12 @@ function onMIDISuccess(midiAccess) {
         }
         for (var entry of midiAccess.outputs.values()) {
           if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
-            MIDIoutput = entry;
+            MIDIOutput = entry;
             outputSetup = true;
           }
         }
         if (inputSetup && outputSetup) {
-          MIDI_device_connected = true;
+          midi_device_connected = true;
           console.log("E256_CONNECTED");
           console.log("REQUEST: SYNC_MODE");
           sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
@@ -80,10 +81,10 @@ function onMIDISuccess(midiAccess) {
         break;
       case "disconnected":
         MIDIInput = null;
-        MIDIoutput = null;
+        MIDIOutput = null;
         e256_current_mode = PENDING_MODE;
         console.log("MODE: " + MODES_CODES[e256_current_mode]);
-        MIDI_device_connected = false;
+        midi_device_connected = false;
         updateMenu();
         break;
     }
@@ -95,7 +96,7 @@ function onMIDIFailure(error) {
 }
 
 function updateMenu() {
-  if (MIDI_device_connected) {
+  if (midi_device_connected) {
     connectSwitch.checked = true;
     $("#connectSwitch").removeClass("btn-danger").addClass("btn-success");
     $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
@@ -111,14 +112,15 @@ function updateMenu() {
     $("#matrixCanvas").collapse("hide");
     $("#mappingCanvas").collapse("hide");
     $("#summaryAction").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
-    $("#summaryContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
+    $("#contextualContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
     $("#connectSwitch").removeClass("btn-success").addClass("btn-danger");
     $(".param").collapse("hide");
   }
 }
 
 // RAW MIDI MESSAGES!
-
+// MIDI 1.0
+//
 function onMIDIMessage(midiMsg) {
   let channel = (midiMsg.data[0] & 0xF) + 1; // lowByte
   let status = midiMsg.data[0] & 0xF0;       // highByte
@@ -129,11 +131,11 @@ function onMIDIMessage(midiMsg) {
   //console.log("VALUE: ", value);     // []
   switch (status) {
     case NOTE_ON: // 144	[han-1], 145 [chan-1], ...
-      e256_blobs.add(midiMsg.data, onBlobDown);
+      e256_blobs.add(midiMsg.data);
       console.log(midiMsg.data);
       break;
     case NOTE_OFF: // 128	[han-1], 129 [chan-1], ...
-      e256_blobs.remove(midiMsg.data, onBlobRelease);
+      e256_blobs.remove(midiMsg.data);
       break;
     case CONTROL_CHANGE: // 176 [chan-1], 177 [chan-1], ...
       // NOT USE IN THIS BRANCHE OF THE PROJECT! 
@@ -141,31 +143,32 @@ function onMIDIMessage(midiMsg) {
     case PROGRAM_CHANGE: // 192 [chan-1], 193 [chan-2], ...
       switch (channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          if (VERBOSITY_CODES[value] === PENDING_MODE_DONE) {
-            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
-            sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-            console.log("REQUEST: SYNC_MODE");
-          }
-          else if (VERBOSITY_CODES[value] === SYNC_MODE_DONE) {
-            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
-            e256_current_mode = SYNC_MODE;
-            sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
-            console.log("REQUEST: CONFIG_FILE");
-          }
-          else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_ALLOC_DONE) {
-            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
-            sysex_upload(string_to_bytes(JSON.stringify(e256_config))); // JSON serialization
-          }
-          else if (VERBOSITY_CODES[value] === USBMIDI_CONFIG_LOAD_DONE) {
-            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
-          }
-          else {
-            console.log("RECEIVED: " + VERBOSITY_CODES[value]);
+          switch (VERBOSITY_CODES[value]) {
+            case PENDING_MODE_DONE:
+              console.log("RECEIVED: " + VERBOSITY_CODES[value]);
+              sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+              console.log("REQUEST: SYNC_MODE");
+              break;
+            case SYNC_MODE_DONE:
+              console.log("RECEIVED: " + VERBOSITY_CODES[value]);
+              e256_current_mode = SYNC_MODE;
+              sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
+              console.log("REQUEST: CONFIG_FILE");
+              break;
+            case USBMIDI_CONFIG_ALLOC_DONE:
+              console.log("RECEIVED: " + VERBOSITY_CODES[value]);
+              sysex_upload(string_to_bytes(JSON.stringify(e256_config)));
+              break;
+            case USBMIDI_CONFIG_LOAD_DONE:
+              console.log("RECEIVED: " + VERBOSITY_CODES[value]);
+              break;
+            default:
+              console.log("RECEIVED: " + VERBOSITY_CODES[value]);
+              break;
           }
           break;
         case MIDI_ERROR_CHANNEL:
-          //console.log("RECEIVED: " + ERROR_CODES[value]);
-          console.log("RECEIVED: " + ERROR_CODES_2[value]);
+          console.log("RECEIVED: " + ERROR_CODES[value]);
           break;
       }
       break;
@@ -186,10 +189,10 @@ function onMIDIMessage(midiMsg) {
           // TODO
           break;
         case EDIT_MODE:
-          e256_blobs.update(midiMsg.data, onBlobUpdate);
+          e256_blobs.update(midiMsg.data);
           break;
         case PLAY_MODE:
-          e256_blobs.update(midiMsg.data, onBlobUpdate);
+          e256_blobs.update(midiMsg.data);
           break;
       }
       break;
@@ -200,22 +203,22 @@ function onMIDIMessage(midiMsg) {
 
 function sendNoteOn(note, velocity, channel) {
   var status = NOTE_ON | (channel - 1);
-  MIDIoutput.send([status, note, velocity]);
+  MIDIOutput.send([status, note, velocity]);
 }
 
 function sendNoteOff(note, velocity, channel) {
   var status = NOTE_OFF | (channel - 1);
-  MIDIoutput.send([status, note, velocity]);
+  MIDIOutput.send([status, note, velocity]);
 }
 
 function sendControlChange(control, value, channel) {
   var status = CONTROL_CHANGE | (channel - 1);
-  MIDIoutput.send([status, control, value]);
+  MIDIOutput.send([status, control, value]);
 }
 
 function sendProgramChange(program, channel) {
   var status = PROGRAM_CHANGE | (channel - 1);
-  MIDIoutput.send([status, program]);
+  MIDIOutput.send([status, program]);
 }
 
 // Send data via MIDI system exclusive message
@@ -227,15 +230,15 @@ function sysex_alloc(identifier, size) {
   var size_msb = size >> 7;
   var size_lsb = size & 0x7F;
   let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END];
-  MIDIoutput.send(midiMsg);
+  MIDIOutput.send(midiMsg);
 }
 
 function sysex_upload(data) {
   let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
-  MIDIoutput.send(midiMsg);
+  MIDIOutput.send(midiMsg);
   //let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END];
-  //MIDIoutput.send(midiMsg);
+  //MIDIOutput.send(midiMsg);
 }
 
 function e256_alocate_memory() {

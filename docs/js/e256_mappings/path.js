@@ -1,74 +1,128 @@
 /*
   This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
-  Copyright (c) 2014-2023 Maurin Donneaud <maurin@etextile.org>
+  Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
 /////////// PATH Factory
+// Multitouch MIDI path GUI
 // http://paperjs.org/reference/path/#path
 function pathFactory() {
-  const DEFAULT_PATH_MIN = 0;
-  const DEFAULT_PATH_MAX = 127;
   const DEFAULT_PATH_STROKE_WIDTH = 50;
-  const DEFAULT_PATH_HANDLE_RADIUS = 15;
+  const DEFAULT_PATH_TOUCH_RADIUS = 20;
+  const DEFAULT_PATH_TOUCHS = 1;
 
-  let highlight_item = null;
-  let current_part = null;
-  //let current_segment = null;
-
-  var _Path = new paper.Group({
+  var _path = new paper.Group({
     "name": "path",
-    "radius": null, // Move it to midiMsg!?
     "data": {
-      "min": null,
-      "max": null,
-      "segments": [],
-      "vectors": [],
-      "midiMsg": null
+      "touch": null,
+      "segments": null,
+      "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.radius = DEFAULT_PATH_HANDLE_RADIUS;
-      this.data.min = DEFAULT_PATH_MIN;
-      this.data.max = DEFAULT_PATH_MAX;
+      this.data.touch = DEFAULT_PATH_TOUCHS;
+      this.data.segments = [];
       this.data.segments.push(mouseEvent.point);
-      this.data.midiMsg = new Midi_slider(
-        DEFAULT_MIDI_CHANNEL,
-        DEFAULT_MIDI_CC,
-        DEFAULT_MIDI_MIN,
-        DEFAULT_MIDI_MAX
-      );
+      this.data.msg = [];
+      for (let _touch = 0; _touch < DEFAULT_PATH_TOUCHS; _touch++) {
+        this.data.msg.push(new midi_slider_touch_msg(_touch));
+      }
     },
 
     setup_from_config: function (params) {
-      this.data.min = params.min;
-      this.data.max = params.max;
       this.data.segments = params.segments; // vertex!?
-      this.data.midiMsg = new Midi_slider(
-        params.midiMsg.chan,
-        params.midiMsg.cc
-      );
+      this.data.msg = new midi_slider_touch_msg();
+      this.data.msg = params.midiMsg;
     },
 
     save_params: function () {
-      this.data.min = this.children["path-group"].data.min;
-      this.data.max = this.children["path-group"].data.max;
       this.data.segments = this.children["path-group"].data.segments;
-      this.data.midiMsg = this.children["path-group"].data.midiMsg;
+      this.data.msg = [];
+      for (const _touch of this.children["touchs-group"].children) {
+        this.data.msg.push(_touch.data);
+      }
+    },
+
+    // touch-group
+    new_touch: function (_touch_uid) {
+
+      let _touch_group = new paper.Group({
+        "name": "touch-" + _touch_uid,
+        "pos": this.data.segments[0],
+        "curr_position": null,
+        "prev_position": null,
+        "curr_pressure": null,
+        "prev_pressure": null,
+        "data": this.data.msg[_touch_uid]
+      });
+
+      let _touch_circle = new paper.Path.Circle({
+        "name": "touch-circle",
+        "center": this.data.segments[0],
+        "radius": DEFAULT_PATH_TOUCH_RADIUS // TODO: mapping with the blob pressure!  
+      });
+
+      _touch_circle.style = {
+        "fillColor": "#606060"
+      };
+
+      _touch_circle.onMouseEnter = function () {
+        this.style.fillColor = "red";
+      }
+
+      _touch_circle.onMouseLeave = function () {
+        this.style.fillColor = "#606060";
+      }
+
+      _touch_circle.onMouseDown = function () {
+        previous_item = current_item;
+        current_item = this.parent;
+      }
+
+      _touch_group.addChild(_touch_circle);
+
+      // TODO: make it visible when toutch is over!
+      let _path_graduations = new paper.Path({
+        "name": "path-graduations",
+        "segments": this.data.segments,
+        "closed": false,
+        "locked": true
+      });
+
+      _path_graduations.style = {
+        "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
+        "strokeColor": "black",
+        "dashArray": [1, 10]
+      };
+
+      _touch_group.addChild(_path_graduations);
+
+      _touch_group.onMouseMove = function (mouseEvent) {
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            // NA
+            break;
+          case PLAY_MODE:
+            if (_touch_group.curr_position != _touch_group.prev_position) {
+              _touch_group.prev_position = _touch_group.curr_position;
+              // TODO: add console GUI to monitor the outgoing MIDI messages!
+              if (midi_device_connected) {
+                //sendControlChange(this.data.msg.position); // FIXME!
+              }
+            }
+            break;
+        }
+      }
+      return _touch_group;
     },
 
     create: function () {
       let _path_group = new paper.Group({
         "name": "path-group",
         "data": {
-          "min": this.data.min,
-          "max": this.data.max,
-          "segments": this.data.segments,
-          "vectors": [],
-          "form_style": {
-            "min": "form-select",
-            "max": "form-select"
-          }
+          "touch": this.data.touch,
+          "segments": this.data.segments
         }
       });
 
@@ -77,198 +131,88 @@ function pathFactory() {
         "segments": _path_group.data.segments,
         "closed": false
       });
+
       _path_curve.style = {
         "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
-        "strokeColor": new paper.Color(0.7, 0, 0.5),
+        "strokeColor": "purple",
         "strokeCap": "round",
         "strokeJoin": "round"
       }
-      _path_group.addChild(_path_curve);
-
-      let _path_graduations = new paper.Path({
-        "name": "path-graduations",
-        "segments": _path_curve.segments,
-        "closed": false,
-        "locked": true
-      });
-      _path_graduations.style = {
-        "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
-        "strokeColor": "black",
-        "dashArray": [50, 1]
-      };
-      _path_group.addChild(_path_graduations);
-
-      let _handle_group = new paper.Group({
-        "name": "handle-group",
-        "data": {
-          "midiMsg": this.data.midiMsg,
-          "form_style": {
-            "chan": "form-select",
-            "cc": "form-select"
-          }
-        }
-      });
-      let _path_handle = new paper.Path.Circle({
-        "name": "path-handle",
-        "center": new paper.Point(_path_group.data.segments[0]),
-        "radius": this.radius
-      });
-      _path_handle.style = {
-        "fillColor": "red"
-      };
-      _handle_group.addChild(_path_handle);
-      _path_group.addChild(_handle_group);
-      _path_group.children["handle-group"].bringToFront();
-
-      this.addChild(_path_group);
-    },
-
-    // Call on mouse downe event
-    graw: function (mouseEvent) {
-      this.children["path-group"].children["path-curve"].add(mouseEvent.point);
-      this.children["path-group"].children["path-graduations"].add(mouseEvent.point);
-      let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (this.data.max - this.data.min);
-      this.children["path-group"].children["path-graduations"].dashArray = [1, _path_graduation_interval];
-    },
-
-    onMouseEnter: function (mouseEvent) {
-      let mouse_enter_options = {
-        "stroke": true,
-        "bounds": true,
-        "fill": true,
-        "tolerance": 5
-      }
-      tmp_select = this.hitTest(mouseEvent.point, mouse_enter_options);
-      switch (e256_current_mode) {
-        case EDIT_MODE:
-          if (tmp_select) {
-            if (tmp_select.item.name === "path") {
-              highlight_item = tmp_select.item.firstChild;
-            }
-            else if (tmp_select.item.name === "path-group" || tmp_select.item.name === "handle-group") {
-              highlight_item = tmp_select.item.firstChild;
-            }
-            else if (tmp_select.item.name === "path-curve" || tmp_select.item.name === "path-graduations" || tmp_select.item.name === "path-handle") {
-              highlight_item = tmp_select.item;
-            }
-            else {
-              console.log("NOT_USED: " + tmp_select.item.name);
-              return;
-            }
-            highlight_item.selected = true;
-          }
-          break;
-        case PLAY_MODE:
-          console.log("PLAY_MODE: NOT IMPLEMENTED!");
-          break;
-        default:
-          break;
-      }
-    },
-
-    onMouseLeave: function () {
-      switch (e256_current_mode) {
-        case EDIT_MODE:
-          highlight_item.selected = false;
-          break;
-        case PLAY_MODE:
-          break;
-        default:
-          break;
-      }
-    },
-
-    onMouseDown: function (mouseEvent) {
-      let _mouse_down_options = {
-        "segments": true,
-        "stroke": false,
-        "fill": true,
-        "tolerance": 8
-      }
-
-      tmp_select = this.hitTest(mouseEvent.point, _mouse_down_options);
-      //console.log("GLOBAL_TMP_SELECT: " + tmp_select);
-
-
-      if (tmp_select) {
-        previous_controleur = current_controleur; // DONE in paper_script.js
-        current_controleur = this;
-        previous_item = current_item;
-        previous_part = current_part;
-
-        if (tmp_select.item.name === "path") {
-          current_item = tmp_select.item.firstChild;
-          current_part = tmp_select;
-        }
-        else if (
-          tmp_select.item.name === "path-group" ||
-          tmp_select.item.name === "handle-group") {
-          current_item = tmp_select.item;
-          current_part = tmp_select;
-        }
-        else if (
-          tmp_select.item.name === "path-curve" ||
-          tmp_select.item.name === "path-handle") {
-          current_item = tmp_select.item.parent;
-          current_part = tmp_select;
-        }
-        else {
-          console.log("NOT_USED: " + tmp_select.item.name);
-        }
-
-        /*
+      
+      _path_curve.onMouseEnter = function () {
         switch (e256_current_mode) {
           case EDIT_MODE:
-            if (current_item.name === "touch-circle" && previous_item.name === "touch-circle") {
-              previous_item.firstChild.style.strokeColor = "lightslategray";
-              current_item.firstChild.style.strokeColor = "orange";
-            }
-            else if (current_item.name === "slider-frame" && previous_item.name === "touch-circle") {
-              //previous_item.firstChild.style.fillColor = "pink";
-              //current_item.firstChild.style.strokeColor = "orange";
-            }
-            else if (previous_item.name === "slider-frame" && current_item.name === "touch-circle") {
-              //previous_item.firstChild.style.strokeColor = "lightGreen";
-              //current_item.firstChild.style.fillColor = "orange";
-            }
-            else {
-              //console.log("NOT_USED - CUR: " + current_item.name + "- PREV - " + previous_item.name );
-            }
-            //update_menu_params(this);
+            this.selected = true;
             break;
           case PLAY_MODE:
-            // TODO
             break;
         }
-        */
+      }
+      
+      _path_curve.onMouseLeave = function () {
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            this.selected = false;
+            break;
+          case PLAY_MODE:
+            break;
+        }
+      }
+
+      _path_curve.onMouseDown = function () {
+        previous_item = current_item;
+        current_item = this.parent;
+      }
+
+      _path_group.addChild(_path_curve);
+      this.addChild(_path_group);
+
+      let _touchs_group = new paper.Group({
+        "name": "touchs-group"
+      });
+
+      for (let index = 0; index < this.data.touch; index++) {
+        _touchs_group.addChild(this.new_touch(index));
+      }
+      
+      this.addChild(_touchs_group);
+    },
+
+    // Call on mousedown event
+    graw: function (mouseEvent) {
+      this.children["path-group"].children["path-curve"].add(mouseEvent.point);
+      // TODO: Place the touch to the segment middle!
+      for (const _touch of this.children["touchs-group"].children) {
+        _touch.children["path-graduations"].add(mouseEvent.point);
+        //console.log(JSON.stringify(_touch.data.midi.position.data.max));
+        let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.data.max - _touch.data.midi.position.data.min);
+        _touch.children["path-graduations"].dashArray = [1, _path_graduation_interval];
       }
     },
 
     onMouseDrag: function (mouseEvent) {
-      if (e256_current_mode === EDIT_MODE) {
-        if (current_part.type === "fill") {
-          move_item(this, mouseEvent);
-        }
-        else if (current_part.type === "segment") {
-          current_part.segment.point = mouseEvent.point;
-          this.children["path-group"].children["path-graduations"].segments[current_part.segment.index].point = mouseEvent.point;
-        }
-    
-      }
-      else if (e256_current_mode === PLAY_MODE) {
-        // TODO!
-      }
-    },
-    
-    onMouseUp: function () {
       switch (e256_current_mode) {
         case EDIT_MODE:
+          if (current_part.type === "fill" || current_part.type === "stroke") {
+            move_item(this, mouseEvent);
+          }
+          else if (current_part.type === "segment") {
+            current_part.segment.point = mouseEvent.point;
+            this.children["path-group"].children["path-curve"].segments[current_part.segment.index].point = mouseEvent.point;
+            for (const _touch of this.children["touchs-group"].children) {
+              _touch.children["path-graduations"].segments[current_part.segment.index].point = mouseEvent.point;
+              let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.data.max - _touch.data.midi.position.data.min);
+              _touch.children["path-graduations"].dashArray = [1, _path_graduation_interval];
+            }
+            update_item_menu_params(this.parent);
+          }
           break;
         case PLAY_MODE:
+          // NA
           break;
       }
-    },
+    }
 
   });
-  return _Path;
+  return _path;
 };
