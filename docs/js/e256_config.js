@@ -6,7 +6,7 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.18";
+const VERSION = "1.0.19";
 
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
@@ -60,6 +60,7 @@ const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
 const NOTE_ON = 0x90;          // DEC: 144 (fon channel 1) -> + 1 for channel two... 
 const NOTE_OFF = 0x80;         // DEC: 128 (fon channel 1) -> + 1 for channel two... 
 const CONTROL_CHANGE = 0xB0;   // DEC: 176 (fon channel 1) -> + 1 for channel two... 
+const AFTER_TOUCH = 0x00;      // FIXME
 const PROGRAM_CHANGE = 0xC0;   // DEC: 192
 const SYSTEM_EXCLUSIVE = 0xF0; // DEC: 240
 const SYSEX_BEGIN = 0xF0;      // DEC: 240
@@ -158,41 +159,37 @@ for (let index = 0; index < 128; index++) {
   MIDI_VELOCITY.push(index);
 };
 
+const DEFAULT_MIDI_CHANNEL = 1; // [1:16]
+const DEFAULT_MIDI_VALUE = 64;
+const DEFAULT_MIDI_NOTE = 64;
+const DEFAULT_MIDI_VELOCITY = 127;
+const DEFAULT_MIDI_CC = 23;
+const DEFAULT_MIDI_AFT = 24;
 const DEFAULT_MIDI_MIN = 0;
 const DEFAULT_MIDI_MAX = 127;
-const DEFAULT_MIDI_CHANNEL = 1;     // [1:16]
-const DEFAULT_MIDI_NOTE = 64;       //
-const DEFAULT_MIDI_VELOCITY = 127;  //
-const DEFAULT_MIDI_CC = 23;         //
-const DEFAULT_MIDI_AFT = 24;        //
 
 // MIDI MESSAGES TYPES
 const note = function (chan, note, velo, min, max) {
-  this.data = {
-    "chan": chan,
-    "note": note,
-    "velo": velo, // It can be static or proportional (mapped to pressure)
-    "min": min,
-    "max": max
-  }
+  this.chan = chan;
+  this.note = note;
+  this.velo = velo;
+  this.min = min;
+  this.max = max;
 };
 
-const control_change = function (chan, ctr, min, max) {
-  this.data = {
-    "chan": chan,
-    "ctr": ctr,
-    "min": min,
-    "max": max
-  }
+const control_change = function (chan, ctr, val, min, max) {
+  this.chan = chan;
+  this.ctr = ctr;
+  this.val = val;
+  this.min = min;
+  this.max = max;
 };
 
 const aftertouch = function (chan, aft, min, max) {
-  this.data = {
-    "chan": chan,
-    "aft": aft,
-    "min": min,
-    "max": max
-  }
+  this.chan = chan;
+  this.aft = aft;
+  this.min = min;
+  this.max = max;
 };
 
 // MAPPING-LIB MIDI MESSAGES
@@ -202,13 +199,14 @@ const midi_key_touch_msg = function (touch_id) {
   this.midi.note = new note(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
-    127,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pressure = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
@@ -221,12 +219,14 @@ const midi_slider_touch_msg = function (touch_id) {
   this.midi.position = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pressure = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
@@ -238,18 +238,21 @@ const midi_pad_touch_msg = function (touch_id) {
   this.midi.pos_x = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pos_y = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pressure = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
@@ -260,18 +263,21 @@ const midi_touch_circular_msg = function () {
   this.midi.radius = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.theta = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pressure = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_chan_index++,
+    DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );

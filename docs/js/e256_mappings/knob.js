@@ -6,7 +6,7 @@
 
 /////////// KNOB Factory
 function knobFactory() {
-  const DEFAULT_KNOB_TOUCH = 2;
+  const DEFAULT_KNOB_TOUCH = 1;
   const DEFAULT_KNOB_RADIUS = 250;
   const DEFAULT_KNOB_TOUCH_RADIUS = 20;
   const DEFAULT_KNOB_OFFSET = -45;
@@ -14,8 +14,6 @@ function knobFactory() {
 
   let _knob_frame_whdth = null;
   let _knob_offset_target = null;
-  let _knob_touch_target = null;
-  let _knob_previous_radius = null;
 
   var _Knob = new paper.Group({
     "name": "knob",
@@ -57,12 +55,13 @@ function knobFactory() {
 
     save_params: function () {
       let last_touch_count = this.data.touch;
-      this.data.touch = this.children["knob-group"].data.touch;
-      this.data.from = this.children["knob-group"].data.from;
-      this.data.to = this.children["knob-group"].data.to;
       this.center = this.children["knob-group"].center;
       this.radius = this.children["knob-group"].radius;
       this.theta = this.children["knob-group"].theta;
+
+      this.data.touch = this.children["knob-group"].data.touch;
+      this.data.from = this.children["knob-group"].data.from;
+      this.data.to = this.children["knob-group"].data.to;
       this.data.offset = this.children["knob-group"].data.offset;
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touch; _touch++) {
@@ -81,16 +80,26 @@ function knobFactory() {
         "center": this.center,
         "radius": get_random_int(50, this.radius - 10),
         "theta": deg_to_rad(get_random_int(0, 360)),
-        "curr_radius": null,
         "prev_radius": null,
-        "curr_theta": null,
         "prev_theta": null,
-        "curr_pressure": null,
         "prev_pressure": null,
         "data": this.data.msg[_touch_uid]
       });
 
       let _knob_touch_target = pol_to_cart(_touch_group.radius, _touch_group.theta);
+
+      let _knob_needle = new paper.Path.Line({
+        "name": "knob-needle",
+        "from": _touch_group.center,
+        "to": new paper.Point(_touch_group.center.x + _knob_touch_target.x, _touch_group.center.y + _knob_touch_target.y),
+        "locked": true
+      });
+
+      _knob_needle.style = {
+        "strokeCap": "round",
+        "strokeColor": "black",
+        "strokeWidth": 2
+      }
 
       let _knob_target = new paper.Shape.Circle({
         "name": "knob-target",
@@ -115,17 +124,43 @@ function knobFactory() {
         current_item = this.parent;
       }
 
-      let _knob_needle = new paper.Path.Line({
-        "name": "knob-needle",
-        "from": _touch_group.center,
-        "to": new paper.Point(_touch_group.center.x + _knob_touch_target.x, _touch_group.center.y + _knob_touch_target.y),
-        "locked": true
-      });
+      _knob_target.onMouseDrag = function (mouseEvent) {
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            // NA
+            break;
+          case PLAY_MODE:
+            let x = mouseEvent.point.x - _knob.center.x; // Place the x origin to the circle center
+            let y = mouseEvent.point.y - _knob.center.y; // Place the y origin to the circle center
+            let polar = cart_to_pol(x, y);
+            if (polar.radius > _knob.radius) {
+              let new_polar = rotatePolar(rad_to_deg(polar.theta), _knob.data.offset);
+              _touch_group.data.midi.theta.val = Math.round(mapp(new_polar, 0, 380, _touch_group.data.midi.theta.min, _touch_group.data.midi.theta.max));
+              _knob_touch_target = pol_to_cart(_knob.radius, polar.theta);
+            } else {
+              _touch_group.data.midi.radius.val = Math.round(mapp(polar.radius, 0, _knob.radius, _touch_group.data.midi.radius.min, _touch_group.data.midi.radius.max));
+              let new_polar = rotatePolar(rad_to_deg(polar.theta), _knob.data.offset);
+              _touch_group.data.midi.theta.val = Math.round(mapp(new_polar, 0, 380, _touch_group.data.midi.theta.min, _touch_group.data.midi.theta.max));
+              _knob_touch_target = pol_to_cart(polar.radius, polar.theta);
+            }
+            _knob_target.position = new paper.Point(_knob.center.x + _knob_touch_target.x, _knob.center.y + _knob_touch_target.y);
+            _knob_needle.segments[1].point = new paper.Point(_knob.center.x + _knob_touch_target.x, _knob.center.y + _knob_touch_target.y);
 
-      _knob_needle.style = {
-        "strokeCap": "round",
-        "strokeColor": "black",
-        "strokeWidth": 2
+            if (midi_device_connected) {
+              if (_touch_group.data.midi.theta.val != _touch_group.prev_theta) {
+                _touch_group.prev_theta = _touch_group.data.midi.theta.val;
+                //console.log("THETA: " + _touch_group.data.midi.theta.val); // PROB!
+                sendControlChange(_touch_group.data.midi.theta);
+              }
+              if (_touch_group.data.midi.radius.val != _touch_group.prev_radius) {
+                _touch_group.prev_radius = _touch_group.data.midi.radius.val;
+                //console.log("RADIUS: " + _touch_group.data.midi.radius.val); // PROB!
+                sendControlChange(_touch_group.data.midi.radius);
+              }
+            }
+            update_touch_menu_params(_touch_group);
+            break;
+        }
       }
 
       _touch_group.addChild(_knob_needle);
@@ -158,7 +193,7 @@ function knobFactory() {
       }
 
       let _knob_circle = new paper.Shape.Circle({
-        "name": "knob-circle",
+        //"name": "knob-circle",
         "center": _knob_group.center,
         "radius": _knob_group.radius
       });
@@ -200,19 +235,26 @@ function knobFactory() {
 
       _knob_offset.onMouseDrag = function (mouseEvent) {
 
-        _knob_group.theta = cart_to_pol(
-          mouseEvent.point.x - _knob_group.center.x,
-          mouseEvent.point.y - _knob_group.center.y
-        ).theta;
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            _knob_group.theta = cart_to_pol(
+              mouseEvent.point.x - _knob_group.center.x,
+              mouseEvent.point.y - _knob_group.center.y
+            ).theta;
 
-        _knob_offset_target = pol_to_cart(_knob_group.radius, _knob_group.theta);
-        this.position = new paper.Point(
-          _knob_group.center.x + _knob_offset_target.x,
-          _knob_group.center.y + _knob_offset_target.y
-        );
+            _knob_offset_target = pol_to_cart(_knob_group.radius, _knob_group.theta);
+            this.position = new paper.Point(
+              _knob_group.center.x + _knob_offset_target.x,
+              _knob_group.center.y + _knob_offset_target.y
+            );
 
-        _knob_group.data.offset = rad_to_deg(_knob_group.theta);
-        update_item_menu_params(this.parent.parent);
+            _knob_group.data.offset = rad_to_deg(_knob_group.theta);
+            update_item_menu_params(this.parent.parent);
+            break;
+          case PLAY_MODE:
+            // NA
+            break;
+        }
       }
 
       let _knob_frame = new paper.Path.Rectangle({
@@ -253,6 +295,8 @@ function knobFactory() {
       }
 
       _knob_frame.onMouseDrag = function (mouseEvent) {
+        let _knob_previous_radius = null;
+
         switch (e256_current_mode) {
           case EDIT_MODE:
             if (current_part.type === "bounds") {
@@ -415,44 +459,6 @@ function knobFactory() {
       this.addChild(_knob_group);
       this.addChild(_touchs_group);
     },
-
-    /*
-    onMouseDrag: function (mouseEvent) {
-      if (e256_current_mode === EDIT_MODE) {
-        switch (selectedPath) {
-          case "fill":
-            
-       if (e256_current_mode === PLAY_MODE) {
-        let x = mouseEvent.point.x - this.data.center.x; // Place the x origin to the circle center
-        let y = mouseEvent.point.y - this.data.center.y; // Place the y origin to the circle center
-        let polar = cart_to_pol(x, y);
-        if (polar.radius > this.radius) {
-          let newPolar = rotatePolar(rad_to_deg(polar.theta), this.data.offset);
-          knob_theta = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
-          _knob_touch_target = pol_to_cart(this.radius, polar.theta);
-        } else {
-          previousthis.radius = this.radius;
-          this.radius_val = Math.round(mapp(polar.radius, 0, this.radius, this.data.rMin, this.data.rMax));
-          let newPolar = rotatePolar(rad_to_deg(polar.theta), this.data.offset);
-          previous_knob_theta = knob_theta;
-          knob_theta = Math.round(mapp(newPolar, 0, 380, this.data.tMin, this.data.tMax));
-          _knob_touch_target = pol_to_cart(polar.radius, polar.theta);
-        }
-        this.children["knob-target"].position = new paper.Point(this.data.center.x + _knob_touch_target.x, this.data.center.y + _knob_touch_target.y);
-        this.children["knob-needle"].segments[1].point = new paper.Point(this.data.center.x + _knob_touch_target.x, this.data.center.y + _knob_touch_target.y);
-
-        update_item_menu_params(this);
-
-        // SEND MIDI CONTROL_CHANGE
-        if (midi_device_connected && knob_theta != previous_knob_theta) {
-          sendControlChange(this.data.tCc, knob_theta, this.data.tChan);
-        }
-        if (midi_device_connected && this.radius_val != previousthis.radius) {
-          sendControlChange(this.data.rCc, this.radius_val, this.data.rChan);
-        }
-      }
-    },
-    */
 
   });
   return _Knob;

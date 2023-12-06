@@ -176,9 +176,9 @@ function onMIDIMessage(midiMsg) {
       switch (e256_current_mode) {
         case SYNC_MODE:
           console.log("RECEIVED: CONFIG_FILE");
-          var string = new TextDecoder().decode(midiMsg.data);
-          var _conf_file = string.slice(1, -1);
-          let e256_json_conf = JSON.parse(_conf_file);
+          let string = new TextDecoder().decode(midiMsg.data);
+          let conf_file = string.slice(1, -1);
+          let e256_json_conf = JSON.parse(conf_file);
           draw_controler_from_config(e256_json_conf);
           e256_current_mode = EDIT_MODE;
           break;
@@ -201,24 +201,29 @@ function onMIDIMessage(midiMsg) {
   }
 }
 
-function sendNoteOn(note, velocity, channel) {
-  var status = NOTE_ON | (channel - 1);
-  MIDIOutput.send([status, note, velocity]);
+function sendNoteOn(midiMsg) {
+  let status = NOTE_ON | (midiMsg.channel - 1);
+  MIDIOutput.send([status, midiMsg.note, midiMsg.velocity]);
 }
 
-function sendNoteOff(note, velocity, channel) {
-  var status = NOTE_OFF | (channel - 1);
-  MIDIOutput.send([status, note, velocity]);
+function sendNoteOff(midiMsg) {
+  let status = NOTE_OFF | (midiMsg.chan - 1);
+  MIDIOutput.send([status, midiMsg.note, midiMsg.velo]);
 }
 
-function sendControlChange(control, value, channel) {
-  var status = CONTROL_CHANGE | (channel - 1);
-  MIDIOutput.send([status, control, value]);
+function sendControlChange(midiMsg) {
+  let status = CONTROL_CHANGE | (midiMsg.chan - 1);
+  MIDIOutput.send([status, midiMsg.ctr, midiMsg.val]);
 }
 
-function sendProgramChange(program, channel) {
-  var status = PROGRAM_CHANGE | (channel - 1);
-  MIDIOutput.send([status, program]);
+function sendAftertouch(midiMsg) { // FIXME!
+  let status = AFTER_TOUCH | (midiMsg.chan - 1);
+  MIDIOutput.send([status, midiMsg.aft, midiMsg.val]);
+}
+
+function sendProgramChange(midiMsg) {
+  let status = PROGRAM_CHANGE | (midiMsg.chan - 1);
+  MIDIOutput.send([status, midiMsg.pgm]);
 }
 
 // Send data via MIDI system exclusive message
@@ -227,8 +232,8 @@ function sendProgramChange(program, channel) {
 // Send: [ SYSEX_BEGIN, SYSEX_DEVICE_ID, SYSEX_DATA, SYSEX_END ]
 // Recive: USBMIDI_CONFIG_LOAD_DONE
 function sysex_alloc(identifier, size) {
-  var size_msb = size >> 7;
-  var size_lsb = size & 0x7F;
+  let size_msb = size >> 7;
+  let size_lsb = size & 0x7F;
   let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END];
   MIDIOutput.send(midiMsg);
 }
@@ -254,7 +259,9 @@ function e256_alocate_memory() {
 
 $(document).ready(function () {
   $("#loadingCanvas").collapse("show");
-  $("#loadingCanvas").css("background", "white");
+  $("#loadingCanvas").css("background", "black");
+  $("#matrixCanvas").css("background", "black");
+  $("#mappingCanvas").css("background", "black");
   MIDIrequest();
 });
 

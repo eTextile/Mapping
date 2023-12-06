@@ -45,7 +45,7 @@ function switchFactory() {
       this.data.msg = new midi_key_touch_msg(0);
       //console.log("AAA"); 
       //console.log("AA " + JSON.stringify(new midi_key_touch_msg(0)));
-      console.log("A " + JSON.stringify(this.data.msg.note));
+      console.log("A " + JSON.stringify(this.data.msg.midi.note));
     },
 
     setup_from_config: function (params) {
@@ -88,20 +88,9 @@ function switchFactory() {
         this.style.fillColor = "orange";
         switch (e256_current_mode) {
           case EDIT_MODE:
-            // NA
             break;
           case PLAY_MODE:
-            if (midi_device_connected) {
-              switch (this.data.mode) {
-                case "TOGGLE":
-                  //sendNoteOn(this.data.note, this.data.velo, this.data.chan);
-                  break;
-                case "TRIGGER":
-                  //sendNoteOn(this.data.note, this.data.velo, this.data.chan);
-                  //setTimeout(this.triggerOff, 300, this);
-                  break;
-              }
-            }
+            // NA
             break;
         }
       }
@@ -112,11 +101,7 @@ function switchFactory() {
           case EDIT_MODE:
             break;
           case PLAY_MODE:
-            if (midi_device_connected) {
-              if (this.data.mode === "TOGGLE") {
-                //sendNoteOn(this.data.note, 0, this.data.chan);
-              }
-            }
+            // NA
             break;
         }
       }
@@ -124,6 +109,40 @@ function switchFactory() {
       _touch_ellipse.onMouseDown = function () {
         previous_item = current_item;
         current_item = this.parent;
+
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            break;
+          case PLAY_MODE:
+            if (midi_device_connected) {
+              switch (_touch_group.parent.data.mode) { // FIXME!
+                case "TRIGGER":
+                  console.log("TRIGGER");
+                  data.msg.midi.note
+                  //sendNoteOn(_touch_group.data.msg.midi.note);
+                  //setTimeout(_touch_group.triggerOff, 300, _touch_group);
+                  break;
+                case "TOGGLE":
+                  console.log("TOGGLE");
+                  //sendNoteOn(_touch_group.data.msg.midi.note);
+                  break;
+              }
+            }
+        }
+      }
+
+      _touch_ellipse.onMouseRelease = function () {
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            break;
+          case PLAY_MODE:
+            if (midi_device_connected) {
+              if (_touch_group.parent.data.mode === "TOGGLE") {
+                //sendNoteOff(_touch_group.data.msg.midi.note);
+              }
+            }
+            break;
+        }
       }
 
       _touch_group.addChild(_touch_ellipse);
@@ -261,7 +280,7 @@ function switchFactory() {
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   for (const _touch of _touchs_group.children) {
-                     _touch.children["touch-ellipse"].position = new paper.Point(
+                    _touch.children["touch-ellipse"].position = new paper.Point(
                       _switch_group.data.to.x - half_frame_width,
                       _switch_group.data.from.y + half_frame_height
                     );

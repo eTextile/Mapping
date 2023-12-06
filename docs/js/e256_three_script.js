@@ -4,7 +4,7 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-import * as THREE from 'three';
+import * as THREE from './lib/three.module.js';
 
 let camera, scene, geometry, renderer;
 
@@ -108,7 +108,7 @@ function init() {
 }
 
 function onWindowResize() {
-  canvas_height = $("#loadingCanvas").height();
+  canvas_height = $("#mappingCanvas").height();
   canvas_width = canvas_height;
   half_canvas = canvas_width / 2;
   console.log("THREE_WIDTH: " + canvas_width + " THREE_HEIGHT: " + canvas_height);  

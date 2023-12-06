@@ -40,12 +40,11 @@ function create_menu_1st_level(item) {
   let part_params = document.createElement("div");
   //console.log("SET_ID_1ST: " + item.name + "_" + item.id); // PROB!
   part_params.setAttribute("id", item.name + "_" + item.id); // Menu UID
-  //part_params.className = "input-group";
 
   for (const param in item.data) {
     let part_param = document.createElement("div");
     part_param.className = "input-group";
-    
+
     if (item.data[param].constructor.name === "Point") {
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
@@ -110,10 +109,7 @@ function create_menu_1st_level(item) {
         _option.textContent = item.modes[mode];
         if (item.data.mode === item.modes[mode]) {
           _option.defaultSelected = true;
-        } else {
-          //_option.defaultSelected = false;
         }
-
         _params_list.appendChild(_option);
       }
 
@@ -123,20 +119,20 @@ function create_menu_1st_level(item) {
 
       part_param.appendChild(_params_list);
     }
-    else if (param === "velocity" || param === "aftertouch" || param === "automap") {
+    else if (param === "velocity" || param === "aftertouch" || param === "automap" || param === "pressure") {
       // For details on the buttons refer to
       // https://getbootstrap.com/docs/5.0/components/buttons/
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
       span_param.textContent = param;
       part_param.appendChild(span_param);
-    
+
       let button = document.createElement("button");
       button.setAttribute("id", item.id + "_" + param + "_val");
       button.setAttribute("type", "button");
       button.className = "btn btn-outline-primary flex-fill";
       button.textContent = item.data[param];
-    
+
       button.addEventListener("click", function (event) {
         if (event.target.textContent === "OFF") {
           button.textContent = "ON";
@@ -188,38 +184,38 @@ function create_menu_2nd_level(item) {
   table_caption.className = "caption-top card-subtitle mb-2 text-body-secondary display-6";
   table_caption.textContent = item.name;
   table_params.appendChild(table_caption);
-  
+
   let row_midi_params_body = document.createElement("tbody");
 
-  for (const msg in item.data.midi) {
+  for (const param in item.data.midi) {
 
     let row_midi_params_atr_tr = document.createElement("tr");
     let sub_part_name = document.createElement("th");
     sub_part_name.textContent = " ";
     row_midi_params_atr_tr.appendChild(sub_part_name);
-  
+
     let row_midi_params_val_tr = document.createElement("tr");
     let midi_param_val = document.createElement("th");
     midi_param_val.className = "align-middle text-center";
-    midi_param_val.textContent = msg;
+    midi_param_val.textContent = param;
     row_midi_params_val_tr.appendChild(midi_param_val);
-    
-    for (const param in item.data.midi[msg].data) {
+
+    for (const msg in item.data.midi[param]) {
       let midi_param_atr = document.createElement("th");
-      midi_param_atr.setAttribute("id", item.id + "_" + msg + "_" + param + "_atr");
+      midi_param_atr.setAttribute("id", item.id + "_" + param + "_" + msg + "_atr");
       midi_param_atr.className = "text-center";
-      midi_param_atr.textContent = param;
+      midi_param_atr.textContent = msg;
       row_midi_params_atr_tr.appendChild(midi_param_atr);
 
       let midi_param_td = document.createElement("td");
       let midi_param_val = document.createElement("input");
       midi_param_val.className = "form-control text-center";
-      midi_param_val.setAttribute("id", item.id + "_" + msg + "_" + param + "_val");
-      midi_param_val.setAttribute("aria-describedby", item.id + "_" + msg + "_" + param + "_atr");
+      midi_param_val.setAttribute("type", "number");
+      midi_param_val.setAttribute("id", item.id + "_" + param + "_" + msg + "_val");
+      midi_param_val.setAttribute("aria-describedby", item.id + "_" + param + "_" + msg + "_atr");
       midi_param_val.addEventListener("input", function (event) {
-        if (Number(event.target.value)) {
-          item.data.midi[msg].data[param] = event.target.value;
-          console.log(event.target.id + ": " + item.data.midi[msg].data[param]);
+        if (event.target.type === "number") {
+          item.data.midi[param][msg] = event.target.value;
         }
       });
       midi_param_td.appendChild(midi_param_val);
@@ -243,27 +239,30 @@ function update_item_menu_params(item) {
         $("#" + part.parent.id + "_" + param + "_val_y").val(Math.round(part.data[param].y));
       }
       else {
-        //$("#" + part.parent.id + "_" + param + "_val").val(part.data[param]);
         $("#" + part.parent.id + "_" + param + "_val").val(Math.round(part.data[param]));
       }
     }
   }
 }
 
-// 2ND_LEVEL_ITEMS
+// UPADTE 2ND_LEVEL_ITEM MENU FROM TOP ITEM
 function update_item_touch_menu_params(item) {
   for (const part of item.children) {
     for (const sub_part of part.children) {
-      //console.log("INDEX: " + sub_part.data.index); // PROB!
-      let sub_part_id = sub_part.id;
-      //let sub_part_index = sub_part.data.index;
-      for (const msg in sub_part.data.midi) { // position / pressure
-        //console.log(msg + ": " + JSON.stringify(sub_part.data.midi[msg])); // PROB!
-        for (const param in sub_part.data.midi[msg].data) {
-          //console.log("GET_ID_2ND: " + sub_part_id + "_" + msg + "_" + param + "_val"); // PROB!      
-          $("#" + sub_part_id + "_" + msg + "_" + param + "_val").val(sub_part.data.midi[msg].data[param]);
+      for (const param in sub_part.data.midi) { // position, pressure, etc.
+        for (const msg in sub_part.data.midi[param]) {
+          $("#" + sub_part.id + "_" + param + "_" + msg + "_val").val(sub_part.data.midi[param][msg]);
         }
       }
+    }
+  }
+};
+
+// UPADTE 2ND_LEVEL_ITEM
+function update_touch_menu_params(part) {
+  for (const param in part.data.midi) {
+    for (const msg in part.data.midi[param]) {
+      $("#" + part.id + "_" + param + "_" + msg + "_val").val(part.data.midi[param][msg]);
     }
   }
 };

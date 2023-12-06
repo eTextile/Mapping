@@ -24,6 +24,7 @@ function touchpadFactory() {
       "touch": null,
       "from": null,
       "to": null,
+      "pressure": null,
       "velocity": null,
       "msg": null
     },
@@ -174,7 +175,7 @@ function touchpadFactory() {
       }
 
       let _pad_frame = new paper.Path.Rectangle({
-        "name": "pad-frame",
+        //"name": "pad-frame",
         "from": this.data.from,
         "to": this.data.to
       });

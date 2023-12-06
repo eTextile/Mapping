@@ -50,9 +50,7 @@ function pathFactory() {
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_uid,
         "pos": this.data.segments[0],
-        "curr_position": null,
         "prev_position": null,
-        "curr_pressure": null,
         "prev_pressure": null,
         "data": this.data.msg[_touch_uid]
       });
@@ -104,11 +102,18 @@ function pathFactory() {
             // NA
             break;
           case PLAY_MODE:
-            if (_touch_group.curr_position != _touch_group.prev_position) {
-              _touch_group.prev_position = _touch_group.curr_position;
+            
+          //TODO...
+
+            if (midi_device_connected) {
               // TODO: add console GUI to monitor the outgoing MIDI messages!
-              if (midi_device_connected) {
-                //sendControlChange(this.data.msg.position); // FIXME!
+              if (_touch_group.data.midi.position.val != _touch_group.prev_position) {
+                _touch_group.prev_position = _touch_group.data.midi.position.val;
+                sendControlChange(_touch_group.data.midi.position);
+              }
+              if (_touch_group.data.midi.pressure.val != _touch_group.prev_pressure) {
+                _touch_group.prev_pressure = _touch_group.data.midi.pressure.val;
+                sendControlChange(_touch_group.data.midi.pressure);
               }
             }
             break;
@@ -171,8 +176,8 @@ function pathFactory() {
         "name": "touchs-group"
       });
 
-      for (let index = 0; index < this.data.touch; index++) {
-        _touchs_group.addChild(this.new_touch(index));
+      for (let _touch = 0; _touch < this.data.touch; _touch++) {
+        _touchs_group.addChild(this.new_touch(_touch));
       }
       
       this.addChild(_touchs_group);
@@ -184,8 +189,7 @@ function pathFactory() {
       // TODO: Place the touch to the segment middle!
       for (const _touch of this.children["touchs-group"].children) {
         _touch.children["path-graduations"].add(mouseEvent.point);
-        //console.log(JSON.stringify(_touch.data.midi.position.data.max));
-        let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.data.max - _touch.data.midi.position.data.min);
+        let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.max - _touch.data.midi.position.min);
         _touch.children["path-graduations"].dashArray = [1, _path_graduation_interval];
       }
     },
@@ -201,7 +205,7 @@ function pathFactory() {
             this.children["path-group"].children["path-curve"].segments[current_part.segment.index].point = mouseEvent.point;
             for (const _touch of this.children["touchs-group"].children) {
               _touch.children["path-graduations"].segments[current_part.segment.index].point = mouseEvent.point;
-              let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.data.max - _touch.data.midi.position.data.min);
+              let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.max - _touch.data.midi.position.min);
               _touch.children["path-graduations"].dashArray = [1, _path_graduation_interval];
             }
             update_item_menu_params(this.parent);
