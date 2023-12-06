@@ -70,9 +70,6 @@ function sliderFactory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touch; _touch++) {
         if (_touch < last_touch_count) {
-          
-          //console.log("min: " + this.children["touchs-group"].children[_touch].data.midi.position.min);
-          //console.log("max: " + this.children["touchs-group"].children[_touch].data.midi.position.max);
           this.data.msg.push(this.children["touchs-group"].children[_touch].data);
         }
         else {
@@ -93,7 +90,7 @@ function sliderFactory() {
         "curr_position": null,
         "prev_position": null,
         "curr_pressure": null,
-        "prev_pressure": null,    
+        "prev_pressure": null,
         "data": this.data.msg[_touch_uid]
       });
 
@@ -175,8 +172,6 @@ function sliderFactory() {
                     }
                 break;
             }
-            update_touch_menu_params(_touch_group);
-
             if (_touch_group.data.midi.position.val != _touch_group.prev_position) {
               _touch_group.prev_position = _touch_group.data.midi.position.val;
               if (midi_device_connected){
@@ -184,6 +179,7 @@ function sliderFactory() {
                 // TODO: add console GUI to monitor the outgoing MIDI messages!
               }
             }
+            update_touch_menu_params(_touch_group);
             break;
         }
       }
@@ -328,7 +324,6 @@ function sliderFactory() {
                     }
                     _slider_group.data.from.y = mouseEvent.point.y;
                   }
-
                   break;
                 case "bottom-right":
                   previous_frame_width = frame_width;
