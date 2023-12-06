@@ -29,6 +29,7 @@ function sliderFactory() {
       "from": null,
       "to": null,
       "velocity": null,
+      "pressure": null,
       "msg": null
     },
 
@@ -69,6 +70,9 @@ function sliderFactory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touch; _touch++) {
         if (_touch < last_touch_count) {
+          
+          //console.log("min: " + this.children["touchs-group"].children[_touch].data.midi.position.min);
+          //console.log("max: " + this.children["touchs-group"].children[_touch].data.midi.position.max);
           this.data.msg.push(this.children["touchs-group"].children[_touch].data);
         }
         else {
@@ -143,6 +147,15 @@ function sliderFactory() {
                     mouseEvent.point.y < _slider.children["slider-frame"].bounds.bottom){
                       _touch_line.position.y = mouseEvent.point.y;
                       _touch_circle.position.y = mouseEvent.point.y;
+                      _touch_group.data.midi.position.val = Math.round(
+                        mapp(
+                          mouseEvent.point.y,
+                          _slider.children["slider-frame"].bounds.top,
+                          _slider.children["slider-frame"].bounds.bottom,
+                          _touch_group.data.midi.position.min,
+                          _touch_group.data.midi.position.max
+                        )
+                      );
                     }
                 break;
               case "H_SLIDER":
@@ -150,14 +163,25 @@ function sliderFactory() {
                     mouseEvent.point.x < _slider.children["slider-frame"].bounds.right){
                       _touch_line.position.x = mouseEvent.point.x;
                       _touch_circle.position.x = mouseEvent.point.x;
+                      _touch_group.data.midi.position.val = Math.round(
+                        mapp(
+                          mouseEvent.point.x,
+                          _slider.children["slider-frame"].bounds.left,
+                          _slider.children["slider-frame"].bounds.right,
+                          _touch_group.data.midi.position.min,
+                          _touch_group.data.midi.position.max
+                        )
+                      );
                     }
                 break;
             }
-            if (_touch_group.curr_position != _touch_group.prev_position) {
-              _touch_group.prev_position = _touch_group.curr_position;
-              // TODO: add console GUI to monitor the outgoing MIDI messages!
+            update_touch_menu_params(_touch_group);
+
+            if (_touch_group.data.midi.position.val != _touch_group.prev_position) {
+              _touch_group.prev_position = _touch_group.data.midi.position.val;
               if (midi_device_connected){
-                //sendControlChange(this.data.msg.position); // FIXME!
+                //sendControlChange(this.data.msg.position);
+                // TODO: add console GUI to monitor the outgoing MIDI messages!
               }
             }
             break;
@@ -176,9 +200,9 @@ function sliderFactory() {
         "fillColor": "black",
         "fontSize": 25
       };
+      
+      _touch_circle.addChild(_touch_txt);
       */
-      //_touch_group.children["touch-circle"].bringToFront();
-      //_touch_circle.addChild(_touch_txt);
       
       _touch_group.addChild(_touch_circle);
       return _touch_group;
@@ -378,6 +402,7 @@ function sliderFactory() {
       _slider_group.addChild(_slider_frame);
       this.addChild(_slider_group);
       this.addChild(_touchs_group);
+      //_touch_group.children["key-text"].bringToFront();
     },
 
     onMouseDrag: function (mouseEvent) {
