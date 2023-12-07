@@ -30,8 +30,8 @@ async function MIDIrequest() {
 }
 
 function onMIDISuccess(midiAccess) {
-  var inputSetup = false;
-  var outputSetup = false;
+  let inputSetup = false;
+  let outputSetup = false;
 
   /*
   for (var entry of midiAccess.inputs.values()) {
@@ -58,16 +58,16 @@ function onMIDISuccess(midiAccess) {
   midiAccess.onstatechange = function (msg) {
     switch (msg.port.state) {
       case "connected":
-        for (var entry of midiAccess.inputs.values()) {
-          if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
-            MIDIInput = entry;
+        for (let input of midiAccess.inputs.values()) {
+          if (input.name === "ETEXTILE_SYNTH MIDI 1") {
+            MIDIInput = input;
             MIDIInput.onmidimessage = onMIDIMessage;
             inputSetup = true;
           }
         }
-        for (var entry of midiAccess.outputs.values()) {
-          if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
-            MIDIOutput = entry;
+        for (let output of midiAccess.outputs.values()) {
+          if (output.name === "ETEXTILE_SYNTH MIDI 1") {
+            MIDIOutput = output;
             outputSetup = true;
           }
         }

@@ -6,19 +6,19 @@
 
 function Matrix(width, height) {
   this.matrix = [width * height];
-  for (var i = 0; i < RAW_FRAME; i++) {
+  for (let i = 0; i < RAW_FRAME; i++) {
     this.matrix[i] = 0;
   }
 }
 
 Matrix.prototype.update = function (sysExMsg) {
-  for (var i = 0; i < RAW_FRAME; i++) {
+  for (let i = 0; i < RAW_FRAME; i++) {
     this.matrix[i] = sysExMsg[i + 1] / 10;
   }
 }
 
 Matrix.prototype.getZ = function (index) {
-  var val = this.matrix[index];
+  let val = this.matrix[index];
   if (val != null) {
     return val;
   }
@@ -27,4 +27,4 @@ Matrix.prototype.getZ = function (index) {
   }
 }
 
-let e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);
+var e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);
