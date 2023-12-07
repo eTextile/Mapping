@@ -13,7 +13,7 @@ Starting from the textile design paterns placed on top of the matrix sensor, thi
 
 - Create custom graphic user interface for the eTextile-Synthesizer
   - Add graphics components with interactive bihavious.
-  - define the MIDI commands (channes, notes, ...) of each graphic components according to the built in or external MIDI synthesizer.
+  - Define the MIDI commands (notes, channels, etc.) for each graphic components according to the built in or external MIDI synthesizer.
 - Upload your created GUI and MIDI parameters to the eTextile-Synthesizer.
 - If you are satisfied, save it to the eTextile-Synthesizer permanent memory.
 
