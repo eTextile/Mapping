@@ -128,8 +128,8 @@ function sliderFactory() {
       }
 
       _touch_circle.onMouseDown = function () {
-        previous_item = current_item;
-        current_item = this.parent;
+        previous_touch = current_touch;
+        current_touch = _touch_group;
       }
 
       _touch_circle.onMouseMove = function (mouseEvent) {
@@ -258,8 +258,8 @@ function sliderFactory() {
       }
 
       _slider_frame.onMouseDown = function () {
-        previous_item = current_item;
-        current_item = _slider_group;
+        //previous_touch = current_item;
+        //current_item = _slider_group;
       }
 
       _slider_frame.onMouseDrag = function (mouseEvent) {

@@ -129,19 +129,19 @@ function gridFactory() {
 
       _key_frame.onMouseDown = function () {
         this.style.fillColor = "red";
-        previous_item = current_item;
-        current_item = _key_group;
+        previous_touch = current_touch;
+        current_touch = _key_group;
         /*
-        if (current_item.name === "key-group" && previous_item.name === "key-group") {
-          previous_item.firstChild.style.fillColor = "pink";
+        if (current_item.name === "key-group" && previous_touch.name === "key-group") {
+          previous_touch.firstChild.style.fillColor = "pink";
           this.style.fillColor = "orange";
         }
-        else if (current_item.name === "grid-group" && previous_item.name === "key-group") {
-          previous_item.firstChild.style.fillColor = "pink";
+        else if (current_item.name === "grid-group" && previous_touch.name === "key-group") {
+          previous_touch.firstChild.style.fillColor = "pink";
           this.style.strokeColor = "orange";
         }
-        else if (previous_item.name === "grid-group" && current_item.name === "key-group") {
-          previous_item.firstChild.style.strokeColor = "lightGreen";
+        else if (previous_touch.name === "grid-group" && current_item.name === "key-group") {
+          previous_touch.firstChild.style.strokeColor = "lightGreen";
           this.style.fillColor = "orange";
         }
         */
@@ -226,8 +226,8 @@ function gridFactory() {
       }
 
       _grid_frame.onMouseDown = function () {
-        previous_item = current_item;
-        current_item = _grid_group;
+        //previous_touch = current_item;
+        //current_item = _grid_group;
       }
 
       _grid_frame.onMouseDrag = function (mouseEvent) {

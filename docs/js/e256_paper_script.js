@@ -18,13 +18,13 @@ var hitOptions = {
   "tolerance": 5
 }
 
+var current_part = { "id": null };
+
+var current_touch = { "id": null };
+var previous_touch = { "id": null };
+
 var current_controleur = { "id": null };
 var previous_controleur = { "id": null };
-
-var current_item = { "id": null };
-var previous_item = { "id": null };
-
-var current_part = { "id": null };
 
 var create_once = false;
 var global_midi_chan_index = 1;
@@ -57,7 +57,6 @@ function paperInit() {
   paperTool.onMouseDown = function (mouseEvent) {
 
     let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
-    //console.log("SELECT_LOCAL: " + hitResult);
     current_part = hitResult;
     
     switch (e256_current_mode) {
@@ -70,9 +69,9 @@ function paperInit() {
               }
               previous_controleur = current_controleur;
               paper.project.layers[e256_draw_mode].activate();
-              current_controleur = draw_controler_from_mouse(mouseEvent);
+              draw_controler_from_mouse(mouseEvent);
               item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
-              item_menu_params(previous_item, "hide"); // if (previous_item !== null)
+              item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
               create_item_menu_params(current_controleur);
               update_item_menu_params(current_controleur);
               update_item_touch_menu_params(current_controleur);
@@ -83,23 +82,27 @@ function paperInit() {
             }
           }
           else {
-            let controleur = null;
-            while (hitResult.item.parent){ // Get current_controleur
-              controleur = hitResult.item
-              hitResult.item = hitResult.item.parent;
-            }
+            
             previous_controleur = current_controleur;
-            current_controleur = controleur;           
+            let current_item = current_part.item;
+            while (current_item.parent) {
+              current_controleur = current_item;
+              current_item = current_item.parent;
+            }
+            
+            //console.log("CTR_PRE: " + previous_controleur.name + "_" + previous_controleur.id);
+            //console.log("CTR_CUR: " + current_controleur.name + "_" + current_controleur.id);
             if (current_controleur.id !== previous_controleur.id) {
               current_controleur.bringToFront();
-              if (previous_controleur) {
-                item_menu_params(previous_controleur, "hide");
-              }
+              item_menu_params(previous_controleur, "hide");
               item_menu_params(current_controleur, "show");
             }
-            else if (current_item.id !== previous_item.id) {
-              item_menu_params(previous_item, "hide");
-              item_menu_params(current_item, "show");
+
+            //console.log("TCH_PRE: " + previous_touch.name + "_" + previous_touch.id);
+            //console.log("TCH_CUR: " + current_touch.name + "_" + current_touch.id);
+            if (current_touch.id !== previous_touch.id) {
+              item_menu_params(previous_touch, "hide");
+              item_menu_params(current_touch, "show");
             }
           }
         }
@@ -151,11 +154,10 @@ function paperInit() {
   };
 
   function draw_controler_from_mouse(mouseEvent) {
-    let _ctl = controleur_factory(e256_draw_mode);
-    _ctl.setup_from_mouse_event(mouseEvent);
-    _ctl.create();
-    _ctl.bringToFront();
-    return _ctl;
+    controleur_factory(e256_draw_mode);
+    current_controleur.setup_from_mouse_event(mouseEvent);
+    current_controleur.create();
+    current_controleur.bringToFront();
   };
 
   function draw_controler_from_config(configFile) {
@@ -175,40 +177,36 @@ function paperInit() {
     }
     for (const _ctl_type in configFile.mappings) {
       paper.project.layers[_ctl_type].activate();
-      for (const _ctl_conf of configFile.mappings[_ctl_type]) {
-        let _ctl = controleur_factory(_ctl_type);
-        _ctl.setup_from_config(_ctl_conf);
-        _ctl.create();
-        create_item_menu_params(_ctl);
-        update_item_menu_params(_ctl);
-        item_menu_params(_ctl, "hide");
-      }
+      controleur_factory(_ctl_type);
+      current_controleur.setup_from_config(configFile.mappings[_ctl_type]);
+      current_controleur.create();
+      create_item_menu_params(current_controleur);
+      update_item_menu_params(current_controleur);
+      item_menu_params(current_controleur, "hide");
     }
   };
 
   function controleur_factory(item_type) {
-    var controleur = null;
     switch (item_type) {
       case "switch":
-        controleur = switchFactory();
+        current_controleur = switchFactory();
         break;
       case "slider":
-        controleur = sliderFactory();
+        current_controleur = sliderFactory();
         break;
       case "knob":
-        controleur = knobFactory();
+        current_controleur = knobFactory();
         break;
       case "touchpad":
-        controleur = touchpadFactory();
+        current_controleur = touchpadFactory();
         break;
       case "grid":
-        controleur = gridFactory();
+        current_controleur = gridFactory();
         break;
       case "path":
-        controleur = pathFactory();
+        current_controleur = pathFactory();
         break;
     }
-    return controleur;
   };
 
   /*

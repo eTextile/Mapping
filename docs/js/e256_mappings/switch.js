@@ -49,6 +49,7 @@ function switchFactory() {
     },
 
     setup_from_config: function (params) {
+
       this.data.from = new paper.Point(params.from);
       this.data.to = new paper.Point(params.to);
       this.data.mode = params.mode;
@@ -107,8 +108,8 @@ function switchFactory() {
       }
 
       _touch_ellipse.onMouseDown = function () {
-        previous_item = current_item;
-        current_item = this.parent;
+        previous_touch = current_touch;
+        current_touch = _touch_group;
 
         switch (e256_current_mode) {
           case EDIT_MODE:
@@ -204,8 +205,8 @@ function switchFactory() {
       }
 
       _switch_frame.onMouseDown = function () {
-        previous_item = current_item;
-        current_item = _switch_group;
+        //previous_touch = current_item;
+        //current_item = _switch_group;
       }
 
       _switch_frame.onMouseDrag = function (mouseEvent) {

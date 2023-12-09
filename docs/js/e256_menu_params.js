@@ -175,6 +175,9 @@ function create_menu_2nd_level(item) {
 
   let sub_part_params = document.createElement("div");           // Sub part menu main div 
   sub_part_params.setAttribute("id", item.name + "_" + item.id); // Sub part menu UID
+  
+  console.log(item.name + "_" + item.id);
+
   sub_part_params.className = "collapse";
 
   let table_params = document.createElement("table");
@@ -276,12 +279,5 @@ function remove_item_menu_params(item) {
 
 // Show/Hide menu params
 function item_menu_params(item, state) {
-  if (item) {
-    $("#" + item.name + "_" + item.id).collapse(state);
-    if (item.hasChildren) {
-      for (const part of item.children) {
-        $("#" + part.name + "_" + part.id).collapse(state);
-      }
-    }
-  }
+  $("#" + item.name + "_" + item.id).collapse(state);
 };

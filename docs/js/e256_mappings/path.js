@@ -74,8 +74,8 @@ function pathFactory() {
       }
 
       _touch_circle.onMouseDown = function () {
-        previous_item = current_item;
-        current_item = this.parent;
+        previous_touch = current_touch;
+        current_touch = _touch_group;
       }
 
       _touch_group.addChild(_touch_circle);
@@ -165,8 +165,8 @@ function pathFactory() {
       }
 
       _path_curve.onMouseDown = function () {
-        previous_item = current_item;
-        current_item = this.parent;
+        //previous_touch = current_item;
+        //current_item = this.parent;
       }
 
       _path_group.addChild(_path_curve);
