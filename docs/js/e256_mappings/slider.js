@@ -258,8 +258,6 @@ function sliderFactory() {
       }
 
       _slider_frame.onMouseDown = function () {
-        //previous_touch = current_item;
-        //current_item = _slider_group;
       }
 
       _slider_frame.onMouseDrag = function (mouseEvent) {

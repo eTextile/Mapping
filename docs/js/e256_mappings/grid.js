@@ -132,15 +132,15 @@ function gridFactory() {
         previous_touch = current_touch;
         current_touch = _key_group;
         /*
-        if (current_item.name === "key-group" && previous_touch.name === "key-group") {
+        if (current_touch.name === "key-group" && previous_touch.name === "key-group") {
           previous_touch.firstChild.style.fillColor = "pink";
           this.style.fillColor = "orange";
         }
-        else if (current_item.name === "grid-group" && previous_touch.name === "key-group") {
+        else if (current_touch.name === "grid-group" && previous_touch.name === "key-group") {
           previous_touch.firstChild.style.fillColor = "pink";
           this.style.strokeColor = "orange";
         }
-        else if (previous_touch.name === "grid-group" && current_item.name === "key-group") {
+        else if (previous_touch.name === "grid-group" && current_touch.name === "key-group") {
           previous_touch.firstChild.style.strokeColor = "lightGreen";
           this.style.fillColor = "orange";
         }
@@ -226,8 +226,6 @@ function gridFactory() {
       }
 
       _grid_frame.onMouseDown = function () {
-        //previous_touch = current_item;
-        //current_item = _grid_group;
       }
 
       _grid_frame.onMouseDrag = function (mouseEvent) {

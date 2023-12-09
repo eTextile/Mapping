@@ -165,8 +165,6 @@ function pathFactory() {
       }
 
       _path_curve.onMouseDown = function () {
-        //previous_touch = current_item;
-        //current_item = this.parent;
       }
 
       _path_group.addChild(_path_curve);
@@ -208,7 +206,7 @@ function pathFactory() {
               let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.max - _touch.data.midi.position.min);
               _touch.children["path-graduations"].dashArray = [1, _path_graduation_interval];
             }
-            update_item_menu_params(this.parent);
+            update_item_menu_params(_path_group.parent);
           }
           break;
         case PLAY_MODE:

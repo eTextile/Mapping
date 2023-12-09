@@ -15,7 +15,7 @@ var hitOptions = {
   "stroke": true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
   "bounds": true, // hit-test the corners and side-centers of the bounding rectangle of items
   "fill": true,
-  "tolerance": 5
+  "tolerance": 10
 }
 
 var current_part = { "id": null };
@@ -89,17 +89,11 @@ function paperInit() {
               current_controleur = current_item;
               current_item = current_item.parent;
             }
-            
-            //console.log("CTR_PRE: " + previous_controleur.name + "_" + previous_controleur.id);
-            //console.log("CTR_CUR: " + current_controleur.name + "_" + current_controleur.id);
+            current_controleur.bringToFront();
             if (current_controleur.id !== previous_controleur.id) {
-              current_controleur.bringToFront();
               item_menu_params(previous_controleur, "hide");
               item_menu_params(current_controleur, "show");
             }
-
-            //console.log("TCH_PRE: " + previous_touch.name + "_" + previous_touch.id);
-            //console.log("TCH_CUR: " + current_touch.name + "_" + current_touch.id);
             if (current_touch.id !== previous_touch.id) {
               item_menu_params(previous_touch, "hide");
               item_menu_params(current_touch, "show");

@@ -199,14 +199,12 @@ function knobFactory() {
       });
 
       _knob_circle.style = {
-        "fillColor": "Purple",
         "strokeWidth": 1,
-        "strokeColor": "black"
+        "strokeColor": "black",
+        "fillColor": "Purple"
       }
 
       _knob_circle.onMouseDown = function () {
-        //previous_touch = current_item;
-        //current_item = _knob_group;
       }
 
       _knob_circle.onMouseDrag = function (mouseEvent) {
@@ -215,7 +213,7 @@ function knobFactory() {
             if (current_part.type === "fill") {
               move_item(_knob_group.parent, mouseEvent);
               _knob_group.center = this.position;
-              update_item_menu_params(_knob_group.parent);
+              update_item_menu_params(_knob_group.parent); // FIXME!?
             }
             break;
           case PLAY_MODE:
@@ -244,14 +242,14 @@ function knobFactory() {
               mouseEvent.point.y - _knob_group.center.y
             ).theta;
 
-            _knob_offset = pol_to_cart(_knob_group.radius, _knob_group.theta);
+            _knob_offset_pos = pol_to_cart(_knob_group.radius, _knob_group.theta);
             this.position = new paper.Point(
-              _knob_group.center.x + _knob_offset.x,
-              _knob_group.center.y + _knob_offset.y
+              _knob_group.center.x + _knob_offset_pos.x,
+              _knob_group.center.y + _knob_offset_pos.y
             );
 
             _knob_group.data.offset = rad_to_deg(_knob_group.theta);
-            update_item_menu_params(this.parent.parent);
+            update_item_menu_params(_knob_group.parent);
             break;
           case PLAY_MODE:
             // NA
@@ -268,7 +266,6 @@ function knobFactory() {
       _knob_frame.style = {
         "strokeWidth": 1,
         "strokeColor": "black"
-        //"fillColor": "white"
       }
 
       _knob_frame.onMouseEnter = function () {
@@ -292,8 +289,6 @@ function knobFactory() {
       }
 
       _knob_frame.onMouseDown = function () {
-        //previous_touch = current_item;
-        //current_item = _knob_group;
       }
 
       _knob_frame.onMouseDrag = function (mouseEvent) {
@@ -321,10 +316,10 @@ function knobFactory() {
                   );
                   // "knob-offset"
                   _knob_group.center = _knob_circle.position;
-                  _knob_offset = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
-                  _knob_offset.position.x = _knob_group.center.x + _knob_offset.x;
-                  _knob_offset.position.y = _knob_group.center.y + _knob_offset.y;
-                  // "knob-needle" & "knob-touch"
+                  _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
+                  _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
+                  _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
+                  // "knob-touch" & "knob-needle"
                   for (const _touch of _touchs_group.children) {
                     _touch.radius = (_touch.radius * _knob_group.radius) / _knob_previous_radius;
                     _knob_touch_pos = pol_to_cart(_touch.radius, _touch.theta);
@@ -356,10 +351,10 @@ function knobFactory() {
                   );
                   // "knob-offset"
                   _knob_group.center = _knob_circle.position;
-                  _knob_offset = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
-                  _knob_offset.position.x = _knob_group.center.x + _knob_offset.x;
-                  _knob_offset.position.y = _knob_group.center.y + _knob_offset.y;
-                  // "knob-needle" & "knob-touch"
+                  _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
+                  _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
+                  _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
+                  // "knob-touch" & "knob-needle"
                   for (const _touch of _touchs_group.children) {
                     _touch.radius = (_touch.radius * _knob_group.radius) / _knob_previous_radius;
                     _knob_touch_pos = pol_to_cart(_touch.radius, _touch.theta);
@@ -391,10 +386,10 @@ function knobFactory() {
                   );
                   // "knob-offset"
                   _knob_group.center = _knob_circle.position;
-                  _knob_offset = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
-                  _knob_offset.position.x = _knob_group.center.x + _knob_offset.x;
-                  _knob_offset.position.y = _knob_group.center.y + _knob_offset.y;
-                  // "knob-needle" & "knob-touch"
+                  _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
+                  _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
+                  _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
+                  // "knob-touch" & "knob-needle"
                   for (const _touch of _touchs_group.children) {
                     _touch.radius = (_touch.radius * _knob_group.radius) / _knob_previous_radius;
                     _knob_touch_pos = pol_to_cart(_touch.radius, _touch.theta);
@@ -426,10 +421,10 @@ function knobFactory() {
                   );
                   // "knob-offset"
                   _knob_group.center = _knob_circle.position;
-                  _knob_offset = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
-                  _knob_offset.position.x = _knob_group.center.x + _knob_offset.x;
-                  _knob_offset.position.y = _knob_group.center.y + _knob_offset.y;
-                  // "knob-needle" & "knob-touch"
+                  _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
+                  _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
+                  _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
+                  // "knob-touch" & "knob-needle"
                   for (const _touch of _touchs_group.children) {
                     _touch.radius = (_touch.radius * _knob_group.radius) / _knob_previous_radius;
                     _knob_touch_pos = pol_to_cart(_touch.radius, _touch.theta);

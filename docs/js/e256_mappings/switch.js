@@ -205,8 +205,6 @@ function switchFactory() {
       }
 
       _switch_frame.onMouseDown = function () {
-        //previous_touch = current_item;
-        //current_item = _switch_group;
       }
 
       _switch_frame.onMouseDrag = function (mouseEvent) {
