@@ -13,6 +13,8 @@ const FLASH_SIZE = 4096;
 const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
+const MATRIX_RESOLUTION_X = 64;
+const MATRIX_RESOLUTION_y = 64;
 
 // E256 MIDI I/O CHANNELS CONSTANTS [1:15]
 // QUICK_FIX: if sending on channel 1, eTextile-synth is receiving on channel 2

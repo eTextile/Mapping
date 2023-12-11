@@ -25,8 +25,11 @@ function listLayerParams(layer) {
         let grid_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
-            // TODO: mapping with matrix size!
-            grid_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            //grid_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            grid_params[param] = [
+              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
+              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+            ];
           } else {
             grid_params[param] = item.data[param];
           }
@@ -39,8 +42,12 @@ function listLayerParams(layer) {
         for (const param in item.data) {
           console.log("PARAM: " + param);
           if (param === "from" || param === "to") {
-            // TODO: mapping with matrix size!
-            touchpad_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            //touchpad_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            // Mapping with matrix size
+            touchpad_params[param] = [
+              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
+              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+            ];
           }
           else {
             touchpad_params[param] = item.data[param];
@@ -53,8 +60,12 @@ function listLayerParams(layer) {
         let slider_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
-            // TODO: mapping with matrix size!
-            slider_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            //slider_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            // Mapping with matrix size
+            slider_params[param] = [
+              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
+              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+            ];
           }
           else {
             slider_params[param] = item.data[param];
@@ -67,8 +78,12 @@ function listLayerParams(layer) {
         let switch_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
-            // TODO: mapping with matrix size!
-            switch_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            //switch_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            // Mapping with matrix size
+            switch_params[param] = [
+              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
+              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+            ];
           }
           else {
             switch_params[param] = item.data[param];
@@ -81,8 +96,12 @@ function listLayerParams(layer) {
         let knob_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
-            // TODO: mapping with matrix size!
-            knob_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            //knob_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
+            // Mapping with matrix size
+            knob_params[param] = [
+              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
+              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+            ];
           }
           else {
             knob_params[param] = item.data[param];
