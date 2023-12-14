@@ -7,8 +7,8 @@
 var MIDIInput = null;
 var MIDIOutput = null;
 var midi_device_connected = false;
-var fileType = null;
-var confSize = 0;
+var loaded_file = null;
+var conf_size = 0;
 
 /*
 // MIDI struct
@@ -177,9 +177,8 @@ function onMIDIMessage(midiMsg) {
         case SYNC_MODE:
           console.log("RECEIVED: CONFIG_FILE");
           let string = new TextDecoder().decode(midiMsg.data);
-          let conf_file = string.slice(1, -1);
-          let e256_json_conf = JSON.parse(conf_file);
-          draw_controler_from_config(e256_json_conf);
+          let config_file = string.slice(1, -1);
+          draw_controler_from_config(JSON.parse(config_file));
           e256_current_mode = EDIT_MODE;
           break;
         case MATRIX_MODE_RAW:
@@ -247,13 +246,20 @@ function sysex_upload(data) {
 }
 
 function e256_alocate_memory() {
-  if (fileType === "application/json") {
-    sysex_alloc(SYSEX_CONF, confSize);
-  }
-  else if (fileType === "application/wav") {
-    //sysex_alloc(SYSEX_SOUND, sound.length); // TODO
-  } else {
-    alert("MISSING FILE!");
+  switch (loaded_file.type) {
+    case "application/json":
+      if (conf_size < FLASH_SIZE){
+        sysex_alloc(SYSEX_CONF, conf_size);
+      } else {
+        alert("FILE TO BIG!"); 
+      }
+      break;
+    case "application/wav":
+      //sysex_alloc(SYSEX_SOUND, sound.length); // TODO
+      break;
+    default:
+      alert("MISSING FILE!");
+      break;
   }
 }
 

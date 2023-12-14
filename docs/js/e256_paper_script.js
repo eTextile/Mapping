@@ -229,23 +229,25 @@ function paperInit() {
 
   function onReaderLoad(event) {
     let config_import = JSON.parse(event.target.result);
-    confSize = Object.keys(JSON.stringify(config_import)).length;
+    conf_size = Object.keys(JSON.stringify(config_import)).length;
+    console.log("CONF_SIZE: " + conf_size);
     draw_controler_from_config(config_import);
   };
 
   function loadFile(event) {
-    var file = event.target.files[0];
-    fileType = file.type;
-    if (fileType === "application/json") {
-      var reader = new FileReader();
-      reader.onload = onReaderLoad;
-      reader.readAsText(event.target.files[0]);
-    }
-    else if (fileType === "application/wav") {
-      // TODO
-    }
-    else {
-      alert("WRONG FILE TYPE!");
+    loadaed_file = event.target.files[0];
+    switch (loaded_file.type) {
+      case "application/json":
+        var reader = new FileReader();
+        reader.onload = onReaderLoad;
+        reader.readAsText(event.target.files[0]);
+        break;
+      case "application/wav":
+        // TODO
+        break;
+      default:
+        alert("WRONG FILE TYPE!");
+        break;
     }
   };
 
