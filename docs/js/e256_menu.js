@@ -1,5 +1,5 @@
 /*
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
@@ -27,8 +27,8 @@ $("#connectSwitch").on("change", function () {
 });
 
 $(".e256_setMode").click(function (event) {
-  switch (event.target.id) {
 
+  switch (event.target.id) {
     case "matrixMode":
       e256_current_mode = MATRIX_MODE_RAW;
       $("#calibrateMenu").collapse("show");
@@ -41,7 +41,6 @@ $(".e256_setMode").click(function (event) {
       $("#contextualContent").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
       //$(".param").collapse("hide");
       break;
-
     case "mappingMode":
       e256_current_mode = EDIT_MODE;
       $("#calibrateMenu").collapse("show");
@@ -51,30 +50,34 @@ $(".e256_setMode").click(function (event) {
       $("#matrixCanvas").collapse("hide");
       $("#mappingCanvas").collapse("show");
       $("#summaryAction").html("CONNECTED");
-      $("#contextualContent").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces !");
+      $("#contextualContent").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces");
       //$(".param").collapse("hide");
       break;
-
     case "editMode":
       e256_current_mode = EDIT_MODE;
       $("#editMenu").collapse("show");
-      $("#playMenu").collapse("hide");
       $("#loadMenu").collapse("show");
       $("#set_button_params").collapse("show");
       $("#summaryAction").html("CONNECTED / EDIT_MODE");
       $("#contextualContent").html("Using EDIT MODE you can add components to the matrix controler");
+      $("#midi_term").collapse("hide");
+      item_menu_params(current_controleur, "show");
+      item_menu_params(current_touch, "show");
       break;
-
     case "playMode":
       e256_current_mode = PLAY_MODE;
       $("#editMenu").collapse("hide");
-      $("#playMenu").collapse("show");
       $("#loadMenu").collapse("hide");
       $("#set_button_params").collapse("hide");
       $("#summaryAction").html("CONNECTED / PLAY_MODE");
       $("#contextualContent").html("Using PLAY MODE you can evaluate what you have made");
+      $(".param").collapse("hide");
+      $("#midi_term").collapse("show");
+      item_menu_params(current_controleur, "hide");
+      item_menu_params(current_touch, "hide");
       break;
   }
+
   if (midi_device_connected) {
     sendProgramChange(e256_current_mode, MIDI_MODES_CHANNEL);
     console.log("REQUEST: " + MODES_CODES[e256_current_mode]);
@@ -102,7 +105,7 @@ $(".mapingTool").click(function (event) {
   //$("#optionsMenu").collapse("show");
   //$(".param").collapse("hide");
   e256_draw_mode = event.target.id;
-  console.log("DRAW_MODE: " + e256_draw_mode);
+  //console.log("DRAW_MODE: " + e256_draw_mode);
   create_once = false;
 });
 
@@ -117,7 +120,6 @@ $("#calibrate").click(function () {
 
 $("#getConfig").click(function () {
   if (midi_device_connected) {
-    //e256_current_mode = SYNC_MODE;
     sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
     console.log("REQUEST: CONFIG_FILE");
   } else {

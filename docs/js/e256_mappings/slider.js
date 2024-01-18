@@ -1,5 +1,5 @@
 /*
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
@@ -132,7 +132,7 @@ function sliderFactory() {
         current_touch = _touch_group;
       }
 
-      _touch_circle.onMouseMove = function (mouseEvent) {
+      _touch_circle.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
           case EDIT_MODE:
             // NA
@@ -151,7 +151,7 @@ function sliderFactory() {
                           _slider.children["slider-frame"].bounds.bottom,
                           _touch_group.data.midi.position.min,
                           _touch_group.data.midi.position.max
-                        )
+                        ),
                       );
                     }
                 break;
@@ -167,17 +167,16 @@ function sliderFactory() {
                           _slider.children["slider-frame"].bounds.right,
                           _touch_group.data.midi.position.min,
                           _touch_group.data.midi.position.max
-                        )
+                        ),
                       );
                     }
                 break;
             }
             if (_touch_group.data.midi.position.val != _touch_group.prev_position) {
               _touch_group.prev_position = _touch_group.data.midi.position.val;
-              if (midi_device_connected){
-                //sendControlChange(this.data.msg.position);
-                // TODO: add console GUI to monitor the outgoing MIDI messages!
-              }
+              //if (midi_device_connected){
+                sendControlChange(_touch_group.data.midi.position);
+              //}
             }
             update_touch_menu_params(_touch_group);
             break;

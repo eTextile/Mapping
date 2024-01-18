@@ -1,12 +1,12 @@
 /*
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
 var canvas_height = $("#loadingCanvas").height();
 var canvas_width = canvas_height;
-var scaleFactor = canvas_height / 127;
+//var scaleFactor = canvas_height / 127; // FEXME!
 
 //.log("PAPER_WIDTH: " + canvas_width + " PAPER_HEIGHT: " + canvas_height);
 
@@ -18,16 +18,14 @@ var hitOptions = {
   "tolerance": 10
 }
 
-var current_part = { "id": null };
-
-var current_touch = { "id": null };
-var previous_touch = { "id": null };
-
 var current_controleur = { "id": null };
 var previous_controleur = { "id": null };
+var current_touch = { "id": null };
+var previous_touch = { "id": null };
+var current_part = { "id": null };
 
 var create_once = false;
-var global_midi_chan_index = 1;
+var global_midi_ctr_index = 1;
 
 function paperInit() {
 
@@ -203,24 +201,12 @@ function paperInit() {
     }
   };
 
-  /*
-  // NOT WORKING!  :-(
-  const controleur_factory = {
-    "switch": switchFactory(),
-    "slider": sliderFactory(),
-    "knob": knobFactory(),
-    "touchpad": touchpadFactory(),
-    "grid": gridFactory(),
-    "path": pathFactory()
-  };
-  */
-
   // FIXME: whenever the view is resized
   paper.view.onResize = function () {
     canvas_height = $("#loadingCanvas").height();
     canvas_width = canvas_height;
     console.log("WIDTH: " + canvas_width + " HEIGHT: " + canvas_height);
-    scaleFactor = canvas_height / 127;
+    //scaleFactor = canvas_height / 127; // FIXME!
     paper.view.viewSize.width = canvas_width;
     paper.view.viewSize.height = canvas_height;
     paper.view.setZoom(canvas_width / canvas_height);

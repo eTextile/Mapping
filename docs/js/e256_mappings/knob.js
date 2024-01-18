@@ -1,5 +1,5 @@
 /*
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
@@ -133,31 +133,32 @@ function knobFactory() {
             let x = mouseEvent.point.x - _knob.center.x; // Place the x origin to the circle center
             let y = mouseEvent.point.y - _knob.center.y; // Place the y origin to the circle center
             let polar = cart_to_pol(x, y);
+            let new_polar = 0;
             if (polar.radius > _knob.radius) {
-              let new_polar = rotatePolar(rad_to_deg(polar.theta), _knob.data.offset);
-              _touch_group.data.midi.theta.val = Math.round(mapp(new_polar, 0, 380, _touch_group.data.midi.theta.min, _touch_group.data.midi.theta.max));
+              new_polar = rotate_polar(rad_to_deg(polar.theta), _knob.data.offset, 'clockwise');
+              //new_polar = rotate_polar(rad_to_deg(polar.theta), _knob.data.offset, 'counter-clockwise');
+              _touch_group.data.midi.theta.val = Math.round(mapp(new_polar, 0, 380, _touch_group.data.midi.theta.max, _touch_group.data.midi.theta.min));
               _knob_touch_pos = pol_to_cart(_knob.radius, polar.theta);
             } else {
-              _touch_group.data.midi.radius.val = Math.round(mapp(polar.radius, 0, _knob.radius, _touch_group.data.midi.radius.min, _touch_group.data.midi.radius.max));
-              let new_polar = rotatePolar(rad_to_deg(polar.theta), _knob.data.offset);
-              _touch_group.data.midi.theta.val = Math.round(mapp(new_polar, 0, 380, _touch_group.data.midi.theta.min, _touch_group.data.midi.theta.max));
+              _touch_group.data.midi.radius.val = Math.round(mapp(polar.radius,  _knob.radius, 0, _touch_group.data.midi.radius.min, _touch_group.data.midi.radius.max));
+              new_polar = rotate_polar(rad_to_deg(polar.theta), _knob.data.offset, 'clockwise');
+              //new_polar = rotate_polar(rad_to_deg(polar.theta), _knob.data.offset, 'counter-clockwise');
+              _touch_group.data.midi.theta.val = Math.round(mapp(new_polar, 0, 380, _touch_group.data.midi.theta.max, _touch_group.data.midi.theta.min));
               _knob_touch_pos = pol_to_cart(polar.radius, polar.theta);
             }
             _knob_touch.position = new paper.Point(_knob.center.x + _knob_touch_pos.x, _knob.center.y + _knob_touch_pos.y);
             _knob_needle.segments[1].point = new paper.Point(_knob.center.x + _knob_touch_pos.x, _knob.center.y + _knob_touch_pos.y);
 
-            if (midi_device_connected) {
+            //if (midi_device_connected) {
               if (_touch_group.data.midi.theta.val != _touch_group.prev_theta) {
                 _touch_group.prev_theta = _touch_group.data.midi.theta.val;
-                //console.log("THETA: " + _touch_group.data.midi.theta.val); // PROB!
                 sendControlChange(_touch_group.data.midi.theta);
               }
               if (_touch_group.data.midi.radius.val != _touch_group.prev_radius) {
                 _touch_group.prev_radius = _touch_group.data.midi.radius.val;
-                //console.log("RADIUS: " + _touch_group.data.midi.radius.val); // PROB!
                 sendControlChange(_touch_group.data.midi.radius);
               }
-            }
+            //}
             update_touch_menu_params(_touch_group);
             break;
         }

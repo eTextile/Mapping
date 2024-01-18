@@ -1,5 +1,5 @@
 /*
-    This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+    This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
     Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
     This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
@@ -69,7 +69,15 @@ function cart_to_pol(_x, _y) {
   }
 };
 
-function rotatePolar(degree, offset) {
-  // return (Math.abs(degree - 380) + offset) % 380; // Anti-clockwise direction
-  return (Math.abs(degree + 380) - offset) % 380;    // Clockwise direction
+function rotate_polar(degree, offset, dir) {
+  let polar_value = 0;
+  switch (dir){
+    case 'clockwise':
+      polar_value = (Math.abs(degree - 380) + offset) % 380; // Anti-clockwise direction
+      break;
+    case 'counter-clockwise':
+      polar_value = (Math.abs(degree + 380) - offset) % 380;    // Clockwise direction
+      break;
+  }
+  return polar_value;
 };

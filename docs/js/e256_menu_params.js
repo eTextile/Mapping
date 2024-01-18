@@ -1,5 +1,5 @@
 /*
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
@@ -99,10 +99,10 @@ function create_menu_1st_level(item) {
       span_param.textContent = param;
       part_param.appendChild(span_param);
 
-      let _params_list = document.createElement("select");
-      _params_list.className = "form-select form-select-sm";
-      _params_list.setAttribute("aria-label", ".form-select-sm select");
-      _params_list.setAttribute("id", item.name + "_value_" + item.id);
+      let params_list = document.createElement("select");
+      params_list.className = "form-select form-select-sm";
+      params_list.setAttribute("aria-label", ".form-select-sm select");
+      params_list.setAttribute("id", item.name + "_value_" + item.id);
 
       for (const mode in item.modes) {
         let _option = document.createElement("option");
@@ -110,15 +110,16 @@ function create_menu_1st_level(item) {
         if (item.data.mode === item.modes[mode]) {
           _option.defaultSelected = true;
         }
-        _params_list.appendChild(_option);
+        params_list.appendChild(_option);
       }
 
-      _params_list.addEventListener("change", function (event) {
+      params_list.addEventListener("change", function (event) {
         item.data.mode = event.target.value;
       });
 
-      part_param.appendChild(_params_list);
+      part_param.appendChild(params_list);
     }
+
     else if (param === "velocity" || param === "aftertouch" || param === "automap" || param === "pressure") {
       // For details on the buttons refer to
       // https://getbootstrap.com/docs/5.0/components/buttons/
@@ -175,8 +176,8 @@ function create_menu_2nd_level(item) {
 
   let sub_part_params = document.createElement("div");           // Sub part menu main div 
   sub_part_params.setAttribute("id", item.name + "_" + item.id); // Sub part menu UID
-  
-  console.log(item.name + "_" + item.id);
+
+  //console.log(item.name + "_" + item.id);
 
   sub_part_params.className = "collapse";
 
@@ -191,7 +192,6 @@ function create_menu_2nd_level(item) {
   let row_midi_params_body = document.createElement("tbody");
 
   for (const param in item.data.midi) {
-
     let row_midi_params_atr_tr = document.createElement("tr");
     let sub_part_name = document.createElement("th");
     sub_part_name.textContent = " ";
@@ -204,28 +204,30 @@ function create_menu_2nd_level(item) {
     row_midi_params_val_tr.appendChild(midi_param_val);
 
     for (const msg in item.data.midi[param]) {
-      let midi_param_atr = document.createElement("th");
-      midi_param_atr.setAttribute("id", item.id + "_" + param + "_" + msg + "_atr");
-      midi_param_atr.className = "text-center";
-      midi_param_atr.textContent = msg;
-      row_midi_params_atr_tr.appendChild(midi_param_atr);
+      if (msg !== "val") {
+        let midi_param_atr = document.createElement("th");
+        midi_param_atr.setAttribute("id", item.id + "_" + param + "_" + msg + "_atr");
+        midi_param_atr.className = "text-center";
+        midi_param_atr.textContent = msg;
+        row_midi_params_atr_tr.appendChild(midi_param_atr);
 
-      let midi_param_td = document.createElement("td");
-      let midi_param_val = document.createElement("input");
-      midi_param_val.className = "form-control text-center";
-      midi_param_val.setAttribute("type", "number");
-      midi_param_val.setAttribute("id", item.id + "_" + param + "_" + msg + "_val");
-      midi_param_val.setAttribute("aria-describedby", item.id + "_" + param + "_" + msg + "_atr");
-      midi_param_val.addEventListener("input", function (event) {
-        if (event.target.type === "number") {
-          item.data.midi[param][msg] = event.target.value;
-        }
-      });
-      midi_param_td.appendChild(midi_param_val);
-      row_midi_params_val_tr.appendChild(midi_param_td);
+        let midi_param_td = document.createElement("td");
+        let midi_param_val = document.createElement("input");
+        midi_param_val.className = "form-control text-center";
+        midi_param_val.setAttribute("type", "number");
+        midi_param_val.setAttribute("id", item.id + "_" + param + "_" + msg + "_val");
+        midi_param_val.setAttribute("aria-describedby", item.id + "_" + param + "_" + msg + "_atr");
+        midi_param_val.addEventListener("input", function (event) {
+          if (event.target.type === "number") {
+            item.data.midi[param][msg] = event.target.value;
+          }
+        });
+        midi_param_td.appendChild(midi_param_val);
+        row_midi_params_val_tr.appendChild(midi_param_td);
+      }
+      row_midi_params_body.appendChild(row_midi_params_atr_tr);
+      row_midi_params_body.appendChild(row_midi_params_val_tr);
     }
-    row_midi_params_body.appendChild(row_midi_params_atr_tr);
-    row_midi_params_body.appendChild(row_midi_params_val_tr);
   }
   table_params.appendChild(row_midi_params_body);
   table_params.appendChild(row_midi_params_body);

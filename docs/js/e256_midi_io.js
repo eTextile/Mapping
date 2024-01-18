@@ -1,5 +1,5 @@
 /*
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
@@ -49,8 +49,8 @@ function onMIDISuccess(midiAccess) {
     if (inputSetup && outputSetup) {
       midi_device_connected = true;
       sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
-      setTimeout(isConnected, SYNC_MODE_TIMEOUT);
       console.log("SYNC_MODE_REQUEST_A - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
+      setTimeout(isConnected, SYNC_MODE_TIMEOUT);
     }
   }
   */
@@ -74,8 +74,8 @@ function onMIDISuccess(midiAccess) {
         if (inputSetup && outputSetup) {
           midi_device_connected = true;
           console.log("E256_CONNECTED");
-          console.log("REQUEST: SYNC_MODE");
           sendProgramChange(SYNC_MODE, MIDI_MODES_CHANNEL);
+          console.log("REQUEST: SYNC_MODE");
           setTimeout(updateMenu, SYNC_MODE_TIMEOUT);
         }
         break;
@@ -212,7 +212,8 @@ function sendNoteOff(midiMsg) {
 
 function sendControlChange(midiMsg) {
   let status = CONTROL_CHANGE | (midiMsg.chan - 1);
-  MIDIOutput.send([status, midiMsg.ctr, midiMsg.val]);
+  //MIDIOutput.send([status, midiMsg.ctr, midiMsg.val]);
+  MIDIOutput_buffer.push(midiMsg);
 }
 
 function sendAftertouch(midiMsg) { // FIXME!
@@ -265,17 +266,45 @@ function e256_alocate_memory() {
 
 $(document).ready(function () {
   $("#loadingCanvas").collapse("show");
-  $("#loadingCanvas").css("background", "black");
-  $("#matrixCanvas").css("background", "black");
-  $("#mappingCanvas").css("background", "black");
   MIDIrequest();
 });
 
 function string_to_bytes(str) {
-  var bytes = [];
-  for (var i = 0, n = str.length; i < n; i++) {
-    var char = str.charCodeAt(i);
+  let bytes = [];
+  for (let i = 0, n = str.length; i < n; i++) {
+    let char = str.charCodeAt(i);
     bytes.push(char);
   }
   return bytes;
 }
+
+
+////////////////////////////////////////////////////////////////:
+// Tail effect
+function tailScroll() {
+	let div_height = $("#midi_term").get(0).scrollHeight;
+	$("#midi_term").animate({scrollTop: div_height}, 10);
+}
+
+function circular_buffer(max_length) {
+  this._max_length = max_length;
+  this._msg_count = 0;
+}
+
+circular_buffer.prototype = Object.create(Array.prototype);
+
+circular_buffer.prototype.push = function(midiMsg) {
+  Array.prototype.push.call(this, midiMsg);
+  let div_midi_msg = document.createElement("div");
+  div_midi_msg.setAttribute("id", "midi_msg_" + this._msg_count);
+  div_midi_msg.textContent =  "[ " + midiMsg.chan + " _ " + midiMsg.ctr + " _ " + midiMsg.val + " ]";
+  $("#midi_term").append(div_midi_msg);
+  while (this.length > this._max_length) {
+    this.shift();
+    tailScroll();
+    $("#midi_msg_" + (this._msg_count - this._max_length)).remove();
+  }
+  this._msg_count++;
+}
+
+var MIDIOutput_buffer = new circular_buffer(25);

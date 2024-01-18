@@ -1,5 +1,5 @@
 /*
-  This file is part of the eTextile-Synthesizer project - http://synth.eTextile.org
+  This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
@@ -170,21 +170,26 @@ const DEFAULT_MIDI_AFT = 24;
 const DEFAULT_MIDI_MIN = 0;
 const DEFAULT_MIDI_MAX = 127;
 
+/*
+const limit = function (min, max) {
+  this.min = min;
+  this.max = max;
+}
+*/
+
 // MIDI MESSAGES TYPES
 const note = function (chan, note, velo, min, max) {
   this.chan = chan;
   this.note = note;
   this.velo = velo;
-  this.min = min;
-  this.max = max;
 };
 
 const control_change = function (chan, ctr, val, min, max) {
   this.chan = chan;
   this.ctr = ctr;
-  this.val = val;
   this.min = min;
   this.max = max;
+  this.val = val;
 };
 
 const aftertouch = function (chan, aft, min, max) {
@@ -200,14 +205,14 @@ const midi_key_touch_msg = function (touch_id) {
   this.midi = {};
   this.midi.note = new note(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pressure = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
@@ -217,17 +222,19 @@ const midi_key_touch_msg = function (touch_id) {
 // MAPPING-LIB MIDI MESSAGES
 const midi_slider_touch_msg = function (touch_id) {
   this.touch_id = touch_id;
+  
   this.midi = {};
   this.midi.position = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
+
   this.midi.pressure = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
@@ -239,21 +246,21 @@ const midi_pad_touch_msg = function (touch_id) {
   this.midi = {};
   this.midi.pos_x = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pos_y = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pressure = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
@@ -264,21 +271,21 @@ const midi_touch_circular_msg = function () {
   this.midi = {};
   this.midi.radius = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.theta = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
   this.midi.pressure = new control_change(
     DEFAULT_MIDI_CHANNEL,
-    global_midi_chan_index++,
+    global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
