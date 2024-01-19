@@ -69,7 +69,7 @@ function touchpadFactory() {
       }
     },
 
-    new_touch: function (_touch_id) {
+    new_touch: function (_touch_id, _touchpad) {
 
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
@@ -77,6 +77,10 @@ function touchpadFactory() {
           get_random_int(this.data.from.x + DEFAULT_PAD_MARGIN, this.data.to.x - DEFAULT_PAD_MARGIN),
           get_random_int(this.data.from.y + DEFAULT_PAD_MARGIN, this.data.to.y - DEFAULT_PAD_MARGIN)
         ),
+        //"curr_position_x": null,
+        "prev_position_x": null,
+        "curr_pressure": null,
+        "prev_pressure": null,
         "data": this.data.msg[_touch_id]
       });
 
@@ -133,10 +137,9 @@ function touchpadFactory() {
         current_touch = _touch_group;
       }
 
-      /*
       let _touch_txt = new paper.PointText({
         "name": "key-text",
-        "point": _touch_circle.position,
+        "point": _touch_circle.position + ,
         "content": _touch_id,
         "locked": true
       });
@@ -145,10 +148,58 @@ function touchpadFactory() {
         "fillColor": "black",
         "fontSize": 25
       };
-      _touch_circle.addChild(_touch_txt);
-      */
 
+      _touch_circle.onMouseDrag = function (mouseEvent) {
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            // NA
+            break;
+          case PLAY_MODE:
+            if (mouseEvent.point.x > _touchpad.children["pad-frame"].bounds.left &&
+              mouseEvent.point.x < _touchpad.children["pad-frame"].bounds.right &&
+              mouseEvent.point.y > _touchpad.children["pad-frame"].bounds.top &&
+              mouseEvent.point.y < _touchpad.children["pad-frame"].bounds.bottom) {
+              _touch_line_x.position.y = mouseEvent.point.y;
+              _touch_line_y.position.x = mouseEvent.point.x
+              _touch_circle.position = mouseEvent.point;
+              _touch_txt.position = mouseEvent.point;
+
+              _touch_group.data.midi.position_x.val = Math.round(
+                mapp(mouseEvent.point.x,
+                  _touchpad.children["pad-frame"].bounds.right,
+                  _touchpad.children["pad-frame"].bounds.left,
+                  _touch_group.data.midi.position_x.min,
+                  _touch_group.data.midi.position_x.max
+                )
+              );
+              if (_touch_group.data.midi.position_x.val != _touch_group.prev_position_x) {
+                _touch_group.prev_position_x = _touch_group.data.midi.position_x.val;
+                //if (midi_device_connected){
+                sendControlChange(_touch_group.data.midi.position_x);
+                //}
+              }
+              _touch_group.data.midi.position_y.val = Math.round(
+                mapp(mouseEvent.point.y,
+                  _touchpad.children["pad-frame"].bounds.top,
+                  _touchpad.children["pad-frame"].bounds.bottom,
+                  _touch_group.data.midi.position_y.min,
+                  _touch_group.data.midi.position_y.max
+                )
+              );
+              if (_touch_group.data.midi.position_y.val != _touch_group.prev_position_y) {
+                _touch_group.prev_position_y = _touch_group.data.midi.position_y.val;
+                //if (midi_device_connected){
+                sendControlChange(_touch_group.data.midi.position_y);
+                //}
+              }
+            }
+
+            update_touch_menu_params(_touch_group);
+            break;
+        }
+      }
       _touch_group.addChild(_touch_circle);
+      _touch_group.addChild(_touch_txt);
 
       return _touch_group;
     },
@@ -171,11 +222,11 @@ function touchpadFactory() {
       });
 
       for (let _touch = 0; _touch < this.data.touch; _touch++) {
-        _touchs_group.addChild(this.new_touch(_touch));
+        _touchs_group.addChild(this.new_touch(_touch, _pad_group));
       }
 
       let _pad_frame = new paper.Path.Rectangle({
-        //"name": "pad-frame",
+        "name": "pad-frame",
         "from": this.data.from,
         "to": this.data.to
       });
@@ -308,7 +359,7 @@ function touchpadFactory() {
             update_item_menu_params(_pad_group.parent);
             break;
           case PLAY_MODE:
-            //TODO
+            // NA
             break;
         }
       }

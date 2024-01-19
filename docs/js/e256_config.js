@@ -244,14 +244,14 @@ const midi_slider_touch_msg = function (touch_id) {
 const midi_pad_touch_msg = function (touch_id) {
   this.touch_id = touch_id;
   this.midi = {};
-  this.midi.pos_x = new control_change(
+  this.midi.position_x = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
     DEFAULT_MIDI_MIN,
     DEFAULT_MIDI_MAX
   );
-  this.midi.pos_y = new control_change(
+  this.midi.position_y = new control_change(
     DEFAULT_MIDI_CHANNEL,
     global_midi_ctr_index++,
     DEFAULT_MIDI_VALUE,
