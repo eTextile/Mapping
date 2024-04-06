@@ -59,25 +59,26 @@ function Blobs() {
   this.blobs = [];
 }
 
-Blobs.prototype.add = function (noteOn) {
-  if (this.blobs.findIndex(blob => blob.uid === noteOn[1]) === -1) {
-    this.blobs.push(new Blob(noteOn[1], 0, 0, 0, 0, 0));
+Blobs.prototype.add = function (midiMsg) {
+  let note = midiMsg.data[1];
+  //let velocity = midiMsg.data[2];
+  if (this.blobs.findIndex(blob => blob.uid === note) === -1) {
+    this.blobs.push(new Blob(note, 0, 0, 0, 0, 0));
   } else {
-    console.log("BLOB_ADD / EXISTING: " + noteOn[1]);
+    console.log("BLOB_ADD / EXISTING: " + note);
     return;
   }
 }
 
-Blobs.prototype.remove = function (noteOff) {
-  let index = this.blobs.findIndex(blob => blob.uid === noteOff[1]);
+Blobs.prototype.remove = function (midiMsg) {
+  let note = midiMsg.data[1];
+  //let velocity = midiMsg.data[2];
+
+  let index = this.blobs.findIndex(blob => blob.uid === note);
   if (index !== -1) {
     this.blobs.splice(index, 1);
-    //blob_touch_array[index].remove();
-    //blob_touch_array.splice(index, 1);
-    //blob_path_array[index].remove();
-    //blob_path_array.splice(index, 1);
   } else {
-    console.log("BLOB_REMOVE / NOT_FOUND: " + noteOff[1]);
+    console.log("BLOB_REMOVE / NOT_FOUND: " + note);
     return;
   }
 }

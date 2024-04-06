@@ -78,12 +78,8 @@ $(".e256_setMode").click(function (event) {
       break;
   }
 
-  if (midi_device_connected) {
-    sendProgramChange(e256_current_mode, MIDI_MODES_CHANNEL);
-    console.log("REQUEST: " + MODES_CODES[e256_current_mode]);
-  } else {
-    //alert("e256 NOT CONNECTED!");
-  }
+  send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
+  console.log("REQUEST: " + MODES_CODES[e256_current_mode]);
 });
 
 $("#uploadConfig").click(function () {
@@ -95,7 +91,7 @@ $("#uploadConfig").click(function () {
 });
 
 $("#saveConfig").click(function () {
-  e256_exportParams();
+  e256_export_params();
   console.log(JSON.stringify(e256_config));
   var file = new File([JSON.stringify(e256_config)], { type: "text/plain;charset=utf-8" });
   saveAs(file, "e256_mapping.json");
@@ -110,35 +106,22 @@ $(".mapingTool").click(function (event) {
 });
 
 $("#calibrate").click(function () {
-  if (midi_device_connected) {
-    sendProgramChange(CALIBRATE_REQUEST, MIDI_STATES_CHANNEL);
-    console.log("REQUEST: CALIBRATE");
-  } else {
-    alert("e256 NOT CONNECTED!");
-  }
+  send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CALIBRATE_REQUEST));
+  console.log("REQUEST: CALIBRATE");
 });
 
 $("#getConfig").click(function () {
-  if (midi_device_connected) {
-    sendProgramChange(CONFIG_FILE_REQUEST, MIDI_STATES_CHANNEL);
-    console.log("REQUEST: CONFIG_FILE");
-  } else {
-    alert("e256 NOT CONNECTED!");
-  }
+  send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CONFIG_FILE_REQUEST));
+  console.log("REQUEST: CONFIG_FILE");
 });
 
 $("#exportConfig").click(function () {
-  e256_exportParams();
+  e256_export_params();
 });
 
 // Update graphic item using form params
-$("#btnSet").click(function () {
-  current_controleur.save_params();
-  remove_item_menu_params(current_controleur);
-  current_controleur.removeChildren();
-  current_controleur.create();
-  create_item_menu_params(current_controleur);
-  update_item_menu_params(current_controleur);
-  update_item_touch_menu_params(current_controleur);
-  item_menu_params(current_controleur, "show");
-});
+$("#btnSet").click(
+  function () {
+    re_create_item(current_controleur);
+  }
+);

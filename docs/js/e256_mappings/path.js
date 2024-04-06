@@ -102,19 +102,13 @@ function pathFactory() {
             // NA
             break;
           case PLAY_MODE:
-            
-          //TODO...
-
-            if (midi_device_connected) {
-              // TODO: add console GUI to monitor the outgoing MIDI messages!
-              if (_touch_group.data.midi.position.val != _touch_group.prev_position) {
-                _touch_group.prev_position = _touch_group.data.midi.position.val;
-                sendControlChange(_touch_group.data.midi.position);
-              }
-              if (_touch_group.data.midi.pressure.val != _touch_group.prev_pressure) {
-                _touch_group.prev_pressure = _touch_group.data.midi.pressure.val;
-                sendControlChange(_touch_group.data.midi.pressure);
-              }
+            if (_touch_group.data.midi.position.val != _touch_group.prev_position) {
+              _touch_group.prev_position = _touch_group.data.midi.position.val;
+              send_midi_msg(_touch_group.midi.position.msg);
+            }
+            if (_touch_group.data.midi.pressure.val != _touch_group.prev_pressure) {
+              _touch_group.prev_pressure = _touch_group.data.midi.pressure.val;
+              send_midi_msg(_touch_group.midi.pressure.msg);
             }
             break;
         }
@@ -143,7 +137,7 @@ function pathFactory() {
         "strokeCap": "round",
         "strokeJoin": "round"
       }
-      
+
       _path_curve.onMouseEnter = function () {
         switch (e256_current_mode) {
           case EDIT_MODE:
@@ -153,7 +147,7 @@ function pathFactory() {
             break;
         }
       }
-      
+
       _path_curve.onMouseLeave = function () {
         switch (e256_current_mode) {
           case EDIT_MODE:
@@ -177,7 +171,7 @@ function pathFactory() {
       for (let _touch = 0; _touch < this.data.touch; _touch++) {
         _touchs_group.addChild(this.new_touch(_touch));
       }
-      
+
       this.addChild(_touchs_group);
     },
 
@@ -206,7 +200,7 @@ function pathFactory() {
               let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.max - _touch.data.midi.position.min);
               _touch.children["path-graduations"].dashArray = [1, _path_graduation_interval];
             }
-            update_item_menu_params(_path_group.parent);
+            update_menu_1st_level(_path_group.parent);
           }
           break;
         case PLAY_MODE:

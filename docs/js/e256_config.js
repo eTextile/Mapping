@@ -6,7 +6,7 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.19";
+const VERSION = "1.0.20";
 
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
@@ -14,12 +14,13 @@ const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
 const MATRIX_RESOLUTION_X = 64;
-const MATRIX_RESOLUTION_y = 64;
+const MATRIX_RESOLUTION_Y = 64;
 
 // E256 MIDI I/O CHANNELS CONSTANTS [1:15]
 // QUICK_FIX: if sending on channel 1, eTextile-synth is receiving on channel 2
 const MIDI_INPUT_CHANNEL = 1;
 const MIDI_OUTPUT_CHANNEL = 2;
+
 const MIDI_MODES_CHANNEL = 3;
 const MIDI_STATES_CHANNEL = 4;
 const MIDI_LEVELS_CHANNEL = 5;
@@ -50,7 +51,7 @@ const MODES_CODES = {
 
 // STATES CONSTANTS (MIDI_STATES_CHANNEL)
 const CALIBRATE_REQUEST = 0;   // Calibrate the ETEXTILE_SYNTH 
-const CONFIG_FILE_REQUEST = 1; // Look if there is loaded CONFIG file in the ETEXTILE_SYNTH
+const CONFIG_FILE_REQUEST = 1; // Check if there is a config file loaded in the ETEXTILE_SYNTH
 
 // LEVELS CONSTANTS (MIDI_LEVELS_CHANNEL)
 const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
@@ -58,18 +59,52 @@ const SIG_IN = 1;    // E256-LEDs: | 1 | 0 |
 const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
 const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
 
-// E256 MIDI I/O CONSTANTS
-const NOTE_ON = 0x90;          // DEC: 144 (fon channel 1) -> + 1 for channel two... 
-const NOTE_OFF = 0x80;         // DEC: 128 (fon channel 1) -> + 1 for channel two... 
-const CONTROL_CHANGE = 0xB0;   // DEC: 176 (fon channel 1) -> + 1 for channel two... 
-const AFTER_TOUCH = 0x00;      // FIXME
-const PROGRAM_CHANGE = 0xC0;   // DEC: 192
-const SYSTEM_EXCLUSIVE = 0xF0; // DEC: 240
+// E256 MIDI TYPES CONSTANTS
+const NOTE_OFF = 0x8;     // NOTE_OFF // 1 0 0 0  // OFF to ON = OFF | ON
+const NOTE_ON = 0x9;      // NOTE_ON // 1 0 0 1  // ON to OFF = ON & OFF
+const P_AFTERTOUCH = 0xA; // POLYPHONIC_AFTERTOUCH
+const C_CHANGE = 0xB;     // CONTROL_CHANGE
+const P_CHANGE = 0xC;     // PROGRAM_CHANGE
+const C_AFTERTOUCH = 0xD; // CHANNEL_AFTERTOUCH
+const P_BEND = 0xE;       // PITCH_BEND
+const SYS_EX = 0xF;       // SYSTEM_EXCLUSIVE
+
+const MIDI_TYPES = {
+  0x8: "NOTE_OFF",        // NOTE_OFF
+  0x9: "NOTE_ON",         // NOTE_ON
+  0xA: "P_AFTERTOUCH",    // POLYPHONIC_AFTERTOUCH
+  0xB: "C_CHANGE",        // CONTROL_CHANGE
+  0xC: "P_CHANGE",        // PROGRAM_CHANGE
+  0xD: "C_AFTERTOUCH",    // CHANNEL_AFTERTOUCH
+  0xE: "P_BEND",          // PITCH_BEND
+  0xF: "SYS_EX"           // SYSTEM_EXCLUSIVE
+};
+
 const SYSEX_BEGIN = 0xF0;      // DEC: 240
 const SYSEX_END = 0xF7;        // DEC: 247
 const SYSEX_DEVICE_ID = 0x7D;  // DEC: 253 http://midi.teragonaudio.com/tech/midispec/id.html
 const SYSEX_CONF = 0x7C;       // DEC: 124
 const SYSEX_SOUND = 0x6C;      // DEC: 108
+
+const DATA1 = {
+  0x8: "note",
+  0x9: "note",
+  0xA: "press",
+  0xB: "cc", // val ==> cc
+  0xC: "pgm",
+  0xD: "lsb",
+  0xF: "press"
+};
+
+const DATA2 = {
+  0x8: "velo",
+  0x9: "velo",
+  0xA: "null",
+  0xB: "null",
+  0xC: "null",
+  0xD: "msb",
+  0xF: "null"
+};
 
 const SYNC_MODE_TIMEOUT = 4000;
 
@@ -135,159 +170,4 @@ const ERROR_CODES = {
   8: "CONFIG_APPLY_FAILED",
   9: "UNKNOWN_SYSEX",
   10: "TOO_MANY_BLOBS"
-};
-
-const KEY_MODES = {
-  0: "TRIGGER",
-  1: "TOGGLE"
-};
-
-const MIDI_CHANNEL = [];
-const MIDI_CCHANGE = [];
-for (let index = 1; index < 16; index++) {
-  MIDI_CHANNEL.push(index);
-  MIDI_CCHANGE.push(index);
-};
-
-const MIDI_TOUCH = [];
-for (let index = 1; index < 11; index++) {
-  MIDI_TOUCH.push(index);
-};
-
-const MIDI_NOTES = [];
-const MIDI_VELOCITY = [];
-for (let index = 0; index < 128; index++) {
-  MIDI_NOTES.push(index);
-  MIDI_VELOCITY.push(index);
-};
-
-const DEFAULT_MIDI_CHANNEL = 1; // [1:16]
-const DEFAULT_MIDI_VALUE = 64;
-const DEFAULT_MIDI_NOTE = 64;
-const DEFAULT_MIDI_VELOCITY = 127;
-const DEFAULT_MIDI_CC = 23;
-const DEFAULT_MIDI_AFT = 24;
-const DEFAULT_MIDI_MIN = 0;
-const DEFAULT_MIDI_MAX = 127;
-
-/*
-const limit = function (min, max) {
-  this.min = min;
-  this.max = max;
-}
-*/
-
-// MIDI MESSAGES TYPES
-const note = function (chan, note, velo, min, max) {
-  this.chan = chan;
-  this.note = note;
-  this.velo = velo;
-};
-
-const control_change = function (chan, ctr, val, min, max) {
-  this.chan = chan;
-  this.ctr = ctr;
-  this.min = min;
-  this.max = max;
-  this.val = val;
-};
-
-const aftertouch = function (chan, aft, min, max) {
-  this.chan = chan;
-  this.aft = aft;
-  this.min = min;
-  this.max = max;
-};
-
-// MAPPING-LIB MIDI MESSAGES
-const midi_key_touch_msg = function (touch_id) {
-  this.touch_id = touch_id;
-  this.midi = {};
-  this.midi.note = new note(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-  this.midi.pressure = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-};
-
-// MAPPING-LIB MIDI MESSAGES
-const midi_slider_touch_msg = function (touch_id) {
-  this.touch_id = touch_id;
-  
-  this.midi = {};
-  this.midi.position = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-
-  this.midi.pressure = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-};
-
-const midi_pad_touch_msg = function (touch_id) {
-  this.touch_id = touch_id;
-  this.midi = {};
-  this.midi.position_x = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-  this.midi.position_y = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-  this.midi.pressure = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-};
-
-const midi_touch_circular_msg = function () {
-  this.midi = {};
-  this.midi.radius = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-  this.midi.theta = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
-  this.midi.pressure = new control_change(
-    DEFAULT_MIDI_CHANNEL,
-    global_midi_ctr_index++,
-    DEFAULT_MIDI_VALUE,
-    DEFAULT_MIDI_MIN,
-    DEFAULT_MIDI_MAX
-  );
 };

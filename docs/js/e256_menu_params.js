@@ -7,8 +7,8 @@
 // For details on the html form_control structure refer to
 // https://getbootstrap.com/docs/5.0/forms/form-control/
 function create_item_menu_params(item) {
-  let menu_params = document.getElementById("e256_params");
-  menu_params.className = "card-body";
+  let div_menu_params = document.getElementById("e256_params");
+  div_menu_params.className = "card-body";
 
   let div_item_menu_params = document.createElement("div");            // div item params
   div_item_menu_params.setAttribute("id", item.name + "_" + item.id);  // div UID use to delate the div
@@ -19,23 +19,28 @@ function create_item_menu_params(item) {
   card_header.append(item.name + " params");
   div_item_menu_params.appendChild(card_header);
 
-  for (const part of item.children) {  // 1ST LEVEL ITEM MENU PARAMS
+  for (const part of item.children) { // 1ST LEVEL ITEM MENU PARAMS
     if (part.data) {
-      //console.log(part.name + "_" + part.id); // PROB!
       div_item_menu_params.appendChild(create_menu_1st_level(part));
     }
-    for (const sub_part of part.children) {  // 2ND LEVEL ITEM MENU PARAMS
-      if (sub_part.data.midi) {
-        //console.log(sub_part.name + "_" + sub_part.id); // PROB!
+    for (const sub_part of part.children) { // 2ND LEVEL ITEM MENU PARAMS
+      if (sub_part.midi) {
         div_item_menu_params.appendChild(create_menu_2nd_level(sub_part));
-        //$("#" + sub_part.name + "_" + sub_part.id).collapse("hide"); // FIXME!
       }
     }
   }
-  menu_params.appendChild(div_item_menu_params);
+  div_menu_params.appendChild(div_item_menu_params);
   $("#set_button_params").collapse("show");
 };
 
+function remove_item_menu_params(item) {
+  let div_menu_params = document.getElementById("e256_params");
+  let div_item_menu_params = document.getElementById(item.name + "_" + item.id);
+  div_menu_params.removeChild(div_item_menu_params);
+  //$("#contextualContent").html(" ");
+};
+
+//////////////////////////////////////////////// 1ST_LEVEL_ITEMS_MENU
 function create_menu_1st_level(item) {
   let part_params = document.createElement("div");
   //console.log("SET_ID_1ST: " + item.name + "_" + item.id); // PROB!
@@ -45,7 +50,7 @@ function create_menu_1st_level(item) {
     let part_param = document.createElement("div");
     part_param.className = "input-group";
 
-    if (item.data[param].constructor.name === "Point") {
+    if (item.data[param].constructor.name === "Point") { ///////////// POINT
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
       span_param.textContent = param;
@@ -65,7 +70,7 @@ function create_menu_1st_level(item) {
 
       midi_param_val_x.addEventListener("input", function (event) {
         if (Number(event.target.value)) {
-          item.data[param].x = event.target.value;
+          item.data[param].x = parseInt(event.target.value);
         }
       });
       part_param.appendChild(midi_param_val_x);
@@ -84,13 +89,13 @@ function create_menu_1st_level(item) {
 
       midi_param_val_y.addEventListener("input", function (event) {
         if (Number(event.target.value)) {
-          item.data[param].y = event.target.value;
+          item.data[param].y = parseInt(event.target.value);
         }
       });
       part_param.appendChild(midi_param_val_y);
     }
 
-    else if (param === "mode") {
+    else if (param === "mode_z") { ///////////// MODE
       // For details on the html form-select structure refer to
       // https://getbootstrap.com/docs/5.0/forms/select/
       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptionElement
@@ -107,20 +112,21 @@ function create_menu_1st_level(item) {
       for (const mode in item.modes) {
         let _option = document.createElement("option");
         _option.textContent = item.modes[mode];
-        if (item.data.mode === item.modes[mode]) {
+        if (MIDI_TYPES[item.data.mode_z] === item.modes[mode]) {
           _option.defaultSelected = true;
         }
         params_list.appendChild(_option);
       }
 
       params_list.addEventListener("change", function (event) {
-        item.data.mode = event.target.value;
+        item.data.mode_z = eval(event.target.value);
+        //re_create_item(current_controleur); // Rebuild the MIDI message like #btnSet
       });
 
       part_param.appendChild(params_list);
     }
 
-    else if (param === "velocity" || param === "aftertouch" || param === "automap" || param === "pressure") {
+    else if (param === "midilearn") {
       // For details on the buttons refer to
       // https://getbootstrap.com/docs/5.0/components/buttons/
       let span_param = document.createElement("span");
@@ -170,73 +176,8 @@ function create_menu_1st_level(item) {
   return part_params;
 }
 
-// For details on the html form_control structure refer to:
-// https://getbootstrap.com/docs/5.0/forms/form-control/
-function create_menu_2nd_level(item) {
-
-  let sub_part_params = document.createElement("div");           // Sub part menu main div 
-  sub_part_params.setAttribute("id", item.name + "_" + item.id); // Sub part menu UID
-
-  //console.log(item.name + "_" + item.id);
-
-  sub_part_params.className = "collapse";
-
-  let table_params = document.createElement("table");
-  table_params.className = "table table-sm table-striped table-bordered";
-
-  let table_caption = document.createElement("caption");
-  table_caption.className = "caption-top card-subtitle mb-2 text-body-secondary display-6";
-  table_caption.textContent = item.name;
-  table_params.appendChild(table_caption);
-
-  let row_midi_params_body = document.createElement("tbody");
-
-  for (const param in item.data.midi) {
-    let row_midi_params_atr_tr = document.createElement("tr");
-    let sub_part_name = document.createElement("th");
-    sub_part_name.textContent = " ";
-    row_midi_params_atr_tr.appendChild(sub_part_name);
-
-    let row_midi_params_val_tr = document.createElement("tr");
-    let midi_param_val = document.createElement("th");
-    midi_param_val.className = "align-middle text-center";
-    midi_param_val.textContent = param;
-    row_midi_params_val_tr.appendChild(midi_param_val);
-
-    for (const msg in item.data.midi[param]) {
-      if (msg !== "val") {
-        let midi_param_atr = document.createElement("th");
-        midi_param_atr.setAttribute("id", item.id + "_" + param + "_" + msg + "_atr");
-        midi_param_atr.className = "text-center";
-        midi_param_atr.textContent = msg;
-        row_midi_params_atr_tr.appendChild(midi_param_atr);
-
-        let midi_param_td = document.createElement("td");
-        let midi_param_val = document.createElement("input");
-        midi_param_val.className = "form-control text-center";
-        midi_param_val.setAttribute("type", "number");
-        midi_param_val.setAttribute("id", item.id + "_" + param + "_" + msg + "_val");
-        midi_param_val.setAttribute("aria-describedby", item.id + "_" + param + "_" + msg + "_atr");
-        midi_param_val.addEventListener("input", function (event) {
-          if (event.target.type === "number") {
-            item.data.midi[param][msg] = event.target.value;
-          }
-        });
-        midi_param_td.appendChild(midi_param_val);
-        row_midi_params_val_tr.appendChild(midi_param_td);
-      }
-      row_midi_params_body.appendChild(row_midi_params_atr_tr);
-      row_midi_params_body.appendChild(row_midi_params_val_tr);
-    }
-  }
-  table_params.appendChild(row_midi_params_body);
-  table_params.appendChild(row_midi_params_body);
-  sub_part_params.appendChild(table_params);
-  return sub_part_params;
-};
-
-// 1ST_LEVEL_ITEMS
-function update_item_menu_params(item) {
+//function update_item_menu_params(item) {
+function update_menu_1st_level(item) {
   for (const part of item.children) {
     for (const param in part.data) {
       if (part.data[param].constructor.name === "Point") {
@@ -250,36 +191,263 @@ function update_item_menu_params(item) {
   }
 }
 
-// UPADTE 2ND_LEVEL_ITEM MENU FROM TOP ITEM
-function update_item_touch_menu_params(item) {
+//////////////////////////////////////////////// 2ND_LEVEL_ITEMS_MENU
+// For details on the html form_control structure refer to:
+// https://getbootstrap.com/docs/5.0/forms/form-control/
+function create_menu_2nd_level(item) {
+  let sub_part_params = document.createElement("div");           // Sub part menu main div 
+  sub_part_params.setAttribute("id", item.name + "_" + item.id); // Sub part menu UID
+
+  sub_part_params.className = "collapse";
+
+  let table_params = document.createElement("table");
+  table_params.className = "table table-sm table-striped table-bordered";
+
+  let table_caption = document.createElement("caption");
+  table_caption.className = "caption-top card-subtitle mb-2 text-body-secondary display-6";
+  table_caption.textContent = item.name;
+  table_params.appendChild(table_caption);
+
+  let row_params_body = document.createElement("tbody");
+
+  for (const midi_msg in item.midi) {
+
+    let row_params_atr_tr = document.createElement("tr");
+    let row_params_val_tr = document.createElement("tr");
+
+    let first_param_atr = document.createElement("th");
+    first_param_atr.textContent = "";
+    row_params_atr_tr.appendChild(first_param_atr);
+
+    let status = midi_msg_status_unpack(item.midi[midi_msg].msg.status); // FIXME!
+
+    let first_param_val = document.createElement("th");
+    first_param_val.className = "align-middle text-center";
+    first_param_val.textContent = MIDI_TYPES[status.type]; // Set MIDI message type
+    row_params_val_tr.appendChild(first_param_val);
+
+    let param_arg = null;
+
+    for (const param in item.midi[midi_msg]) {
+      switch (param) {
+        case "msg":
+          for (const midi_byte in item.midi[midi_msg][param]) {
+            switch (midi_byte) {
+              case "status":
+                param_arg = "chan";
+                break;
+              case "data1":
+                param_arg = DATA1[status.type];
+                break;
+              case "data2":
+                param_arg = DATA2[status.type];
+                break;
+            }
+            if (param_arg !== "null") {
+              let param_atr = document.createElement("th");
+              param_atr.setAttribute("id", item.id + "_" + midi_msg + "_" + param_arg + "_atr");
+              param_atr.className = "align-middle text-center";
+              param_atr.textContent = param_arg;
+
+              let param_val = document.createElement("input");
+              param_val.className = "form-control text-center";
+              param_val.setAttribute("type", "number");
+              param_val.setAttribute("id", item.id + "_" + midi_msg + "_" + param_arg + "_val");
+              //console.log("MAKE_ID: " + item.id + "_" + midi_msg + "_" + param_arg + "_val");
+              param_val.setAttribute("aria-describedby", item.id + "_" + midi_msg + "_" + param_arg + "_atr");
+
+              param_val.addEventListener("input", function (event) {
+                if (event.target.type === "number") {
+                  if (midi_byte === "status") {
+                    if (event.target.value > 0 && event.target.value <= 16) {
+                      item.midi[midi_msg][param][midi_byte] = midi_msg_status_pack(status.type, event.target.value);
+                      $("#" + event.target.id).css("background-color", "lightGreen");
+                    }
+                    else {
+                      $("#" + event.target.id).css("background-color", "pink");
+                    }
+                  }
+                  else if (event.target.value > -1 && event.target.value < 128) {
+                    item.midi[midi_msg][param][midi_byte] = event.target.value;
+                    $("#" + event.target.id).css("background-color", "lightGreen");
+                  }
+                  else {
+                    $("#" + event.target.id).css("background-color", "pink");
+                  }
+                }
+              });
+              let param_td = document.createElement("td");
+              param_td.appendChild(param_val);
+              row_params_atr_tr.appendChild(param_atr);
+              row_params_val_tr.appendChild(param_td);
+            }
+          }
+          break;
+
+        case "limit":
+          for (const limit in item.midi[midi_msg][param]) {
+            let param_atr = document.createElement("th");
+            param_atr.setAttribute("id", item.id + "_" + MIDI_TYPES[status.type] + "_" + limit + "_atr");
+            param_atr.className = "align-middle text-center";
+            param_atr.textContent = limit;
+
+            let param_val = document.createElement("input");
+            param_val.className = "form-control text-center";
+            param_val.setAttribute("type", "number");
+            param_val.setAttribute("id", item.id + "_" + midi_msg + "_" + limit + "_val");
+            param_val.setAttribute("aria-describedby", item.id + "_" + midi_msg + "_" + limit + "_atr");
+
+            param_val.addEventListener("input", function (event) {
+              if (event.target.type === "number") {
+                if (event.target.value > -1 && event.target.value < 128) {
+                  item.midi[midi_msg][param][limit] = event.target.value;
+                  $("#" + event.target.id).css("background-color", "lightGreen");
+                }
+                else {
+                  $("#" + event.target.id).css("background-color", "pink");
+                }
+              }
+            });
+            let param_td = document.createElement("td");
+            param_td.appendChild(param_val);
+            row_params_atr_tr.appendChild(param_atr);
+            row_params_val_tr.appendChild(param_td);
+          }
+          break;
+      }
+    }
+    row_params_body.appendChild(row_params_atr_tr);
+    row_params_body.appendChild(row_params_val_tr);
+  }
+  table_params.appendChild(row_params_body);
+  sub_part_params.appendChild(table_params);
+  return sub_part_params;
+};
+
+// UPADTE 2ND_LEVEL_ITEMS_MENU (FROM TOP ITEM)
+//function update_item_touch_menu_params(item) {
+function update_menu_2nd_level(item) {
   for (const part of item.children) {
     for (const sub_part of part.children) {
-      for (const param in sub_part.data.midi) { // position, pressure, etc.
-        for (const msg in sub_part.data.midi[param]) {
-          $("#" + sub_part.id + "_" + param + "_" + msg + "_val").val(sub_part.data.midi[param][msg]);
+      let status = null;
+      let midi_arg = null;
+      let midi_value = null;
+      for (const midi_msg in sub_part.midi) {
+        for (const param in sub_part.midi[midi_msg]) {
+          switch (param) {
+            case "msg":
+              for (const midi_byte in sub_part.midi[midi_msg][param]) {
+                switch (midi_byte) {
+                  case "status":
+                    status = midi_msg_status_unpack(sub_part.midi[midi_msg][param].status);
+                    midi_arg = "chan";
+                    midi_value = status.channel;
+                    break;
+                  case "data1":
+                    midi_arg = DATA1[status.type];
+                    midi_value = sub_part.midi[midi_msg][param].data1;
+                    break;
+                  case "data2":
+                    midi_arg = DATA2[status.type];
+                    midi_value = sub_part.midi[midi_msg][param].data2;
+                    break;
+                }
+                $("#" + sub_part.id + "_" + midi_msg + "_" + midi_arg + "_val").val(midi_value);
+              }
+              break;
+            case "limit":
+              $("#" + sub_part.id + "_" + midi_msg + "_min_val").val(sub_part.midi[midi_msg][param].min);
+              $("#" + sub_part.id + "_" + midi_msg + "_max_val").val(sub_part.midi[midi_msg][param].max);
+              break;
+          }
         }
       }
     }
   }
-};
+}
 
-// UPADTE 2ND_LEVEL_ITEM
-function update_touch_menu_params(part) {
-  for (const param in part.data.midi) {
-    for (const msg in part.data.midi[param]) {
-      $("#" + part.id + "_" + param + "_" + msg + "_val").val(part.data.midi[param][msg]);
+// UPADTE 2ND_LEVEL_ITEM (FROM SUB PART ITEM)
+/*
+function update_touch_menu_params(sub_part) {
+  let status = null;
+  let midi_arg = null;
+  let midi_value = null;
+  for (const param in sub_part.midi) {
+    //console.log("PARAM_B: " + param);
+    switch (param) {
+      case "msg":
+        for (const midi_byte in sub_part.midi.msg) {
+          switch (midi_byte) {
+            case "status":
+              status = midi_msg_status_unpack(sub_part.midi[param][midi_byte]);
+              midi_arg = "chan";
+              midi_value = status.channel;
+              break;
+            case "data1":
+              midi_arg = DATA1[status.type];
+              midi_value = sub_part.midi.msg[midi_byte];
+              break;
+            case "data2":
+              midi_arg = DATA2[status.type];
+              midi_value = sub_part.midi.msg[midi_byte];
+              break;
+          }
+          $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_" + midi_arg + "_val").val(midi_value);
+        }
+        break;
+      case "limit":
+        $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_min_val").val(sub_part.midi.limit.min);
+        $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_max_val").val(sub_part.midi.limit.max);
+        break;
     }
   }
 };
-
-function remove_item_menu_params(item) {
-  let div_params = document.getElementById("e256_params");
-  let item_params = document.getElementById(item.name + "_" + item.id);
-  div_params.removeChild(item_params);
-  //$("#contextualContent").html(" ");
-};
+*/
 
 // Show/Hide menu params
 function item_menu_params(item, state) {
   $("#" + item.name + "_" + item.id).collapse(state);
 };
+
+function re_create_item(item) {
+  item.save_params();
+  remove_item_menu_params(item);
+  item.removeChildren();
+  item.create();
+  create_item_menu_params(item);
+  update_menu_1st_level(item);
+  update_menu_2nd_level(item);
+  item_menu_params(item, "show");
+}
+
+//////////////// Tail effect
+function scroll() {
+  let div_height = $("#midi_term").get(0).scrollHeight;
+  $("#midi_tescrollrm").animate({ scrollTop: div_height }, 10);
+}
+
+function circular_buffer(max_length) {
+  this._max_length = max_length;
+  this._msg_count = 0;
+}
+
+circular_buffer.prototype = Object.create(Array.prototype);
+
+circular_buffer.prototype.push = function (midiMsg) {
+  Array.prototype.push.call(this, midiMsg);
+  let div_midi_msg = document.createElement("div");
+  div_midi_msg.setAttribute("id", "midi_msg_" + this._msg_count);
+
+  let status = new midi_msg_status_unpack(midiMsg.status);
+  div_midi_msg.textContent = "[ " + status.channel + ", " + midiMsg.data1 + ", " + midiMsg.data2 + " ]";
+
+  $("#midi_term").append(div_midi_msg);
+  while (this.length > this._max_length) {
+    this.shift();
+    scroll();
+    $("#midi_msg_" + (this._msg_count - this._max_length)).remove();
+  }
+  this._msg_count++;
+}
+
+var midi_term = new circular_buffer(25);

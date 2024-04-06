@@ -6,18 +6,17 @@
 
 var e256_config = ({}); // empty JSON declaration
 
-function e256_exportParams() {
+function e256_export_params() {
   e256_config["mappings"] = {};
   for (const layer of paper.project.layers) {
     if (layer.hasChildren()) {
-      e256_config["mappings"][layer.name] = listLayerParams(layer);
+      e256_config["mappings"][layer.name] = list_layer_params(layer);
     }
   }
 }
 
-function listLayerParams(layer) {
+function list_layer_params(layer) {
   var e256_params = [];
-  
   for (const item of layer.children) {
     item.save_params();
     switch (item.name) {
@@ -25,7 +24,6 @@ function listLayerParams(layer) {
         let grid_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
-            //grid_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
             grid_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
@@ -40,17 +38,20 @@ function listLayerParams(layer) {
       case "touchpad":
         let touchpad_params = {};
         for (const param in item.data) {
-          console.log("PARAM: " + param);
           if (param === "from" || param === "to") {
-            //touchpad_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
-            // Mapping with matrix size
             touchpad_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
             ];
           }
           else {
-            touchpad_params[param] = item.data[param];
+            if (param === "mode") {
+              touchpad_params[param] = item.data[param];
+              //console.log("A: " + item.data[param]);
+              //console.log("B: " + (param));
+            } else {
+              touchpad_params[param] = item.data[param];
+            }
           }
         }
         e256_params.push(touchpad_params);
@@ -60,8 +61,6 @@ function listLayerParams(layer) {
         let slider_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
-            //slider_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
-            // Mapping with matrix size
             slider_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
@@ -78,8 +77,6 @@ function listLayerParams(layer) {
         let switch_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
-            //switch_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
-            // Mapping with matrix size
             switch_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
@@ -96,8 +93,6 @@ function listLayerParams(layer) {
         let knob_params = {};
         for (const param in item.data) {
           if (param === "from" || param === "to") {
-            //knob_params[param] = [Math.round(item.data[param].x), Math.round(item.data[param].y)];
-            // Mapping with matrix size
             knob_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))

@@ -25,7 +25,6 @@ var previous_touch = { "id": null };
 var current_part = { "id": null };
 
 var create_once = false;
-var global_midi_ctr_index = 1;
 
 function paperInit() {
 
@@ -56,7 +55,7 @@ function paperInit() {
 
     let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
     current_part = hitResult;
-    
+
     switch (e256_current_mode) {
       case EDIT_MODE:
         if (e256_draw_mode) {
@@ -70,9 +69,9 @@ function paperInit() {
               draw_controler_from_mouse(mouseEvent);
               item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
               item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
-              create_item_menu_params(current_controleur);
-              update_item_menu_params(current_controleur);
-              update_item_touch_menu_params(current_controleur);
+              create_item_menu_params(current_controleur);              
+              update_menu_1st_level(current_controleur); // <== update_item_menu_params(current_controleur);
+              update_menu_2nd_level(current_controleur); // <== update_item_touch_menu_params(current_controleur);
               item_menu_params(current_controleur, "show");
             }
             else {
@@ -80,7 +79,7 @@ function paperInit() {
             }
           }
           else {
-            
+
             previous_controleur = current_controleur;
             let current_item = current_part.item;
             while (current_item.parent) {
@@ -148,6 +147,7 @@ function paperInit() {
   function draw_controler_from_mouse(mouseEvent) {
     controleur_factory(e256_draw_mode);
     current_controleur.setup_from_mouse_event(mouseEvent);
+    console.log(e256_draw_mode); // PROB!
     current_controleur.create();
     current_controleur.bringToFront();
   };
@@ -173,7 +173,7 @@ function paperInit() {
       current_controleur.setup_from_config(configFile.mappings[_ctl_type]);
       current_controleur.create();
       create_item_menu_params(current_controleur);
-      update_item_menu_params(current_controleur);
+      update_menu_1st_level(current_controleur);
       item_menu_params(current_controleur, "hide");
     }
   };
