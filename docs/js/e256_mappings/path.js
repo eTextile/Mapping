@@ -9,7 +9,7 @@
 // http://paperjs.org/reference/path/#path
 function pathFactory() {
   const DEFAULT_PATH_STROKE_WIDTH = 50;
-  const DEFAULT_PATH_TOUCH_RADIUS = 20;
+  const DEFAULT_TOUCH_RADIUS = 20;
   const DEFAULT_PATH_TOUCHS = 1;
 
   var _path = new paper.Group({
@@ -58,7 +58,7 @@ function pathFactory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": this.data.segments[0],
-        "radius": DEFAULT_PATH_TOUCH_RADIUS // TODO: mapping with the blob pressure!  
+        "radius": DEFAULT_TOUCH_RADIUS // TODO: mapping with the blob pressure!  
       });
 
       _touch_circle.style = {

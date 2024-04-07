@@ -183,7 +183,7 @@ function gridFactory() {
       let _key_txt = new paper.PointText({
         "name": "key-text",
         "point": _key_frame.position,
-        "content": _key_id,
+        "content": _key_group.midi.pos_z.msg.data1,
         "locked": true
       });
 
@@ -350,8 +350,8 @@ function gridFactory() {
                   console.log("PART_NOT_USE: " + current_part.name);
                   break;
               }
+              update_menu_1st_level(_grid_group.parent);
             }
-            update_menu_1st_level(_grid_group.parent);
             break;
           case PLAY_MODE:
             // NA
@@ -380,4 +380,3 @@ function gridFactory() {
   });
   return _grid;
 };
-

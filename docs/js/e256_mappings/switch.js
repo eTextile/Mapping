@@ -126,12 +126,8 @@ function switchFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            // NOTE_OFF => 1 0 0 0 // OFF to ON = OFF | ON
-            // NOTE_ON => 1 0 0 1 // ON to OFF = ON & OFF
-            //let status = midi_msg_status_unpack(_touch_group.midi.pos_z.msg.status);
-            //let new_status = status.type | NOTE_ON;
-            //_touch_group.midi.pos_z.msg.status = midi_msg_status_pack(new_status, status.channel);
-            _key_group.midi.pos_z.msg.status = _key_group.midi.pos_z.msg.status | (NOTE_ON << 4);
+            _touch_group.midi.pos_z.msg.status = _touch_group.midi.pos_z.msg.status | (NOTE_ON << 4);
+            _touch_group.midi.pos_z.msg.data2 = 127;
             send_midi_msg(_touch_group.midi.pos_z.msg);
         }
       }
@@ -142,12 +138,8 @@ function switchFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            // NOTE_OFF => 1 0 0 0 // OFF to ON = OFF | ON
-            // NOTE_ON => 1 0 0 1 // ON to OFF = ON & OFF
-            //let status = midi_msg_status_unpack(_touch_group.midi.pos_z.msg.status);
-            //let new_status = status.type & NOTE_OFF;
-            //_touch_group.midi.pos_z.msg.status = midi_msg_status_pack(new_status, status.channel);
-            _key_group.midi.pos_z.msg.status = _key_group.midi.pos_z.msg.status & (NOTE_OFF << 4);
+            _touch_group.midi.pos_z.msg.status = _touch_group.midi.pos_z.msg.status & (NOTE_OFF << 4);
+            _touch_group.midi.pos_z.msg.data2 = 0;
             send_midi_msg(_touch_group.midi.pos_z.msg);
         }
       }
@@ -156,13 +148,13 @@ function switchFactory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": _touch_id,
+        "content": _touch_group.midi.pos_z.msg.data1,
         "locked": true
       });
 
       _touch_txt.style = {
         "fillColor": "black",
-        "fontSize": 25
+        "fontSize": DEFAULT_FONT_SIZE
       };
 
       _touch_group.addChild(_touch_txt);

@@ -12,7 +12,6 @@ function sliderFactory() {
   const DEFAULT_SLIDER_MIN_WIDTH = 50;
   const DEFAULT_SLIDER_MIN_HEIGHT = 100;
   const DEFAULT_SLIDER_TOUCH = 2;
-  const DEFAULT_SLIDER_TOUCH_RADIUS = 20;
   const DEFAULT_SLIDER_TOUCH_MODE = C_CHANGE;
   const DEFAULT_SLIDER_TOUCH_MODE_Z = NOTE_ON;
   const DEFAULT_SLIDER_DIR = "V_SLIDER";
@@ -133,7 +132,7 @@ function sliderFactory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": new paper.Point(this.data.from.x + (DEFAULT_SLIDER_WIDTH / 2), _touch_group.pos.y),
-        "radius": DEFAULT_SLIDER_TOUCH_RADIUS // TODO: mapping with the blob pressure!  
+        "radius": DEFAULT_TOUCH_RADIUS // TODO: mapping with the blob pressure!  
       });
 
       _touch_circle.style = {
@@ -151,18 +150,29 @@ function sliderFactory() {
       _touch_circle.onMouseDown = function () {
         previous_touch = current_touch;
         current_touch = _touch_group;
+        // Set midi_msg status to NOTE_ON
+        _touch_group.midi.pos_z.msg.status = _touch_group.midi.pos_z.msg.status | (NOTE_ON << 4);
+        _touch_group.midi.pos_z.msg.data2 = 127;
+        send_midi_msg(_touch_group.midi.pos_z.msg);
+      }
+
+      _touch_circle.onMouseUp = function () {
+        // Set midi_msg status to NOTE_OFF
+        _touch_group.midi.pos_z.msg.status = _touch_group.midi.pos_z.msg.status & (NOTE_OFF << 4);
+        _touch_group.midi.pos_z.msg.data2 = 0;
+        send_midi_msg(_touch_group.midi.pos_z.msg);
       }
 
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_circle.position,
-        "content": _touch_id,
+        "content": _touch_group.midi.pos.msg.data1,
         "locked": true
       });
 
       _touch_txt.style = {
         "fillColor": "black",
-        "fontSize": 25
+        "fontSize": DEFAULT_FONT_SIZE
       };
 
       _touch_circle.onMouseDrag = function (mouseEvent) {

@@ -15,7 +15,7 @@ function touchpadFactory() {
   const DEFAULT_PAD_MODE_Y = C_CHANGE;
   const DEFAULT_PAD_MODE_Z = NOTE_ON;
   const DEFAULT_PAD_TOUCH = 2;
-  const DEFAULT_PAD_TOUCH_RADIUS = 20;
+  const DEFAULT_TOUCH_RADIUS = 20;
 
   let current_frame_width = null;
   let previous_frame_width = null;
@@ -150,7 +150,7 @@ function touchpadFactory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": _touch_group.pos,
-        "radius": DEFAULT_PAD_TOUCH_RADIUS
+        "radius": DEFAULT_TOUCH_RADIUS
       });
 
       _touch_circle.style = {
@@ -220,13 +220,13 @@ function touchpadFactory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": _touch_id,
+        "content": _touch_group.midi.pos_y.msg.data1,
         "locked": true
       });
 
       _touch_txt.style = {
         "fillColor": "black",
-        "fontSize": 25
+        "fontSize": DEFAULT_FONT_SIZE
       };
 
       _touch_group.addChild(_touch_txt);
