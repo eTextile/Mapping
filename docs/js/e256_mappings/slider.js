@@ -11,9 +11,9 @@ function sliderFactory() {
   const DEFAULT_SLIDER_HEIGHT = 400;
   const DEFAULT_SLIDER_MIN_WIDTH = 50;
   const DEFAULT_SLIDER_MIN_HEIGHT = 100;
-  const DEFAULT_SLIDER_TOUCH = 2;
-  const DEFAULT_SLIDER_TOUCH_MODE = C_CHANGE;
-  const DEFAULT_SLIDER_TOUCH_MODE_Z = NOTE_ON;
+  const DEFAULT_SLIDER_TOUCHS = 2;
+  const DEFAULT_SLIDER_TOUCHS_MODE = C_CHANGE;
+  const DEFAULT_SLIDER_TOUCHS_MODE_Z = NOTE_ON;
   const DEFAULT_SLIDER_DIR = "V_SLIDER";
 
   let current_frame_width = null;
@@ -30,17 +30,17 @@ function sliderFactory() {
       2: "P_AFTERTOUCH" // TRIGGER AND PRESSURE
     },
     "data": {
-      "touch": null,
+      "touchs": null,
       "from": null,
       "to": null,
       "mode_z": null,
-      "midi": null
+      "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
       this.dir = DEFAULT_SLIDER_DIR;
-      this.data.touch = DEFAULT_SLIDER_TOUCH;
-      this.data.mode_z = DEFAULT_SLIDER_TOUCH_MODE_Z;
+      this.data.touchs = DEFAULT_SLIDER_TOUCHS;
+      this.data.mode_z = DEFAULT_SLIDER_TOUCHS_MODE_Z;
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_SLIDER_WIDTH / 2),
         mouseEvent.point.y - (DEFAULT_SLIDER_HEIGHT / 2)
@@ -49,54 +49,54 @@ function sliderFactory() {
         mouseEvent.point.x + (DEFAULT_SLIDER_WIDTH / 2),
         mouseEvent.point.y + (DEFAULT_SLIDER_HEIGHT / 2)
       );
-      this.data.midi = [];
-      let midi_touch;
-      for (let _touch = 0; _touch < DEFAULT_SLIDER_TOUCH; _touch++) {
-        midi_touch = {};
-        midi_touch.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCH_MODE);
-        midi_touch.pos_z = midi_msg_builder(this.data.mode_z);
-        this.data.midi.push(midi_touch);
+      this.data.msg = [];
+      let touch_msg;
+      for (let _touch = 0; _touch < DEFAULT_SLIDER_TOUCHS; _touch++) {
+        touch_msg = {};
+        touch_msg.dir = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
+        touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+        this.data.msg.push(touch_msg);
       }
     },
 
     setup_from_config: function (params) {
-      this.data.touch = params.touch;
+      this.data.touchs = params.touchs;
       this.data.from = new paper.Point(params.from);
       this.data.to = new paper.Point(params.to);
       this.data.mode_z = params.mode_z;
-      this.data.midi = params.midi;
+      this.data.msg = params.msg;
     },
 
     save_params: function () {
-      let previous_touch_count = this.data.touch;
+      let previous_touch_count = this.data.touchs;
       let previous_touch_mode_z = this.data.mode_z;
-      this.data.touch = this.children["slider-group"].data.touch;
+      this.data.touchs = this.children["slider-group"].data.touchs;
       this.data.from = this.children["slider-group"].data.from;
       this.data.to = this.children["slider-group"].data.to;
       this.data.mode_z = this.children["slider-group"].data.mode_z;
 
-      this.data.midi = [];
+      this.data.msg = [];
       if (this.data.mode_z !== previous_touch_mode_z) {
-        for (let _touch = 0; _touch < this.data.touch; _touch++) {
-          let midi_touch = {};
-          midi_touch.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCH_MODE);
-          midi_touch.pos_z = midi_msg_builder(this.data.mode_z);
-          this.data.midi.push(midi_touch);
+        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+          let touch_msg = {};
+          touch_msg.dir = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
+          touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+          this.data.msg.push(touch_msg);
         }
       }
       else {
-        for (let _touch = 0; _touch < this.data.touch; _touch++) {
+        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           if (_touch < previous_touch_count) {
-            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].midi.pos_z.msg.status);
+            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.pos_z.midi.status);
             let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["touchs-group"].children[_touch].midi.pos_z.msg.status = new_status;
-            this.data.midi.push(this.children["touchs-group"].children[_touch].midi);
+            this.children["touchs-group"].children[_touch].msg.pos_z.midi.status = new_status;
+            this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
           }
           else {
-            let midi_touch = {};
-            midi_touch.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCH_MODE);
-            midi_touch.pos_z = midi_msg_builder(this.data.mode_z);
-            this.data.midi.push(midi_touch);
+            let touch_msg = {};
+            touch_msg.dir = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
+            touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+            this.data.msg.push(touch_msg);
           }
         }
       }
@@ -109,7 +109,7 @@ function sliderFactory() {
           this.data.from.x + (DEFAULT_SLIDER_WIDTH / 2),
           get_random_int(this.data.from.y + 10, this.data.to.y - 10)
         ),
-        "midi": this.data.midi[_touch_id],
+        "msg": this.data.msg[_touch_id],
         "prev_pos": null,
         "prev_pos_z": null
       });
@@ -132,7 +132,7 @@ function sliderFactory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": new paper.Point(this.data.from.x + (DEFAULT_SLIDER_WIDTH / 2), _touch_group.pos.y),
-        "radius": DEFAULT_TOUCH_RADIUS // TODO: mapping with the blob pressure!  
+        "radius": DEFAULT_TOUCHS_RADIUS // TODO: mapping with the blob pressure!  
       });
 
       _touch_circle.style = {
@@ -151,22 +151,22 @@ function sliderFactory() {
         previous_touch = current_touch;
         current_touch = _touch_group;
         // Set midi_msg status to NOTE_ON
-        _touch_group.midi.pos_z.msg.status = _touch_group.midi.pos_z.msg.status | (NOTE_ON << 4);
-        _touch_group.midi.pos_z.msg.data2 = 127;
-        send_midi_msg(_touch_group.midi.pos_z.msg);
+        _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status | (NOTE_ON << 4);
+        _touch_group.msg.pos_z.midi.data2 = 127;
+        send_midi_msg(_touch_group.msg.pos_z.midi);
       }
 
       _touch_circle.onMouseUp = function () {
         // Set midi_msg status to NOTE_OFF
-        _touch_group.midi.pos_z.msg.status = _touch_group.midi.pos_z.msg.status & (NOTE_OFF << 4);
-        _touch_group.midi.pos_z.msg.data2 = 0;
-        send_midi_msg(_touch_group.midi.pos_z.msg);
+        _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status & (NOTE_OFF << 4);
+        _touch_group.msg.pos_z.midi.data2 = 0;
+        send_midi_msg(_touch_group.msg.pos_z.midi);
       }
 
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_circle.position,
-        "content": _touch_group.midi.pos.msg.data1,
+        "content": _touch_group.msg.dir.midi.data1,
         "locked": true
       });
 
@@ -188,12 +188,12 @@ function sliderFactory() {
                   _touch_line.position.y = mouseEvent.point.y;
                   _touch_circle.position.y = mouseEvent.point.y;
                   _touch_txt.position.y = mouseEvent.point.y;
-                  _touch_group.midi.pos.msg.data2 = Math.round(
+                  _touch_group.msg.dir.midi.data2 = Math.round(
                     mapp(mouseEvent.point.y,
                       _slider.children["slider-frame"].bounds.top,
                       _slider.children["slider-frame"].bounds.bottom,
-                      _touch_group.midi.pos.limit.min,
-                      _touch_group.midi.pos.limit.max
+                      _touch_group.msg.dir.limit.min,
+                      _touch_group.msg.dir.limit.max
                     )
                   );
                 }
@@ -204,20 +204,20 @@ function sliderFactory() {
                   _touch_line.position.x = mouseEvent.point.x;
                   _touch_circle.position.x = mouseEvent.point.x;
                   _touch_txt.position.x = mouseEvent.point.x;
-                  _touch_group.midi.pos.msg.data2 = Math.round(
+                  _touch_group.msg.dir.midi.data2 = Math.round(
                     mapp(mouseEvent.point.x,
                       _slider.children["slider-frame"].bounds.left,
                       _slider.children["slider-frame"].bounds.right,
-                      _touch_group.midi.pos.limit.min,
-                      _touch_group.midi.pos.limit.max
+                      _touch_group.msg.dir.limit.min,
+                      _touch_group.msg.dir.limit.max
                     )
                   );
                 }
                 break;
             }
-            if (_touch_group.midi.pos.msg.data2 != _touch_group.prev_pos) {
-              _touch_group.prev_pos = _touch_group.midi.pos.msg.data2;
-              send_midi_msg(_touch_group.midi.pos.msg);
+            if (_touch_group.msg.dir.midi.data2 != _touch_group.prev_pos) {
+              _touch_group.prev_pos = _touch_group.msg.dir.midi.data2;
+              send_midi_msg(_touch_group.msg.dir.midi);
             }
             break;
         }
@@ -237,7 +237,7 @@ function sliderFactory() {
         "modes": this.modes,
         "dir": this.dir,
         "data": {
-          "touch": this.data.touch,
+          "touchs": this.data.touchs,
           "from": this.data.from,
           "to": this.data.to,
           "mode_z": this.data.mode_z
@@ -248,7 +248,7 @@ function sliderFactory() {
         "name": "touchs-group"
       });
 
-      for (let _touch = 0; _touch < _slider_group.data.touch; _touch++) {
+      for (let _touch = 0; _touch < _slider_group.data.touchs; _touch++) {
         _touchs_group.addChild(this.new_touch(_slider_group, _touch));
       }
 

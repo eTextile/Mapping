@@ -6,7 +6,7 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.20";
+const VERSION = "1.0.21";
 
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
@@ -93,6 +93,7 @@ const DATA1 = {
   0xB: "cc", // val ==> cc
   0xC: "pgm",
   0xD: "lsb",
+  0xE: "??", // FIXME!
   0xF: "press"
 };
 
@@ -103,6 +104,7 @@ const DATA2 = {
   0xB: "null",
   0xC: "null",
   0xD: "msb",
+  0xE: "??", // FIXME!
   0xF: "null"
 };
 
@@ -172,5 +174,5 @@ const ERROR_CODES = {
   10: "TOO_MANY_BLOBS"
 };
 
-const DEFAULT_TOUCH_RADIUS = 25;
+const DEFAULT_TOUCHS_RADIUS = 25;
 const DEFAULT_FONT_SIZE = 20;

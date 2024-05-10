@@ -14,8 +14,7 @@ function touchpadFactory() {
   const DEFAULT_PAD_MODE_X = C_CHANGE;
   const DEFAULT_PAD_MODE_Y = C_CHANGE;
   const DEFAULT_PAD_MODE_Z = NOTE_ON;
-  const DEFAULT_PAD_TOUCH = 2;
-  const DEFAULT_TOUCH_RADIUS = 20;
+  const DEFAULT_PAD_TOUCHS = 2;
 
   let current_frame_width = null;
   let previous_frame_width = null;
@@ -30,15 +29,15 @@ function touchpadFactory() {
       2: "P_AFTERTOUCH" // TRIGGER AND PRESSURE
     },
     "data": {
-      "touch": null,
+      "touchs": null,
       "from": null,
       "to": null,
       "mode_z": null,
-      "midi": null
+      "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.touch = DEFAULT_PAD_TOUCH;
+      this.data.touchs = DEFAULT_PAD_TOUCHS;
       this.data.mode_z = DEFAULT_PAD_MODE_Z;
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_PAD_WIDTH / 2),
@@ -48,57 +47,57 @@ function touchpadFactory() {
         mouseEvent.point.x + (DEFAULT_PAD_WIDTH / 2),
         mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2)
       );
-      this.data.midi = [];
-      let midi_touch;
-      for (let _touch = 0; _touch < DEFAULT_PAD_TOUCH; _touch++) {
-        midi_touch = {};
-        midi_touch.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
-        midi_touch.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-        midi_touch.pos_z = midi_msg_builder(DEFAULT_PAD_MODE_Z);
-        this.data.midi.push(midi_touch);
+      this.data.msg = [];
+      let touch_msg;
+      for (let _touch = 0; _touch < DEFAULT_PAD_TOUCHS; _touch++) {
+        touch_msg = {};
+        touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
+        touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
+        touch_msg.pos_z = midi_msg_builder(DEFAULT_PAD_MODE_Z);
+        this.data.msg.push(touch_msg);
       }
     },
 
     setup_from_config: function (params) {
-      this.data.touch = params.touch;
+      this.data.touchs = params.touchs;
       this.data.from = new paper.Point(params.from);
       this.data.to = new paper.Point(params.to);
       this.data.mode_z = params.mode_z;
-      this.data.midi = params.midi;
+      this.data.msg = params.msg;
     },
 
     save_params: function () {
-      let previous_touch_count = this.data.touch;
+      let previous_touch_count = this.data.touchs;
       let previous_touch_mode_z = this.data.mode_z;
-      this.data.touch = this.children["pad-group"].data.touch;
+      this.data.touchs = this.children["pad-group"].data.touchs;
       this.data.from = this.children["pad-group"].data.from;
       this.data.to = this.children["pad-group"].data.to;
       this.data.mode_z = this.children["pad-group"].data.mode_z;
 
-      this.data.midi = [];
+      this.data.msg = [];
       if (this.data.mode_z !== previous_touch_mode_z) {
-        for (let _touch = 0; _touch < this.data.touch; _touch++) {
-          let midi_touch = {};
-          midi_touch.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
-          midi_touch.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-          midi_touch.pos_z = midi_msg_builder(this.data.mode_z);
-          this.data.midi.push(midi_touch);
+        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+          let touch_msg = {};
+          touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
+          touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
+          touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+          this.data.msg.push(touch_msg);
         }
       }
       else {
-        for (let _touch = 0; _touch < this.data.touch; _touch++) {
+        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           if (_touch < previous_touch_count) {
-            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].midi.pos_z.msg.status);
+            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.pos_z.midi.status);
             let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["touchs-group"].children[_touch].midi.pos_z.msg.status = new_status;
-            this.data.midi.push(this.children["touchs-group"].children[_touch].midi);
+            this.children["touchs-group"].children[_touch].msg.pos_z.midi.status = new_status;
+            this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
           }
           else {
-            let midi_touch = {};
-            midi_touch.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
-            midi_touch.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-            midi_touch.pos_z = midi_msg_builder(this.data.mode_z);
-            this.data.midi.push(midi_touch);
+            let touch_msg = {};
+            touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
+            touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
+            touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+            this.data.msg.push(touch_msg);
           }
         }
       }
@@ -111,7 +110,7 @@ function touchpadFactory() {
           get_random_int(this.data.from.x + DEFAULT_PAD_MARGIN, this.data.to.x - DEFAULT_PAD_MARGIN),
           get_random_int(this.data.from.y + DEFAULT_PAD_MARGIN, this.data.to.y - DEFAULT_PAD_MARGIN)
         ),
-        "midi": this.data.midi[_touch_id],
+        "msg": this.data.msg[_touch_id],
         "prev_pos_x": null,
         "prev_pos_y": null,
         "prev_pos_z": null
@@ -150,7 +149,7 @@ function touchpadFactory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": _touch_group.pos,
-        "radius": DEFAULT_TOUCH_RADIUS
+        "radius": DEFAULT_TOUCHS_RADIUS // TODO: mapping with the blob pressure!
       });
 
       _touch_circle.style = {
@@ -168,7 +167,27 @@ function touchpadFactory() {
       _touch_circle.onMouseDown = function () {
         previous_touch = current_touch;
         current_touch = _touch_group;
-        // Send pos_z MIDI_MSG!
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            break;
+          case PLAY_MODE:
+            // Set midi_msg status to NOTE_ON
+            _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status | (NOTE_ON << 4);
+            _touch_group.msg.pos_z.midi.data2 = 127;
+            send_midi_msg(_touch_group.msg.pos_z.midi);
+        }
+      }
+      
+      _touch_circle.onMouseUp = function () {
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            break;
+          case PLAY_MODE:
+            // Set midi_msg status to NOTE_OFF
+            _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status & (NOTE_OFF << 4);
+            _touch_group.msg.pos_z.midi.data2 = 0;
+            send_midi_msg(_touch_group.msg.pos_z.midi);
+        }
       }
 
       _touch_circle.onMouseDrag = function (mouseEvent) {
@@ -186,30 +205,30 @@ function touchpadFactory() {
               _touch_circle.position = mouseEvent.point;
               _touch_txt.position = mouseEvent.point;
 
-              _touch_group.midi.pos_x.msg.data2 = Math.round(
+              _touch_group.msg.pos_x.midi.data2 = Math.round(
                 mapp(mouseEvent.point.x,
                   _touchpad.children["pad-frame"].bounds.right,
                   _touchpad.children["pad-frame"].bounds.left,
-                  _touch_group.midi.pos_x.limit.min,
-                  _touch_group.midi.pos_x.limit.max
+                  _touch_group.msg.pos_x.limit.min,
+                  _touch_group.msg.pos_x.limit.max
                 )
               );
-              if (_touch_group.midi.pos_x.msg.data2 != _touch_group.prev_pos_x) {
-                _touch_group.prev_pos_x = _touch_group.midi.pos_x.msg.data2;
-                send_midi_msg(_touch_group.midi.pos_x.msg);
+              if (_touch_group.msg.pos_x.midi.data2 != _touch_group.prev_pos_x) {
+                _touch_group.prev_pos_x = _touch_group.msg.pos_x.midi.data2;
+                send_midi_msg(_touch_group.msg.pos_x.midi);
               }
 
-              _touch_group.midi.pos_y.msg.data2 = Math.round(
+              _touch_group.msg.pos_y.midi.data2 = Math.round(
                 mapp(mouseEvent.point.y,
                   _touchpad.children["pad-frame"].bounds.top,
                   _touchpad.children["pad-frame"].bounds.bottom,
-                  _touch_group.midi.pos_y.limit.min,
-                  _touch_group.midi.pos_y.limit.max
+                  _touch_group.msg.pos_y.limit.min,
+                  _touch_group.msg.pos_y.limit.max
                 )
               );
-              if (_touch_group.midi.pos_y.msg.data2 != _touch_group.prev_pos_y) {
-                _touch_group.prev_pos_y = _touch_group.midi.pos_y.msg.data2;
-                send_midi_msg(_touch_group.midi.pos_y.msg);
+              if (_touch_group.msg.pos_y.midi.data2 != _touch_group.prev_pos_y) {
+                _touch_group.prev_pos_y = _touch_group.msg.pos_y.midi.data2;
+                send_midi_msg(_touch_group.msg.pos_y.midi);
               }
             }
             break;
@@ -220,7 +239,7 @@ function touchpadFactory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": _touch_group.midi.pos_y.msg.data1,
+        "content": _touch_group.msg.pos_y.midi.data1,
         "locked": true
       });
 
@@ -242,7 +261,7 @@ function touchpadFactory() {
         "name": "pad-group",
         "modes": this.modes,
         "data": {
-          "touch": this.data.touch,
+          "touchs": this.data.touchs,
           "from": this.data.from,
           "to": this.data.to,
           "mode_z": this.data.mode_z
@@ -253,7 +272,7 @@ function touchpadFactory() {
         "name": "touchs-group"
       });
 
-      for (let _touch = 0; _touch < this.data.touch; _touch++) {
+      for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         _touchs_group.addChild(this.new_touch(_pad_group, _touch));
       }
 

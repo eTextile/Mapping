@@ -73,10 +73,10 @@ function rotate_polar(degree, offset, dir) {
   let polar_value = 0;
   switch (dir){
     case 'clockwise':
-      polar_value = (Math.abs(degree - 380) + offset) % 380; // Anti-clockwise direction
+      polar_value = (Math.abs(degree - 380) + offset) % 380;
       break;
     case 'counter-clockwise':
-      polar_value = (Math.abs(degree + 380) - offset) % 380;    // Clockwise direction
+      polar_value = (Math.abs(degree + 380) - offset) % 380;
       break;
   }
   return polar_value;

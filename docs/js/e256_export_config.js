@@ -76,14 +76,19 @@ function list_layer_params(layer) {
       case "switch":
         let switch_params = {};
         for (const param in item.data) {
-          if (param === "from" || param === "to") {
+          if (param === "mode_z") {
+            // This parameter is removed
+          }
+          else if (param === "from" || param === "to") {
             switch_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
             ];
           }
           else {
-            switch_params[param] = item.data[param];
+            //console.log("A: " + item.data[param][0]["pos_z"]);
+            //console.log("A: " + JSON.stringify(item.data[param][0]["pos_z"]["msg"]));
+            switch_params[param] = item.data[param][0]["pos_z"];
           }
         }
         e256_params.push(switch_params);

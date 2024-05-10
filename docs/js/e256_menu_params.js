@@ -24,7 +24,7 @@ function create_item_menu_params(item) {
       div_item_menu_params.appendChild(create_menu_1st_level(part));
     }
     for (const sub_part of part.children) { // 2ND LEVEL ITEM MENU PARAMS
-      if (sub_part.midi) {
+      if (sub_part.msg) {
         div_item_menu_params.appendChild(create_menu_2nd_level(sub_part));
       }
     }
@@ -50,7 +50,7 @@ function create_menu_1st_level(item) {
     let part_param = document.createElement("div");
     part_param.className = "input-group";
 
-    if (item.data[param].constructor.name === "Point") { ///////////// POINT
+    if (item.data[param].constructor.name === "Point") {
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
       span_param.textContent = param;
@@ -125,7 +125,7 @@ function create_menu_1st_level(item) {
 
       part_param.appendChild(params_list);
     }
-
+    /*
     else if (param === "midilearn") {
       // For details on the buttons refer to
       // https://getbootstrap.com/docs/5.0/components/buttons/
@@ -150,6 +150,7 @@ function create_menu_1st_level(item) {
       });
       part_param.appendChild(button);
     }
+    */
     else {
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
@@ -210,7 +211,7 @@ function create_menu_2nd_level(item) {
 
   let row_params_body = document.createElement("tbody");
 
-  for (const midi_msg in item.midi) {
+  for (const msg_type in item.msg) {
 
     let row_params_atr_tr = document.createElement("tr");
     let row_params_val_tr = document.createElement("tr");
@@ -219,7 +220,7 @@ function create_menu_2nd_level(item) {
     first_param_atr.textContent = "";
     row_params_atr_tr.appendChild(first_param_atr);
 
-    let status = midi_msg_status_unpack(item.midi[midi_msg].msg.status); // FIXME!
+    let status = midi_msg_status_unpack(item.msg[msg_type].midi.status);
 
     let first_param_val = document.createElement("th");
     first_param_val.className = "align-middle text-center";
@@ -228,10 +229,11 @@ function create_menu_2nd_level(item) {
 
     let param_arg = null;
 
-    for (const param in item.midi[midi_msg]) {
+    for (const param in item.msg[msg_type]) {
       switch (param) {
-        case "msg":
-          for (const midi_byte in item.midi[midi_msg][param]) {
+
+        case "midi":
+          for (const midi_byte in item.msg[msg_type][param]) {
             switch (midi_byte) {
               case "status":
                 param_arg = "chan";
@@ -245,22 +247,22 @@ function create_menu_2nd_level(item) {
             }
             if (param_arg !== "null") {
               let param_atr = document.createElement("th");
-              param_atr.setAttribute("id", item.id + "_" + midi_msg + "_" + param_arg + "_atr");
+              param_atr.setAttribute("id", item.id + "_" + msg_type + "_" + param_arg + "_atr");
               param_atr.className = "align-middle text-center";
               param_atr.textContent = param_arg;
 
               let param_val = document.createElement("input");
               param_val.className = "form-control text-center";
               param_val.setAttribute("type", "number");
-              param_val.setAttribute("id", item.id + "_" + midi_msg + "_" + param_arg + "_val");
-              //console.log("MAKE_ID: " + item.id + "_" + midi_msg + "_" + param_arg + "_val");
-              param_val.setAttribute("aria-describedby", item.id + "_" + midi_msg + "_" + param_arg + "_atr");
+              param_val.setAttribute("id", item.id + "_" + msg_type + "_" + param_arg + "_val");
+              //console.log("MAKE_ID: " + item.id + "_" + msg_type + "_" + param_arg + "_val");
+              param_val.setAttribute("aria-describedby", item.id + "_" + msg_type + "_" + param_arg + "_atr");
 
               param_val.addEventListener("input", function (event) {
                 if (event.target.type === "number") {
                   if (midi_byte === "status") {
                     if (event.target.value > 0 && event.target.value <= 16) {
-                      item.midi[midi_msg][param][midi_byte] = midi_msg_status_pack(status.type, event.target.value);
+                      item.msg[msg_type][param][midi_byte] = midi_msg_status_pack(status.type, event.target.value);
                       $("#" + event.target.id).css("background-color", "lightGreen");
                     }
                     else {
@@ -268,7 +270,7 @@ function create_menu_2nd_level(item) {
                     }
                   }
                   else if (event.target.value > -1 && event.target.value < 128) {
-                    item.midi[midi_msg][param][midi_byte] = event.target.value;
+                    item.msg[msg_type][param][midi_byte] = event.target.value;
                     $("#" + event.target.id).css("background-color", "lightGreen");
                   }
                   else {
@@ -285,7 +287,7 @@ function create_menu_2nd_level(item) {
           break;
 
         case "limit":
-          for (const limit in item.midi[midi_msg][param]) {
+          for (const limit in item.msg[msg_type][param]) {
             let param_atr = document.createElement("th");
             param_atr.setAttribute("id", item.id + "_" + MIDI_TYPES[status.type] + "_" + limit + "_atr");
             param_atr.className = "align-middle text-center";
@@ -294,13 +296,13 @@ function create_menu_2nd_level(item) {
             let param_val = document.createElement("input");
             param_val.className = "form-control text-center";
             param_val.setAttribute("type", "number");
-            param_val.setAttribute("id", item.id + "_" + midi_msg + "_" + limit + "_val");
-            param_val.setAttribute("aria-describedby", item.id + "_" + midi_msg + "_" + limit + "_atr");
+            param_val.setAttribute("id", item.id + "_" + msg_type + "_" + limit + "_val");
+            param_val.setAttribute("aria-describedby", item.id + "_" + msg_type + "_" + limit + "_atr");
 
             param_val.addEventListener("input", function (event) {
               if (event.target.type === "number") {
                 if (event.target.value > -1 && event.target.value < 128) {
-                  item.midi[midi_msg][param][limit] = event.target.value;
+                  item.msg[msg_type][param][limit] = event.target.value;
                   $("#" + event.target.id).css("background-color", "lightGreen");
                 }
                 else {
@@ -332,32 +334,32 @@ function update_menu_2nd_level(item) {
       let status = null;
       let midi_arg = null;
       let midi_value = null;
-      for (const midi_msg in sub_part.midi) {
-        for (const param in sub_part.midi[midi_msg]) {
+      for (const msg_type in sub_part.msg) {
+        for (const param in sub_part.msg[msg_type]) {
           switch (param) {
-            case "msg":
-              for (const midi_byte in sub_part.midi[midi_msg][param]) {
+            case "midi":
+              for (const midi_byte in sub_part.msg[msg_type][param]) {
                 switch (midi_byte) {
                   case "status":
-                    status = midi_msg_status_unpack(sub_part.midi[midi_msg][param].status);
+                    status = midi_msg_status_unpack(sub_part.msg[msg_type][param].status);
                     midi_arg = "chan";
                     midi_value = status.channel;
                     break;
                   case "data1":
                     midi_arg = DATA1[status.type];
-                    midi_value = sub_part.midi[midi_msg][param].data1;
+                    midi_value = sub_part.msg[msg_type][param].data1;
                     break;
                   case "data2":
                     midi_arg = DATA2[status.type];
-                    midi_value = sub_part.midi[midi_msg][param].data2;
+                    midi_value = sub_part.msg[msg_type][param].data2;
                     break;
                 }
-                $("#" + sub_part.id + "_" + midi_msg + "_" + midi_arg + "_val").val(midi_value);
+                $("#" + sub_part.id + "_" + msg_type + "_" + midi_arg + "_val").val(midi_value);
               }
               break;
             case "limit":
-              $("#" + sub_part.id + "_" + midi_msg + "_min_val").val(sub_part.midi[midi_msg][param].min);
-              $("#" + sub_part.id + "_" + midi_msg + "_max_val").val(sub_part.midi[midi_msg][param].max);
+              $("#" + sub_part.id + "_" + msg_type + "_min_val").val(sub_part.msg[msg_type][param].min);
+              $("#" + sub_part.id + "_" + msg_type + "_max_val").val(sub_part.msg[msg_type][param].max);
               break;
           }
         }
@@ -372,32 +374,32 @@ function update_touch_menu_params(sub_part) {
   let status = null;
   let midi_arg = null;
   let midi_value = null;
-  for (const param in sub_part.midi) {
+  for (const param in sub_part.msg) {
     //console.log("PARAM_B: " + param);
     switch (param) {
-      case "msg":
-        for (const midi_byte in sub_part.midi.msg) {
+      case "midi":
+        for (const midi_byte in sub_part.msg[msg_type]) {
           switch (midi_byte) {
             case "status":
-              status = midi_msg_status_unpack(sub_part.midi[param][midi_byte]);
+              status = midi_msg_status_unpack(sub_part.msg[param][midi_byte]);
               midi_arg = "chan";
               midi_value = status.channel;
               break;
             case "data1":
               midi_arg = DATA1[status.type];
-              midi_value = sub_part.midi.msg[midi_byte];
+              midi_value = sub_part.msg.[msg_type][midi_byte];
               break;
             case "data2":
               midi_arg = DATA2[status.type];
-              midi_value = sub_part.midi.msg[midi_byte];
+              midi_value = sub_part.msg.[msg_type][midi_byte];
               break;
           }
           $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_" + midi_arg + "_val").val(midi_value);
         }
         break;
       case "limit":
-        $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_min_val").val(sub_part.midi.limit.min);
-        $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_max_val").val(sub_part.midi.limit.max);
+        $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_min_val").val(sub_part.msg.limit.min);
+        $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_max_val").val(sub_part.msg.limit.max);
         break;
     }
   }
@@ -439,7 +441,7 @@ circular_buffer.prototype.push = function (midiMsg) {
   div_midi_msg.setAttribute("id", "midi_msg_" + this._msg_count);
 
   let status = new midi_msg_status_unpack(midiMsg.status);
-  div_midi_msg.textContent = "[ " + status.channel + ", " + midiMsg.data1 + ", " + midiMsg.data2 + " ]";
+  div_midi_msg.textContent = MIDI_TYPES[status.type] + " : [ " + status.channel + ", " + midiMsg.data1 + ", " + midiMsg.data2 + " ]";
 
   $("#midi_term").append(div_midi_msg);
   while (this.length > this._max_length) {

@@ -67,6 +67,7 @@ function paperInit() {
               previous_controleur = current_controleur;
               paper.project.layers[e256_draw_mode].activate();
               draw_controler_from_mouse(mouseEvent);
+              
               item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
               item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
               create_item_menu_params(current_controleur);              

@@ -37,7 +37,7 @@ function gridFactory() {
       "cols": null,
       "rows": null,
       "mode_z": null,
-      "midi": null
+      "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
@@ -53,13 +53,13 @@ function gridFactory() {
       this.data.cols = DEFAULT_GRID_COLS;
       this.data.rows = DEFAULT_GRID_ROWS;
 
-      this.data.midi = [];
-      let midi_key;
+      this.data.msg = [];
+      let key_msg;
       current_key_count = this.data.cols * this.data.rows;
       for (let _key = 0; _key < current_key_count; _key++) {
-        midi_key = {};
-        midi_key.pos_z = midi_msg_builder(DEFAULT_GRID_MODE_Z);
-        this.data.midi.push(midi_key);
+        key_msg = {};
+        key_msg.pos_z = midi_msg_builder(DEFAULT_GRID_MODE_Z);
+        this.data.msg.push(key_msg);
       }
     },
 
@@ -69,9 +69,9 @@ function gridFactory() {
       this.data.cols = params.cols;
       this.data.rows = params.rows;
       this.data.mode_z = params.mode_z;
-      this.data.midi = [];
+      this.data.msg = [];
       for (const _grid_key in params.keys) {
-        this.data.midi.push(_grid_key); // NOT_TESTED!
+        this.data.msg.push(_grid_key); // NOT_TESTED!
       }
     },
 
@@ -85,26 +85,26 @@ function gridFactory() {
 
       previous_key_count = current_key_count;
       current_key_count = this.data.cols * this.data.rows;
-      this.data.midi = [];
+      this.data.msg = [];
       if (this.data.mode_z !== previous_key_mode_z) {
         for (let _key = 0; _key < current_key_count; _key++) {
-          let midi_key = {};
-          midi_key.pos_z = midi_msg_builder(this.data.mode_z);
-          this.data.midi.push(midi_key);
+          let key_msg = {};
+          key_msg.pos_z = midi_msg_builder(this.data.mode_z);
+          this.data.msg.push(key_msg);
         }
       }
       else {
         for (let _key = 0; _key < current_key_count; _key++) {
           if (_key < previous_key_count) {
-            let status = midi_msg_status_unpack(this.children["keys-group"].children[_key].midi.pos_z.msg.status);
+            let status = midi_msg_status_unpack(this.children["keys-group"].children[_key].msg.pos_z.midi.status);
             let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["keys-group"].children[_key].midi.pos_z.msg.status = new_status;
-            this.data.midi.push(this.children["keys-group"].children[_key].midi);
+            this.children["keys-group"].children[_key].msg.pos_z.midi.status = new_status;
+            this.data.msg.push(this.children["keys-group"].children[_key].msg);
           }
           else {
-            let midi_key = {};
-            midi_key.pos_z = midi_msg_builder(this.data.mode_z);
-            this.data.midi.push(midi_key);
+            let key_msg = {};
+            key_msg.pos_z = midi_msg_builder(this.data.mode_z);
+            this.data.msg.push(key_msg);
           }
         }
       }
@@ -124,7 +124,7 @@ function gridFactory() {
           this.data.from.x + index_x * key_width + key_width,
           this.data.from.y + index_y * key_height + key_height
         ),
-        "midi": this.data.midi[_key_id],
+        "msg": this.data.msg[_key_id],
         "prev_pos_z": null
       });
 
@@ -157,9 +157,9 @@ function gridFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _key_group.midi.pos_z.msg.status = _key_group.midi.pos_z.msg.status | (NOTE_ON << 4);
-            _key_group.midi.pos_z.msg.data2 = 127;
-            send_midi_msg(_key_group.midi.pos_z.msg);
+            _key_group.msg.pos_z.midi.status = _key_group.msg.pos_z.midi.status | (NOTE_ON << 4);
+            _key_group.msg.pos_z.midi.data2 = 127;
+            send_midi_msg(_key_group.msg.pos_z.midi);
             break;
         }
       }
@@ -171,9 +171,9 @@ function gridFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _key_group.midi.pos_z.msg.status = _key_group.midi.pos_z.msg.status & (NOTE_OFF << 4);
-            _key_group.midi.pos_z.msg.data2 = 0;
-            send_midi_msg(_key_group.midi.pos_z.msg);
+            _key_group.msg.pos_z.midi.status = _key_group.msg.pos_z.midi.status & (NOTE_OFF << 4);
+            _key_group.msg.pos_z.midi.data2 = 0;
+            send_midi_msg(_key_group.msg.pos_z.midi);
             break;
         }
       }
@@ -183,7 +183,7 @@ function gridFactory() {
       let _key_txt = new paper.PointText({
         "name": "key-text",
         "point": _key_frame.position,
-        "content": _key_group.midi.pos_z.msg.data1,
+        "content": _key_group.msg.pos_z.midi.data1,
         "locked": true
       });
 

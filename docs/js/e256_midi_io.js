@@ -116,39 +116,38 @@ function midi_msg_builder(mode) {
   // P_BEND
   // SYS_EX
 
-  let midi = {};
+  let msg = {};
   switch (mode) {
     case NOTE_ON:
-      midi.msg = new note_on(
+      msg.midi = new note_on(
         DEFAULT_MIDI_CHANNEL,
         default_midi_index.next().value,
         DEFAULT_MIDI_VELOCITY
       );
-      //midi.limit = null; // FIXME!
       break;
     case C_CHANGE:
-      midi.msg = new control_change(
+      msg.midi = new control_change(
         DEFAULT_MIDI_CHANNEL,
         default_midi_index.next().value,
         DEFAULT_MIDI_VELOCITY
       );
-      midi.limit = new limit(
+      msg.limit = new limit(
         DEFAULT_MIDI_MIN,
         DEFAULT_MIDI_MAX
       );
       break;
     case P_AFTERTOUCH:
-      midi.msg = new polyphonic_aftertouch(
+      msg.midi = new polyphonic_aftertouch(
         DEFAULT_MIDI_CHANNEL,
         default_midi_index.next().value
       );
-      midi.limit = new limit(
+      msg.limit = new limit(
         DEFAULT_MIDI_MIN,
         DEFAULT_MIDI_MAX
       );
       break;
   };
-  return midi;
+  return msg;
 };
 
 async function MIDIrequest() {
@@ -339,7 +338,7 @@ function onMIDIMessage(midiMsg) {
 function send_midi_msg(midiMsg) {
   const msg = Object.values(midiMsg);
   if (midi_device_connected) {
-    //MIDIOutput.send(msg);
+    //MIDIOutput.send(msg); // UNCOMMENT IN PRODUCTION!!!!!!!!!!!!!!!!!!!!!
     midi_term.push(midiMsg);
   }
   else {

@@ -9,19 +9,18 @@
 // http://paperjs.org/reference/path/#path
 function pathFactory() {
   const DEFAULT_PATH_STROKE_WIDTH = 50;
-  const DEFAULT_TOUCH_RADIUS = 20;
   const DEFAULT_PATH_TOUCHS = 1;
 
   var _path = new paper.Group({
     "name": "path",
     "data": {
-      "touch": null,
+      "touchs": null,
       "segments": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.touch = DEFAULT_PATH_TOUCHS;
+      this.data.touchs = DEFAULT_PATH_TOUCHS;
       this.data.segments = [];
       this.data.segments.push(mouseEvent.point);
       this.data.msg = [];
@@ -47,7 +46,7 @@ function pathFactory() {
     // touch-group
     new_touch: function (_touch_uid) {
 
-      let _touch_group = new paper.Group({
+      let _touch_group = new paper.Group({  
         "name": "touch-" + _touch_uid,
         "pos": this.data.segments[0],
         "prev_position": null,
@@ -58,7 +57,7 @@ function pathFactory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": this.data.segments[0],
-        "radius": DEFAULT_TOUCH_RADIUS // TODO: mapping with the blob pressure!  
+        "radius": DEFAULT_TOUCHS_RADIUS // TODO: mapping with the blob pressure!  
       });
 
       _touch_circle.style = {
@@ -120,7 +119,7 @@ function pathFactory() {
       let _path_group = new paper.Group({
         "name": "path-group",
         "data": {
-          "touch": this.data.touch,
+          "touchs": this.data.touchs,
           "segments": this.data.segments
         }
       });
@@ -168,7 +167,7 @@ function pathFactory() {
         "name": "touchs-group"
       });
 
-      for (let _touch = 0; _touch < this.data.touch; _touch++) {
+      for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         _touchs_group.addChild(this.new_touch(_touch));
       }
 

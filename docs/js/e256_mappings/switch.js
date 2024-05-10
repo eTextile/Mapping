@@ -33,7 +33,7 @@ function switchFactory() {
       "from": null,
       "to": null,
       "mode_z": null,
-      "midi": null
+      "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
@@ -46,17 +46,17 @@ function switchFactory() {
         mouseEvent.point.x + (DEFAULT_SWITCH_WIDTH / 2),
         mouseEvent.point.y + (DEFAULT_SWITCH_HEIGHT / 2)
       );
-      this.data.midi = [];
-      let midi_touch = {};
-      midi_touch.pos_z = midi_msg_builder(DEFAULT_SWITCH_MODE_Z);
-      this.data.midi.push(midi_touch);
+      this.data.msg = [];
+      let touch_msg = {};
+      touch_msg.pos_z = midi_msg_builder(DEFAULT_SWITCH_MODE_Z);
+      this.data.msg.push(touch_msg);
     },
 
     setup_from_config: function (params) {
       this.data.from = new paper.Point(params.from);
       this.data.to = new paper.Point(params.to);
       this.data.mode_z = params.mode_z;
-      this.data.midi = params.midi;
+      this.data.msg = params.msg;
     },
 
     save_params: function () {
@@ -64,17 +64,18 @@ function switchFactory() {
       this.data.from = this.children["switch-group"].data.from;
       this.data.to = this.children["switch-group"].data.to;
       this.data.mode_z = this.children["switch-group"].data.mode_z;
-      this.data.midi = [];
+      this.data.msg = [];
       if (this.data.mode_z !== previous_touch_mode_z) {
-        let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].midi.pos_z.msg.status);
+        //console.log("B: " + this.children["touchs-group"].children[0]);
+        let status = midi_msg_status_unpack(this.children["touchs-group"].children[0].msg.pos_z.midi.status);
         let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-        this.children["touchs-group"].children[_touch].midi.pos_z.msg.status = new_status;
-        this.data.midi.push(this.children["touchs-group"].children[_touch].midi);
+        this.children["touchs-group"].children[0].msg.pos_z.midi.status = new_status;
+        this.data.msg.push(this.children["touchs-group"].children[0].msg);
       }
       else {
-        let midi_touch = {};
-        midi_touch.pos_z = midi_msg_builder(this.data.mode_z);
-        this.data.midi.push(midi_touch);
+        let touch_msg = {};
+        touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+        this.data.msg.push(touch_msg);
       }
     },
 
@@ -82,7 +83,7 @@ function switchFactory() {
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
         "pos": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
-        "midi": this.data.midi[0],
+        "msg": this.data.msg[0],
         "prev_pos_z": null
       });
 
@@ -126,9 +127,9 @@ function switchFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _touch_group.midi.pos_z.msg.status = _touch_group.midi.pos_z.msg.status | (NOTE_ON << 4);
-            _touch_group.midi.pos_z.msg.data2 = 127;
-            send_midi_msg(_touch_group.midi.pos_z.msg);
+            _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status | (NOTE_ON << 4);
+            _touch_group.msg.pos_z.midi.data2 = 127;
+            send_midi_msg(_touch_group.msg.pos_z.midi);
         }
       }
 
@@ -138,9 +139,9 @@ function switchFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _touch_group.midi.pos_z.msg.status = _touch_group.midi.pos_z.msg.status & (NOTE_OFF << 4);
-            _touch_group.midi.pos_z.msg.data2 = 0;
-            send_midi_msg(_touch_group.midi.pos_z.msg);
+            _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status & (NOTE_OFF << 4);
+            _touch_group.msg.pos_z.midi.data2 = 0;
+            send_midi_msg(_touch_group.msg.pos_z.midi);
         }
       }
       _touch_group.addChild(_touch_ellipse);
@@ -148,7 +149,7 @@ function switchFactory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": _touch_group.midi.pos_z.msg.data1,
+        "content": JSON.stringify(_touch_group.msg.pos_z.midi),
         "locked": true
       });
 
@@ -221,9 +222,9 @@ function switchFactory() {
       _switch_frame.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
           case EDIT_MODE:
+            let new_pos = new paper.Point();
             if (current_part.type === "bounds") {
               switch (current_part.name) {
-
                 case "top-left":
                   this.segments[0].point.x = mouseEvent.point.x;
                   this.segments[1].point = mouseEvent.point;
@@ -231,18 +232,17 @@ function switchFactory() {
                   _switch_group.data.from = mouseEvent.point;
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+                  new_pos.x = _switch_group.data.to.x - half_frame_width;
+                  new_pos.y = _switch_group.data.to.y - half_frame_height;
                   for (const _touch of _touchs_group.children) {
-                    _touch.children["touch-ellipse"].position = new paper.Point(
-                      _switch_group.data.to.x - half_frame_width,
-                      _switch_group.data.to.y - half_frame_height
-                    );
+                    _touch.children["touch-ellipse"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
                     _touch.children["touch-ellipse"].radius = [
                       half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
                       half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
                     ];
                   }
                   break;
-
                 case "top-right":
                   this.segments[1].point.y = mouseEvent.point.y;
                   this.segments[2].point = mouseEvent.point;
@@ -251,11 +251,11 @@ function switchFactory() {
                   _switch_group.data.to.x = mouseEvent.point.x;
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+                  new_pos.x = _switch_group.data.from.x + half_frame_width;
+                  new_pos.y = _switch_group.data.to.y - half_frame_height;
                   for (const _touch of _touchs_group.children) {
-                    _touch.children["touch-ellipse"].position = new paper.Point(
-                      _switch_group.data.from.x + half_frame_width,
-                      _switch_group.data.to.y - half_frame_height
-                    );
+                    _touch.children["touch-ellipse"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
                     _touch.children["touch-ellipse"].radius = [
                       half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
                       half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
@@ -270,11 +270,11 @@ function switchFactory() {
                   _switch_group.data.to = mouseEvent.point;
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+                  new_pos.x = _switch_group.data.from.x + half_frame_width;
+                  new_pos.y = _switch_group.data.from.y + half_frame_height;
                   for (const _touch of _touchs_group.children) {
-                    _touch.children["touch-ellipse"].position = new paper.Point(
-                      _switch_group.data.from.x + half_frame_width,
-                      _switch_group.data.from.y + half_frame_height
-                    );
+                    _touch.children["touch-ellipse"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
                     _touch.children["touch-ellipse"].radius = [
                       half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
                       half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
@@ -290,11 +290,11 @@ function switchFactory() {
                   _switch_group.data.to.y = mouseEvent.point.y;
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
+                  new_pos.x = _switch_group.data.to.x - half_frame_width;
+                  new_pos.y = _switch_group.data.from.y + half_frame_height;
                   for (const _touch of _touchs_group.children) {
-                    _touch.children["touch-ellipse"].position = new paper.Point(
-                      _switch_group.data.to.x - half_frame_width,
-                      _switch_group.data.from.y + half_frame_height
-                    );
+                    _touch.children["touch-ellipse"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
                     _touch.children["touch-ellipse"].radius = [
                       half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
                       half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
