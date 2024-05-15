@@ -11,7 +11,7 @@ function sliderFactory() {
   const DEFAULT_SLIDER_HEIGHT = 400;
   const DEFAULT_SLIDER_MIN_WIDTH = 50;
   const DEFAULT_SLIDER_MIN_HEIGHT = 100;
-  const DEFAULT_SLIDER_TOUCHS = 2;
+  const DEFAULT_SLIDER_TOUCHS = 1;
   const DEFAULT_SLIDER_TOUCHS_MODE = C_CHANGE;
   const DEFAULT_SLIDER_TOUCHS_MODE_Z = NOTE_ON;
   const DEFAULT_SLIDER_DIR = "V_SLIDER";
@@ -54,7 +54,7 @@ function sliderFactory() {
       for (let _touch = 0; _touch < DEFAULT_SLIDER_TOUCHS; _touch++) {
         touch_msg = {};
         touch_msg.dir = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
-        touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+        touch_msg.pos_z = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE_Z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -65,9 +65,17 @@ function sliderFactory() {
       this.data.to = new paper.Point(params.to);
       this.data.mode_z = params.mode_z;
       this.data.msg = params.msg;
+      let frame_height = this.data.to.y - this.data.from.y;
+      let frame_width = this.data.to.x - this.data.from.x;
+      if (frame_height > frame_width) {
+        this.dir = "V_SLIDER";
+      } else {
+        this.dir = "H_SLIDER";
+      }
     },
 
     save_params: function () {
+      this.dir = this.children["slider-group"].dir;
       let previous_touch_count = this.data.touchs;
       let previous_touch_mode_z = this.data.mode_z;
       this.data.touchs = this.children["slider-group"].data.touchs;
@@ -106,8 +114,8 @@ function sliderFactory() {
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
         "pos": new paper.Point(
-          this.data.from.x + (DEFAULT_SLIDER_WIDTH / 2),
-          get_random_int(this.data.from.y + 10, this.data.to.y - 10)
+          _slider.data.from.x + (DEFAULT_SLIDER_WIDTH / 2),
+          get_random_int(_slider.data.from.y + 10, _slider.data.to.y - 10)
         ),
         "msg": this.data.msg[_touch_id],
         "prev_pos": null,
@@ -116,8 +124,8 @@ function sliderFactory() {
 
       let _touch_line = new paper.Path.Line({
         "name": "touch-line",
-        "from": new paper.Point(this.data.from.x, _touch_group.pos.y),
-        "to": new paper.Point(this.data.to.x, _touch_group.pos.y),
+        "from": new paper.Point(_slider.data.from.x, _touch_group.pos.y), // FIXME!
+        "to": new paper.Point(_slider.data.to.x, _touch_group.pos.y), // FIXME!
         "locked": true
       });
 
@@ -131,7 +139,7 @@ function sliderFactory() {
 
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
-        "center": new paper.Point(this.data.from.x + (DEFAULT_SLIDER_WIDTH / 2), _touch_group.pos.y),
+        "center": new paper.Point(_slider.data.from.x + (DEFAULT_SLIDER_WIDTH / 2), _touch_group.pos.y),
         "radius": DEFAULT_TOUCHS_RADIUS // TODO: mapping with the blob pressure!  
       });
 
@@ -284,11 +292,6 @@ function sliderFactory() {
         }
       }
 
-      /*
-      _slider_frame.onMouseDown = function () {
-      }
-      */
-
       _slider_frame.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
           case EDIT_MODE:
@@ -306,14 +309,23 @@ function sliderFactory() {
                     this.segments[1].point = mouseEvent.point;
                     this.segments[2].point.y = mouseEvent.point.y;
                     for (const _touch of _touchs_group.children) {
-                      _touch.children["touch-line"].segments[0].point.x = mouseEvent.point.x;
                       new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
                       new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
-                      new_pos.x = this.bounds.right - new_size.x;
-                      new_pos.y = this.bounds.bottom - new_size.y;
+                      if (current_frame_height > current_frame_width) {
+                        _slider_group.dir = "V_SLIDER";
+                        new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
+                        new_pos.y = this.bounds.bottom - new_size.y;
+                        _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
+                        _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
+                      } else {
+                        _slider_group.dir = "H_SLIDER";
+                        new_pos.x = this.bounds.right - new_size.x;
+                        new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
+                        _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
+                        _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
+                      }
                       _touch.children["touch-circle"].position = new_pos;
                       _touch.children["touch-txt"].position = new_pos;
-                      _touch.children["touch-line"].position.y = new_pos.y;
                     }
                     _slider_group.data.from = mouseEvent.point;
                   }
@@ -328,14 +340,23 @@ function sliderFactory() {
                     this.segments[2].point = mouseEvent.point;
                     this.segments[3].point.x = mouseEvent.point.x;
                     for (const _touch of _touchs_group.children) {
-                      _touch.children["touch-line"].segments[1].point.x = mouseEvent.point.x;
                       new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
                       new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
-                      new_pos.x = this.bounds.left + new_size.x;
-                      new_pos.y = this.bounds.bottom - new_size.y;
+                      if (current_frame_height > current_frame_width) {
+                        _slider_group.dir = "V_SLIDER";
+                        new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
+                        new_pos.y = this.bounds.bottom - new_size.y;
+                        _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
+                        _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
+                      } else {
+                        _slider_group.dir = "H_SLIDER";
+                        new_pos.x = this.bounds.left + new_size.x;
+                        new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
+                        _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
+                        _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
+                      }
                       _touch.children["touch-circle"].position = new_pos;
                       _touch.children["touch-txt"].position = new_pos;
-                      _touch.children["touch-line"].position.y = new_pos.y;
                     }
                     _slider_group.data.from.y = mouseEvent.point.y;
                     _slider_group.data.to.x = mouseEvent.point.x;
@@ -351,14 +372,23 @@ function sliderFactory() {
                     this.segments[3].point = mouseEvent.point;
                     this.segments[0].point.y = mouseEvent.point.y;
                     for (const _touch of _touchs_group.children) {
-                      _touch.children["touch-line"].segments[1].point.x = mouseEvent.point.x;
                       new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
                       new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
-                      new_pos.x = this.bounds.left + new_size.x;
-                      new_pos.y = this.bounds.top + new_size.y;
+                      if (current_frame_height > current_frame_width) {
+                        _slider_group.dir = "V_SLIDER";
+                        new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
+                        new_pos.y = this.bounds.top + new_size.y;
+                        _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
+                        _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
+                      } else {
+                        _slider_group.dir = "H_SLIDER";
+                        new_pos.x = this.bounds.left + new_size.x;
+                        new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
+                        _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
+                        _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
+                      }
                       _touch.children["touch-circle"].position = new_pos;
                       _touch.children["touch-txt"].position = new_pos;
-                      _touch.children["touch-line"].position.y = new_pos.y;
                     }
                     _slider_group.data.to = mouseEvent.point;
                   }
@@ -373,14 +403,23 @@ function sliderFactory() {
                     this.segments[0].point = mouseEvent.point;
                     this.segments[1].point.x = mouseEvent.point.x;
                     for (const _touch of _touchs_group.children) {
-                      _touch.children["touch-line"].segments[0].point.x = mouseEvent.point.x;
                       new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
                       new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
-                      new_pos.x = this.bounds.right - new_size.x;
-                      new_pos.y = this.bounds.top + new_size.y;
+                      if (current_frame_height > current_frame_width) {
+                        _slider_group.dir = "V_SLIDER";
+                        new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
+                        new_pos.y = this.bounds.top + new_size.y;
+                        _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
+                        _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
+                      } else {
+                        _slider_group.dir = "H_SLIDER";
+                        new_pos.x = this.bounds.right - new_size.x;
+                        new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
+                        _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
+                        _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
+                      }
                       _touch.children["touch-circle"].position = new_pos;
                       _touch.children["touch-txt"].position = new_pos;
-                      _touch.children["touch-line"].position.y = new_pos.y;
                     }
                     _slider_group.data.from.x = mouseEvent.point.x;
                     _slider_group.data.to.y = mouseEvent.point.y;

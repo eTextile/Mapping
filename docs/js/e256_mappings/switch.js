@@ -65,8 +65,7 @@ function switchFactory() {
       this.data.to = this.children["switch-group"].data.to;
       this.data.mode_z = this.children["switch-group"].data.mode_z;
       this.data.msg = [];
-      if (this.data.mode_z !== previous_touch_mode_z) {
-        //console.log("B: " + this.children["touchs-group"].children[0]);
+      if (this.data.mode_z == previous_touch_mode_z) {
         let status = midi_msg_status_unpack(this.children["touchs-group"].children[0].msg.pos_z.midi.status);
         let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
         this.children["touchs-group"].children[0].msg.pos_z.midi.status = new_status;
@@ -149,7 +148,7 @@ function switchFactory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": JSON.stringify(_touch_group.msg.pos_z.midi),
+        "content": "",
         "locked": true
       });
 
