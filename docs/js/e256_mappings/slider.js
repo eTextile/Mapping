@@ -80,6 +80,7 @@ function sliderFactory() {
       } else {
         this.dir = "H_SLIDER";
       }
+      console.log("DIR: " + this.dir);
     },
 
     save_params: function () {
@@ -130,12 +131,23 @@ function sliderFactory() {
         //"prev_pos_z": null // NOT_USED
       });
 
-      let _touch_line = new paper.Path.Line({
-        "name": "touch-line",
-        "from": new paper.Point(_slider.data.from.x, _touch_group.pos.y), // FIXME!
-        "to": new paper.Point(_slider.data.to.x, _touch_group.pos.y), // FIXME!
-        "locked": true
-      });
+      let _touch_line = null;
+      if (this.dir === "V_SLIDER") {
+        _touch_line = new paper.Path.Line({
+          "name": "touch-line",
+          "from": new paper.Point(_slider.data.from.x, _touch_group.pos.y),
+          "to": new paper.Point(_slider.data.to.x, _touch_group.pos.y),
+          "locked": true
+        });
+      }
+      else {
+        _touch_line = new paper.Path.Line({
+          "name": "touch-line",
+          "from": new paper.Point(_touch_group.pos.x, _slider.data.from.y),
+          "to": new paper.Point(_touch_group.pos.x, _slider.data.to.y),
+          "locked": true
+        });
+      }
 
       _touch_line.style = {
         "strokeWidth": 1,
