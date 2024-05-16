@@ -149,7 +149,7 @@ function touchpadFactory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": _touch_group.pos,
-        "radius": DEFAULT_TOUCHS_RADIUS // TODO: mapping with the blob pressure!
+        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure!
       });
 
       _touch_circle.style = {
@@ -245,7 +245,7 @@ function touchpadFactory() {
 
       _touch_txt.style = {
         "fillColor": "black",
-        "fontSize": DEFAULT_FONT_SIZE
+        "fontSize": FONT_SIZE
       };
 
       _touch_group.addChild(_touch_txt);

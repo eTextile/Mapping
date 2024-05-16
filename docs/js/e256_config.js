@@ -174,5 +174,5 @@ const ERROR_CODES = {
   10: "TOO_MANY_BLOBS"
 };
 
-const DEFAULT_TOUCHS_RADIUS = 25;
-const DEFAULT_FONT_SIZE = 20;
+const TOUCH_RADIUS = 25;
+const FONT_SIZE = 20;

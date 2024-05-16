@@ -56,7 +56,8 @@ function switchFactory() {
       this.data.from = new paper.Point(params.from);
       this.data.to = new paper.Point(params.to);
       this.data.mode_z = params.mode_z;
-      this.data.msg = params.msg;
+      this.data.msg = [];
+      this.data.msg.push(params.msg);
     },
 
     save_params: function () {
@@ -154,7 +155,7 @@ function switchFactory() {
 
       _touch_txt.style = {
         "fillColor": "black",
-        "fontSize": DEFAULT_FONT_SIZE
+        "fontSize": FONT_SIZE
       };
 
       _touch_group.addChild(_touch_txt);

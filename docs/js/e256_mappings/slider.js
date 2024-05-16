@@ -57,14 +57,22 @@ function sliderFactory() {
         touch_msg.pos_z = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE_Z);
         this.data.msg.push(touch_msg);
       }
+      console.log("CONF_A" + JSON.stringify(this.data.msg))
     },
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs;
-      this.data.from = new paper.Point(params.from);
-      this.data.to = new paper.Point(params.to);
-      this.data.mode_z = params.mode_z;
+      this.data.from = new paper.Point(
+        mapp(params.from[0], 0, MATRIX_RESOLUTION_X, 0, canvas_width),
+        mapp(params.from[1], 0, MATRIX_RESOLUTION_Y, 0, canvas_height)
+      );
+      this.data.to = new paper.Point(
+        mapp(params.to[0], 0, MATRIX_RESOLUTION_X, 0, canvas_width),
+        mapp(params.to[1], 0, MATRIX_RESOLUTION_Y, 0, canvas_height)
+      );
       this.data.msg = params.msg;
+      let status = midi_msg_status_unpack(params.msg[0].pos_z.midi.status);
+      this.data.mode_z = status.type;
       let frame_height = this.data.to.y - this.data.from.y;
       let frame_width = this.data.to.x - this.data.from.x;
       if (frame_height > frame_width) {
@@ -114,12 +122,12 @@ function sliderFactory() {
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
         "pos": new paper.Point(
-          _slider.data.from.x + (DEFAULT_SLIDER_WIDTH / 2),
+          _slider.data.from.x + ((_slider.data.to.x - _slider.data.from.x) / 2),
           get_random_int(_slider.data.from.y + 10, _slider.data.to.y - 10)
         ),
         "msg": this.data.msg[_touch_id],
-        "prev_pos": null,
-        "prev_pos_z": null
+        "prev_pos": null
+        //"prev_pos_z": null // NOT_USED
       });
 
       let _touch_line = new paper.Path.Line({
@@ -139,8 +147,8 @@ function sliderFactory() {
 
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
-        "center": new paper.Point(_slider.data.from.x + (DEFAULT_SLIDER_WIDTH / 2), _touch_group.pos.y),
-        "radius": DEFAULT_TOUCHS_RADIUS // TODO: mapping with the blob pressure!  
+        "center": _touch_group.pos,
+        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure!?
       });
 
       _touch_circle.style = {
@@ -180,7 +188,7 @@ function sliderFactory() {
 
       _touch_txt.style = {
         "fillColor": "black",
-        "fontSize": DEFAULT_FONT_SIZE
+        "fontSize": FONT_SIZE
       };
 
       _touch_circle.onMouseDrag = function (mouseEvent) {

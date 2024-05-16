@@ -65,13 +65,12 @@ function paperInit() {
                 create_once = true;
               }
               previous_controleur = current_controleur;
-              paper.project.layers[e256_draw_mode].activate();
               draw_controler_from_mouse(mouseEvent);
-              
+
               item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
               item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
-              create_item_menu_params(current_controleur);              
-              update_menu_1st_level(current_controleur); // <== update_item_menu_params(current_controleur);
+              create_item_menu_params(current_controleur);
+              update_menu_1st_level(current_controleur); // <== update_item_main_params(current_controleur);
               update_menu_2nd_level(current_controleur); // <== update_item_touch_menu_params(current_controleur);
               item_menu_params(current_controleur, "show");
             }
@@ -80,7 +79,6 @@ function paperInit() {
             }
           }
           else {
-
             previous_controleur = current_controleur;
             let current_item = current_part.item;
             while (current_item.parent) {
@@ -146,6 +144,7 @@ function paperInit() {
   };
 
   function draw_controler_from_mouse(mouseEvent) {
+    paper.project.layers[e256_draw_mode].activate();
     controleur_factory(e256_draw_mode);
     current_controleur.setup_from_mouse_event(mouseEvent);
     console.log(e256_draw_mode); // PROB!
@@ -170,12 +169,15 @@ function paperInit() {
     }
     for (const _ctl_type in configFile.mappings) {
       paper.project.layers[_ctl_type].activate();
-      controleur_factory(_ctl_type);
-      current_controleur.setup_from_config(configFile.mappings[_ctl_type]);
-      current_controleur.create();
-      create_item_menu_params(current_controleur);
-      update_menu_1st_level(current_controleur);
-      item_menu_params(current_controleur, "hide");
+      for (const _ctl_index in configFile.mappings[_ctl_type]) {
+        controleur_factory(_ctl_type); // FIXME: return current_controleur
+        current_controleur.setup_from_config(configFile.mappings[_ctl_type][_ctl_index]);
+        current_controleur.create();
+        create_item_menu_params(current_controleur);
+        update_menu_1st_level(current_controleur);
+        update_menu_2nd_level(current_controleur);
+        item_menu_params(current_controleur, "hide");
+      }
     }
   };
 
@@ -222,7 +224,7 @@ function paperInit() {
   };
 
   function loadFile(event) {
-    loadaed_file = event.target.files[0];
+    loaded_file = event.target.files[0];
     switch (loaded_file.type) {
       case "application/json":
         var reader = new FileReader();

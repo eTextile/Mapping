@@ -49,6 +49,8 @@ function create_menu_1st_level(item) {
   for (const param in item.data) {
     let part_param = document.createElement("div");
     part_param.className = "input-group";
+    
+    console.log("CONSTRUCTOR: " + param + "_" + item.data[param]); // PROB!!!!!!!!!!
 
     if (item.data[param].constructor.name === "Point") {
       let span_param = document.createElement("span");
@@ -181,6 +183,7 @@ function create_menu_1st_level(item) {
 function update_menu_1st_level(item) {
   for (const part of item.children) {
     for (const param in part.data) {
+      console.log("update_menu_1st_level: " + part.data[param]);
       if (part.data[param].constructor.name === "Point") {
         $("#" + part.parent.id + "_" + param + "_val_x").val(Math.round(part.data[param].x));
         $("#" + part.parent.id + "_" + param + "_val_y").val(Math.round(part.data[param].y));

@@ -144,7 +144,7 @@ function knobFactory() {
       let _knob_touch = new paper.Shape.Circle({
         "name": "knob-touch",
         "center": new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y),
-        "radius": DEFAULT_TOUCHS_RADIUS
+        "radius": TOUCH_RADIUS
       });
 
       _knob_touch.style = {
@@ -221,7 +221,7 @@ function knobFactory() {
 
       _touch_txt.style = {
         "fillColor": "purple",
-        "fontSize": DEFAULT_FONT_SIZE
+        "fontSize": FONT_SIZE
       };
 
       _touch_group.addChild(_knob_needle);
@@ -287,7 +287,7 @@ function knobFactory() {
       let _knob_offset = new paper.Shape.Circle({
         //"name": "knob-offset",
         "center": new paper.Point(_knob_group.center.x + _knob_offset_pos.x, _knob_group.center.y + _knob_offset_pos.y),
-        "radius": DEFAULT_TOUCHS_RADIUS // TODO: mapping with the blob pressure!
+        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure!
       });
 
       _knob_offset.style = {

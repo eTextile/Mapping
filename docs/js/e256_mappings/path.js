@@ -57,7 +57,7 @@ function pathFactory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": this.data.segments[0],
-        "radius": DEFAULT_TOUCHS_RADIUS // TODO: mapping with the blob pressure!  
+        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure!  
       });
 
       _touch_circle.style = {
