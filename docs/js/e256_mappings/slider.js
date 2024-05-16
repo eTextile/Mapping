@@ -57,7 +57,6 @@ function sliderFactory() {
         touch_msg.pos_z = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE_Z);
         this.data.msg.push(touch_msg);
       }
-      console.log("CONF_A" + JSON.stringify(this.data.msg))
     },
 
     setup_from_config: function (params) {
@@ -80,7 +79,6 @@ function sliderFactory() {
       } else {
         this.dir = "H_SLIDER";
       }
-      console.log("DIR: " + this.dir);
     },
 
     save_params: function () {
@@ -120,34 +118,40 @@ function sliderFactory() {
     },
 
     new_touch: function (_slider, _touch_id) {
+
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
-        "pos": new paper.Point(
-          _slider.data.from.x + ((_slider.data.to.x - _slider.data.from.x) / 2),
-          get_random_int(_slider.data.from.y + 10, _slider.data.to.y - 10)
-        ),
         "msg": this.data.msg[_touch_id],
+        "pos": null,
         "prev_pos": null
-        //"prev_pos_z": null // NOT_USED
       });
 
-      let _touch_line = null;
-      if (this.dir === "V_SLIDER") {
-        _touch_line = new paper.Path.Line({
-          "name": "touch-line",
-          "from": new paper.Point(_slider.data.from.x, _touch_group.pos.y),
-          "to": new paper.Point(_slider.data.to.x, _touch_group.pos.y),
-          "locked": true
-        });
+      let _touch_line = new paper.Path.Line({
+        "name": "touch-line",
+        "from": null,
+        "to": null,
+        "locked": true
+      });
+
+      switch (this.dir) {
+        case "V_SLIDER":
+          _touch_group.pos = new paper.Point(
+            this.data.from.x + ((this.data.to.x - this.data.from.x) / 2),
+            get_random_int(this.data.from.y + 10, this.data.to.y - 10)
+          );
+          _touch_line.segments[0].point = new paper.Point(this.data.from.x, _touch_group.pos.y);
+          _touch_line.segments[1].point = new paper.Point(this.data.to.x, _touch_group.pos.y);
+          break;
+        case "H_SLIDER":
+          _touch_group.pos = new paper.Point(
+            get_random_int(this.data.from.x + 10, this.data.to.x - 10),
+            this.data.from.y + ((this.data.to.y - this.data.from.y) / 2)
+          );
+          _touch_line.segments[0].point = new paper.Point(_touch_group.pos.x, this.data.from.y);
+          _touch_line.segments[1].point = new paper.Point(_touch_group.pos.x, this.data.to.y);
+          break;
       }
-      else {
-        _touch_line = new paper.Path.Line({
-          "name": "touch-line",
-          "from": new paper.Point(_touch_group.pos.x, _slider.data.from.y),
-          "to": new paper.Point(_touch_group.pos.x, _slider.data.to.y),
-          "locked": true
-        });
-      }
+      console.log(_touch_group.pos);
 
       _touch_line.style = {
         "strokeWidth": 1,
