@@ -23,7 +23,7 @@ function list_layer_params(layer) {
       case "grid":
         let grid_params = {};
         for (const param in item.data) {
-          if (param === "from" || param === "to") {
+          if (item.data[param].constructor.name === "Point") {
             grid_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
@@ -38,20 +38,14 @@ function list_layer_params(layer) {
       case "touchpad":
         let touchpad_params = {};
         for (const param in item.data) {
-          if (param === "from" || param === "to") {
+          if (item.data[param].constructor.name === "Point") {
             touchpad_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
             ];
           }
           else {
-            if (param === "mode") {
-              touchpad_params[param] = item.data[param];
-              //console.log("A: " + item.data[param]);
-              //console.log("B: " + (param));
-            } else {
-              touchpad_params[param] = item.data[param];
-            }
+            touchpad_params[param] = item.data[param];
           }
         }
         e256_params.push(touchpad_params);
@@ -60,7 +54,7 @@ function list_layer_params(layer) {
       case "slider":
         let slider_params = {};
         for (const param in item.data) {
-          if (param === "from" || param === "to") {
+          if (item.data[param].constructor.name === "Point") {
             slider_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
@@ -76,10 +70,12 @@ function list_layer_params(layer) {
       case "switch":
         let switch_params = {};
         for (const param in item.data) {
+          /*
           if (param === "mode_z") {
             // This parameter is removed
           }
-          else if (param === "from" || param === "to") {
+          */
+          if (item.data[param].constructor.name === "Point") {
             switch_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
@@ -88,7 +84,8 @@ function list_layer_params(layer) {
           else {
             //console.log("A: " + item.data[param][0]["pos_z"]);
             //console.log("A: " + JSON.stringify(item.data[param][0]["pos_z"]["msg"]));
-            switch_params[param] = item.data[param][0]["pos_z"];
+            switch_params[param] = item.data[param];
+            //switch_params[param] = item.data[param][0]["pos_z"];
           }
         }
         e256_params.push(switch_params);
@@ -97,7 +94,7 @@ function list_layer_params(layer) {
       case "knob":
         let knob_params = {};
         for (const param in item.data) {
-          if (param === "from" || param === "to") {
+          if (item.data[param].constructor.name === "Point") {
             knob_params[param] = [
               Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
               Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))

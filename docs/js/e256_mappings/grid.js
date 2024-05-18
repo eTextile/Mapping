@@ -1,7 +1,7 @@
 /*
   This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
-  This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
+  This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
 /////////// GRID Factory
@@ -64,15 +64,19 @@ function gridFactory() {
     },
 
     setup_from_config: function (params) {
-      this.data.from = new paper.Point(params.from);
-      this.data.to = new paper.Point(params.to);
+      this.data.from = new paper.Point(
+        mapp(params.from[0], 0, MATRIX_RESOLUTION_X, 0, canvas_width),
+        mapp(params.from[1], 0, MATRIX_RESOLUTION_Y, 0, canvas_height)
+      );
+      this.data.to = new paper.Point(
+        mapp(params.to[0], 0, MATRIX_RESOLUTION_X, 0, canvas_width),
+        mapp(params.to[1], 0, MATRIX_RESOLUTION_Y, 0, canvas_height)
+      );
       this.data.cols = params.cols;
       this.data.rows = params.rows;
-      this.data.mode_z = params.mode_z;
-      this.data.msg = [];
-      for (const _grid_key in params.keys) {
-        this.data.msg.push(_grid_key); // NOT_TESTED!
-      }
+      this.data.msg = params.msg;
+      let status = midi_msg_status_unpack(params.msg[0].pos_z.midi.status);
+      this.data.mode_z = status.type;
     },
 
     save_params: function () {

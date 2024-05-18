@@ -93,7 +93,6 @@
 
           <div id="editMenu" class="collapse">
             <div id="mappingToolsMenu">
-              <button id="getConfig" class="btn btn-outline-primary input-group" type="button">GET CONFIG</button>
               <div class="btn-group input-group" role="group">
                 <button id="touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
                 <button id="switch" class="mapingTool btn btn-outline-primary" type="button">Switch</button>
@@ -102,13 +101,13 @@
                 <button id="grid" class="mapingTool btn btn-outline-primary" type="button">Grid</button>
                 <button id="path" class="mapingTool btn btn-outline-primary" type="button">Path</button>
               </div>
-              <button id="exportConfig" class="btn btn-outline-primary input-group" type="button">LOG_CONFIG</button>
+              <div class="btn-group input-group" role="group">
+                <button id="fetchConfig" class="btn btn-outline-primary" type="button">FETCH CONFIG</button>
+                <button id="uploadConfig" class="btn btn-outline-primary" type="button">UPLOAD CONFIG</button>
+              </div>
+              <button id="saveConfig" class="btn btn-outline-primary input-group" type="button">SAVE CONFIG</button>
               <div id="loadMenu" class="collapse">
                 <input id="loadConfig" class="form-control form-control-sm" type="file" accept=".json, .wav">
-              </div>
-              <div class="btn-group input-group" role="group">
-                <button id="uploadConfig" class="btn btn-outline-primary" type="button">UPLOAD CONFIG</button>
-                <button id="saveConfig" class="btn btn-outline-primary" type="button">SAVE CONFIG</button>
               </div>
             </div>
           </div>
@@ -124,25 +123,25 @@
     </section>
 
     <section id="page" class="col-sm-6">
-        
-        <div id="loadingCanvas" class="container collapse">
-          <div class="sensor">
-            <div id="canvas-1D"></div>
-          </div>
-        </div>
 
-        <div id="mappingCanvas" class="container collapse">
-          <div class="sensor d-flex justify-content-center">
-            <canvas id="canvas-2D"></canvas>
-          </div>
+      <div id="loadingCanvas" class="container collapse">
+        <div class="sensor">
+          <div id="canvas-1D"></div>
         </div>
+      </div>
 
-        <div id="matrixCanvas" class="container collapse">
-          <div class="sensor d-flex justify-content-center">
-            <div id="canvas-3D"></div>
-          </div>
+      <div id="mappingCanvas" class="container collapse">
+        <div class="sensor d-flex justify-content-center">
+          <canvas id="canvas-2D"></canvas>
         </div>
-        
+      </div>
+
+      <div id="matrixCanvas" class="container collapse">
+        <div class="sensor d-flex justify-content-center">
+          <div id="canvas-3D"></div>
+        </div>
+      </div>
+
     </section>
 
     <section class="col-sm-3 sidenav d-flex flex-column">

@@ -27,7 +27,6 @@ $("#connectSwitch").on("change", function () {
 });
 
 $(".e256_setMode").click(function (event) {
-
   switch (event.target.id) {
     case "matrixMode":
       e256_current_mode = MATRIX_MODE_RAW;
@@ -98,25 +97,27 @@ $("#saveConfig").click(function () {
 });
 
 $(".mapingTool").click(function (event) {
-  //$("#optionsMenu").collapse("show");
-  //$(".param").collapse("hide");
   e256_draw_mode = event.target.id;
-  //console.log("DRAW_MODE: " + e256_draw_mode);
   create_once = false;
 });
 
 $("#calibrate").click(function () {
-  send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CALIBRATE_REQUEST));
-  console.log("REQUEST: CALIBRATE");
+  if (midi_device_connected) {
+    send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CALIBRATE_REQUEST));
+    console.log("REQUEST: CALIBRATE");
+  } else {
+    alert("e256 NOT CONNECTED!");
+  }
 });
 
-$("#getConfig").click(function () {
-  send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CONFIG_FILE_REQUEST));
-  console.log("REQUEST: CONFIG_FILE");
-});
+$("#fetchConfig").click(function () {
+  if (midi_device_connected) {
+    send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CONFIG_FILE_REQUEST));
+    console.log("REQUEST: CONFIG_FILE");
+  } else {
+    alert("e256 NOT CONNECTED!");
+  }
 
-$("#exportConfig").click(function () {
-  e256_export_params();
 });
 
 // Update graphic item using form params

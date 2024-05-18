@@ -1,7 +1,7 @@
 /*
   This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
-  This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
+  This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
 /////////// SLIDER Factory
@@ -56,6 +56,7 @@ function sliderFactory() {
         touch_msg.dir = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
         touch_msg.pos_z = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE_Z);
         this.data.msg.push(touch_msg);
+        console.log(this.data.msg);
       }
     },
 
@@ -151,7 +152,6 @@ function sliderFactory() {
           _touch_line.segments[1].point = new paper.Point(_touch_group.pos.x, this.data.to.y);
           break;
       }
-      console.log(_touch_group.pos);
 
       _touch_line.style = {
         "strokeWidth": 1,

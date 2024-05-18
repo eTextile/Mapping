@@ -1,7 +1,7 @@
 /*
   This file is part of the eTextile-Synthesizer project - https://synth.eTextile.org
   Copyright (c) 2014-2024 Maurin Donneaud <maurin@etextile.org>
-  This work is licensed under Creative Codatammons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
+  This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
 /////////// KNOB Factory
@@ -61,11 +61,18 @@ function knobFactory() {
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs;
-      this.data.mode_z = DEFAULT_KNOB_MODE_Z;
-      this.data.from = new paper.Point(params.from);
-      this.data.to = new paper.Point(params.to);
+      this.data.from = new paper.Point(
+        mapp(params.from[0], 0, MATRIX_RESOLUTION_X, 0, canvas_width),
+        mapp(params.from[1], 0, MATRIX_RESOLUTION_Y, 0, canvas_height)
+      );
+      this.data.to = new paper.Point(
+        mapp(params.to[0], 0, MATRIX_RESOLUTION_X, 0, canvas_width),
+        mapp(params.to[1], 0, MATRIX_RESOLUTION_Y, 0, canvas_height)
+      );
       this.data.offset = params.offset;
       this.data.msg = params.msg;
+      let status = midi_msg_status_unpack(params.msg[0].pos_z.midi.status);
+      this.data.mode_z = status.type;
 
       this.radius = (this.data.to.x - this.data.from.x) / 2;
       this.center = new paper.Point(this.data.from.x + this.radius, this.data.from.y + this.radius);
