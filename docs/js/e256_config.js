@@ -32,10 +32,9 @@ const PENDING_MODE = 0;        // Waiting mode
 const SYNC_MODE = 1;           // Hand chake mode
 const STANDALONE_MODE = 2;     // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
 const MATRIX_MODE_RAW = 3;     // Get matrix analog sensor values (16x16) over USB using MIDI format
-const MATRIX_MODE_INTERP = 4;  // Get matrix analog sensor values (16x16) over USB using MIDI format
-const EDIT_MODE = 5;           // Get all blobs values over USB using MIDI format
-const PLAY_MODE = 6;           // Get mappings values over USB using MIDI format
-const ERROR_MODE = 7;          // Unexpected behaviour
+const EDIT_MODE = 4;           // Get all blobs values over USB using MIDI format
+const PLAY_MODE = 5;           // Get mappings values over USB using MIDI format
+const ERROR_MODE = 6;          // Unexpected behaviour
 
 // VERBOSITY MODES CONSTANTS
 const MODES_CODES = {
@@ -43,10 +42,9 @@ const MODES_CODES = {
   1: "SYNC_MODE",
   2: "STANDALONE_MODE",
   3: "MATRIX_MODE_RAW",
-  4: "MATRIX_MODE_INTERP",
-  5: "EDIT_MODE",
-  6: "PLAY_MODE",
-  7: "ERROR_MODE"
+  4: "EDIT_MODE",
+  5: "PLAY_MODE",
+  6: "ERROR_MODE"
 };
 
 // STATES CONSTANTS (MIDI_STATES_CHANNEL)

@@ -6,7 +6,7 @@
 
 var MIDIInput = null;
 var MIDIOutput = null;
-var midi_device_connected = true; // Set it fals for production!
+var midi_device_connected = false; // Set it fals for production!
 var loaded_file = null;
 var conf_size = 0;
 

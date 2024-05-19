@@ -91,7 +91,7 @@ $("#uploadConfig").click(function () {
 
 $("#saveConfig").click(function () {
   e256_export_params();
-  console.log(JSON.stringify(e256_config));
+  //console.log(JSON.stringify(e256_config));
   var file = new File([JSON.stringify(e256_config)], { type: "text/plain;charset=utf-8" });
   saveAs(file, "e256_mapping.json");
 });
