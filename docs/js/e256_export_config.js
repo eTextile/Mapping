@@ -13,6 +13,8 @@ function e256_export_params() {
       e256_config["mappings"][layer.name] = list_layer_params(layer);
     }
   }
+  conf_size = Object.keys(JSON.stringify(e256_config)).length;
+  console.log("CONF_SIZE_OUT: " + conf_size);
 }
 
 function list_layer_params(layer) {

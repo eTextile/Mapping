@@ -4,105 +4,139 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-function Blob(id, x, y, z, w, h) {
-  this.uid = id;
-  this.touch.x = x;
-  this.touch.y = y;
-  this.touch.z = z;
-  this.touch.w = w;
-  this.touch.h = h;
-  this.path = [];
+function blobFactory() {
+  const DEFAULT_PATH_STROKE_WIDTH = 2;
+  const DEFAULT_TOUCH_RADIUS = 10;
 
-  let blob_touch = new paper.Path.Circle({
-    "name": "blob-touch",
-    "center": new paper.Point(this.x, this.y),
-    "radius": this.z
+  let scale_factor = null;
+
+  var blob = new paper.Group({
+    "name": "blob",
+    "UID": null,
+
+    setupp: function (midiMsg) {
+      this.UID = midiMsg[1]
+      scale_factor = 6; // FIXME!
+    },
+
+    create: function () {
+      let _blob_group = new paper.Group({
+        "name": "blob-group",
+      });
+
+      let _blob_centroid = new paper.Shape.Circle({
+        "name": "blob-centroid",
+        "center": null,
+        "radius": DEFAULT_TOUCH_RADIUS
+      });
+
+      _blob_centroid.style = {
+        "fillColor": "red"
+      };
+
+      _blob_group.addChild(_blob_centroid);
+
+      let _blob_rect = new paper.Path.Rectangle({
+        "name": "blob-rect",
+      });
+      _blob_group.addChild(_blob_rect);
+
+      let _blob_path = new paper.Path({
+        "name": "blob-path",
+        "segments": [],
+        "closed": false
+      });
+
+      _blob_path.style = {
+        "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
+        "strokeColor": "black",
+        "strokeCap": "round",
+        "strokeJoin": "round"
+      }
+      _blob_group.addChild(_blob_path);
+
+      this.addChild(_blob_group);
+    },
+
+    update: function (sysExMsg) {
+      let centroid = new paper.Point(
+        sysExMsg[2] * scale_factor,
+        sysExMsg[3] * scale_factor
+      );
+      let radius = sysExMsg[4];
+      let width = sysExMsg[5] * scale_factor;
+      let height = sysExMsg[6] * scale_factor;
+
+      this.children["blob-group"].children["blob-centroid"].position = centroid;
+      this.children["blob-group"].children["blob-centroid"].size = radius;
+      
+      //this.children["blob-group"].children["blob-path"].segments.push(centroid);
+      
+      //this.children["blob-group"].children["blob-rect"].pos = centroid;
+      //this.children["blob-group"].children["blob-rect"].width = width;
+      //this.children["blob-group"].children["blob-rect"].height = height;
+      
+      //this.path.smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15
+      //this.path.smooth({ type: 'continuous' }); // http://paperjs.org/reference/path/#smooth
+    },
+
+    print: function () {
+      console.log(
+        "ID:" + this.UID +
+        " X:" + this.children["blob-group"].children["blob-centroid"].center.x +
+        " Y:" + this.children["blob-group"].children["blob-centroid"].center.y +
+        " Z:" + this.children["blob-group"].children["blob-centroid"].radius +
+        " W:" + this.children["blob-group"].children["blob-rect"].width +
+        " H:" + this.children["blob-group"].children["blob-rect"].height
+      );
+    }
+
   });
-  blob_touch.style = {
-    "fillColor": "red"
-  }
-  this.add(blob_touch);
+  return blob;
+};
 
-  let blob_path = new paper.Path({
-    "name": "blob-path",
-  });
-  blob_path.style = {
-    "strokeColor": "balck"
-  }
-  this.add(blob_path);
-}
-
-Blob.prototype.update = function (sysExMsg) {
-  this.touch.x = sysExMsg[2] * scale_factor;
-  this.touch.y = sysExMsg[3] * scale_factor;
-  this.touch.z = sysExMsg[4];
-  this.touch.w = sysExMsg[5] * scale_factor;
-  this.touch.h = sysExMsg[6] * scale_factor;
-  this.path.add(new paper.Point(this.touch.x, this.touch.y));
-  //this.path.smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15
-  //this.path.smooth({ type: 'continuous' }); // http://paperjs.org/reference/path/#smooth
-}
-
-Blob.prototype.print = function () {
-  console.log(
-    "ID:" + this.uid +
-    " X:" + this.touch.x +
-    " Y:" + this.touch.y +
-    " Z:" + this.touch.z +
-    " W:" + this.touch.w +
-    " H:" + this.touch.h
-  );
-}
-
-// Blobs array management
-function Blobs() {
+/////////////////////////////////// Blobs array management
+function blobs_array() {
   this.blobs = [];
 }
 
-Blobs.prototype.add = function (midiMsg) {
-  let note = midiMsg.data[1];
-  //let velocity = midiMsg.data[2];
-  if (this.blobs.findIndex(blob => blob.uid === note) === -1) {
-    this.blobs.push(new Blob(note, 0, 0, 0, 0, 0));
+blobs_array.prototype.add = function (midiMsg) {
+  if (this.blobs.findIndex(blob => blob.UID === midiMsg[1]) === -1) {
+    let new_blob = new blobFactory();
+    new_blob.setupp(midiMsg);
+    new_blob.create();
+    this.blobs.push(new_blob);
+    //console.log("BLOB_ADD / ADDED: " + midiMsg[1])
   } else {
-    console.log("BLOB_ADD / EXISTING: " + note);
+    console.log("BLOB_ADD / EXISTING: " + midiMsg[1]);
     return;
   }
 }
 
-Blobs.prototype.remove = function (midiMsg) {
-  let note = midiMsg.data[1];
-  //let velocity = midiMsg.data[2];
-
-  let index = this.blobs.findIndex(blob => blob.uid === note);
-  if (index !== -1) {
-    this.blobs.splice(index, 1);
-  } else {
-    console.log("BLOB_REMOVE / NOT_FOUND: " + note);
-    return;
-  }
-}
-
-Blobs.prototype.update = function (sysExMsg) {
-  let index = this.blobs.findIndex(blob => blob.uid === sysExMsg[1]);
+blobs_array.prototype.update = function (sysExMsg) {
+  let index = this.blobs.findIndex(blob => blob.UID === sysExMsg[1]);
   if (index !== -1) {
     this.blobs[index].update(sysExMsg);
+    //console.log("BLOB_UPDATE / UPDATED: " + sysExMsg[1]);
+    //console.log("INDEX: " + index);
   } else {
     console.log("BLOB_UPDATE / NOT_FOUND: " + sysExMsg[1]);
     return;
   }
 }
 
-/*
-Blobs.prototype.get = function (index) {
-  return this.blobs[index];
+blobs_array.prototype.remove = function (midiMsg) {
+  let index = this.blobs.findIndex(blob => blob.UID === midiMsg[1]);
+  if (index !== -1) {
+    console.log("INDEX: " + index);
+    //this.blobs[index].remove;
+    this.blobs[index].children["blob-group"].children["blob-centroid"].fillColor = null;
+    this.blobs.splice(index, 1);
+    //console.log("BLOB_REMOVE / REMOVED: " + midiMsg[1]);
+  } else {
+    console.log("BLOB_REMOVE / NOT_FOUND: " + midiMsg[1]);
+    return;
+  }
 }
-*/
 
-/*
-Blobs.prototype.size = function () {
-  return this.blobs.length;
-}
-*/
-
-e256_blobs = new Blobs();
+var e256_blobs = new blobs_array;

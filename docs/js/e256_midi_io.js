@@ -6,28 +6,18 @@
 
 var MIDIInput = null;
 var MIDIOutput = null;
-var midi_device_connected = false; // Set it fals for production!
+var midi_device_connected = true; // SET I TO FALSE
 var loaded_file = null;
-var conf_size = 0;
 
-const DEFAULT_MIDI_CHANNEL = 1; // [1:16]
+const DEFAULT_MIDI_CHANNEL = 1;     // [1:16]
 const DEFAULT_MIDI_NOTE = 64;
-const DEFAULT_MIDI_VELOCITY = 127;   // [0:127]
+const DEFAULT_MIDI_VELOCITY = 127;  // [0:127]
 const DEFAULT_MIDI_VALUE = 0;
 const DEFAULT_MIDI_CC = 23;
 const DEFAULT_MIDI_AFT = 24;
 const DEFAULT_MIDI_PGM = 10;
 const DEFAULT_MIDI_MIN = 0;
 const DEFAULT_MIDI_MAX = 127;
-
-/*
-function* midi_index() {
-  yield index = 0;
-  index = index + 1;
-  index = index % 128;
-  yield index;
-}
-*/
 
 function* midi_index() {
   let index = 1;
@@ -162,29 +152,6 @@ async function MIDIrequest() {
 function onMIDISuccess(midiAccess) {
   let inputSetup = false;
   let outputSetup = false;
-
-  /*
-  for (var entry of midiAccess.inputs.values()) {
-    if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
-      MIDIInput = entry;
-      MIDIInput.onmidimessage = onMIDIMessage;
-      inputSetup = true;
-    }
-    for (var entry of midiAccess.outputs.values()) {
-      if (entry.name === "ETEXTILE_SYNTH MIDI 1") {
-        MIDIOutput = entry;
-        outputSetup = true;
-      }
-    }
-    if (inputSetup && outputSetup) {
-      midi_device_connected = true;      
-      send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
-      console.log("SYNC_MODE_REQUEST_A - CODE:" + SYNC_MODE + " CHANNEL:" + MIDI_MODES_CHANNEL);
-      setTimeout(isConnected, SYNC_MODE_TIMEOUT);
-    }
-  }
-  */
-
   midiAccess.onstatechange = function (msg) {
     switch (msg.port.state) {
       case "connected":
@@ -267,13 +234,13 @@ function onMIDIMessage(midiMsg) {
 
   switch (status.type) {
     case NOTE_ON:
-      e256_blobs.add(midiMsg); // TODO: move it to SYS_EX!
+      e256_blobs.add(midiMsg.data);
       break;
     case NOTE_OFF:
-      e256_blobs.remove(midiMsg); // TODO: move it to SYS_EX!
+      e256_blobs.remove(midiMsg.data);
       break;
-    case CONTROL_CHANGE:
-      //
+    case C_CHANGE:
+      // N/A
       break;
     case P_CHANGE:
       switch (status.channel) {
@@ -298,7 +265,7 @@ function onMIDIMessage(midiMsg) {
               console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
               break;
             default:
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+              console.log("RECEIVED: " + VERBOSITY_CODES[data1]); //
               break;
           }
           break;
@@ -307,26 +274,23 @@ function onMIDIMessage(midiMsg) {
           break;
       }
       break;
-    case SYSTEM_EXCLUSIVE:
+    case SYS_EX:
       switch (e256_current_mode) {
-        case SYNC_MODE:
+        case FETCH_MODE:
           console.log("RECEIVED: CONFIG_FILE");
           let string = new TextDecoder().decode(midiMsg.data);
           let config_file = string.slice(1, -1);
-          draw_controler_from_config(JSON.parse(config_file));
+          draw_controler_from_config(config_file); // FIXME: ReferenceError: draw_controler_from_config is not defined
           e256_current_mode = EDIT_MODE;
           break;
         case MATRIX_MODE_RAW:
           e256_matrix.update(midiMsg.data);
           break;
-        case MATRIX_MODE_INTERP:
-          // TODO
-          break;
         case EDIT_MODE:
           e256_blobs.update(midiMsg.data);
           break;
         case PLAY_MODE:
-          e256_blobs.update(midiMsg.data);
+          // N/A
           break;
       }
       break;
@@ -336,14 +300,18 @@ function onMIDIMessage(midiMsg) {
 }
 
 function send_midi_msg(midiMsg) {
-  const msg = Object.values(midiMsg);
   if (midi_device_connected) {
-    //MIDIOutput.send(msg); // UNCOMMENT IN PRODUCTION!!!!!!!!!!!!!!!!!!!!!
-    midi_term.push(midiMsg);
+    //console.log("OUT:" + Object.values(midiMsg));
+    if (midiMsg.data2 === null) {
+      //MIDIOutput.send([midiMsg.status, midiMsg.data1]);
+    } else {
+      //MIDIOutput.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);
+    }
   }
   else {
     alert("MIDI_HARDWARE IS NOT CONNECTED!");
   }
+  midi_term.push(midiMsg);
 }
 
 // Send data via MIDI system exclusive message
@@ -354,9 +322,9 @@ function send_midi_msg(midiMsg) {
 function sysex_alloc(identifier, size) {
   let size_msb = size >> 7;
   let size_lsb = size & 0x7F;
-  let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
-  //let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END];
-  let midiMsg = header.concat(size_msb).concat(size_lsb).concat(SYSEX_END);
+  let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END];
+  //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
+  //let midiMsg = header.concat(identifier).concat(size_msb).concat(size_lsb).concat(SYSEX_END);
   MIDIOutput.send(midiMsg);
 }
 
@@ -368,7 +336,7 @@ function sysex_upload(data) {
 }
 
 function e256_alocate_memory() {
-  switch (loaded_file.type) {
+  switch (loaded_file.type) { // loaded_file => e256_config !?
     case "application/json":
       if (conf_size < FLASH_SIZE) {
         sysex_alloc(SYSEX_CONF, conf_size);

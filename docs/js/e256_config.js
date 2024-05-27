@@ -8,6 +8,12 @@ const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
 const VERSION = "1.0.21";
 
+var current_controleur = { "id": null };
+var previous_controleur = { "id": null };
+var current_touch = { "id": null };
+var previous_touch = { "id": null };
+var current_part = { "id": null };
+
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 4096;
 const RAW_COLS = 16;
@@ -18,8 +24,8 @@ const MATRIX_RESOLUTION_Y = 64;
 
 // E256 MIDI I/O CHANNELS CONSTANTS [1:15]
 // QUICK_FIX: if sending on channel 1, eTextile-synth is receiving on channel 2
-const MIDI_INPUT_CHANNEL = 1;
-const MIDI_OUTPUT_CHANNEL = 2;
+//const MIDI_INPUT_CHANNEL = 1;
+//const MIDI_OUTPUT_CHANNEL = 2;
 
 const MIDI_MODES_CHANNEL = 3;
 const MIDI_STATES_CHANNEL = 4;
@@ -34,7 +40,8 @@ const STANDALONE_MODE = 2;     // e256 synth is sending mappings values over MID
 const MATRIX_MODE_RAW = 3;     // Get matrix analog sensor values (16x16) over USB using MIDI format
 const EDIT_MODE = 4;           // Get all blobs values over USB using MIDI format
 const PLAY_MODE = 5;           // Get mappings values over USB using MIDI format
-const ERROR_MODE = 6;          // Unexpected behaviour
+const FETCH_MODE = 6;          // Get mapping config file
+const ERROR_MODE = 7;          // Unexpected behaviour
 
 // VERBOSITY MODES CONSTANTS
 const MODES_CODES = {
@@ -44,7 +51,8 @@ const MODES_CODES = {
   3: "MATRIX_MODE_RAW",
   4: "EDIT_MODE",
   5: "PLAY_MODE",
-  6: "ERROR_MODE"
+  6: "FETCH_MODE",
+  7: "ERROR_MODE"
 };
 
 // STATES CONSTANTS (MIDI_STATES_CHANNEL)
@@ -88,7 +96,7 @@ const DATA1 = {
   0x8: "note",
   0x9: "note",
   0xA: "press",
-  0xB: "cc", // val ==> cc
+  0xB: "cc",
   0xC: "pgm",
   0xD: "lsb",
   0xE: "??", // FIXME!
@@ -98,12 +106,12 @@ const DATA1 = {
 const DATA2 = {
   0x8: "velo",
   0x9: "velo",
-  0xA: "null",
-  0xB: "null",
-  0xC: "null",
+  0xA: null,
+  0xB: null,
+  0xC: null,
   0xD: "msb",
   0xE: "??", // FIXME!
-  0xF: "null"
+  0xF: null
 };
 
 const SYNC_MODE_TIMEOUT = 4000;
@@ -112,37 +120,35 @@ const SYNC_MODE_TIMEOUT = 4000;
 const PENDING_MODE_DONE = 0;
 const SYNC_MODE_DONE = 1;
 const MATRIX_MODE_RAW_DONE = 2;
-const MATRIX_MODE_INTERP_DONE = 3;
-const EDIT_MODE_DONE = 4;
-const PLAY_MODE_DONE = 5;
-const FLASH_CONFIG_ALLOC_DONE = 6;
-const FLASH_CONFIG_LOAD_DONE = 7;
-const FLASH_CONFIG_WRITE_DONE = 8;
-const USBMIDI_CONFIG_ALLOC_DONE = 9;
-const USBMIDI_CONFIG_LOAD_DONE = 10;
-const CONFIG_APPLY_DONE = 11;
-const USBMIDI_SOUND_LOAD_DONE = 12;
-const USBMIDI_LEVEL_SET_DONE = 13;
-const CALIBRATE_DONE = 14;
-const DONE_ACTION = 15;
+const EDIT_MODE_DONE = 3;
+const PLAY_MODE_DONE = 4;
+const FLASH_CONFIG_ALLOC_DONE = 5;
+const FLASH_CONFIG_LOAD_DONE = 6;
+const FLASH_CONFIG_WRITE_DONE = 7;
+const USBMIDI_CONFIG_ALLOC_DONE = 8;
+const USBMIDI_CONFIG_LOAD_DONE = 9;
+const CONFIG_APPLY_DONE = 10;
+const USBMIDI_SOUND_LOAD_DONE = 11;
+const USBMIDI_SET_LEVEL_DONE = 12;
+const CALIBRATE_DONE = 13;
+const DONE_ACTION = 14;
 
 const VERBOSITY_CODES = {
   0: "PENDING_MODE_DONE",
   1: "SYNC_MODE_DONE",
   2: "MATRIX_MODE_RAW_DONE",
-  3: "MATRIX_MODE_INTERP_DONE",
-  4: "EDIT_MODE_DONE",
-  5: "PLAY_MODE_DONE",
-  6: "FLASH_CONFIG_ALLOC_DONE",
-  7: "FLASH_CONFIG_LOAD_DONE",
-  8: "FLASH_CONFIG_WRITE_DONE",
-  9: "USBMIDI_CONFIG_ALLOC_DONE",
-  10: "USBMIDI_CONFIG_LOAD_DONE",
-  11: "CONFIG_APPLY_DONE",
-  12: "USBMIDI_SOUND_LOAD_DONE",
-  13: "USBMIDI_LEVEL_SET_DONE",
-  14: "CALIBRATE_DONE",
-  15: "DONE_ACTION"
+  3: "EDIT_MODE_DONE",
+  4: "PLAY_MODE_DONE",
+  5: "FLASH_CONFIG_ALLOC_DONE",
+  6: "FLASH_CONFIG_LOAD_DONE",
+  7: "FLASH_CONFIG_WRITE_DONE",
+  8: "USBMIDI_CONFIG_ALLOC_DONE",
+  9: "USBMIDI_CONFIG_LOAD_DONE",
+  10: "CONFIG_APPLY_DONE",
+  11: "USBMIDI_SOUND_LOAD_DONE",
+  12: "USBMIDI_SET_LEVEL_DONE",
+  13: "CALIBRATE_DONE",
+  14: "DONE_ACTION"
 };
 
 // ERROR CODES CONSTANTS

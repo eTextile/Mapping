@@ -91,8 +91,9 @@ $("#uploadConfig").click(function () {
 
 $("#saveConfig").click(function () {
   e256_export_params();
-  //console.log(JSON.stringify(e256_config));
+  console.log(JSON.stringify(e256_config));
   var file = new File([JSON.stringify(e256_config)], { type: "text/plain;charset=utf-8" });
+  // Naming the file!!!!!
   saveAs(file, "e256_mapping.json");
 });
 
@@ -112,6 +113,7 @@ $("#calibrate").click(function () {
 
 $("#fetchConfig").click(function () {
   if (midi_device_connected) {
+    e256_current_mode = FETCH_MODE;
     send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CONFIG_FILE_REQUEST));
     console.log("REQUEST: CONFIG_FILE");
   } else {
