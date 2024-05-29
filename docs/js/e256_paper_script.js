@@ -145,7 +145,8 @@ function draw_controler_from_mouse(mouseEvent) {
   current_controleur.bringToFront();
 };
 
-function draw_controler_from_config(raw_configFile) { // FIXME: used in e256_midi_io.js
+function draw_controler_from_config(raw_configFile) {
+  console.log("RAW_CONF: " + raw_configFile);
   let configFile = JSON.parse(raw_configFile);
   // Clear all meunu params
   for (const layer of paper.project.layers) {
@@ -163,6 +164,7 @@ function draw_controler_from_config(raw_configFile) { // FIXME: used in e256_mid
   }
   // Create all controlers
   for (const _ctl_type in configFile.mappings) {
+    console.log("CTL_TYPE: " + _ctl_type);
     paper.project.layers[_ctl_type].activate();
     console.log(_ctl_type); // PROB!
     for (const _ctl_index in configFile.mappings[_ctl_type]) {

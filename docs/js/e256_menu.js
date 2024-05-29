@@ -83,6 +83,7 @@ $(".e256_setMode").click(function (event) {
 
 $("#uploadConfig").click(function () {
   if (midi_device_connected) {
+    e256_export_params();
     e256_alocate_memory();
   } else {
     alert("e256 NOT CONNECTED!");

@@ -6,7 +6,7 @@
 
 var MIDIInput = null;
 var MIDIOutput = null;
-var midi_device_connected = true; // SET I TO FALSE
+var midi_device_connected = false; // SET I TO FALSE
 var loaded_file = null;
 
 const DEFAULT_MIDI_CHANNEL = 1;     // [1:16]
@@ -221,7 +221,7 @@ function updateMenu() {
 function onMIDIMessage(midiMsg) {
   let status = midi_msg_status_unpack(midiMsg.data[0]);
   let data1 = midiMsg.data[1];
-  let data2 = midiMsg.data[2];
+  //let data2 = midiMsg.data[2];
 
   /*
   console.log (
@@ -278,9 +278,10 @@ function onMIDIMessage(midiMsg) {
       switch (e256_current_mode) {
         case FETCH_MODE:
           console.log("RECEIVED: CONFIG_FILE");
-          let string = new TextDecoder().decode(midiMsg.data);
-          let config_file = string.slice(1, -1);
-          draw_controler_from_config(config_file); // FIXME: ReferenceError: draw_controler_from_config is not defined
+          console.log("CONFIG_FILE: " + midiMsg.data); // FIXME!!!!!!!!!!!!!!!!!!!!!!!!!!
+          //let string = new TextDecoder().decode(midiMsg.data);
+          //let config_file = string.slice(1, -1);
+          //draw_controler_from_config(config_file);
           e256_current_mode = EDIT_MODE;
           break;
         case MATRIX_MODE_RAW:
@@ -303,9 +304,9 @@ function send_midi_msg(midiMsg) {
   if (midi_device_connected) {
     //console.log("OUT:" + Object.values(midiMsg));
     if (midiMsg.data2 === null) {
-      //MIDIOutput.send([midiMsg.status, midiMsg.data1]);
+      MIDIOutput.send([midiMsg.status, midiMsg.data1]);
     } else {
-      //MIDIOutput.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);
+      MIDIOutput.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);
     }
   }
   else {
@@ -320,23 +321,31 @@ function send_midi_msg(midiMsg) {
 // Send: [ SYSEX_BEGIN, SYSEX_DEVICE_ID, SYSEX_DATA, SYSEX_END ]
 // Recive: USBMIDI_CONFIG_LOAD_DONE
 function sysex_alloc(identifier, size) {
-  let size_msb = size >> 7;
-  let size_lsb = size & 0x7F;
-  let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END];
-  //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
-  //let midiMsg = header.concat(identifier).concat(size_msb).concat(size_lsb).concat(SYSEX_END);
-  MIDIOutput.send(midiMsg);
+  if (conf_size < FLASH_SIZE) {
+    let size_msb = size >> 7;
+    let size_lsb = size & 0x7F;
+    let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END];
+    //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
+    //let midiMsg = header.concat(identifier).concat(size_msb).concat(size_lsb).concat(SYSEX_END);
+    MIDIOutput.send(midiMsg);
+    console.log("OUT_" + midiMsg);
+  } else {
+    alert("FILE TO BIG!");
+  }
 }
 
 function sysex_upload(data) {
-  let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
-  //let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END];
-  let midiMsg = header.concat(data).concat(SYSEX_END);
+  let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END];
+  //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
+  //let midiMsg = header.concat(data).concat(SYSEX_END);
   MIDIOutput.send(midiMsg);
 }
 
 function e256_alocate_memory() {
-  switch (loaded_file.type) { // loaded_file => e256_config !?
+  sysex_alloc(SYSEX_CONF, conf_size);
+
+  /*
+  switch (loaded_file.type) {
     case "application/json":
       if (conf_size < FLASH_SIZE) {
         sysex_alloc(SYSEX_CONF, conf_size);
@@ -351,6 +360,7 @@ function e256_alocate_memory() {
       alert("MISSING FILE!");
       break;
   }
+  */
 }
 
 $(document).ready(function () {
