@@ -14,7 +14,7 @@ function blobFactory() {
     "name": "blob",
     "UID": null,
 
-    setupp: function (midiMsg) {
+    setup: function (midiMsg) {
       this.UID = midiMsg[1]
       scale_factor = 6; // FIXME!
     },
@@ -103,7 +103,7 @@ function blobs_array() {
 blobs_array.prototype.add = function (midiMsg) {
   if (this.blobs.findIndex(blob => blob.UID === midiMsg[1]) === -1) {
     let new_blob = new blobFactory();
-    new_blob.setupp(midiMsg);
+    new_blob.setup(midiMsg);
     new_blob.create();
     this.blobs.push(new_blob);
     //console.log("BLOB_ADD / ADDED: " + midiMsg[1])
@@ -120,7 +120,6 @@ blobs_array.prototype.update = function (sysExMsg) {
     //console.log("BLOB_UPDATE / UPDATED: " + sysExMsg[1]);
     //console.log("INDEX: " + index);
   } else {
-    console.log("BLOB_UPDATE / NOT_FOUND: " + sysExMsg[1]);
     return;
   }
 }

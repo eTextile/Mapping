@@ -146,8 +146,16 @@ function draw_controler_from_mouse(mouseEvent) {
 };
 
 function draw_controler_from_config(raw_configFile) {
-  console.log("RAW_CONF: " + raw_configFile);
-  let configFile = JSON.parse(raw_configFile);
+  let configFile = null;
+  try {
+    configFile = JSON.parse(raw_configFile);
+  } catch (err) {
+    console.log("NOT VALID JSON!");
+    return;
+  }
+  console.log("CONFIG: " + raw_configFile);
+
+  
   // Clear all meunu params
   for (const layer of paper.project.layers) {
     if (layer.hasChildren()) {
@@ -166,7 +174,6 @@ function draw_controler_from_config(raw_configFile) {
   for (const _ctl_type in configFile.mappings) {
     console.log("CTL_TYPE: " + _ctl_type);
     paper.project.layers[_ctl_type].activate();
-    console.log(_ctl_type); // PROB!
     for (const _ctl_index in configFile.mappings[_ctl_type]) {
       controleur_factory(_ctl_type);
       current_controleur.setup_from_config(configFile.mappings[_ctl_type][_ctl_index]);

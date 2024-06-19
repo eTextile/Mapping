@@ -22,42 +22,15 @@ const RAW_FRAME = RAW_COLS * RAW_ROWS;
 const MATRIX_RESOLUTION_X = 64;
 const MATRIX_RESOLUTION_Y = 64;
 
+// E256 SOFTWARE CONSTANTS
+const TOUCH_RADIUS = 25;
+const FONT_SIZE = 20;
+
 // E256 MIDI I/O CHANNELS CONSTANTS [1:15]
-// QUICK_FIX: if sending on channel 1, eTextile-synth is receiving on channel 2
-//const MIDI_INPUT_CHANNEL = 1;
-//const MIDI_OUTPUT_CHANNEL = 2;
-
-const MIDI_MODES_CHANNEL = 3;
-const MIDI_STATES_CHANNEL = 4;
-const MIDI_LEVELS_CHANNEL = 5;
-const MIDI_VERBOSITY_CHANNEL = 6;
-const MIDI_ERROR_CHANNEL = 7;
-
-// E256 MODES CONSTANTS (MIDI_MODES_CHANNEL)
-const PENDING_MODE = 0;        // Waiting mode
-const SYNC_MODE = 1;           // Hand chake mode
-const STANDALONE_MODE = 2;     // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
-const MATRIX_MODE_RAW = 3;     // Get matrix analog sensor values (16x16) over USB using MIDI format
-const EDIT_MODE = 4;           // Get all blobs values over USB using MIDI format
-const PLAY_MODE = 5;           // Get mappings values over USB using MIDI format
-const FETCH_MODE = 6;          // Get mapping config file
-const ERROR_MODE = 7;          // Unexpected behaviour
-
-// VERBOSITY MODES CONSTANTS
-const MODES_CODES = {
-  0: "PENDING_MODE",
-  1: "SYNC_MODE",
-  2: "STANDALONE_MODE",
-  3: "MATRIX_MODE_RAW",
-  4: "EDIT_MODE",
-  5: "PLAY_MODE",
-  6: "FETCH_MODE",
-  7: "ERROR_MODE"
-};
-
-// STATES CONSTANTS (MIDI_STATES_CHANNEL)
-const CALIBRATE_REQUEST = 0;   // Calibrate the ETEXTILE_SYNTH 
-const CONFIG_FILE_REQUEST = 1; // Check if there is a config file loaded in the ETEXTILE_SYNTH
+const MIDI_LEVELS_CHANNEL = 3;
+const MIDI_MODES_CHANNEL = 4;
+const MIDI_VERBOSITY_CHANNEL = 5;
+const MIDI_ERROR_CHANNEL = 6;
 
 // LEVELS CONSTANTS (MIDI_LEVELS_CHANNEL)
 const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
@@ -74,6 +47,25 @@ const P_CHANGE = 0xC;     // PROGRAM_CHANGE
 const C_AFTERTOUCH = 0xD; // CHANNEL_AFTERTOUCH
 const P_BEND = 0xE;       // PITCH_BEND
 const SYS_EX = 0xF;       // SYSTEM_EXCLUSIVE
+// type: 0xF1  TimeCodeQuarterFrame
+// type: 0xF2  SongPosition
+// type: 0xF3  SongSelect
+// type: 0xF6  TuneRequest
+// type: 0xF8  Clock
+// type: 0xFA  Start
+// type: 0xFB  Continue
+// type: 0xFC  Stop
+// type: 0xFE  ActiveSensing
+// type: 0xFF  SystemReset
+// type: 0xF8-0xFF - if more specific handler not configured
+
+const SYSEX_BEGIN = 0xF0;      // DEC: 240
+const SYSEX_END = 0xF7;        // DEC: 247
+const SYSEX_DEVICE_ID = 0x7D;  // DEC: 253 http://midi.teragonaudio.com/tech/midispec/id.html
+
+const SYSEX_CONF = 0x7C;       // DEC: 124
+const SYSEX_SOUND = 0x6C;      // DEC: 108
+//...
 
 const MIDI_TYPES = {
   0x8: "NOTE_OFF",        // NOTE_OFF
@@ -85,12 +77,6 @@ const MIDI_TYPES = {
   0xE: "P_BEND",          // PITCH_BEND
   0xF: "SYS_EX"           // SYSTEM_EXCLUSIVE
 };
-
-const SYSEX_BEGIN = 0xF0;      // DEC: 240
-const SYSEX_END = 0xF7;        // DEC: 247
-const SYSEX_DEVICE_ID = 0x7D;  // DEC: 253 http://midi.teragonaudio.com/tech/midispec/id.html
-const SYSEX_CONF = 0x7C;       // DEC: 124
-const SYSEX_SOUND = 0x6C;      // DEC: 108
 
 const DATA1 = {
   0x8: "note",
@@ -114,41 +100,71 @@ const DATA2 = {
   0xF: null
 };
 
-const SYNC_MODE_TIMEOUT = 4000;
+// E256 MODES CONSTANTS (MIDI_MODES_CHANNEL)
+const PENDING_MODE = 0;     // Waiting mode
+const SYNC_MODE = 1;        // Hand chake mode
+const CALIBRATE_MODE = 2;
+const MATRIX_MODE_RAW = 3;  // Get matrix analog sensor values (16x16) over USB using MIDI format
+const EDIT_MODE = 4;        // Get all blobs values over USB using MIDI format
+const PLAY_MODE = 5;        // Get mappings values over USB using MIDI format
+const ALLOCATE_MODE = 6;    //
+const UPLOAD_MODE = 7;      //
+const APPLY_MODE = 8;       //
+const WRITE_MODE = 9;       //
+const LOAD_MODE = 10;       //
+const FETCH_MODE = 11;      // Request mapping config file
+const STANDALONE_MODE = 12; // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
+const ERROR_MODE = 13;      // Unexpected behaviour
+
+// VERBOSITY MODES CONSTANTS
+const MODE_CODES = {
+  0: "PENDING_MODE",
+  1: "SYNC_MODE",
+  2: "CALIBRATE_MODE",
+  3: "MATRIX_MODE_RAW",
+  4: "EDIT_MODE",
+  5: "PLAY_MODE",
+  6: "ALLOCATE_MODE",
+  7: "UPLOAD_MODE",
+  8: "APPLY_MODE",
+  9: "WRITE_MODE",
+  10: "LOAD_MODE",
+  11: "FETCH_MODE",
+  12: "STANDALONE_MODE",
+  13: "ERROR_MODE"
+};
 
 // VERBOSITY CODES CONSTANTS
 const PENDING_MODE_DONE = 0;
 const SYNC_MODE_DONE = 1;
-const MATRIX_MODE_RAW_DONE = 2;
-const EDIT_MODE_DONE = 3;
-const PLAY_MODE_DONE = 4;
-const FLASH_CONFIG_ALLOC_DONE = 5;
-const FLASH_CONFIG_LOAD_DONE = 6;
-const FLASH_CONFIG_WRITE_DONE = 7;
-const USBMIDI_CONFIG_ALLOC_DONE = 8;
-const USBMIDI_CONFIG_LOAD_DONE = 9;
-const CONFIG_APPLY_DONE = 10;
-const USBMIDI_SOUND_LOAD_DONE = 11;
-const USBMIDI_SET_LEVEL_DONE = 12;
-const CALIBRATE_DONE = 13;
-const DONE_ACTION = 14;
+const CALIBRATE_MODE_DONE = 2;
+const MATRIX_MODE_RAW_DONE = 3;
+const EDIT_MODE_DONE = 4;
+const PLAY_MODE_DONE = 5;
+const ALLOCATE_MODE_DONE = 6;
+const UPLOAD_MODE_DONE = 7;
+const APPLY_MODE_DONE = 8;
+const WRITE_MODE_DONE = 9;
+const LOAD_MODE_DONE = 10;
+const FETCH_MODE_DONE = 11;
+const STANDALONE_MODE_DONE = 12;
+const DONE_ACTION = 13;
 
 const VERBOSITY_CODES = {
   0: "PENDING_MODE_DONE",
   1: "SYNC_MODE_DONE",
-  2: "MATRIX_MODE_RAW_DONE",
-  3: "EDIT_MODE_DONE",
-  4: "PLAY_MODE_DONE",
-  5: "FLASH_CONFIG_ALLOC_DONE",
-  6: "FLASH_CONFIG_LOAD_DONE",
-  7: "FLASH_CONFIG_WRITE_DONE",
-  8: "USBMIDI_CONFIG_ALLOC_DONE",
-  9: "USBMIDI_CONFIG_LOAD_DONE",
-  10: "CONFIG_APPLY_DONE",
-  11: "USBMIDI_SOUND_LOAD_DONE",
-  12: "USBMIDI_SET_LEVEL_DONE",
-  13: "CALIBRATE_DONE",
-  14: "DONE_ACTION"
+  2: "CALIBRATE_MODE_DONE",
+  3: "MATRIX_MODE_RAW_DONE",
+  4: "EDIT_MODE_DONE",
+  5: "PLAY_MODE_DONE",
+  6: "ALLOCATE_MODE_DONE",
+  7: "UPLOAD_MODE_DONE",
+  8: "APPLY_MODE_DONE",
+  9: "WRITE_MODE_DONE",
+  10: "LOAD_MODE_DONE",
+  11: "FETCH_MODE_DONE",
+  12: "STANDALONE_MODE_DONE",
+  13: "DONE_ACTION"
 };
 
 // ERROR CODES CONSTANTS
@@ -177,6 +193,3 @@ const ERROR_CODES = {
   9: "UNKNOWN_SYSEX",
   10: "TOO_MANY_BLOBS"
 };
-
-const TOUCH_RADIUS = 25;
-const FONT_SIZE = 20;

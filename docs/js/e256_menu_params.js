@@ -36,7 +36,7 @@ function create_item_menu_params(item) {
 function remove_item_menu_params(item) {
   let div_menu_params = document.getElementById("e256_params");
   let div_item_menu_params = document.getElementById(item.name + "_" + item.id);
-  div_menu_params.removeChild(div_item_menu_params);
+  if (div_item_menu_params) div_menu_params.removeChild(div_item_menu_params);
   //$("#contextualContent").html(" ");
 };
 

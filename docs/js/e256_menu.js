@@ -9,7 +9,7 @@ var e256_draw_mode = null;
 
 console.log("PROJECT: " + PROJECT);
 console.log("NAME: " + NAME + ": " + VERSION);
-console.log("MODE: " + MODES_CODES[e256_current_mode]);
+console.log("MODE: " + MODE_CODES[e256_current_mode]);
 
 $("#PROJECT").html(PROJECT);
 $("#NAME").html(NAME + " - " + VERSION);
@@ -78,24 +78,7 @@ $(".e256_setMode").click(function (event) {
   }
 
   send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
-  console.log("REQUEST: " + MODES_CODES[e256_current_mode]);
-});
-
-$("#uploadConfig").click(function () {
-  if (midi_device_connected) {
-    e256_export_params();
-    e256_alocate_memory();
-  } else {
-    alert("e256 NOT CONNECTED!");
-  }
-});
-
-$("#saveConfig").click(function () {
-  e256_export_params();
-  console.log(JSON.stringify(e256_config));
-  var file = new File([JSON.stringify(e256_config)], { type: "text/plain;charset=utf-8" });
-  // Naming the file!!!!!
-  saveAs(file, "e256_mapping.json");
+  console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
 });
 
 $(".mapingTool").click(function (event) {
@@ -105,22 +88,37 @@ $(".mapingTool").click(function (event) {
 
 $("#calibrate").click(function () {
   if (midi_device_connected) {
-    send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CALIBRATE_REQUEST));
-    console.log("REQUEST: CALIBRATE");
+    send_midi_msg(new program_change(MIDI_MODES_CHANNEL, CALIBRATE_MODE));
+    console.log("REQUEST: CALIBRATE_MODE");
   } else {
     alert("e256 NOT CONNECTED!");
   }
 });
 
-$("#fetchConfig").click(function () {
+$("#uploadConfig").click(function () {
   if (midi_device_connected) {
-    e256_current_mode = FETCH_MODE;
-    send_midi_msg(new program_change(MIDI_STATES_CHANNEL, CONFIG_FILE_REQUEST));
-    console.log("REQUEST: CONFIG_FILE");
+    send_midi_msg(new program_change(MIDI_MODES_CHANNEL, ALLOCATE_MODE));
+    console.log("REQUEST: ALLOCATE_MODE");
   } else {
     alert("e256 NOT CONNECTED!");
   }
+});
 
+$("#saveConfig").click(function () {
+  e256_export_params();
+  console.log(JSON.stringify(e256_config));
+  var file = new File([JSON.stringify(e256_config)], { type: "text/plain;charset=utf-8" });
+  // TODO: add file name!
+  saveAs(file, "e256_mapping.json");
+});
+
+$("#fetchConfig").click(function () {
+  if (midi_device_connected) {
+    send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
+    console.log("REQUEST: LOAD_MODE");
+  } else {
+    alert("e256 NOT CONNECTED!");
+  }
 });
 
 // Update graphic item using form params

@@ -15,11 +15,13 @@ function e256_export_params() {
   }
   conf_size = Object.keys(JSON.stringify(e256_config)).length;
   console.log("CONF_SIZE_OUT: " + conf_size);
-}
+  console.log("CONF_OUT: " + JSON.stringify(e256_config));
+};
 
 function list_layer_params(layer) {
   var e256_params = [];
   for (const item of layer.children) {
+    console.log("ITEM: " + item.name);
     item.save_params();
     switch (item.name) {
       case "grid":
@@ -74,7 +76,7 @@ function list_layer_params(layer) {
         for (const param in item.data) {
           /*
           if (param === "mode_z") {
-            // This parameter is removed
+            // This parameter can be removed
           }
           */
           if (item.data[param].constructor.name === "Point") {
@@ -127,4 +129,4 @@ function list_layer_params(layer) {
     }
   }
   return e256_params;
-}
+};
