@@ -252,16 +252,26 @@ function onMIDIMessage(midiMsg) {
         case MIDI_VERBOSITY_CHANNEL:
           switch (VERBOSITY_CODES[data1]) {
   
-            case "EDIT_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-              // NA
-              break;
-
             case "MATRIX_MODE_RAW_DONE":
               console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-              // NA
+              // TODO: Update menu
               break;
 
+            case "MAPPING_MODE_DONE":
+              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+              // TODO: Update menu
+              break;
+
+            case "EDIT_MODE_DONE":
+              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+              e256_current_mode = EDIT_MODE;
+              break;
+  
+            case "PLAY_MODE_DONE":
+              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+              e256_current_mode = PLAY_MODE;
+              break;
+  
             case "PENDING_MODE_DONE":
               console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
