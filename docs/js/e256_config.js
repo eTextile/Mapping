@@ -103,18 +103,19 @@ const DATA2 = {
 // E256 MODES CONSTANTS (MIDI_MODES_CHANNEL)
 const PENDING_MODE = 0;     // Waiting mode
 const SYNC_MODE = 1;        // Hand chake mode
-const CALIBRATE_MODE = 2;
+const CALIBRATE_MODE = 2;   //
 const MATRIX_MODE_RAW = 3;  // Get matrix analog sensor values (16x16) over USB using MIDI format
-const EDIT_MODE = 4;        // Get all blobs values over USB using MIDI format
-const PLAY_MODE = 5;        // Get mappings values over USB using MIDI format
-const ALLOCATE_MODE = 6;    //
-const UPLOAD_MODE = 7;      //
-const APPLY_MODE = 8;       //
-const WRITE_MODE = 9;       //
-const LOAD_MODE = 10;       //
-const FETCH_MODE = 11;      // Request mapping config file
-const STANDALONE_MODE = 12; // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
-const ERROR_MODE = 13;      // Unexpected behaviour
+const MAPPING_MODE = 4;     //
+const EDIT_MODE = 5;        // Get all blobs values over USB using MIDI format
+const PLAY_MODE = 6;        // Get mappings values over USB using MIDI format
+const ALLOCATE_MODE = 7;    //
+const UPLOAD_MODE = 8;      //
+const APPLY_MODE = 9;       //
+const WRITE_MODE = 10;      //
+const LOAD_MODE = 11;       //
+const FETCH_MODE = 12;      // Request mapping config file
+const STANDALONE_MODE = 13; // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
+const ERROR_MODE = 14;      // Unexpected behaviour
 
 // VERBOSITY MODES CONSTANTS
 const MODE_CODES = {
