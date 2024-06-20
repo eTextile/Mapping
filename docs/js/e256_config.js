@@ -47,17 +47,19 @@ const P_CHANGE = 0xC;     // PROGRAM_CHANGE
 const C_AFTERTOUCH = 0xD; // CHANNEL_AFTERTOUCH
 const P_BEND = 0xE;       // PITCH_BEND
 const SYS_EX = 0xF;       // SYSTEM_EXCLUSIVE
-// type: 0xF1  TimeCodeQuarterFrame
-// type: 0xF2  SongPosition
-// type: 0xF3  SongSelect
-// type: 0xF6  TuneRequest
-// type: 0xF8  Clock
-// type: 0xFA  Start
-// type: 0xFB  Continue
-// type: 0xFC  Stop
-// type: 0xFE  ActiveSensing
-// type: 0xFF  SystemReset
-// type: 0xF8-0xFF - if more specific handler not configured
+
+// const TimeCodeQuarterFrame = 0xF1;
+// const SongPosition = 0xF2;
+// const SongSelect = 0xF3;
+// const TuneRequest = 0xF6;
+// const Clock = 0xF8;
+// const Start = 0xFA;
+// const Continue = 0xFB;
+// const Stop = 0xFC;
+// const ActiveSensing = 0xFE;
+// const SystemReset = 0xFF;
+
+// const 0xF8-0xFF - if more specific handler not configured
 
 const SYSEX_BEGIN = 0xF0;      // DEC: 240
 const SYSEX_END = 0xF7;        // DEC: 247
