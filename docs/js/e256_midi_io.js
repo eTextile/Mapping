@@ -4,8 +4,8 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var MIDIInput = null;
-var MIDIOutput = null;
+var MIDI_input = null;
+var MIDI_output = null;
 
 let inputSetup = false;
 let outputSetup = false;
@@ -145,12 +145,15 @@ function midi_msg_builder(mode) {
 };
 
 function MIDIsetup() {
-  if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess, onMIDIFailure);
-  } else {
-    alert("This browser does not support MIDI!");
-  }
- };
+  navigator.permissions.query({name: "midi"}).then((result) => {
+    if (result.state === "granted") {
+      navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
+    } 
+    else if (result.state === "prompt") {
+      alert("This browser does not support MIDI!");
+    }
+  });
+}
 
 function onMIDISuccess(midiAccess) {
   midiAccess.onstatechange = function (msg) {
@@ -158,21 +161,21 @@ function onMIDISuccess(midiAccess) {
       case "connected":
         for (let input of midiAccess.inputs.values()) {
           if (input.name === "ETEXTILE_SYNTH MIDI 1") {
-            MIDIInput = input;
+            MIDI_input = input;
             inputSetup = true;
           }
         }
         for (let output of midiAccess.outputs.values()) {
           if (output.name === "ETEXTILE_SYNTH MIDI 1") {
-            MIDIOutput = output;
+            MIDI_output = output;
             outputSetup = true;
           }
         }
-        if (inputSetup && outputSetup) {
+        if (inputSetup && outputSetup && !midi_device_connected) {
           midi_device_connected = true;
-          MIDIInput.onmidimessage = onMIDIMessage;
-          console.log("IN: " + MIDIInput.name);
-          console.log("OUT: " + MIDIOutput.name);
+          MIDI_input.onmidimessage = onMIDIMessage;
+          console.log("IN: " + MIDI_input.name);
+          console.log("OUT: " + MIDI_output.name);
           setTimeout(function () {
             send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
             console.log("REQUEST: SYNC_MODE");
@@ -180,8 +183,8 @@ function onMIDISuccess(midiAccess) {
         }
         break;
       case "disconnected":
-        MIDIInput = null;
-        MIDIOutput = null;
+        MIDI_input = null;
+        MIDI_output = null;
         inputSetup = false;
         outputSetup = false;
         midi_device_connected = false;
@@ -193,9 +196,11 @@ function onMIDISuccess(midiAccess) {
   }
 };
 
+/*
 function onMIDIFailure(error) {
   alert("MIDI ERROR :" + error);
 };
+*/
 
 function updateMenu() {
   if (midi_device_connected) {
@@ -215,6 +220,7 @@ function updateMenu() {
     $("#mappingCanvas").collapse("hide");
     $("#summaryAction").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
     $("#contextualContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
+    $("#midi_term").collapse("hide");
     $("#connectSwitch").removeClass("btn-success").addClass("btn-danger");
     //$(".param").collapse("hide");
   }
@@ -263,9 +269,7 @@ function onMIDIMessage(midiMsg) {
               $("#mappingCanvas").collapse("hide");
               $("#summaryAction").html("CONNECTED");
               $("#contextualContent").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
-              //$(".param").collapse("hide");
-
-              $("#MATRIX_MODE").button("toggle"); // FIXME!
+              $("#MATRIX_MODE").button("toggle");
               e256_current_mode = MATRIX_MODE;
               break;
 
@@ -278,26 +282,22 @@ function onMIDIMessage(midiMsg) {
               $("#mappingCanvas").collapse("show");
               $("#summaryAction").html("CONNECTED");
               $("#contextualContent").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces");
-              //$(".param").collapse("hide");
-
-              $("#MAPPING_MODE").button("toggle"); // FIXME!
+              $("#MAPPING_MODE").button("toggle");
               e256_current_mode = MAPPING_MODE;
               break;
 
             case "EDIT_MODE_DONE":
               $("#editMenu").collapse("show");
               $("#loadMenu").collapse("show");
-
               $("#set_button_params").collapse("show");
               $("#summaryAction").html("CONNECTED / EDIT_MODE");
               $("#contextualContent").html("Using EDIT MODE you can add components to the matrix controler");
               $("#midi_term").collapse("hide");
               item_menu_params(current_controleur, "show");
               item_menu_params(current_touch, "show");
-
+              $("#MAPPING_MODE").button("toggle");
+              $("#EDIT_MODE").button("toggle");
               e256_current_mode = EDIT_MODE;
-              $("#EDIT_MODE").button("toggle"); // FIXME!
-              console.log("SET: EDIT_MODE");
               break;
   
             case "PLAY_MODE_DONE":
@@ -307,21 +307,17 @@ function onMIDIMessage(midiMsg) {
               $("#loadingCanvas").collapse("hide");
               $("#matrixCanvas").collapse("hide");
               $("#mappingCanvas").collapse("show");
-
               $("#editMenu").collapse("hide");
               $("#loadMenu").collapse("hide");
-
               $("#set_button_params").collapse("hide");
               $("#summaryAction").html("CONNECTED / PLAY_MODE");
               $("#contextualContent").html("Using PLAY MODE you can evaluate what you have made");
-              $(".param").collapse("hide");
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
-
+              $("#MAPPING_MODE").button("toggle");
+              $("#PLAY_MODE").button("toggle");
               e256_current_mode = PLAY_MODE;
-              $("#PLAY_MODE").button("toggle"); // FIXME!
-              console.log("SET: PLAY_MODE");
               break;
   
             case "PENDING_MODE_DONE":
@@ -330,7 +326,6 @@ function onMIDIMessage(midiMsg) {
               break;
   
             case "SYNC_MODE_DONE":
-              //e256_current_mode = SYNC_MODE;
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
               console.log("REQUEST: LOAD_MODE");
               updateMenu();
@@ -413,9 +408,9 @@ function send_midi_msg(midiMsg) {
   if (midi_device_connected) {
     //console.log("OUT:" + Object.values(midiMsg));
     if (midiMsg.data2 === null) {
-      MIDIOutput.send([midiMsg.status, midiMsg.data1]);
+      MIDI_output.send([midiMsg.status, midiMsg.data1]);
     } else {
-      MIDIOutput.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);
+      MIDI_output.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);
     }
   }
   else {
@@ -436,7 +431,7 @@ function sysex_alloc(identifier, size) {
     //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
     //let midiMsg = header.concat(identifier).concat(size_msb).concat(size_lsb).concat(SYSEX_END);
     console.log("ALOCATE: " + [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END]);
-    MIDIOutput.send([SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END]);
+    MIDI_output.send([SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END]);
   } else {
     alert("FILE TO BIG!");
   }
@@ -447,7 +442,7 @@ function sysex_upload(data) {
   let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
   //console.log("UPLOAD: " + [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END]);
-  MIDIOutput.send(midiMsg);
+  MIDI_output.send(midiMsg);
 };
 
 /*
