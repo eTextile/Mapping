@@ -153,7 +153,7 @@ function MIDIsetup() {
       alert("This browser does not support MIDI!");
     }
   });
-}
+};
 
 function onMIDISuccess(midiAccess) {
   midiAccess.onstatechange = function (msg) {
@@ -208,7 +208,9 @@ function updateMenu() {
     $("#connectSwitch").removeClass("btn-danger").addClass("btn-success");
     $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
     $("#startMenu").collapse("show");
-    $(".e256_params").collapse("show");
+    $("#e256_params").collapse("show");
+    $("#MATRIX_MODE").removeClass("active");
+    $("#MAPPING_MODE").addClass("active");
   }
   else {
     connectSwitch.checked = false;
@@ -223,8 +225,8 @@ function updateMenu() {
     $("#contextualContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
     $("#midi_term").collapse("hide");
     $("#connectSwitch").removeClass("btn-success").addClass("btn-danger");
-    //$(".param").collapse("hide");
-    $(".e256_params").collapse("hide");
+    $("#e256_params").collapse("hide");
+    $("#set_button_params").collapse("hide");
   }
 };
 
@@ -271,7 +273,9 @@ function onMIDIMessage(midiMsg) {
               $("#mappingCanvas").collapse("hide");
               $("#summaryAction").html("CONNECTED");
               $("#contextualContent").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
-              $("#MATRIX_MODE").button("toggle");
+              
+              $("#MAPPING_MODE").removeClass("active");
+              $("#MATRIX_MODE").addClass("active");
               e256_current_mode = MATRIX_MODE;
               break;
 
@@ -284,7 +288,9 @@ function onMIDIMessage(midiMsg) {
               $("#mappingCanvas").collapse("show");
               $("#summaryAction").html("CONNECTED");
               $("#contextualContent").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces");
-              $("#MAPPING_MODE").button("toggle");
+
+              $("#MATRIX_MODE").removeClass("active");
+              $("#MAPPING_MODE").addClass("active");
               e256_current_mode = MAPPING_MODE;
               break;
 
@@ -297,8 +303,9 @@ function onMIDIMessage(midiMsg) {
               $("#midi_term").collapse("hide");
               item_menu_params(current_controleur, "show");
               item_menu_params(current_touch, "show");
-              $("#MAPPING_MODE").button("toggle");
-              $("#EDIT_MODE").button("toggle");
+
+              $("#PLAY_MODE").removeClass("active");
+              $("#EDIT_MODE").addClass("active");
               e256_current_mode = EDIT_MODE;
               break;
   
@@ -317,8 +324,9 @@ function onMIDIMessage(midiMsg) {
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
-              $("#MAPPING_MODE").button("toggle");
-              $("#PLAY_MODE").button("toggle");
+
+              $("#EDIT_MODE").removeClass("active");
+              $("#PLAY_MODE").addClass("active");
               e256_current_mode = PLAY_MODE;
               break;
   
@@ -365,14 +373,18 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case "UPLOAD_DONE":
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
-              console.log("REQUEST: EDIT_MODE");
-              //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, APPLY_MODE));
-              //console.log("REQUEST: APPLY_MODE");
-              alert("TO SAVE YOUR CONFIG IN THE ETEXTILE-SYNTHESIZER FLASH MEMORY...\n!");
+              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, APPLY_MODE));
+              console.log("REQUEST: APPLY_MODE");
               break;
             
+            case "APPLY_MODE_DONE":
+              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
+              console.log("REQUEST: EDIT_MODE");
+              alert("PRESS THE LEFT PUSH BUTTON\nOF THE ETEXTILE-SYNTHESIZER\nTO SAVE THE CONFIG IN THE\nFLASH MEMORY!");
+            break;
+
             case "WRITE_MODE_DONE":
+              alert("NOW THE ETEXTILE-SYNTHESIZER\nCAN BE USE IN STANDALONE MODE!");
               break;
             
             default:
