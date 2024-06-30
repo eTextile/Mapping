@@ -208,6 +208,7 @@ function updateMenu() {
     $("#connectSwitch").removeClass("btn-danger").addClass("btn-success");
     $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
     $("#startMenu").collapse("show");
+    $(".e256_params").collapse("show");
   }
   else {
     connectSwitch.checked = false;
@@ -223,6 +224,7 @@ function updateMenu() {
     $("#midi_term").collapse("hide");
     $("#connectSwitch").removeClass("btn-success").addClass("btn-danger");
     //$(".param").collapse("hide");
+    $(".e256_params").collapse("hide");
   }
 };
 
@@ -367,10 +369,14 @@ function onMIDIMessage(midiMsg) {
               console.log("REQUEST: EDIT_MODE");
               //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, APPLY_MODE));
               //console.log("REQUEST: APPLY_MODE");
+              alert("TO SAVE YOUR CONFIG IN THE ETEXTILE-SYNTHESIZER FLASH MEMORY...\n!");
               break;
-
+            
+            case "WRITE_MODE_DONE":
+              break;
+            
             default:
-              console.log("NOT_HANDLED_MODE!")
+              console.log("NOT_HANDLED_MODE!");
               break;
           }
           break;

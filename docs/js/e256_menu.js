@@ -32,7 +32,7 @@ $(".e256_setMode").click(function (event) {
     send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
     console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
   } else {
-    alert("e256 NOT CONNECTED!");
+    alert("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!");
   }
 });
 
@@ -41,21 +41,12 @@ $(".mapingTool").click(function (event) {
   create_once = false;
 });
 
-$("#calibrate").click(function () {
-  if (midi_device_connected) {
-    send_midi_msg(new program_change(MIDI_MODES_CHANNEL, CALIBRATE_MODE));
-    console.log("REQUEST: CALIBRATE_MODE");
-  } else {
-    alert("e256 NOT CONNECTED!");
-  }
-});
-
 $("#uploadConfig").click(function () {
   if (midi_device_connected) {
     send_midi_msg(new program_change(MIDI_MODES_CHANNEL, ALLOCATE_MODE));
     console.log("REQUEST: ALLOCATE_MODE");
   } else {
-    alert("e256 NOT CONNECTED!");
+    alert("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!");
   }
 });
 
@@ -72,7 +63,7 @@ $("#fetchConfig").click(function () {
     send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
     console.log("REQUEST: LOAD_MODE");
   } else {
-    alert("e256 NOT CONNECTED!");
+    alert("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!");
   }
 });
 
