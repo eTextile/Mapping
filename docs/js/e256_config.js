@@ -87,7 +87,7 @@ const DATA1 = {
   0xB: "cc",
   0xC: "pgm",
   0xD: "lsb",
-  0xE: "??", // FIXME!
+  0xE: "lsb",
   0xF: "press"
 };
 
@@ -98,7 +98,7 @@ const DATA2 = {
   0xB: null,
   0xC: null,
   0xD: "msb",
-  0xE: "??", // FIXME!
+  0xE: "msb",
   0xF: null
 };
 
@@ -106,7 +106,7 @@ const DATA2 = {
 const PENDING_MODE = 0;     // Waiting mode
 const SYNC_MODE = 1;        // Hand chake mode
 const CALIBRATE_MODE = 2;   //
-const MATRIX_MODE_RAW = 3;  // Get matrix analog sensor values (16x16) over USB using MIDI format
+const MATRIX_MODE = 3;      // Get matrix analog sensor values (16x16) over USB using MIDI format
 const MAPPING_MODE = 4;     //
 const EDIT_MODE = 5;        // Get all blobs values over USB using MIDI format
 const PLAY_MODE = 6;        // Get mappings values over USB using MIDI format
@@ -124,7 +124,7 @@ const MODE_CODES = {
   0: "PENDING_MODE",
   1: "SYNC_MODE",
   2: "CALIBRATE_MODE",
-  3: "MATRIX_MODE_RAW",
+  3: "MATRIX_MODE",
   4: "MAPPING_MODE",
   5: "EDIT_MODE",
   6: "PLAY_MODE",
@@ -142,35 +142,39 @@ const MODE_CODES = {
 const PENDING_MODE_DONE = 0;
 const SYNC_MODE_DONE = 1;
 const CALIBRATE_MODE_DONE = 2;
-const MATRIX_MODE_RAW_DONE = 3;
+const MATRIX_MODE_DONE = 3;
 const MAPPING_MODE_DONE = 4
 const EDIT_MODE_DONE = 5;
 const PLAY_MODE_DONE = 6;
 const ALLOCATE_MODE_DONE = 7;
-const UPLOAD_MODE_DONE = 8;
-const APPLY_MODE_DONE = 9;
-const WRITE_MODE_DONE = 10;
-const LOAD_MODE_DONE = 11;
-const FETCH_MODE_DONE = 12;
-const STANDALONE_MODE_DONE = 13;
-const DONE_ACTION = 14;
+const ALLOCATE_DONE = 8;
+const UPLOAD_MODE_DONE = 9;
+const UPLOAD_DONE = 10;
+const APPLY_MODE_DONE = 11;
+const WRITE_MODE_DONE = 12;
+const LOAD_MODE_DONE = 13;
+const FETCH_MODE_DONE = 14;
+const STANDALONE_MODE_DONE = 15;
+const DONE_ACTION = 16;
 
 const VERBOSITY_CODES = {
   0: "PENDING_MODE_DONE",
   1: "SYNC_MODE_DONE",
   2: "CALIBRATE_MODE_DONE",
-  3: "MATRIX_MODE_RAW_DONE",
+  3: "MATRIX_MODE_DONE",
   4: "MAPPING_MODE_DONE",
   5: "EDIT_MODE_DONE",
   6: "PLAY_MODE_DONE",
   7: "ALLOCATE_MODE_DONE",
-  8: "UPLOAD_MODE_DONE",
-  9: "APPLY_MODE_DONE",
-  10: "WRITE_MODE_DONE",
-  11: "LOAD_MODE_DONE",
-  12: "FETCH_MODE_DONE",
-  13: "STANDALONE_MODE_DONE",
-  14: "DONE_ACTION"
+  8: "ALLOCATE_DONE",
+  9: "UPLOAD_MODE_DONE",
+  10: "UPLOAD_DONE",
+  11: "APPLY_MODE_DONE",
+  12: "WRITE_MODE_DONE",
+  13: "LOAD_MODE_DONE",
+  14: "FETCH_MODE_DONE",
+  15: "STANDALONE_MODE_DONE",
+  16: "DONE_ACTION"
 };
 
 // ERROR CODES CONSTANTS
@@ -182,9 +186,10 @@ const NO_CONFIG_FILE = 4;
 const WHILE_OPEN_FLASH_FILE = 5;
 const USBMIDI_CONFIG_LOAD_FAILED = 6;
 const FLASH_CONFIG_LOAD_FAILED = 7;
-const CONFIG_APPLY_FAILED = 8;
-const UNKNOWN_SYSEX = 9;
-const TOO_MANY_BLOBS = 10;
+const FLASH_CONFIG_WRITE_FAILED = 8;
+const CONFIG_APPLY_FAILED = 9;
+const UNKNOWN_SYSEX = 10;
+const TOO_MANY_BLOBS = 11;
 
 const ERROR_CODES = {
   0: "WAITING_FOR_CONFIG",
@@ -195,7 +200,8 @@ const ERROR_CODES = {
   5: "WHILE_OPEN_FLASH_FILE",
   6: "USBMIDI_CONFIG_LOAD_FAILED",
   7: "FLASH_CONFIG_LOAD_FAILED",
-  8: "CONFIG_APPLY_FAILED",
-  9: "UNKNOWN_SYSEX",
-  10: "TOO_MANY_BLOBS"
+  8: "FLASH_CONFIG_WRITE_FAILED",
+  9: "CONFIG_APPLY_FAILED",
+  10: "UNKNOWN_SYSEX",
+  11: "TOO_MANY_BLOBS"
 };

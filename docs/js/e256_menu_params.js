@@ -30,7 +30,7 @@ function create_item_menu_params(item) {
     }
   }
   div_menu_params.appendChild(div_item_menu_params);
-  $("#set_button_params").collapse("show");
+  //$("#set_button_params").collapse("show");
 };
 
 function remove_item_menu_params(item) {

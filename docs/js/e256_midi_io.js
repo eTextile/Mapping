@@ -185,8 +185,8 @@ function onMIDISuccess(midiAccess) {
         inputSetup = false;
         outputSetup = false;
         midi_device_connected = false;
-        e256_current_mode = PENDING_MODE;
-        console.log("MODE: " + MODE_CODES[e256_current_mode]);
+        //e256_current_mode = PENDING_MODE;
+        //console.log("MODE: " + MODE_CODES[e256_current_mode]);
         updateMenu();
         break;
     }
@@ -216,7 +216,7 @@ function updateMenu() {
     $("#summaryAction").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
     $("#contextualContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
     $("#connectSwitch").removeClass("btn-success").addClass("btn-danger");
-    $(".param").collapse("hide");
+    //$(".param").collapse("hide");
   }
 };
 
@@ -250,78 +250,132 @@ function onMIDIMessage(midiMsg) {
     case P_CHANGE:
       switch (status.channel) {
         case MIDI_VERBOSITY_CHANNEL:
+          console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+
           switch (VERBOSITY_CODES[data1]) {
   
-            case "MATRIX_MODE_RAW_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-              // TODO: Update menu
+            case "MATRIX_MODE_DONE":
+              $("#calibrateMenu").collapse("show");
+              $("#matrixMenu").collapse("show");
+              $("#mappingMenu").collapse("hide");
+              $("#loadingCanvas").collapse("hide");
+              $("#matrixCanvas").collapse("show");
+              $("#mappingCanvas").collapse("hide");
+              $("#summaryAction").html("CONNECTED");
+              $("#contextualContent").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
+              //$(".param").collapse("hide");
+
+              $("#MATRIX_MODE").button("toggle"); // FIXME!
+              e256_current_mode = MATRIX_MODE;
               break;
 
             case "MAPPING_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-              // TODO: Update menu
+              $("#calibrateMenu").collapse("show");
+              $("#matrixMenu").collapse("hide");
+              $("#mappingMenu").collapse("show");
+              $("#loadingCanvas").collapse("hide");
+              $("#matrixCanvas").collapse("hide");
+              $("#mappingCanvas").collapse("show");
+              $("#summaryAction").html("CONNECTED");
+              $("#contextualContent").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces");
+              //$(".param").collapse("hide");
+
+              $("#MAPPING_MODE").button("toggle"); // FIXME!
+              e256_current_mode = MAPPING_MODE;
               break;
 
             case "EDIT_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+              $("#editMenu").collapse("show");
+              $("#loadMenu").collapse("show");
+
+              $("#set_button_params").collapse("show");
+              $("#summaryAction").html("CONNECTED / EDIT_MODE");
+              $("#contextualContent").html("Using EDIT MODE you can add components to the matrix controler");
+              $("#midi_term").collapse("hide");
+              item_menu_params(current_controleur, "show");
+              item_menu_params(current_touch, "show");
+
               e256_current_mode = EDIT_MODE;
+              $("#EDIT_MODE").button("toggle"); // FIXME!
+              console.log("SET: EDIT_MODE");
               break;
   
             case "PLAY_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+              $("#calibrateMenu").collapse("show");
+              $("#matrixMenu").collapse("hide");
+              $("#mappingMenu").collapse("show");
+              $("#loadingCanvas").collapse("hide");
+              $("#matrixCanvas").collapse("hide");
+              $("#mappingCanvas").collapse("show");
+
+              $("#editMenu").collapse("hide");
+              $("#loadMenu").collapse("hide");
+
+              $("#set_button_params").collapse("hide");
+              $("#summaryAction").html("CONNECTED / PLAY_MODE");
+              $("#contextualContent").html("Using PLAY MODE you can evaluate what you have made");
+              $(".param").collapse("hide");
+              $("#midi_term").collapse("show");
+              item_menu_params(current_controleur, "hide");
+              item_menu_params(current_touch, "hide");
+
               e256_current_mode = PLAY_MODE;
+              $("#PLAY_MODE").button("toggle"); // FIXME!
+              console.log("SET: PLAY_MODE");
               break;
   
             case "PENDING_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
-              console.log("REQUEST: SYNC_MODE");
+              //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
+              //console.log("REQUEST: SYNC_MODE");
               break;
   
             case "SYNC_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-              e256_current_mode = SYNC_MODE;
+              //e256_current_mode = SYNC_MODE;
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
               console.log("REQUEST: LOAD_MODE");
               updateMenu();
               break;
 
             case "CALIBRATE_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+              //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
+              //console.log("REQUEST: EDIT_MODE");
               break;
 
             case "LOAD_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
+              e256_current_mode = FETCH_MODE;
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, FETCH_MODE));
               console.log("REQUEST: FETCH_MODE");
-              e256_current_mode = FETCH_MODE;
+              break;
+
+            case "FETCH_MODE_DONE":
+              draw_controler_from_config(fetch_config_file);
+              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, PLAY_MODE));
+              console.log("REQUEST: PLAY_MODE");
               break;
 
             case "ALLOCATE_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
               e256_export_params();
               sysex_alloc(SYSEX_CONF, conf_size);
+              break;
+
+            case "ALLOCATE_DONE":
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, UPLOAD_MODE));
               console.log("REQUEST: UPLOAD_MODE");
               break;
 
             case "UPLOAD_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
               sysex_upload(string_to_bytes(JSON.stringify(e256_config)));
               break;
 
-            case "FETCH_MODE_DONE":
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-              draw_controler_from_config(fetch_config_file);
+            case "UPLOAD_DONE":
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
-              e256_current_mode = EDIT_MODE;
+              //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, APPLY_MODE));
+              //console.log("REQUEST: APPLY_MODE");
               break;
 
             default:
-              console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
-              console.log("REQUEST: EDIT_MODE");
+              console.log("NOT_HANDLED_MODE!")
               break;
           }
           break;
@@ -333,23 +387,20 @@ function onMIDIMessage(midiMsg) {
 
     case SYS_EX:
       switch (e256_current_mode) {
-
         case FETCH_MODE:
+          //console.log("RECEIVED: " + midiMsg.data);
           const decoder = new TextDecoder();
           let conf_str = decoder.decode(midiMsg.data);
           fetch_config_file = conf_str.slice(1, -1);
           break;
-
-        case MATRIX_MODE_RAW:
+        case MATRIX_MODE:
           e256_matrix.update(midiMsg.data);
-          break;
-        
+          break;        
           case EDIT_MODE:
           e256_blobs.update(midiMsg.data);
           break;
-
-        case PLAY_MODE:
-          // N/A
+        default:
+          console.log("NOT_HANDLED_SISEX!")
           break;
       }
       break;
