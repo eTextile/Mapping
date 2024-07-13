@@ -174,8 +174,8 @@ function onMIDISuccess(midiAccess) {
         if (inputSetup && outputSetup && !midi_device_connected) {
           midi_device_connected = true;
           MIDI_input.onmidimessage = onMIDIMessage;
-          console.log("IN: " + MIDI_input.name);
-          console.log("OUT: " + MIDI_output.name);
+          //console.log("IN: " + MIDI_input.name);
+          //console.log("OUT: " + MIDI_output.name);
           setTimeout(function () {
             send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
             console.log("REQUEST: SYNC_MODE");
@@ -336,8 +336,8 @@ function onMIDIMessage(midiMsg) {
               break;
   
             case "SYNC_MODE_DONE":
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
-              console.log("REQUEST: LOAD_MODE");
+              //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
+              //console.log("REQUEST: LOAD_MODE");
               updateMenu();
               break;
 
@@ -384,7 +384,7 @@ function onMIDIMessage(midiMsg) {
             break;
 
             case "WRITE_MODE_DONE":
-              alert("NOW THE ETEXTILE-SYNTHESIZER\nCAN BE USE IN STANDALONE MODE!");
+              alert("NOW THE ETEXTILE-SYNTHESIZER\nCAN BE USED IN STANDALONE MODE!");
               break;
             
             default:
