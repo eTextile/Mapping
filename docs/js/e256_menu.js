@@ -27,6 +27,7 @@ $("#connectSwitch").on("change", function () {
 });
 
 $(".e256_setMode").click(function (event) {
+  e256_last_mode = e256_current_mode;
   e256_current_mode = eval(event.target.id);
   if (midi_device_connected) {
     send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));

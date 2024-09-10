@@ -8,15 +8,12 @@ function blobFactory() {
   const DEFAULT_PATH_STROKE_WIDTH = 2;
   const DEFAULT_TOUCH_RADIUS = 10;
 
-  let scale_factor = null;
-
   var blob = new paper.Group({
     "name": "blob",
     "UID": null,
 
     setup: function (midiMsg) {
       this.UID = midiMsg[1]
-      scale_factor = 6; // FIXME!
     },
 
     create: function () {
@@ -24,17 +21,30 @@ function blobFactory() {
         "name": "blob-group",
       });
 
-      let _blob_centroid = new paper.Shape.Circle({
+      let _blob_centroid = new paper.Shape.Ellipse({
         "name": "blob-centroid",
         "center": null,
-        "radius": DEFAULT_TOUCH_RADIUS
+        "radius": null
       });
 
       _blob_centroid.style = {
         "fillColor": "red"
-      };
-
+      }
       _blob_group.addChild(_blob_centroid);
+
+
+      let _blob_txt = new paper.PointText({
+        "name": "blob-txt",
+        "point": _blob_centroid.position,
+        "content": _blob_centroid.position,
+        "locked": true
+      });
+
+      _blob_txt.style = {
+        "fillColor": "black",
+        "fontSize": FONT_SIZE / 1.5
+      };
+      _blob_group.addChild(_blob_txt);
 
       let _blob_rect = new paper.Path.Rectangle({
         "name": "blob-rect",
@@ -60,17 +70,23 @@ function blobFactory() {
 
     update: function (sysExMsg) {
       let centroid = new paper.Point(
-        sysExMsg[2] * scale_factor,
-        sysExMsg[3] * scale_factor
+        mapp((sysExMsg[2] + sysExMsg[3] / 100), 0, 64, 0, canvas_width),
+        mapp((sysExMsg[4] + sysExMsg[5] / 100), 0, 64, 0, canvas_height)
       );
-      let radius = sysExMsg[4];
-      let width = sysExMsg[5] * scale_factor;
-      let height = sysExMsg[6] * scale_factor;
+      //console.log(centroid.x + " " + centroid.y);
+
+      let width =  mapp(sysExMsg[6], 0, 64, 0, canvas_width);
+      let height =  mapp(sysExMsg[7], 0, 64, 0, canvas_width);
+      let pressure = sysExMsg[8];
 
       this.children["blob-group"].children["blob-centroid"].position = centroid;
-      this.children["blob-group"].children["blob-centroid"].size = radius;
+      this.children["blob-group"].children["blob-txt"].position = centroid;
+      this.children["blob-group"].children["blob-txt"].content = "X: " + centroid.x.toFixed(2) + "\n" + "Y: " + centroid.y.toFixed(2);
       
-      //this.children["blob-group"].children["blob-path"].segments.push(centroid);
+      //this.children["blob-group"].children["blob-centroid"].size = radius;
+      this.children["blob-group"].children["blob-centroid"].radius = [width/10, height/10];
+
+      //this.children["blob-group"].children["blob-path"].segments.push(centroid); // FIXME!
       
       //this.children["blob-group"].children["blob-rect"].pos = centroid;
       //this.children["blob-group"].children["blob-rect"].width = width;
@@ -127,9 +143,9 @@ blobs_array.prototype.update = function (sysExMsg) {
 blobs_array.prototype.remove = function (midiMsg) {
   let index = this.blobs.findIndex(blob => blob.UID === midiMsg[1]);
   if (index !== -1) {
-    console.log("INDEX: " + index);
-    //this.blobs[index].remove;
+    console.log("BLOB_REMOVE / INDEX: " + index);
     this.blobs[index].children["blob-group"].children["blob-centroid"].fillColor = null;
+    this.blobs[index].children["blob-group"].children["blob-txt"].fillColor = null;
     this.blobs.splice(index, 1);
     //console.log("BLOB_REMOVE / REMOVED: " + midiMsg[1]);
   } else {

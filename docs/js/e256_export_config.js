@@ -21,16 +21,18 @@ function e256_export_params() {
 function list_layer_params(layer) {
   var e256_params = [];
   for (const item of layer.children) {
+    if (item.name === "blob") return;
     console.log("ITEM: " + item.name);
     item.save_params();
     switch (item.name) {
+
       case "grid":
         let grid_params = {};
         for (const param in item.data) {
           if (item.data[param].constructor.name === "Point") {
             grid_params[param] = [
-              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
-              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+              round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
+              round2(mapp(item.data[param].y, 0, canvas_height, 0, NEW_ROWS))
             ];
           } else {
             grid_params[param] = item.data[param];
@@ -44,8 +46,8 @@ function list_layer_params(layer) {
         for (const param in item.data) {
           if (item.data[param].constructor.name === "Point") {
             touchpad_params[param] = [
-              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
-              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+              round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
+              round2(mapp(item.data[param].y, 0, canvas_height, 0, NEW_ROWS))
             ];
           }
           else {
@@ -60,8 +62,8 @@ function list_layer_params(layer) {
         for (const param in item.data) {
           if (item.data[param].constructor.name === "Point") {
             slider_params[param] = [
-              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
-              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+              round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
+              round2(mapp(item.data[param].y, 0, canvas_height, 0, NEW_ROWS))
             ];
           }
           else {
@@ -76,20 +78,17 @@ function list_layer_params(layer) {
         for (const param in item.data) {
           /*
           if (param === "mode_z") {
-            // This parameter can be removed
+            // This parameter could be removed!
           }
           */
           if (item.data[param].constructor.name === "Point") {
             switch_params[param] = [
-              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
-              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+              round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
+              round2(mapp(item.data[param].y, 0, canvas_height, 0, NEW_ROWS))
             ];
           }
           else {
-            //console.log("A: " + item.data[param][0]["pos_z"]);
-            //console.log("A: " + JSON.stringify(item.data[param][0]["pos_z"]["msg"]));
             switch_params[param] = item.data[param];
-            //switch_params[param] = item.data[param][0]["pos_z"];
           }
         }
         e256_params.push(switch_params);
@@ -100,8 +99,8 @@ function list_layer_params(layer) {
         for (const param in item.data) {
           if (item.data[param].constructor.name === "Point") {
             knob_params[param] = [
-              Math.round(mapp(item.data[param].x, 0, canvas_width, 0, MATRIX_RESOLUTION_X)),
-              Math.round(mapp(item.data[param].y, 0, canvas_height, 0, MATRIX_RESOLUTION_Y))
+              round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
+              round2(mapp(item.data[param].y, 0, canvas_height, 0, NEW_ROWS))
             ];
           }
           else {
@@ -114,7 +113,8 @@ function list_layer_params(layer) {
       case "path":
         let path_params = {};
         for (const param in item.data) {
-          path_params.data[param] = parseInt(item.data[param]);
+          //path_params.data[param] = parseInt(item.data[param]);
+          path_params.data[param] = parseFloat(item.data[param]);
         }
         e256_params.push(path_params);
         break;
@@ -122,9 +122,13 @@ function list_layer_params(layer) {
       case "polygon":
         let polygon_params = {};
         for (const param in item.data) {
-          polygon_params.data[param] = parseInt(item.data[param]);
+          //polygon_params.data[param] = parseInt(item.data[param]);
+          polygon_params.data[param] = parseFloat(item.data[param]);
         }
         e256_params.push(polygon_params);
+        break;
+      default:
+        console.log("ITEM_NOT_SUPORTED: " + item.name);
         break;
     }
   }

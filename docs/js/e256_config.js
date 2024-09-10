@@ -15,12 +15,23 @@ var previous_touch = { "id": null };
 var current_part = { "id": null };
 
 // E256 HARDWARE CONSTANTS
-const FLASH_SIZE = 4096;
+const FLASH_SIZE = 16777216; // 128 Mb
 const RAW_COLS = 16;
 const RAW_ROWS = 16;
 const RAW_FRAME = RAW_COLS * RAW_ROWS;
-const MATRIX_RESOLUTION_X = 64;
-const MATRIX_RESOLUTION_Y = 64;
+const SCALE_X = 4;
+const SCALE_Y = 4;
+const NEW_COLS = (RAW_COLS * SCALE_X);
+const NEW_ROWS = (RAW_ROWS * SCALE_Y);
+const NEW_FRAME = (NEW_COLS * NEW_ROWS);
+
+const X_PADDING_LEFT = 1;
+const X_PADDING_REIGHT = 1;
+const Y_PADDING_TOP = 1;
+const Y_PADDING_BOTTOM = 1;
+
+//const MATRIX_RESOLUTION_X = NEW_FRAME - X_PADDING_LEFT - X_PADDING_REIGHT;
+//const MATRIX_RESOLUTION_Y = NEW_FRAME - Y_PADDING_TOP - Y_PADDING_BOTTOM;
 
 // E256 SOFTWARE CONSTANTS
 const TOUCH_RADIUS = 25;

@@ -12,15 +12,19 @@ function move_item(item, mouseEvent) {
   item.firstChild.data.to = new paper.Point(item.bounds.right, item.bounds.bottom);
 };
 
+function round2(value) {
+  return ((Math.floor(value * 100 + 0.5)) / 100.0);
+}
+
 function mapp(input, in_min, in_max, out_min, out_max) {
   if (input === in_max) {
     return out_max;
   }
-  else if (out_min < out_max) {
-    return Math.abs((input - in_min) * (out_max - out_min + 1) / (in_max - in_min) - out_max);
+  else if (out_min > out_max) {
+    return Math.abs((input - in_min) * (out_max - out_min) / (in_max - in_min) - out_max);
   }
   else {
-    return Math.abs((input - in_min) * (out_max - out_min - 1) / (in_max - in_min) + out_min);
+    return Math.abs((input - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
   }
 }
 
@@ -31,12 +35,13 @@ function get_random_int(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 };
 
-function deg_to_rad(degree) {
-  return degree * (Math.PI / 180);
+function deg_to_rad(angle_degree) {
+  //return 2 * Math.PI * (angle_degree / 360);
+  return angle_degree * (Math.PI / 180);
 };
 
-function rad_to_deg(radian) {
-  return radian * (180 / Math.PI);
+function rad_to_deg(angle_radian) {
+  return angle_radian * (180 / Math.PI);
 };
 
 function pol_to_cart(radius, theta) {

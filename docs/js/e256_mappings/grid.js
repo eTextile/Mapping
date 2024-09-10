@@ -65,12 +65,12 @@ function gridFactory() {
 
     setup_from_config: function (params) {
       this.data.from = new paper.Point(
-        mapp(params.from[0], 0, MATRIX_RESOLUTION_X, 0, canvas_width),
-        mapp(params.from[1], 0, MATRIX_RESOLUTION_Y, 0, canvas_height)
+        mapp(params.from[0], 0, NEW_COLS, 0, canvas_width),
+        mapp(params.from[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.to = new paper.Point(
-        mapp(params.to[0], 0, MATRIX_RESOLUTION_X, 0, canvas_width),
-        mapp(params.to[1], 0, MATRIX_RESOLUTION_Y, 0, canvas_height)
+        mapp(params.to[0], 0, NEW_COLS, 0, canvas_width),
+        mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.cols = params.cols;
       this.data.rows = params.rows;

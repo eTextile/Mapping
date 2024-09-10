@@ -253,7 +253,7 @@ function onMIDIMessage(midiMsg) {
       break;
     case NOTE_OFF:
       e256_blobs.remove(midiMsg.data);
-      break;
+      break;mie256_blobsdiMsg
     case C_CHANGE:
       // N/A
       break;
@@ -342,8 +342,7 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case "CALIBRATE_MODE_DONE":
-              //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
-              //console.log("REQUEST: EDIT_MODE");
+               e256_current_mode = e256_last_mode;
               break;
 
             case "LOAD_MODE_DONE":
@@ -380,10 +379,12 @@ function onMIDIMessage(midiMsg) {
             case "APPLY_MODE_DONE":
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
+              // Notification
               alert("PRESS THE LEFT PUSH BUTTON\nOF THE ETEXTILE-SYNTHESIZER\nTO SAVE THE CONFIG IN THE\nFLASH MEMORY!");
             break;
 
             case "WRITE_MODE_DONE":
+              // Notification
               alert("NOW THE ETEXTILE-SYNTHESIZER\nCAN BE USED IN STANDALONE MODE!");
               break;
             

@@ -70,7 +70,8 @@ function create_menu_1st_level(item) {
 
       midi_param_val_x.addEventListener("input", function (event) {
         if (Number(event.target.value)) {
-          item.data[param].x = parseInt(event.target.value);
+          //item.data[param].x = parseInt(event.target.value);
+          item.data[param].x = parseFloat(event.target.value);
         }
       });
       part_param.appendChild(midi_param_val_x);
@@ -89,7 +90,8 @@ function create_menu_1st_level(item) {
 
       midi_param_val_y.addEventListener("input", function (event) {
         if (Number(event.target.value)) {
-          item.data[param].y = parseInt(event.target.value);
+          //item.data[param].y = parseInt(event.target.value);
+          item.data[param].y = parseFloat(event.target.value);
         }
       });
       part_param.appendChild(midi_param_val_y);
@@ -182,11 +184,14 @@ function update_menu_1st_level(item) {
   for (const part of item.children) {
     for (const param in part.data) {
       if (part.data[param].constructor.name === "Point") {
-        $("#" + part.parent.id + "_" + param + "_val_x").val(Math.round(part.data[param].x));
-        $("#" + part.parent.id + "_" + param + "_val_y").val(Math.round(part.data[param].y));
+        //$("#" + part.parent.id + "_" + param + "_val_x").val(Math.round(part.data[param].x));
+        //$("#" + part.parent.id + "_" + param + "_val_y").val(Math.round(part.data[param].y));
+        $("#" + part.parent.id + "_" + param + "_val_x").val(round2(part.data[param].x));
+        $("#" + part.parent.id + "_" + param + "_val_y").val(round2(part.data[param].y));
       }
       else {
-        $("#" + part.parent.id + "_" + param + "_val").val(Math.round(part.data[param]));
+        //$("#" + part.parent.id + "_" + param + "_val").val(Math.round(part.data[param]));
+        $("#" + part.parent.id + "_" + param + "_val").val(round2(part.data[param]));
       }
     }
   }

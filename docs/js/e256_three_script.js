@@ -46,18 +46,18 @@ function init() {
   const normals = [];
   const colors = [];
 
-  const size = 22;
+  const size = 22; // canvas_width / RAW_COLS...
 
   const X_offset = (size / 2) - 1;
   const Y_offset = (size / 2) - 1;
 
-  const segmentSize = (size / RAW_COLS);
+  const segment_size = (size / RAW_COLS);
 
   // RAW_FRAME = RAW_ROWS * RAW_COLS (16 * 16)
   for (var i = 0; i < RAW_ROWS; i++) {
-    const y = (i * segmentSize) - Y_offset;
+    const y = (i * segment_size) - Y_offset;
     for (var j = 0; j < RAW_COLS; j++) {
-      const x = (j * segmentSize) - X_offset;
+      const x = (j * segment_size) - X_offset;
       vertices.push(x, y, 0); // Make new vertex
       normals.push(0, 0, 1);
       const r = (x / size) + 0.5;
@@ -95,8 +95,8 @@ function init() {
   let edges = new THREE.Mesh(geometry, wireMaterial);
 
   mesh.add(edges);
-  mesh.rotation.set(-1, 0, 0);
-
+  mesh.rotation.set(deg_to_rad(-40), 0, 0);
+  
   scene.add(mesh);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
