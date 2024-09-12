@@ -18,7 +18,7 @@ function blobFactory() {
 
     create: function () {
       let _blob_group = new paper.Group({
-        "name": "blob-group",
+        "name": "blob-group"
       });
 
       let _blob_centroid = new paper.Shape.Ellipse({
@@ -31,7 +31,6 @@ function blobFactory() {
         "fillColor": "red"
       }
       _blob_group.addChild(_blob_centroid);
-
 
       let _blob_txt = new paper.PointText({
         "name": "blob-txt",
@@ -73,25 +72,21 @@ function blobFactory() {
         mapp((sysExMsg[2] + sysExMsg[3] / 100), 0, 64, 0, canvas_width),
         mapp((sysExMsg[4] + sysExMsg[5] / 100), 0, 64, 0, canvas_height)
       );
-      //console.log(centroid.x + " " + centroid.y);
 
-      let width =  mapp(sysExMsg[6], 0, 64, 0, canvas_width);
-      let height =  mapp(sysExMsg[7], 0, 64, 0, canvas_width);
+      let blob_width =  mapp(sysExMsg[6], 0, 64, 0, canvas_width) / 10;
+      let blob_height =  mapp(sysExMsg[7], 0, 64, 0, canvas_width) / 10;
       let pressure = sysExMsg[8];
 
       this.children["blob-group"].children["blob-centroid"].position = centroid;
+      this.children["blob-group"].children["blob-centroid"].radius = [blob_width, blob_height];
       this.children["blob-group"].children["blob-txt"].position = centroid;
       this.children["blob-group"].children["blob-txt"].content = "X: " + centroid.x.toFixed(2) + "\n" + "Y: " + centroid.y.toFixed(2);
-      
-      //this.children["blob-group"].children["blob-centroid"].size = radius;
-      this.children["blob-group"].children["blob-centroid"].radius = [width/10, height/10];
 
-      //this.children["blob-group"].children["blob-path"].segments.push(centroid); // FIXME!
-      
       //this.children["blob-group"].children["blob-rect"].pos = centroid;
       //this.children["blob-group"].children["blob-rect"].width = width;
       //this.children["blob-group"].children["blob-rect"].height = height;
-      
+
+      //this.children["blob-group"].children["blob-path"].segments.push(centroid); // FIXME!      
       //this.path.smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15
       //this.path.smooth({ type: 'continuous' }); // http://paperjs.org/reference/path/#smooth
     },
@@ -124,7 +119,7 @@ blobs_array.prototype.add = function (midiMsg) {
     this.blobs.push(new_blob);
     //console.log("BLOB_ADD / ADDED: " + midiMsg[1])
   } else {
-    console.log("BLOB_ADD / EXISTING: " + midiMsg[1]);
+    //console.log("BLOB_ADD / EXISTING: " + midiMsg[1]);
     return;
   }
 }
@@ -134,7 +129,6 @@ blobs_array.prototype.update = function (sysExMsg) {
   if (index !== -1) {
     this.blobs[index].update(sysExMsg);
     //console.log("BLOB_UPDATE / UPDATED: " + sysExMsg[1]);
-    //console.log("INDEX: " + index);
   } else {
     return;
   }
@@ -143,13 +137,12 @@ blobs_array.prototype.update = function (sysExMsg) {
 blobs_array.prototype.remove = function (midiMsg) {
   let index = this.blobs.findIndex(blob => blob.UID === midiMsg[1]);
   if (index !== -1) {
-    console.log("BLOB_REMOVE / INDEX: " + index);
     this.blobs[index].children["blob-group"].children["blob-centroid"].fillColor = null;
     this.blobs[index].children["blob-group"].children["blob-txt"].fillColor = null;
     this.blobs.splice(index, 1);
     //console.log("BLOB_REMOVE / REMOVED: " + midiMsg[1]);
   } else {
-    console.log("BLOB_REMOVE / NOT_FOUND: " + midiMsg[1]);
+    //console.log("BLOB_REMOVE / NOT_FOUND: " + midiMsg[1]);
     return;
   }
 }

@@ -445,21 +445,21 @@ function send_midi_msg(midiMsg) {
 // Recive: USBMIDI_CONFIG_LOAD_DONE
 function sysex_alloc(identifier, size) {
   if (conf_size < FLASH_SIZE) {
-    let size_msb = size >> 7;
-    let size_lsb = size & 0x7F;
+    let size_msb = size >> 7 ;
+    let size_lsb = size & 0x7F; // 0111 1111
     //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
     //let midiMsg = header.concat(identifier).concat(size_msb).concat(size_lsb).concat(SYSEX_END);
-    console.log("ALOCATE: " + [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END]);
     MIDI_output.send([SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END]);
+    //console.log("ALOCATE: " + [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END]);
   } else {
     alert("FILE TO BIG!");
   }
 };
 
 function sysex_upload(data) {
-  //let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END];
-  let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
-  let midiMsg = header.concat(data).concat(SYSEX_END);
+  //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
+  //let midiMsg = header.concat(data).concat(SYSEX_END);
+  let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END];
   //console.log("UPLOAD: " + [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END]);
   MIDI_output.send(midiMsg);
 };
