@@ -261,10 +261,9 @@ function onMIDIMessage(midiMsg) {
       switch (status.channel) {
         case MIDI_VERBOSITY_CHANNEL:
           console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-
-          switch (VERBOSITY_CODES[data1]) {
+          switch (data1) {
   
-            case "MATRIX_MODE_DONE":
+            case MATRIX_MODE_DONE:
               $("#calibrateMenu").collapse("show");
               $("#matrixMenu").collapse("show");
               $("#mappingMenu").collapse("hide");
@@ -279,7 +278,7 @@ function onMIDIMessage(midiMsg) {
               e256_current_mode = MATRIX_MODE;
               break;
 
-            case "MAPPING_MODE_DONE":
+            case MAPPING_MODE_DONE:
               $("#calibrateMenu").collapse("show");
               $("#matrixMenu").collapse("hide");
               $("#mappingMenu").collapse("show");
@@ -294,7 +293,7 @@ function onMIDIMessage(midiMsg) {
               e256_current_mode = MAPPING_MODE;
               break;
 
-            case "EDIT_MODE_DONE":
+            case EDIT_MODE_DONE:
               $("#editMenu").collapse("show");
               $("#loadMenu").collapse("show");
               $("#set_button_params").collapse("show");
@@ -309,7 +308,7 @@ function onMIDIMessage(midiMsg) {
               e256_current_mode = EDIT_MODE;
               break;
   
-            case "PLAY_MODE_DONE":
+            case PLAY_MODE_DONE:
               $("#calibrateMenu").collapse("show");
               $("#matrixMenu").collapse("hide");
               $("#mappingMenu").collapse("show");
@@ -330,60 +329,60 @@ function onMIDIMessage(midiMsg) {
               e256_current_mode = PLAY_MODE;
               break;
   
-            case "PENDING_MODE_DONE":
+            case PENDING_MODE_DONE:
               //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
               //console.log("REQUEST: SYNC_MODE");
               break;
   
-            case "SYNC_MODE_DONE":
+            case SYNC_MODE_DONE:
               //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
               //console.log("REQUEST: LOAD_MODE");
               updateMenu();
               break;
 
-            case "CALIBRATE_MODE_DONE":
+            case CALIBRATE_MODE_DONE:
                e256_current_mode = e256_last_mode;
               break;
 
-            case "LOAD_MODE_DONE":
+            case LOAD_MODE_DONE:
               e256_current_mode = FETCH_MODE;
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, FETCH_MODE));
               console.log("REQUEST: FETCH_MODE");
               break;
 
-            case "FETCH_MODE_DONE":
+            case FETCH_MODE_DONE:
               draw_controler_from_config(fetch_config_file);
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, PLAY_MODE));
               console.log("REQUEST: PLAY_MODE");
               break;
 
-            case "ALLOCATE_MODE_DONE":
+            case ALLOCATE_MODE_DONE:
               e256_export_params();
               sysex_alloc(SYSEX_CONF, conf_size);
               break;
 
-            case "ALLOCATE_DONE":
+            case ALLOCATE_DONE:
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, UPLOAD_MODE));
               console.log("REQUEST: UPLOAD_MODE");
               break;
 
-            case "UPLOAD_MODE_DONE":
+            case UPLOAD_MODE_DONE:
               sysex_upload(string_to_bytes(JSON.stringify(e256_config)));
               break;
 
-            case "UPLOAD_DONE":
+            case UPLOAD_DONE:
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, APPLY_MODE));
               console.log("REQUEST: APPLY_MODE");
               break;
             
-            case "APPLY_MODE_DONE":
+            case APPLY_MODE_DONE:
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
               // Notification
               alert("PRESS THE LEFT PUSH BUTTON\nOF THE ETEXTILE-SYNTHESIZER\nTO SAVE THE CONFIG IN THE\nFLASH MEMORY!");
             break;
 
-            case "WRITE_MODE_DONE":
+            case WRITE_MODE_DONE:
               // Notification
               alert("NOW THE ETEXTILE-SYNTHESIZER\nCAN BE USED IN STANDALONE MODE!");
               break;
