@@ -37,7 +37,7 @@ function remove_item_menu_params(item) {
   let div_menu_params = document.getElementById("e256_params");
   let div_item_menu_params = document.getElementById(item.name + "_" + item.id);
   if (div_item_menu_params) div_menu_params.removeChild(div_item_menu_params);
-  //$("#contextualContent").html(" ");
+  //$("#contextual_content").html(" ");
 };
 
 //////////////////////////////////////////////// 1ST_LEVEL_ITEMS_MENU

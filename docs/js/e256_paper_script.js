@@ -4,7 +4,7 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var canvas_height = $("#loadingCanvas").height();
+var canvas_height = $("#loading_canvas").height();
 var canvas_width = canvas_height;
 //.log("PAPER_WIDTH: " + canvas_width + " PAPER_HEIGHT: " + canvas_height);
 //var scaleFactor = canvas_height / 127; // FEXME!
@@ -211,7 +211,7 @@ function controleur_factory(item_type) {
 
 // FIXME: whenever the view is resized
 paper.view.onResize = function () {
-  canvas_height = $("#loadingCanvas").height();
+  canvas_height = $("#loading_canvas").height();
   canvas_width = canvas_height;
   console.log("WIDTH: " + canvas_width + " HEIGHT: " + canvas_height);
   //scaleFactor = canvas_height / 127; // FIXME!

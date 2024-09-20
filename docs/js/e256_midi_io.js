@@ -204,27 +204,27 @@ function onMIDIFailure(error) {
 
 function updateMenu() {
   if (midi_device_connected) {
-    connectSwitch.checked = true;
-    $("#connectSwitch").removeClass("btn-danger").addClass("btn-success");
-    $("#summaryAction").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
-    $("#startMenu").collapse("show");
+    connect_switch.checked = true;
+    $("#connect_switch").removeClass("btn-danger").addClass("btn-success");
+    $("#summary_action").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
+    $("#start_menu").collapse("show");
     $("#e256_params").collapse("show");
     $("#MATRIX_MODE").removeClass("active");
     $("#MAPPING_MODE").addClass("active");
   }
   else {
-    connectSwitch.checked = false;
-    $("#startMenu").collapse("hide");
-    $("#calibrateMenu").collapse("hide");
-    $("#matrixMenu").collapse("hide");
-    $("#mappingMenu").collapse("hide");
-    $("#loadingCanvas").collapse("show");
-    $("#matrixCanvas").collapse("hide");
-    $("#mappingCanvas").collapse("hide");
-    $("#summaryAction").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
-    $("#contextualContent").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
+    connect_switch.checked = false;
+    $("#start_menu").collapse("hide");
+    $("#calibrate_menu").collapse("hide");
+    $("#matrix_menu").collapse("hide");
+    $("#mapping_menu").collapse("hide");
+    $("#loading_canvas").collapse("show");
+    $("#matrix_canvas").collapse("hide");
+    $("#mapping_canvas").collapse("hide");
+    $("#summary_action").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
+    $("#contextual_content").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
     $("#midi_term").collapse("hide");
-    $("#connectSwitch").removeClass("btn-success").addClass("btn-danger");
+    $("#connect_switch").removeClass("btn-success").addClass("btn-danger");
     $("#e256_params").collapse("hide");
     $("#set_button_params").collapse("hide");
   }
@@ -264,14 +264,14 @@ function onMIDIMessage(midiMsg) {
           switch (data1) {
   
             case MATRIX_MODE_DONE:
-              $("#calibrateMenu").collapse("show");
-              $("#matrixMenu").collapse("show");
-              $("#mappingMenu").collapse("hide");
-              $("#loadingCanvas").collapse("hide");
-              $("#matrixCanvas").collapse("show");
-              $("#mappingCanvas").collapse("hide");
-              $("#summaryAction").html("CONNECTED");
-              $("#contextualContent").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
+              $("#calibrate_menu").collapse("show");
+              $("#matrix_menu").collapse("show");
+              $("#mapping_menu").collapse("hide");
+              $("#loading_canvas").collapse("hide");
+              $("#matrix_canvas").collapse("show");
+              $("#mapping_canvas").collapse("hide");
+              $("#summary_action").html("CONNECTED");
+              $("#contextual_content").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
               
               $("#MAPPING_MODE").removeClass("active");
               $("#MATRIX_MODE").addClass("active");
@@ -279,14 +279,14 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case MAPPING_MODE_DONE:
-              $("#calibrateMenu").collapse("show");
-              $("#matrixMenu").collapse("hide");
-              $("#mappingMenu").collapse("show");
-              $("#loadingCanvas").collapse("hide");
-              $("#matrixCanvas").collapse("hide");
-              $("#mappingCanvas").collapse("show");
-              $("#summaryAction").html("CONNECTED");
-              $("#contextualContent").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces");
+              $("#calibrate_menu").collapse("show");
+              $("#matrix_menu").collapse("hide");
+              $("#mapping_menu").collapse("show");
+              $("#loading_canvas").collapse("hide");
+              $("#matrix_canvas").collapse("hide");
+              $("#mapping_canvas").collapse("show");
+              $("#summary_action").html("CONNECTED");
+              $("#contextual_content").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces");
 
               $("#MATRIX_MODE").removeClass("active");
               $("#MAPPING_MODE").addClass("active");
@@ -294,11 +294,11 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case EDIT_MODE_DONE:
-              $("#editMenu").collapse("show");
-              $("#loadMenu").collapse("show");
+              $("#edit_menu").collapse("show");
+              $("#load_menu").collapse("show");
               $("#set_button_params").collapse("show");
-              $("#summaryAction").html("CONNECTED / EDIT_MODE");
-              $("#contextualContent").html("Using EDIT MODE you can add components to the matrix controler");
+              $("#summary_action").html("CONNECTED / EDIT_MODE");
+              $("#contextual_content").html("Using EDIT MODE you can add components to the matrix controler");
               $("#midi_term").collapse("hide");
               item_menu_params(current_controleur, "show");
               item_menu_params(current_touch, "show");
@@ -309,17 +309,17 @@ function onMIDIMessage(midiMsg) {
               break;
   
             case PLAY_MODE_DONE:
-              $("#calibrateMenu").collapse("show");
-              $("#matrixMenu").collapse("hide");
-              $("#mappingMenu").collapse("show");
-              $("#loadingCanvas").collapse("hide");
-              $("#matrixCanvas").collapse("hide");
-              $("#mappingCanvas").collapse("show");
-              $("#editMenu").collapse("hide");
-              $("#loadMenu").collapse("hide");
+              $("#calibrate_menu").collapse("show");
+              $("#matrix_menu").collapse("hide");
+              $("#mapping_menu").collapse("show");
+              $("#loading_canvas").collapse("hide");
+              $("#matrix_canvas").collapse("hide");
+              $("#mapping_canvas").collapse("show");
+              $("#edit_menu").collapse("hide");
+              $("#load_menu").collapse("hide");
               $("#set_button_params").collapse("hide");
-              $("#summaryAction").html("CONNECTED / PLAY_MODE");
-              $("#contextualContent").html("Using PLAY MODE you can evaluate what you have made");
+              $("#summary_action").html("CONNECTED / PLAY_MODE");
+              $("#contextual_content").html("Using PLAY MODE you can evaluate what you have made");
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
@@ -424,17 +424,16 @@ function onMIDIMessage(midiMsg) {
 
 function send_midi_msg(midiMsg) {
   if (midi_device_connected) {
-    //console.log("OUT:" + Object.values(midiMsg));
     if (midiMsg.data2 === null) {
       MIDI_output.send([midiMsg.status, midiMsg.data1]);
     } else {
       MIDI_output.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);
     }
+    midi_term.push(midiMsg);
   }
   else {
     alert("MIDI_HARDWARE IS NOT CONNECTED!");
   }
-  midi_term.push(midiMsg);
 };
 
 // Send data via MIDI system exclusive message
@@ -480,7 +479,7 @@ function e256_alocate_memory() {
 */
 
 $(document).ready(function () {
-  $("#loadingCanvas").collapse("show");
+  $("#loading_canvas").collapse("show");
   MIDIsetup();
 });
 

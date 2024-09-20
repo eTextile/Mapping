@@ -9,6 +9,7 @@ var e256_config = ({}); // empty JSON declaration
 function e256_export_params() {
   e256_config["mappings"] = {};
   for (const layer of paper.project.layers) {
+    console.log(layer.name);
     if (layer.hasChildren()) {
       e256_config["mappings"][layer.name] = list_layer_params(layer);
     }

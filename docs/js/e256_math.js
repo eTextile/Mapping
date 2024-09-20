@@ -30,9 +30,9 @@ function mapp(input, in_min, in_max, out_min, out_max) {
 
 // Max is exclusive and min is inclusive
 function get_random_int(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min) + min);
+  let _min = Math.ceil(min);
+  let _max = Math.floor(max);
+  return Math.floor(Math.random() * (_max - _min) + _min);
 };
 
 function deg_to_rad(angle_degree) {

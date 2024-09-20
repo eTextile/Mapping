@@ -22,8 +22,8 @@ $(".btn-group > .btn").click(function () {
   $(this).addClass("active").siblings().removeClass("active");
 });
 
-$("#connectSwitch").on("change", function () {
-  $("#startMenu").collapse("show");
+$("#connect_switch").on("change", function () {
+  $("#start_menu").collapse("show");
 });
 
 $(".e256_setMode").click(function (event) {

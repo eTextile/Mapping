@@ -14,7 +14,7 @@ var half_canvas = null;
 
 //console.log("THREE.JS: " + THREE.version); // FIXME!
 
-canvas_height = $("#loadingCanvas").height();
+canvas_height = $("#loading_canvas").height();
 canvas_width = canvas_height;
 half_canvas = canvas_width / 2;
 //console.log("THREE_WIDTH: " + canvas_width + " THREE_HEIGHT: " + canvas_height);
@@ -108,7 +108,7 @@ function init() {
 }
 
 function onWindowResize() {
-  canvas_height = $("#mappingCanvas").height();
+  canvas_height = $("#mapping_canvas").height();
   canvas_width = canvas_height;
   half_canvas = canvas_width / 2;
   console.log("THREE_WIDTH: " + canvas_width + " THREE_HEIGHT: " + canvas_height);  
