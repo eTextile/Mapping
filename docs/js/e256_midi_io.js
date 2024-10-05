@@ -253,7 +253,7 @@ function onMIDIMessage(midiMsg) {
       break;
     case NOTE_OFF:
       e256_blobs.remove(midiMsg.data);
-      break;mie256_blobsdiMsg
+      break;
     case C_CHANGE:
       // N/A
       break;
