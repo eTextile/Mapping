@@ -6,10 +6,9 @@ This work is licensed under Creative Commons Attribution-ShareAlike 4.0 Internat
 
 /////////// SWITCH Factory
 function switchFactory() {
-  const DEFAULT_SWITCH_WIDTH = 60;
-  const DEFAULT_SWITCH_HEIGHT = 60;
-
-  const DEFAULT_SWITCH_MIN_SIZE = 60;
+  const DEFAULT_SWITCH_WIDTH = canvas_width / RAW_COLS;
+  const DEFAULT_SWITCH_HEIGHT = canvas_height / RAW_ROWS;
+  const DEFAULT_SWITCH_MIN_SIZE = canvas_height / RAW_ROWS;
 
   const DEFAULT_SWITCH_MODE_Z = NOTE_ON;
   const DEFAULT_SWITCH_BUTTON_PADDING = 8;

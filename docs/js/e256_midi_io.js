@@ -9,7 +9,7 @@ var MIDI_output = null;
 
 let inputSetup = false;
 let outputSetup = false;
-var midi_device_connected = false; // SET I TO FALSE
+var midi_device_connected = false; // SET IT TO FALSE
 var loaded_file = null; // from user desktop
 var fetch_config_file = null; // from e256 flash memory
 
@@ -353,6 +353,7 @@ function onMIDIMessage(midiMsg) {
             case FETCH_MODE_DONE:
               draw_controler_from_config(fetch_config_file);
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, PLAY_MODE));
+              previous_controleur = null;
               console.log("REQUEST: PLAY_MODE");
               break;
 

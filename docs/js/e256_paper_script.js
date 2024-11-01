@@ -52,8 +52,8 @@ paperTool.onMouseDown = function (mouseEvent) {
   switch (e256_current_mode) {
     case EDIT_MODE:
       if (e256_draw_mode) {
-        if (!hitResult) { // Create_ctl if cliking any umty screen space.
-          if (!create_once) { // Check if the controleur needs to be draw with more that one clic.
+        if (!hitResult) { // Create_ctl if cliking any umty screen space
+          if (!create_once) { // Check if the controleur needs to be draw with more that one clic
             if (e256_draw_mode === "path") {
               create_once = true;
             }
@@ -71,14 +71,20 @@ paperTool.onMouseDown = function (mouseEvent) {
             current_controleur.graw(mouseEvent); // Used by path() & ...
           }
         }
-        else {
+        else { // If cliking on item
           previous_controleur = current_controleur;
           let current_item = current_part.item;
           while (current_item.parent) {
             current_controleur = current_item;
             current_item = current_item.parent;
           }
+          paper.project.layers[current_controleur.name].bringToFront();
           current_controleur.bringToFront();
+
+          e256_draw_mode = current_controleur.name;
+          $("#" + previous_controleur.name).removeClass("active");
+          $("#" + current_controleur.name).addClass("active");
+
           if (current_controleur.id !== previous_controleur.id) {
             item_menu_params(previous_controleur, "hide");
             item_menu_params(current_controleur, "show");
