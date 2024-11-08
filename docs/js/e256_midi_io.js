@@ -209,8 +209,16 @@ function updateMenu() {
     $("#summary_action").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
     $("#start_menu").collapse("show");
     $("#e256_params").collapse("show");
-    $("#MATRIX_MODE").removeClass("active");
-    $("#MAPPING_MODE").addClass("active");
+    $("#calibrate_menu").collapse("show");
+    $("#matrix_menu").collapse("show");
+    $("#mapping_menu").collapse("hide");
+    $("#loading_canvas").collapse("hide");
+    $("#matrix_canvas").collapse("show");
+    $("#mapping_canvas").collapse("hide");
+    $("#summary_action").html("CONNECTED");
+    $("#contextual_content").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
+    $("#MATRIX_MODE").addClass("active");
+    $("#MAPPING_MODE").removeClass("active");
   }
   else {
     connect_switch.checked = false;
@@ -227,6 +235,8 @@ function updateMenu() {
     $("#connect_switch").removeClass("btn-success").addClass("btn-danger");
     $("#e256_params").collapse("hide");
     $("#set_button_params").collapse("hide");
+    $("#MAPPING_MODE").removeClass("active");
+    $("#MATRIX_MODE").removeClass("active");
   }
 };
 
@@ -264,17 +274,7 @@ function onMIDIMessage(midiMsg) {
           switch (data1) {
   
             case MATRIX_MODE_DONE:
-              $("#calibrate_menu").collapse("show");
-              $("#matrix_menu").collapse("show");
-              $("#mapping_menu").collapse("hide");
-              $("#loading_canvas").collapse("hide");
-              $("#matrix_canvas").collapse("show");
-              $("#mapping_canvas").collapse("hide");
-              $("#summary_action").html("CONNECTED");
-              $("#contextual_content").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
-              
-              $("#MAPPING_MODE").removeClass("active");
-              $("#MATRIX_MODE").addClass("active");
+              updateMenu();
               e256_current_mode = MATRIX_MODE;
               break;
 
@@ -352,14 +352,23 @@ function onMIDIMessage(midiMsg) {
 
             case FETCH_MODE_DONE:
               draw_controler_from_config(fetch_config_file);
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, PLAY_MODE));
-              previous_controleur = null;
-              console.log("REQUEST: PLAY_MODE");
+              
+              if (previous_controleur){
+                $("#" + previous_controleur.name).removeClass("active");
+                previous_controleur = null;
+              }
+              if (current_controleur){
+                $("#" + current_controleur.name).removeClass("active");
+                current_controleur = null;
+              }
+              
+              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
+              console.log("REQUEST: EDIT_MODE");
               break;
 
             case ALLOCATE_MODE_DONE:
               e256_export_params();
-              sysex_alloc(SYSEX_CONF, conf_size);
+              sysex_alloc(conf_size);
               break;
 
             case ALLOCATE_DONE:
@@ -442,24 +451,24 @@ function send_midi_msg(midiMsg) {
 // Recive: USBMIDI_CONFIG_ALLOC_DONE
 // Send: [ SYSEX_BEGIN, SYSEX_DEVICE_ID, SYSEX_DATA, SYSEX_END ]
 // Recive: USBMIDI_CONFIG_LOAD_DONE
-function sysex_alloc(identifier, size) {
+function sysex_alloc(conf_size) {
   if (conf_size < FLASH_SIZE) {
-    let size_msb = size >> 7 ;
-    let size_lsb = size & 0x7F; // 0111 1111
-    //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
-    //let midiMsg = header.concat(identifier).concat(size_msb).concat(size_lsb).concat(SYSEX_END);
-    MIDI_output.send([SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END]);
-    //console.log("ALOCATE: " + [SYSEX_BEGIN, SYSEX_DEVICE_ID, identifier, size_msb, size_lsb, SYSEX_END]);
+    console.log("DEBUG_CONF_SIZE: " + conf_size);
+    let size_lsb = conf_size & 0x7F; // 0x7F Mask -> 0111 1111
+    let size_msb = (conf_size >> 7) & 0x7F; // 0x7F Mask -> 0111 1111
+    let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
+    let midiMsg = header.concat(size_msb).concat(size_lsb).concat(SYSEX_END);
+    //MIDI_output.send([SYSEX_BEGIN, SYSEX_DEVICE_ID, size_msb, size_lsb, SYSEX_END]);
+    MIDI_output.send(midiMsg);
   } else {
     alert("FILE TO BIG!");
   }
 };
 
 function sysex_upload(data) {
-  //let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
-  //let midiMsg = header.concat(data).concat(SYSEX_END);
-  let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END];
-  //console.log("UPLOAD: " + [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END]);
+  let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
+  let midiMsg = header.concat(data).concat(SYSEX_END);
+  //let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END]; // NOT WORKING!
   MIDI_output.send(midiMsg);
 };
 

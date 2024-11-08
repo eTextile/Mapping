@@ -413,7 +413,7 @@ function update_touch_menu_params(sub_part) {
 
 // Show/Hide menu params
 function item_menu_params(item, state) {
-  $("#" + item.name + "_" + item.id).collapse(state);
+  if(item) $("#" + item.name + "_" + item.id).collapse(state);
 };
 
 function re_create_item(item) {

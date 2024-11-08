@@ -51,58 +51,61 @@ paperTool.onMouseDown = function (mouseEvent) {
 
   switch (e256_current_mode) {
     case EDIT_MODE:
-      if (e256_draw_mode) {
-        if (!hitResult) { // Create_ctl if cliking any umty screen space
-          if (!create_once) { // Check if the controleur needs to be draw with more that one clic
-            if (e256_draw_mode === "path") {
-              create_once = true;
-            }
-            previous_controleur = current_controleur;
-            draw_controler_from_mouse(mouseEvent);
-
-            item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
-            item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
-            create_item_menu_params(current_controleur);
-            update_menu_1st_level(current_controleur); // <== update_item_main_params(current_controleur);
-            update_menu_2nd_level(current_controleur); // <== update_item_touch_menu_params(current_controleur);
-            item_menu_params(current_controleur, "show");
+      if (!hitResult) { // Create_ctl if cliking any umty screen space
+        if (!create_once) { // Check if the controleur needs to be draw with more that one clic
+          if (e256_draw_mode === "path") {
+            create_once = true;
           }
-          else {
-            current_controleur.graw(mouseEvent); // Used by path() & ...
-          }
-        }
-        else { // If cliking on item
           previous_controleur = current_controleur;
-          let current_item = current_part.item;
-          while (current_item.parent) {
-            current_controleur = current_item;
-            current_item = current_item.parent;
-          }
-          paper.project.layers[current_controleur.name].bringToFront();
-          current_controleur.bringToFront();
-
-          e256_draw_mode = current_controleur.name;
-          $("#" + previous_controleur.name).removeClass("active");
-          $("#" + current_controleur.name).addClass("active");
-
-          if (current_controleur.id !== previous_controleur.id) {
-            item_menu_params(previous_controleur, "hide");
-            item_menu_params(current_controleur, "show");
-          }
-          if (current_touch.id !== previous_touch.id) {
-            item_menu_params(previous_touch, "hide");
-            item_menu_params(current_touch, "show");
-          }
+          draw_controler_from_mouse(mouseEvent);
+          item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
+          item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
+          create_item_menu_params(current_controleur);
+          update_menu_1st_level(current_controleur); // <== update_item_main_params(current_controleur);
+          update_menu_2nd_level(current_controleur); // <== update_item_touch_menu_params(current_controleur);
+          item_menu_params(current_controleur, "show");
+        }
+        else {
+          current_controleur.graw(mouseEvent); // Used by path() & ...
         }
       }
-      else {
-        alert("SELECT A GUI!");
+      else { // If cliking on item
+        if (current_controleur) previous_controleur = current_controleur;
+        
+        let current_item = current_part.item;
+        while (current_item.parent) {
+          current_controleur = current_item;
+          current_item = current_item.parent;
+        }
+        console.log(current_controleur.name);
+
+        paper.project.layers[current_controleur.name].bringToFront();
+        current_controleur.bringToFront();
+
+        e256_draw_mode = current_controleur.name;
+
+        if (previous_controleur) {
+          if (current_controleur.id !== previous_controleur.id) {
+            item_menu_params(previous_controleur, "hide");
+            $("#" + previous_controleur.name).removeClass("active");
+          }
+        }
+        item_menu_params(current_controleur, "show");
+        $("#" + current_controleur.name).addClass("active");
+
+        if (previous_touch) {
+          if (current_touch.id !== previous_touch.id) {
+            item_menu_params(previous_touch, "hide");
+          }
+        }
+        item_menu_params(current_touch, "show");         
+
       }
       break;
     case PLAY_MODE:
       // NA
       break;
-  }
+  };
 };
 
 paperTool.onKeyDown = function (keyEvent) {
