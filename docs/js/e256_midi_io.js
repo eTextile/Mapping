@@ -352,7 +352,6 @@ function onMIDIMessage(midiMsg) {
 
             case FETCH_MODE_DONE:
               draw_controler_from_config(fetch_config_file);
-              
               if (previous_controleur){
                 $("#" + previous_controleur.name).removeClass("active");
                 previous_controleur = null;
@@ -361,9 +360,9 @@ function onMIDIMessage(midiMsg) {
                 $("#" + current_controleur.name).removeClass("active");
                 current_controleur = null;
               }
-              
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
-              console.log("REQUEST: EDIT_MODE");
+              e256_current_mode = EDIT_MODE;
+              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
+              console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
               break;
 
             case ALLOCATE_MODE_DONE:
@@ -388,12 +387,13 @@ function onMIDIMessage(midiMsg) {
             case APPLY_MODE_DONE:
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
-              // Notification
+              // Notification A
               alert("PRESS THE LEFT PUSH BUTTON\nOF THE ETEXTILE-SYNTHESIZER\nTO SAVE THE CONFIG IN THE\nFLASH MEMORY!");
             break;
 
             case WRITE_MODE_DONE:
-              // Notification
+              // TODO: close previous alert/notification by prrog!
+              // Notification B
               alert("NOW THE ETEXTILE-SYNTHESIZER\nCAN BE USED IN STANDALONE MODE!");
               break;
             

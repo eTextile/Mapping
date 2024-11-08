@@ -395,7 +395,7 @@ function knobFactory() {
                       _knob_group.center.x + _knob_touch_pos.x,
                       _knob_group.center.y + _knob_touch_pos.y
                     );
-                    //_touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
+                    _touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
                     _touch.children["knob-needle"].segments[0].point = _knob_group.center;
                     _touch.children["knob-needle"].segments[1].point = _touch.children["knob-touch"].position;
                   }
@@ -432,7 +432,7 @@ function knobFactory() {
                       _knob_group.center.x + _knob_touch_pos.x,
                       _knob_group.center.y + _knob_touch_pos.y
                     );
-                    //_touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
+                    _touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
                     _touch.children["knob-needle"].segments[0].point = _knob_group.center;
                     _touch.children["knob-needle"].segments[1].point = _touch.children["knob-touch"].position;
                   }
@@ -468,7 +468,7 @@ function knobFactory() {
                       _knob_group.center.x + _knob_touch_pos.x,
                       _knob_group.center.y + _knob_touch_pos.y
                     );
-                    //_touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
+                    _touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
                     _touch.children["knob-needle"].segments[0].point = _knob_group.center;
                     _touch.children["knob-needle"].segments[1].point = _touch.children["knob-touch"].position;
                   }
@@ -505,7 +505,7 @@ function knobFactory() {
                       _knob_group.center.x + _knob_touch_pos.x,
                       _knob_group.center.y + _knob_touch_pos.y
                     );
-                    //_touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
+                    _touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
                     _touch.children["knob-needle"].segments[0].point = _knob_group.center;
                     _touch.children["knob-needle"].segments[1].point = _touch.children["knob-touch"].position;
                   }

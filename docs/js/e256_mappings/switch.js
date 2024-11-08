@@ -32,6 +32,7 @@ function switchFactory() {
       "from": null,
       "to": null,
       "mode_z": null,
+      "test": null, // TESTING
       "msg": null
     },
 
@@ -88,8 +89,8 @@ function switchFactory() {
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
         "pos": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
-        "msg": this.data.msg[0],
-        "prev_pos_z": null
+        "msg": this.data.msg[0]
+        //"prev_pos_z": null
       });
 
       let _touch_ellipse = new paper.Shape.Ellipse({
