@@ -154,7 +154,7 @@ function draw_controler_from_mouse(mouseEvent) {
   current_controleur.bringToFront();
 };
 
-function draw_controler_from_config(raw_configFile) {
+function draw_controlers_from_config(raw_configFile) {
   let configFile = null;
   try {
     configFile = JSON.parse(raw_configFile);
@@ -163,8 +163,13 @@ function draw_controler_from_config(raw_configFile) {
     console.log("NOT VALID JSON!");
     return;
   }
+  clear_all_meunu_params();
+  clear_all_layers();
+  create_controlers_from_config(configFile);
+};
 
-  // Clear all meunu params
+// Clear all meunu params
+function clear_all_meunu_params() {
   for (const layer of paper.project.layers) {
     if (layer.hasChildren()) {
       for (item of layer.children) {
@@ -172,13 +177,19 @@ function draw_controler_from_config(raw_configFile) {
       }
     }
   }
-  // Clear all layers
+}
+
+// Clear all layers
+function clear_all_layers() {
   for (const layer of paper.project.layers) {
     if (layer.hasChildren()) {
       layer.removeChildren();
     }
   }
-  // Create all controlers
+}
+
+// Create all controlers from config
+function create_controlers_from_config(configFile) {
   for (const _ctl_type in configFile.mappings) {
     console.log("CTL_TYPE: " + _ctl_type);
     paper.project.layers[_ctl_type].activate();
@@ -192,7 +203,7 @@ function draw_controler_from_config(raw_configFile) {
       item_menu_params(current_controleur, "hide");
     }
   }
-};
+}
 
 function controleur_factory(item_type) {
   switch (item_type) {
@@ -232,7 +243,7 @@ paper.view.onResize = function () {
 function onReaderLoad(event) {
   conf_size = Object.keys(event.target.result).length;
   console.log("CONF_SIZE_IN: " + conf_size);
-  draw_controler_from_config(event.target.result);
+  draw_controlers_from_config(event.target.result);
 };
 
 function loadFile(event) {
