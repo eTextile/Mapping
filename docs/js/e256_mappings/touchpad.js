@@ -53,7 +53,7 @@ function touchpadFactory() {
         touch_msg = {};
         touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
         touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-        touch_msg.pos_z = midi_msg_builder(DEFAULT_PAD_MODE_Z);
+        touch_msg.press = midi_msg_builder(DEFAULT_PAD_MODE_Z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -69,7 +69,7 @@ function touchpadFactory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].pos_z.midi.status);
+      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.mode_z = status.type;
     },
 
@@ -87,23 +87,23 @@ function touchpadFactory() {
           let touch_msg = {};
           touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
           touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-          touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+          touch_msg.press = midi_msg_builder(this.data.mode_z);
           this.data.msg.push(touch_msg);
         }
       }
       else {
         for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           if (_touch < previous_touch_count) {
-            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.pos_z.midi.status);
+            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
             let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["touchs-group"].children[_touch].msg.pos_z.midi.status = new_status;
+            this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
             this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
           }
           else {
             let touch_msg = {};
             touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
             touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-            touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+            touch_msg.press = midi_msg_builder(this.data.mode_z);
             this.data.msg.push(touch_msg);
           }
         }
@@ -179,9 +179,9 @@ function touchpadFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status | (NOTE_ON << 4);
-            _touch_group.msg.pos_z.midi.data2 = 127;
-            send_midi_msg(_touch_group.msg.pos_z.midi);
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | (NOTE_ON << 4);
+            _touch_group.msg.press.midi.data2 = 127;
+            send_midi_msg(_touch_group.msg.press.midi);
         }
       }
       
@@ -191,9 +191,9 @@ function touchpadFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status & (NOTE_OFF << 4);
-            _touch_group.msg.pos_z.midi.data2 = 0;
-            send_midi_msg(_touch_group.msg.pos_z.midi);
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & (NOTE_OFF << 4);
+            _touch_group.msg.press.midi.data2 = 0;
+            send_midi_msg(_touch_group.msg.press.midi);
         }
       }
 

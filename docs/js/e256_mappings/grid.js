@@ -58,7 +58,7 @@ function gridFactory() {
       current_key_count = this.data.cols * this.data.rows;
       for (let _key = 0; _key < current_key_count; _key++) {
         key_msg = {};
-        key_msg.pos_z = midi_msg_builder(DEFAULT_GRID_MODE_Z);
+        key_msg.press = midi_msg_builder(DEFAULT_GRID_MODE_Z);
         this.data.msg.push(key_msg);
       }
     },
@@ -75,7 +75,7 @@ function gridFactory() {
       this.data.cols = params.cols;
       this.data.rows = params.rows;
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].pos_z.midi.status);
+      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.mode_z = status.type;
     },
 
@@ -93,21 +93,21 @@ function gridFactory() {
       if (this.data.mode_z !== previous_key_mode_z) {
         for (let _key = 0; _key < current_key_count; _key++) {
           let key_msg = {};
-          key_msg.pos_z = midi_msg_builder(this.data.mode_z);
+          key_msg.press = midi_msg_builder(this.data.mode_z);
           this.data.msg.push(key_msg);
         }
       }
       else {
         for (let _key = 0; _key < current_key_count; _key++) {
           if (_key < previous_key_count) {
-            let status = midi_msg_status_unpack(this.children["keys-group"].children[_key].msg.pos_z.midi.status);
+            let status = midi_msg_status_unpack(this.children["keys-group"].children[_key].msg.press.midi.status);
             let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["keys-group"].children[_key].msg.pos_z.midi.status = new_status;
+            this.children["keys-group"].children[_key].msg.press.midi.status = new_status;
             this.data.msg.push(this.children["keys-group"].children[_key].msg);
           }
           else {
             let key_msg = {};
-            key_msg.pos_z = midi_msg_builder(this.data.mode_z);
+            key_msg.press = midi_msg_builder(this.data.mode_z);
             this.data.msg.push(key_msg);
           }
         }
@@ -161,9 +161,9 @@ function gridFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _key_group.msg.pos_z.midi.status = _key_group.msg.pos_z.midi.status | (NOTE_ON << 4);
-            _key_group.msg.pos_z.midi.data2 = 127;
-            send_midi_msg(_key_group.msg.pos_z.midi);
+            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status | (NOTE_ON << 4);
+            _key_group.msg.press.midi.data2 = 127;
+            send_midi_msg(_key_group.msg.press.midi);
             break;
         }
       }
@@ -175,9 +175,9 @@ function gridFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _key_group.msg.pos_z.midi.status = _key_group.msg.pos_z.midi.status & (NOTE_OFF << 4);
-            _key_group.msg.pos_z.midi.data2 = 0;
-            send_midi_msg(_key_group.msg.pos_z.midi);
+            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status & (NOTE_OFF << 4);
+            _key_group.msg.press.midi.data2 = 0;
+            send_midi_msg(_key_group.msg.press.midi);
             break;
         }
       }
@@ -187,7 +187,7 @@ function gridFactory() {
       let _key_txt = new paper.PointText({
         "name": "key-text",
         "point": _key_frame.position,
-        "content": _key_group.msg.pos_z.midi.data1,
+        "content": _key_group.msg.press.midi.data1,
         "locked": true
       });
 

@@ -179,18 +179,14 @@ function create_menu_1st_level(item) {
   return part_params;
 }
 
-//function update_item_menu_params(item) {
 function update_menu_1st_level(item) {
   for (const part of item.children) {
     for (const param in part.data) {
       if (part.data[param].constructor.name === "Point") {
-        //$("#" + part.parent.id + "_" + param + "_val_x").val(Math.round(part.data[param].x));
-        //$("#" + part.parent.id + "_" + param + "_val_y").val(Math.round(part.data[param].y));
         $("#" + part.parent.id + "_" + param + "_val_x").val(round2(part.data[param].x));
         $("#" + part.parent.id + "_" + param + "_val_y").val(round2(part.data[param].y));
       }
       else {
-        //$("#" + part.parent.id + "_" + param + "_val").val(Math.round(part.data[param]));
         $("#" + part.parent.id + "_" + param + "_val").val(round2(part.data[param]));
       }
     }
@@ -225,20 +221,22 @@ function create_menu_2nd_level(item) {
     first_param_atr.textContent = "";
     row_params_atr_tr.appendChild(first_param_atr);
 
-    let status = midi_msg_status_unpack(item.msg[msg_type].midi.status);
+    let status = midi_msg_status_unpack(item.msg[msg_type]["midi"]["status"]);
 
     let first_param_val = document.createElement("th");
     first_param_val.className = "align-middle text-center";
-    first_param_val.textContent = MIDI_TYPES[status.type]; // Set MIDI message type
+
+    //first_param_val.textContent = MIDI_TYPES[status.type]; // Set MIDI message type
+    first_param_val.textContent = msg_type; // Set MIDI message name
     row_params_val_tr.appendChild(first_param_val);
 
     let param_arg = null;
-
     for (const param in item.msg[msg_type]) {
       switch (param) {
 
         case "midi":
           for (const midi_byte in item.msg[msg_type][param]) {
+
             switch (midi_byte) {
               case "status":
                 param_arg = "chan";
@@ -250,7 +248,8 @@ function create_menu_2nd_level(item) {
                 param_arg = DATA2[status.type];
                 break;
             }
-            if (param_arg !== "null") {
+            //if (param_arg !== "null") {
+            if (param_arg) {
               let param_atr = document.createElement("th");
               param_atr.setAttribute("id", item.id + "_" + msg_type + "_" + param_arg + "_atr");
               param_atr.className = "align-middle text-center";

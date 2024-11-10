@@ -32,7 +32,6 @@ function switchFactory() {
       "from": null,
       "to": null,
       "mode_z": null,
-      "test": null, // TESTING
       "msg": null
     },
 
@@ -48,7 +47,7 @@ function switchFactory() {
       );
       this.data.msg = [];
       let touch_msg = {};
-      touch_msg.pos_z = midi_msg_builder(DEFAULT_SWITCH_MODE_Z);
+      touch_msg.press = midi_msg_builder(DEFAULT_SWITCH_MODE_Z);
       this.data.msg.push(touch_msg);
     },
 
@@ -62,7 +61,7 @@ function switchFactory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].pos_z.midi.status);
+      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.mode_z = status.type;
     },
 
@@ -73,14 +72,14 @@ function switchFactory() {
       this.data.mode_z = this.children["switch-group"].data.mode_z;
       this.data.msg = [];
       if (this.data.mode_z == previous_touch_mode_z) {
-        let status = midi_msg_status_unpack(this.children["touchs-group"].children[0].msg.pos_z.midi.status);
+        let status = midi_msg_status_unpack(this.children["touchs-group"].children[0].msg.press.midi.status);
         let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-        this.children["touchs-group"].children[0].msg.pos_z.midi.status = new_status;
+        this.children["touchs-group"].children[0].msg.press.midi.status = new_status;
         this.data.msg.push(this.children["touchs-group"].children[0].msg);
       }
       else {
         let touch_msg = {};
-        touch_msg.pos_z = midi_msg_builder(this.data.mode_z);
+        touch_msg.press = midi_msg_builder(this.data.mode_z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -90,7 +89,6 @@ function switchFactory() {
         "name": "touch-" + _touch_id,
         "pos": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
         "msg": this.data.msg[0]
-        //"prev_pos_z": null
       });
 
       let _touch_ellipse = new paper.Shape.Ellipse({
@@ -133,9 +131,9 @@ function switchFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status | (NOTE_ON << 4);
-            _touch_group.msg.pos_z.midi.data2 = 127;
-            send_midi_msg(_touch_group.msg.pos_z.midi);
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | (NOTE_ON << 4);
+            _touch_group.msg.press.midi.data2 = 127;
+            send_midi_msg(_touch_group.msg.press.midi);
         }
       }
 
@@ -145,9 +143,9 @@ function switchFactory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _touch_group.msg.pos_z.midi.status = _touch_group.msg.pos_z.midi.status & (NOTE_OFF << 4);
-            _touch_group.msg.pos_z.midi.data2 = 0;
-            send_midi_msg(_touch_group.msg.pos_z.midi);
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & (NOTE_OFF << 4);
+            _touch_group.msg.press.midi.data2 = 0;
+            send_midi_msg(_touch_group.msg.press.midi);
         }
       }
       _touch_group.addChild(_touch_ellipse);
@@ -155,7 +153,7 @@ function switchFactory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": "",
+        "content": _touch_group.msg.press.midi.data1,
         "locked": true
       });
 

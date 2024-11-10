@@ -158,13 +158,12 @@ function draw_controler_from_config(raw_configFile) {
   let configFile = null;
   try {
     configFile = JSON.parse(raw_configFile);
+    //console.log("CONFIG: " + raw_configFile); // PROB!
   } catch (err) {
     console.log("NOT VALID JSON!");
     return;
   }
-  console.log("CONFIG: " + raw_configFile);
 
-  
   // Clear all meunu params
   for (const layer of paper.project.layers) {
     if (layer.hasChildren()) {
