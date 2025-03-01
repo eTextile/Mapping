@@ -17,8 +17,11 @@ function round2(value) {
 }
 
 function mapp(input, in_min, in_max, out_min, out_max) {
-  if (input === in_max) {
+  if (input >= in_max) {
     return out_max;
+  }
+  else if (input <= in_min) {
+    return out_min;
   }
   else if (out_min > out_max) {
     return Math.abs((input - in_min) * (out_max - out_min) / (in_max - in_min) - out_max);
