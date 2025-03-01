@@ -53,7 +53,7 @@ function sliderFactory() {
       let touch_msg;
       for (let _touch = 0; _touch < DEFAULT_SLIDER_TOUCHS; _touch++) {
         touch_msg = {};
-        touch_msg.dir = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
+        touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
         touch_msg.press = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE_Z);
         this.data.msg.push(touch_msg);
         console.log(this.data.msg);
@@ -95,7 +95,7 @@ function sliderFactory() {
       if (this.data.mode_z !== previous_touch_mode_z) {
         for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           let touch_msg = {};
-          touch_msg.dir = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
+          touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
           touch_msg.press = midi_msg_builder(this.data.mode_z);
           this.data.msg.push(touch_msg);
         }
@@ -110,7 +110,7 @@ function sliderFactory() {
           }
           else {
             let touch_msg = {};
-            touch_msg.dir = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
+            touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
             touch_msg.press = midi_msg_builder(this.data.mode_z);
             this.data.msg.push(touch_msg);
           }
@@ -198,7 +198,7 @@ function sliderFactory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_circle.position,
-        "content": _touch_group.msg.dir.midi.data1,
+        "content": _touch_group.msg.pos.midi.data1,
         "locked": true
       });
 
@@ -220,12 +220,12 @@ function sliderFactory() {
                   _touch_line.position.y = mouseEvent.point.y;
                   _touch_circle.position.y = mouseEvent.point.y;
                   _touch_txt.position.y = mouseEvent.point.y;
-                  _touch_group.msg.dir.midi.data2 = Math.round(
+                  _touch_group.msg.pos.midi.data2 = Math.round(
                     mapp(mouseEvent.point.y,
                       _slider.children["slider-frame"].bounds.top,
                       _slider.children["slider-frame"].bounds.bottom,
-                      _touch_group.msg.dir.limit.min,
-                      _touch_group.msg.dir.limit.max
+                      _touch_group.msg.pos.limit.min,
+                      _touch_group.msg.pos.limit.max
                     )
                   );
                 }
@@ -236,20 +236,20 @@ function sliderFactory() {
                   _touch_line.position.x = mouseEvent.point.x;
                   _touch_circle.position.x = mouseEvent.point.x;
                   _touch_txt.position.x = mouseEvent.point.x;
-                  _touch_group.msg.dir.midi.data2 = Math.round(
+                  _touch_group.msg.pos.midi.data2 = Math.round(
                     mapp(mouseEvent.point.x,
                       _slider.children["slider-frame"].bounds.left,
                       _slider.children["slider-frame"].bounds.right,
-                      _touch_group.msg.dir.limit.min,
-                      _touch_group.msg.dir.limit.max
+                      _touch_group.msg.pos.limit.min,
+                      _touch_group.msg.pos.limit.max
                     )
                   );
                 }
                 break;
             }
-            if (_touch_group.msg.dir.midi.data2 != _touch_group.prev_pos) {
-              _touch_group.prev_pos = _touch_group.msg.dir.midi.data2;
-              send_midi_msg(_touch_group.msg.dir.midi);
+            if (_touch_group.msg.pos.midi.data2 != _touch_group.prev_pos) {
+              _touch_group.prev_pos = _touch_group.msg.pos.midi.data2;
+              send_midi_msg(_touch_group.msg.pos.midi);
             }
             break;
         }

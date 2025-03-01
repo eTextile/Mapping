@@ -9,13 +9,13 @@ function Matrix(width, height) {
   for (let i = 0; i < RAW_FRAME; i++) {
     this.matrix[i] = 0;
   }
-}
+};
 
 Matrix.prototype.update = function (sysExMsg) {
   for (let i = 0; i < RAW_FRAME; i++) {
     this.matrix[i] = sysExMsg[i + 1] / 10;
   }
-}
+};
 
 Matrix.prototype.getZ = function (index) {
   let val = this.matrix[index];
@@ -25,6 +25,6 @@ Matrix.prototype.getZ = function (index) {
   else {
     return 0;
   }
-}
+};
 
 var e256_matrix = new Matrix(RAW_COLS, RAW_ROWS);

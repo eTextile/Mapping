@@ -145,13 +145,16 @@ function midi_msg_builder(mode) {
 };
 
 function MIDIsetup() {
-  navigator.permissions.query({name: "midi"}).then((result) => {
-    if (result.state === "granted") {
+  navigator.permissions.query({name: "midi"}).then((permissionStatus) => {
+    //console.log("RESULT: " + permissionStatus.state);
+    if (permissionStatus.state === "granted") { // FIXME!
+    //if (permissionStatus.state === "prompt") {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
-    } 
-    else if (result.state === "prompt") {
+    }
+    else {
       alert("This browser does not support MIDI!");
     }
+    
   });
 };
 
@@ -335,9 +338,9 @@ function onMIDIMessage(midiMsg) {
               break;
   
             case SYNC_MODE_DONE:
-              //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
-              //console.log("REQUEST: LOAD_MODE");
               updateMenu();
+              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MATRIX_MODE));
+              console.log("REQUEST: MATRIX_MODE");
               break;
 
             case CALIBRATE_MODE_DONE:
@@ -351,7 +354,7 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case FETCH_MODE_DONE:
-              draw_controler_from_config(fetch_config_file);
+              draw_controlers_from_config(fetch_config_file);
               if (previous_controleur){
                 $("#" + previous_controleur.name).removeClass("active");
                 previous_controleur = null;
@@ -377,6 +380,7 @@ function onMIDIMessage(midiMsg) {
 
             case UPLOAD_MODE_DONE:
               sysex_upload(string_to_bytes(JSON.stringify(e256_config)));
+              console.log("CONFIG_SEND");
               break;
 
             case UPLOAD_DONE:
@@ -418,7 +422,7 @@ function onMIDIMessage(midiMsg) {
           break;
         case MATRIX_MODE:
           e256_matrix.update(midiMsg.data);
-          break;        
+          break;
           case EDIT_MODE:
           e256_blobs.update(midiMsg.data);
           break;

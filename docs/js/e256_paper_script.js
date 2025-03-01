@@ -177,7 +177,7 @@ function clear_all_meunu_params() {
       }
     }
   }
-}
+};
 
 // Clear all layers
 function clear_all_layers() {
@@ -186,12 +186,12 @@ function clear_all_layers() {
       layer.removeChildren();
     }
   }
-}
+};
 
 // Create all controlers from config
 function create_controlers_from_config(configFile) {
   for (const _ctl_type in configFile.mappings) {
-    console.log("CTL_TYPE: " + _ctl_type);
+    //console.log("CTL_TYPE: " + _ctl_type);
     paper.project.layers[_ctl_type].activate();
     for (const _ctl_index in configFile.mappings[_ctl_type]) {
       controleur_factory(_ctl_type);
@@ -203,7 +203,7 @@ function create_controlers_from_config(configFile) {
       item_menu_params(current_controleur, "hide");
     }
   }
-}
+};
 
 function controleur_factory(item_type) {
   switch (item_type) {

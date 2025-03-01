@@ -372,44 +372,6 @@ function update_menu_2nd_level(item) {
   }
 }
 
-// UPADTE 2ND_LEVEL_ITEM (FROM SUB PART ITEM)
-/*
-function update_touch_menu_params(sub_part) {
-  let status = null;
-  let midi_arg = null;
-  let midi_value = null;
-  for (const param in sub_part.msg) {
-    //console.log("PARAM_B: " + param);
-    switch (param) {
-      case "midi":
-        for (const midi_byte in sub_part.msg[msg_type]) {
-          switch (midi_byte) {
-            case "status":
-              status = midi_msg_status_unpack(sub_part.msg[param][midi_byte]);
-              midi_arg = "chan";
-              midi_value = status.channel;
-              break;
-            case "data1":
-              midi_arg = DATA1[status.type];
-              midi_value = sub_part.msg.[msg_type][midi_byte];
-              break;
-            case "data2":
-              midi_arg = DATA2[status.type];
-              midi_value = sub_part.msg.[msg_type][midi_byte];
-              break;
-          }
-          $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_" + midi_arg + "_val").val(midi_value);
-        }
-        break;
-      case "limit":
-        $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_min_val").val(sub_part.msg.limit.min);
-        $("#" + sub_part.id + "_" + MIDI_TYPES[status.type] + "_max_val").val(sub_part.msg.limit.max);
-        break;
-    }
-  }
-};
-*/
-
 // Show/Hide menu params
 function item_menu_params(item, state) {
   if(item) $("#" + item.name + "_" + item.id).collapse(state);
