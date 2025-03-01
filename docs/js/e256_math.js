@@ -14,7 +14,7 @@ function move_item(item, mouseEvent) {
 
 function round2(value) {
   return ((Math.floor(value * 100 + 0.5)) / 100.0);
-}
+};
 
 function mapp(input, in_min, in_max, out_min, out_max) {
   if (input >= in_max) {
@@ -29,7 +29,7 @@ function mapp(input, in_min, in_max, out_min, out_max) {
   else {
     return Math.abs((input - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
   }
-}
+};
 
 // Max is exclusive and min is inclusive
 function get_random_int(min, max) {
@@ -53,8 +53,8 @@ function pol_to_cart(radius, theta) {
   return {
     "x": pos_x,
     "y": pos_y
-  };
-}
+  }
+};
 
 // Returning radian
 function cart_to_pol(_x, _y) {
