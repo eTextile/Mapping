@@ -39,7 +39,7 @@ new paper.Layer({ project: paper.project, name: "switch", insert: true });
 new paper.Layer({ project: paper.project, name: "slider", insert: true });
 new paper.Layer({ project: paper.project, name: "knob", insert: true });
 new paper.Layer({ project: paper.project, name: "touchpad", insert: true });
-new paper.Layer({ project: paper.project, name: "grid", insert: true });
+new paper.Layer({ project: paper.project, name: "grid", insert: true }); // TO REMOVE
 new paper.Layer({ project: paper.project, name: "path", insert: true });
 
 var paperTool = new paper.Tool();
@@ -77,7 +77,7 @@ paperTool.onMouseDown = function (mouseEvent) {
           current_controleur = current_item;
           current_item = current_item.parent;
         }
-        console.log(current_controleur.name);
+        //console.log(current_controleur.name);
 
         paper.project.layers[current_controleur.name].bringToFront();
         current_controleur.bringToFront();

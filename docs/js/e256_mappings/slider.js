@@ -56,7 +56,6 @@ function sliderFactory() {
         touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
         touch_msg.press = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE_Z);
         this.data.msg.push(touch_msg);
-        console.log(this.data.msg);
       }
     },
 

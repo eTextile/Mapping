@@ -37,14 +37,16 @@ const default_midi_index = midi_index();
 // MIDI struct
 // https://www.midi.org/specifications-old/item/table-2-expanded-messages-list-status-bytes
 function midi_msg_status_pack(type, channel) {
-  return (channel - 1) | (type << 4);
+  //return (channel - 1) | (type << 4);
+  return(channel - 1) | type;
 };
 
 function midi_msg_status_unpack(status) {
   return {
-    "type": (status >> 4) & 0xF, // Save the 4 MSB bits
+    //"type": (status >> 4) & 0xF, // Save the 4 MSB bits
+    "type": status & 0xF0,
     "channel": (status & 0xF) + 1 // Save the 4 LSB bits [0000 === chan 1]
-  };
+  }
 };
 
 function note_on(chan, note, velo) {

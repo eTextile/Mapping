@@ -50,25 +50,25 @@ const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
 const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
 
 // E256 MIDI TYPES CONSTANTS
-const NOTE_OFF = 0x8;     // NOTE_OFF // 1 0 0 0  // OFF to ON = OFF | ON
-const NOTE_ON = 0x9;      // NOTE_ON // 1 0 0 1  // ON to OFF = ON & OFF
-const P_AFTERTOUCH = 0xA; // POLYPHONIC_AFTERTOUCH
-const C_CHANGE = 0xB;     // CONTROL_CHANGE
-const P_CHANGE = 0xC;     // PROGRAM_CHANGE
-const C_AFTERTOUCH = 0xD; // CHANNEL_AFTERTOUCH
-const P_BEND = 0xE;       // PITCH_BEND
-const SYS_EX = 0xF;       // SYSTEM_EXCLUSIVE
+const NOTE_OFF = 0x80;     // NOTE_OFF // 1 0 0 0  // OFF to ON = OFF | ON
+const NOTE_ON = 0x90;      // NOTE_ON // 1 0 0 1  // ON to OFF = ON & OFF
+const P_AFTERTOUCH = 0xA0; // POLYPHONIC_AFTERTOUCH
+const C_CHANGE = 0xB0;     // CONTROL_CHANGE
+const P_CHANGE = 0xC0;     // PROGRAM_CHANGE
+const C_AFTERTOUCH = 0xD0; // CHANNEL_AFTERTOUCH
+const P_BEND = 0xE0;       // PITCH_BEND
+const SYS_EX = 0xF0;       // SYSTEM_EXCLUSIVE
 
-// const TimeCodeQuarterFrame = 0xF1;
-// const SongPosition = 0xF2;
-// const SongSelect = 0xF3;
-// const TuneRequest = 0xF6;
-// const Clock = 0xF8;
-// const Start = 0xFA;
-// const Continue = 0xFB;
-// const Stop = 0xFC;
-// const ActiveSensing = 0xFE;
-// const SystemReset = 0xFF;
+// const TIMECODEQUARTERFRAME = 0xF1;
+// const SONGPOSITION = 0xF2;
+// const SONGSELECT = 0xF3;
+// const TUNEREQUEST = 0xF6;
+// const CLOCK = 0xF8;
+// const START = 0xFA;
+// const CONTINUE = 0xFB;
+// const STOP = 0xFC;
+// const ACTIVESENSING = 0xFE;
+// const SYSTEMRESET = 0xFF;
 
 // const 0xF8-0xFF - if more specific handler not configured
 
@@ -80,6 +80,7 @@ const SYSEX_CONF = 0x7C;       // DEC: 124
 const SYSEX_SOUND = 0x6C;      // DEC: 108
 //...
 
+/*
 const MIDI_TYPES = {
   0x8: "NOTE_OFF",        // NOTE_OFF
   0x9: "NOTE_ON",         // NOTE_ON
@@ -90,27 +91,39 @@ const MIDI_TYPES = {
   0xE: "P_BEND",          // PITCH_BEND
   0xF: "SYS_EX"           // SYSTEM_EXCLUSIVE
 };
+*/
+
+const MIDI_TYPES = {
+  0x80: "NOTE_OFF",        // NOTE_OFF
+  0x90: "NOTE_ON",         // NOTE_ON
+  0xA0: "P_AFTERTOUCH",    // POLYPHONIC_AFTERTOUCH
+  0xB0: "C_CHANGE",        // CONTROL_CHANGE
+  0xC0: "P_CHANGE",        // PROGRAM_CHANGE
+  0xD0: "C_AFTERTOUCH",    // CHANNEL_AFTERTOUCH
+  0xE0: "P_BEND",          // PITCH_BEND
+  0xF0: "SYS_EX"           // SYSTEM_EXCLUSIVE
+};
 
 const DATA1 = {
-  0x8: "note",
-  0x9: "note",
-  0xA: "press",
-  0xB: "cc",
-  0xC: "pgm",
-  0xD: "lsb",
-  0xE: "lsb",
-  0xF: "press"
+  0x80: "note",
+  0x90: "note",
+  0xA0: "press",
+  0xB0: "cc",
+  0xC0: "pgm",
+  0xD0: "lsb",
+  0xE0: "lsb",
+  0xF0: "press"
 };
 
 const DATA2 = {
-  0x8: "velo",
-  0x9: "velo",
-  0xA: null,
-  0xB: null,
-  0xC: null,
-  0xD: "msb",
-  0xE: "msb",
-  0xF: null
+  0x80: "velo",
+  0x90: "velo",
+  0xA0: null,
+  0xB0: null,
+  0xC0: null,
+  0xD0: "msb",
+  0xE0: "msb",
+  0xF0: null
 };
 
 // E256 MODES CONSTANTS (MIDI_MODES_CHANNEL)

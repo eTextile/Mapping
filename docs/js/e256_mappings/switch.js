@@ -6,10 +6,10 @@ This work is licensed under Creative Commons Attribution-ShareAlike 4.0 Internat
 
 /////////// SWITCH Factory
 function switchFactory() {
-  const DEFAULT_SWITCH_WIDTH = canvas_width / RAW_COLS;
-  const DEFAULT_SWITCH_HEIGHT = canvas_height / RAW_ROWS;
-  const DEFAULT_SWITCH_MIN_SIZE = canvas_height / RAW_ROWS;
-
+  const DEFAULT_SWITCH_WIDTH = canvas_width / SCALE_X;
+  const DEFAULT_SWITCH_HEIGHT = canvas_height / SCALE_X;
+  const DEFAULT_SWITCH_MIN_SIZE = canvas_height / SCALE_X;
+  const DEFAULT_SWITCH_TOUCHS = 3;
   const DEFAULT_SWITCH_MODE_Z = NOTE_ON;
   const DEFAULT_SWITCH_BUTTON_PADDING = 8;
 
@@ -21,6 +21,9 @@ function switchFactory() {
   let half_frame_width = null;
   let half_frame_height = null;
 
+  let switch_radius_size_width = null;
+  let switch_radius_size_height = null;
+
   var _switch = new paper.Group({
     "name": "switch",
     "modes": {
@@ -29,6 +32,7 @@ function switchFactory() {
       2: "P_AFTERTOUCH" // TRIGGER AND PRESSURE
     },
     "data": {
+      "touchs": null,
       "from": null,
       "to": null,
       "mode_z": null,
@@ -36,6 +40,7 @@ function switchFactory() {
     },
 
     setup_from_mouse_event: function (mouseEvent) {
+      this.data.touchs = DEFAULT_SWITCH_TOUCHS;
       this.data.mode_z = DEFAULT_SWITCH_MODE_Z;
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_SWITCH_WIDTH / 2),
@@ -46,12 +51,16 @@ function switchFactory() {
         mouseEvent.point.y + (DEFAULT_SWITCH_HEIGHT / 2)
       );
       this.data.msg = [];
-      let touch_msg = {};
-      touch_msg.press = midi_msg_builder(DEFAULT_SWITCH_MODE_Z);
-      this.data.msg.push(touch_msg);
+      let touch_msg;
+      for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
+        touch_msg = {};
+        touch_msg.press = midi_msg_builder(DEFAULT_SWITCH_MODE_Z);
+        this.data.msg.push(touch_msg);
+      }
     },
 
     setup_from_config: function (params) {
+      this.data.touchs = params.touchs;
       this.data.from = new paper.Point(
         mapp(params.from[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.from[1], 0, NEW_ROWS, 0, canvas_height)
@@ -66,35 +75,51 @@ function switchFactory() {
     },
 
     save_params: function () {
+      let previous_touch_count = this.data.touchs;
       let previous_touch_mode_z = this.data.mode_z;
+      this.data.touchs = this.children["switch-group"].data.touchs;
       this.data.from = this.children["switch-group"].data.from;
       this.data.to = this.children["switch-group"].data.to;
       this.data.mode_z = this.children["switch-group"].data.mode_z;
+      
       this.data.msg = [];
-      if (this.data.mode_z == previous_touch_mode_z) {
-        let status = midi_msg_status_unpack(this.children["touchs-group"].children[0].msg.press.midi.status);
-        let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-        this.children["touchs-group"].children[0].msg.press.midi.status = new_status;
-        this.data.msg.push(this.children["touchs-group"].children[0].msg);
+      if (this.data.mode_z !== previous_touch_mode_z) {
+        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+          let touch_msg = {};
+          touch_msg.press = midi_msg_builder(this.data.mode_z);
+          this.data.msg.push(touch_msg);
+        }
       }
       else {
-        let touch_msg = {};
-        touch_msg.press = midi_msg_builder(this.data.mode_z);
-        this.data.msg.push(touch_msg);
+        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+          if (_touch < previous_touch_count) {
+            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
+            let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
+            this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
+            this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
+          }
+          else {
+            let touch_msg = {};
+            touch_msg.press = midi_msg_builder(this.data.mode_z);
+            this.data.msg.push(touch_msg);
+          }
+        }
       }
     },
 
     new_touch: function (_switch, _touch_id) {
+
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
+        "msg": this.data.msg[_touch_id],
         "pos": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
-        "msg": this.data.msg[0]
       });
 
       let _touch_ellipse = new paper.Shape.Ellipse({
         "name": "touch-ellipse",
         "center": _touch_group.pos,
-        "radius": new paper.Point(half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING, half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING),
+        //"radius": new paper.Point(half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING, half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING),
+        "radius": new paper.Point((switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch_id * switch_radius_size_width), (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch_id * switch_radius_size_height)),
       });
 
       _touch_ellipse.style = {
@@ -173,6 +198,7 @@ function switchFactory() {
         "name": "switch-group",
         "modes": this.modes,
         "data": {
+          "touchs": this.data.touchs,
           "from": this.data.from,
           "to": this.data.to,
           "mode_z": this.data.mode_z,
@@ -182,11 +208,17 @@ function switchFactory() {
       half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
       half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
 
+      switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+      switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+
       let _touchs_group = new paper.Group({
         "name": "touchs-group"
       });
 
-      _touchs_group.addChild(this.new_touch(_switch_group, 0));
+      //_touchs_group.addChild(this.new_touch(_switch_group, 0));
+      for (let _touch = 0; _touch < _switch_group.data.touchs; _touch++) {
+        _touchs_group.addChild(this.new_touch(_switch_group, _touch));
+      }
 
       let _switch_frame = new paper.Path.Rectangle({
         "name": "switch-frame",
@@ -238,12 +270,14 @@ function switchFactory() {
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.to.x - half_frame_width;
                   new_pos.y = _switch_group.data.to.y - half_frame_height;
+                  switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
                   for (const _touch of _touchs_group.children) {
                     _touch.children["touch-ellipse"].position = new_pos;
                     _touch.children["touch-txt"].position = new_pos;
                     _touch.children["touch-ellipse"].radius = [
-                      half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
-                      half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
+                      (switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_width),
+                      (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_height)
                     ];
                   }
                   break;
@@ -257,12 +291,14 @@ function switchFactory() {
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.from.x + half_frame_width;
                   new_pos.y = _switch_group.data.to.y - half_frame_height;
+                  switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
                   for (const _touch of _touchs_group.children) {
                     _touch.children["touch-ellipse"].position = new_pos;
                     _touch.children["touch-txt"].position = new_pos;
                     _touch.children["touch-ellipse"].radius = [
-                      half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
-                      half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
+                      (switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_width),
+                      (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_height)
                     ];
                   }
                   break;
@@ -275,13 +311,15 @@ function switchFactory() {
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.from.x + half_frame_width;
-                  new_pos.y = _switch_group.data.from.y + half_frame_height;
+                  new_pos.y = _switch_group.data.from.y + half_frame_height;switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;                  
                   for (const _touch of _touchs_group.children) {
                     _touch.children["touch-ellipse"].position = new_pos;
                     _touch.children["touch-txt"].position = new_pos;
                     _touch.children["touch-ellipse"].radius = [
-                      half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
-                      half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
+                      (switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_width),
+                      (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_height)
                     ];
                   }
                   break;
@@ -296,12 +334,14 @@ function switchFactory() {
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.to.x - half_frame_width;
                   new_pos.y = _switch_group.data.from.y + half_frame_height;
+                  switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
                   for (const _touch of _touchs_group.children) {
                     _touch.children["touch-ellipse"].position = new_pos;
                     _touch.children["touch-txt"].position = new_pos;
                     _touch.children["touch-ellipse"].radius = [
-                      half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING,
-                      half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING
+                      (switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_width),
+                      (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_height)
                     ];
                   }
                   break;
