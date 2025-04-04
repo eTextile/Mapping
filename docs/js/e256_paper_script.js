@@ -52,21 +52,26 @@ paperTool.onMouseDown = function (mouseEvent) {
   switch (e256_current_mode) {
     case EDIT_MODE:
       if (!hitResult) { // Create_ctl if cliking any umty screen space
-        if (!create_once) { // Check if the controleur needs to be draw with more that one clic
-          if (e256_draw_mode === "path") {
-            create_once = true;
+        if (e256_draw_mode) {
+          if (!create_once) { // Check if the controleur needs to be draw with more that one clic
+            if (e256_draw_mode === "path") {
+              create_once = true;
+            }
+            previous_controleur = current_controleur;
+            draw_controler_from_mouse(mouseEvent);
+            item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
+            item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
+            create_item_menu_params(current_controleur);
+            update_menu_1st_level(current_controleur); // <== update_item_main_params(current_controleur);
+            update_menu_2nd_level(current_controleur); // <== update_item_touch_menu_params(current_controleur);
+            item_menu_params(current_controleur, "show");
           }
-          previous_controleur = current_controleur;
-          draw_controler_from_mouse(mouseEvent);
-          item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
-          item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
-          create_item_menu_params(current_controleur);
-          update_menu_1st_level(current_controleur); // <== update_item_main_params(current_controleur);
-          update_menu_2nd_level(current_controleur); // <== update_item_touch_menu_params(current_controleur);
-          item_menu_params(current_controleur, "show");
+          else {
+            current_controleur.graw(mouseEvent); // Used by mapping path()
+          }
         }
         else {
-          current_controleur.graw(mouseEvent); // Used by path() & ...
+          alert("SELECT A MAPPING!");
         }
       }
       else { // If cliking on item
@@ -143,6 +148,7 @@ paperTool.onKeyDown = function (keyEvent) {
 
 paper.onFrame = function () {
   // Every frame
+
 };
 
 function draw_controler_from_mouse(mouseEvent) {
@@ -160,7 +166,7 @@ function draw_controlers_from_config(raw_configFile) {
     configFile = JSON.parse(raw_configFile);
     //console.log("CONFIG: " + raw_configFile); // PROB!
   } catch (err) {
-    console.log("NOT VALID JSON!");
+    alert("NOT VALID JSON!");
     return;
   }
   clear_all_meunu_params();
@@ -208,22 +214,22 @@ function create_controlers_from_config(configFile) {
 function controleur_factory(item_type) {
   switch (item_type) {
     case "switch":
-      current_controleur = switchFactory();
+      current_controleur = switch_factory();
       break;
     case "slider":
-      current_controleur = sliderFactory();
+      current_controleur = slider_factory();
       break;
     case "knob":
-      current_controleur = knobFactory();
+      current_controleur = knob_factory();
       break;
     case "touchpad":
-      current_controleur = touchpadFactory();
+      current_controleur = touchpad_factory();
       break;
     case "grid":
-      current_controleur = gridFactory();
+      current_controleur = grid_factory();
       break;
     case "path":
-      current_controleur = pathFactory();
+      current_controleur = path_factory();
       break;
   }
 };

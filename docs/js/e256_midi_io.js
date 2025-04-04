@@ -23,6 +23,12 @@ const DEFAULT_MIDI_PGM = 10;
 const DEFAULT_MIDI_MIN = 0;
 const DEFAULT_MIDI_MAX = 127;
 
+const BLOB_PRESENT = 0;
+const BLOB_MISSING = 1;
+const BLOB_RELEASED = 2;
+
+var blobs_array = [];
+
 function* midi_index() {
   let index = 1;
   while (true) {
@@ -264,10 +270,10 @@ function onMIDIMessage(midiMsg) {
 
   switch (status.type) {
     case NOTE_ON:
-      e256_blobs.add(midiMsg.data);
+      // N/A
       break;
     case NOTE_OFF:
-      e256_blobs.remove(midiMsg.data);
+      // N/A
       break;
     case C_CHANGE:
       // N/A
@@ -417,16 +423,30 @@ function onMIDIMessage(midiMsg) {
     case SYS_EX:
       switch (e256_current_mode) {
         case FETCH_MODE:
-          //console.log("RECEIVED: " + midiMsg.data);
           const decoder = new TextDecoder();
           let conf_str = decoder.decode(midiMsg.data);
           fetch_config_file = conf_str.slice(1, -1);
           break;
         case MATRIX_MODE:
-          e256_matrix.update(midiMsg.data);
+            e256_matrix.update(midiMsg.data);
           break;
           case EDIT_MODE:
-          e256_blobs.update(midiMsg.data);
+            if (midiMsg.data[BLOB_STATUS] == BLOB_PRESENT && midiMsg.data[BLOB_LAST_STATUS] == BLOB_RELEASED) {
+              let new_blob = blob_factory();
+              new_blob.create(midiMsg.data);
+              blobs_array.push(new_blob);
+            }
+            else if (midiMsg.data[BLOB_STATUS] == BLOB_RELEASED && midiMsg.data[BLOB_LAST_STATUS] == BLOB_MISSING) {
+              let index = blobs_array.findIndex((blob) => blob.UID === midiMsg.data[BLOB_UID]);
+              if (index !== -1) {
+                blobs_array[index].removeChildren();
+                blobs_array.splice(index, 1);
+              }
+            }
+            else {
+              let index = blobs_array.findIndex((blob) => blob.UID === midiMsg.data[BLOB_UID]);
+              if (index !== -1) blobs_array[index].update(midiMsg.data);
+            }
           break;
         default:
           console.log("NOT_HANDLED_SISEX!")

@@ -5,7 +5,7 @@
 */
 
 /////////// KNOB Factory
-function knobFactory() {
+function knob_factory() {
   const DEFAULT_KNOB_TOUCHS = 1;
   const DEFAULT_KNOB_RADIUS = 250;
   const DEFAULT_KNOB_OFFSET = -45;

@@ -5,7 +5,7 @@ This work is licensed under Creative Commons Attribution-ShareAlike 4.0 Internat
 */
 
 /////////// SWITCH Factory
-function switchFactory() {
+function switch_factory() {
   const DEFAULT_SWITCH_WIDTH = canvas_width / SCALE_X;
   const DEFAULT_SWITCH_HEIGHT = canvas_height / SCALE_X;
   const DEFAULT_SWITCH_MIN_SIZE = canvas_height / SCALE_X;
@@ -376,7 +376,7 @@ function switchFactory() {
           break;
       }
     }
-  });
 
+  });
   return _switch;
 };

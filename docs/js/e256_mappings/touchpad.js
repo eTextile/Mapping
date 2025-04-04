@@ -5,7 +5,7 @@
 */
 
 /////////// TOUCHPAD Factory
-function touchpadFactory() {
+function touchpad_factory() {
   const DEFAULT_PAD_WIDTH = 450;
   const DEFAULT_PAD_HEIGHT = 450;
   const DEFAULT_PAD_MARGIN = 35;

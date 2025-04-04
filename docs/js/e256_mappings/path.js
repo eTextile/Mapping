@@ -7,7 +7,7 @@
 /////////// PATH Factory
 // Multitouch MIDI path GUI
 // http://paperjs.org/reference/path/#path
-function pathFactory() {
+function path_factory() {
   const DEFAULT_PATH_STROKE_WIDTH = 50;
   const DEFAULT_PATH_TOUCHS = 1;
 

@@ -5,7 +5,7 @@
 */
 
 /////////// GRID Factory
-function gridFactory() {
+function grid_factory() {
   const DEFAULT_GRID_WIDTH = 400;
   const DEFAULT_GRID_HEIGHT = 400;
   const DEFAULT_GRID_COLS = 8;

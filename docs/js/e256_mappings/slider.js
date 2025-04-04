@@ -6,7 +6,7 @@
 
 /////////// SLIDER Factory
 // Multitouch MIDI slider GUI
-function sliderFactory() {
+function slider_factory() {
   const DEFAULT_SLIDER_WIDTH = 60;
   const DEFAULT_SLIDER_HEIGHT = 400;
   const DEFAULT_SLIDER_MIN_WIDTH = 50;
@@ -179,19 +179,31 @@ function sliderFactory() {
       }
 
       _touch_circle.onMouseDown = function () {
-        previous_touch = current_touch;
-        current_touch = _touch_group;
-        // Set midi_msg status to NOTE_ON
-        _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | (NOTE_ON << 4);
-        _touch_group.msg.press.midi.data2 = 127;
-        send_midi_msg(_touch_group.msg.press.midi);
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            break;
+          case PLAY_MODE:
+            previous_touch = current_touch;
+            current_touch = _touch_group;
+            // Set midi_msg status to NOTE_ON
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | (NOTE_ON << 4);
+            _touch_group.msg.press.midi.data2 = 127;
+            send_midi_msg(_touch_group.msg.press.midi);
+            break;
+        }
       }
 
       _touch_circle.onMouseUp = function () {
-        // Set midi_msg status to NOTE_OFF
-        _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & (NOTE_OFF << 4);
-        _touch_group.msg.press.midi.data2 = 0;
-        send_midi_msg(_touch_group.msg.press.midi);
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            break;
+          case PLAY_MODE:
+            // Set midi_msg status to NOTE_OFF
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & (NOTE_OFF << 4);
+            _touch_group.msg.press.midi.data2 = 0;
+            send_midi_msg(_touch_group.msg.press.midi);
+            break;
+        }
       }
 
       let _touch_txt = new paper.PointText({
