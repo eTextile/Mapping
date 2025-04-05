@@ -22,7 +22,7 @@ function e256_export_params() {
 function list_layer_params(layer) {
   var e256_params = [];
   for (const item of layer.children) {
-    if (item.name === "blob") return;
+    if (item.name === null) return;
     console.log("ITEM: " + item.name);
     item.save_params();
     switch (item.name) {

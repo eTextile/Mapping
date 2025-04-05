@@ -27,8 +27,6 @@ const BLOB_PRESENT = 0;
 const BLOB_MISSING = 1;
 const BLOB_RELEASED = 2;
 
-var blobs_array = [];
-
 function* midi_index() {
   let index = 1;
   while (true) {
@@ -431,22 +429,7 @@ function onMIDIMessage(midiMsg) {
             e256_matrix.update(midiMsg.data);
           break;
           case EDIT_MODE:
-            if (midiMsg.data[BLOB_STATUS] == BLOB_PRESENT && midiMsg.data[BLOB_LAST_STATUS] == BLOB_RELEASED) {
-              let new_blob = blob_factory();
-              new_blob.create(midiMsg.data);
-              blobs_array.push(new_blob);
-            }
-            else if (midiMsg.data[BLOB_STATUS] == BLOB_RELEASED && midiMsg.data[BLOB_LAST_STATUS] == BLOB_MISSING) {
-              let index = blobs_array.findIndex((blob) => blob.UID === midiMsg.data[BLOB_UID]);
-              if (index !== -1) {
-                blobs_array[index].removeChildren();
-                blobs_array.splice(index, 1);
-              }
-            }
-            else {
-              let index = blobs_array.findIndex((blob) => blob.UID === midiMsg.data[BLOB_UID]);
-              if (index !== -1) blobs_array[index].update(midiMsg.data);
-            }
+            e256_blobs.update(midiMsg.data);
           break;
         default:
           console.log("NOT_HANDLED_SISEX!")
