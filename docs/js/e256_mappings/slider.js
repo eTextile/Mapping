@@ -186,7 +186,7 @@ function slider_factory() {
             previous_touch = current_touch;
             current_touch = _touch_group;
             // Set midi_msg status to NOTE_ON
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | (NOTE_ON << 4);
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON ;
             _touch_group.msg.press.midi.data2 = 127;
             send_midi_msg(_touch_group.msg.press.midi);
             break;
@@ -199,7 +199,7 @@ function slider_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & (NOTE_OFF << 4);
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & NOTE_OFF ;
             _touch_group.msg.press.midi.data2 = 0;
             send_midi_msg(_touch_group.msg.press.midi);
             break;

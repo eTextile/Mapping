@@ -21,7 +21,7 @@ function blob_factory() {
     //"active_time_stamp": null,
     //"life_time_stamp": null,
 
-    create: function(sysExMsg) {
+    create: function (sysExMsg) {
 
       this.UID = sysExMsg[BLOB_UID_INDEX];
 
@@ -90,7 +90,7 @@ function blob_factory() {
       this.addChild(_blob_group);
     },
 
-    update: function(sysExMsg) {
+    update: function (sysExMsg) {
 
       let centroid = new paper.Point(
         mapp((sysExMsg[2] + sysExMsg[3] / 100), 0, 64, 0, canvas_width),
@@ -125,7 +125,7 @@ function blobs_factory() {
   var _blobs_array = new paper.Group({
     "blobs_array": [],
 
-    update: function(sysExMsg) {
+    update: function (sysExMsg) {
       if (sysExMsg[BLOB_STATUS_INDEX] == BLOB_PRESENT && sysExMsg[BLOB_LAST_STATUS_INDEX] == BLOB_RELEASED) {
         let new_blob = blob_factory();
         new_blob.create(sysExMsg);
@@ -140,7 +140,9 @@ function blobs_factory() {
       }
       else {
         let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_UID_INDEX]);
-        if (index !== -1) this.blobs_array[index].update(sysExMsg);
+        if (index !== -1) {
+          this.blobs_array[index].update(sysExMsg);
+        }
       }
     }
 

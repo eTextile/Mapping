@@ -156,7 +156,7 @@ function touchpad_factory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": _touch_group.pos,
-        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure!
+        "radius": TOUCH_RADIUS
       });
 
       _touch_circle.style = {
@@ -179,7 +179,7 @@ function touchpad_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | (NOTE_ON << 4);
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON;
             _touch_group.msg.press.midi.data2 = 127;
             send_midi_msg(_touch_group.msg.press.midi);
         }
@@ -191,7 +191,7 @@ function touchpad_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & (NOTE_OFF << 4);
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & NOTE_OFF ;
             _touch_group.msg.press.midi.data2 = 0;
             send_midi_msg(_touch_group.msg.press.midi);
         }

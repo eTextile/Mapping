@@ -161,7 +161,7 @@ function grid_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status | (NOTE_ON << 4);
+            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status | NOTE_ON ;
             _key_group.msg.press.midi.data2 = 127;
             send_midi_msg(_key_group.msg.press.midi);
             break;
@@ -175,7 +175,7 @@ function grid_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status & (NOTE_OFF << 4);
+            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status & NOTE_OFF ;
             _key_group.msg.press.midi.data2 = 0;
             send_midi_msg(_key_group.msg.press.midi);
             break;
