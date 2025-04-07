@@ -126,22 +126,25 @@ function blobs_factory() {
     "blobs_array": [],
 
     update: function (sysExMsg) {
-      if (sysExMsg[BLOB_STATUS_INDEX] == BLOB_PRESENT && sysExMsg[BLOB_LAST_STATUS_INDEX] == BLOB_RELEASED) {
+      if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_PRESENT && sysExMsg[BLOB_LAST_STATUS_INDEX] === BLOB_RELEASED) {
         let new_blob = blob_factory();
         new_blob.create(sysExMsg);
         this.blobs_array.push(new_blob);
+        console.log("NEW: " + sysExMsg[1]);
       }
-      else if (sysExMsg[BLOB_STATUS_INDEX] == BLOB_RELEASED && sysExMsg[BLOB_LAST_STATUS_INDEX] == BLOB_MISSING) {
+      else if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_RELEASED && sysExMsg[BLOB_LAST_STATUS_INDEX] === BLOB_MISSING) {
         let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_UID_INDEX]);
         if (index !== -1) {
           this.blobs_array[index].removeChildren();
           this.blobs_array.splice(index, 1);
+          console.log("KILL: " + sysExMsg[1]);
         }
       }
       else {
         let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_UID_INDEX]);
         if (index !== -1) {
           this.blobs_array[index].update(sysExMsg);
+          console.log("UPDATE: " + sysExMsg[1]);
         }
       }
     }
