@@ -148,17 +148,14 @@ function midi_msg_builder(mode) {
   return msg;
 };
 
-function MIDIsetup() {
+async function MIDIsetup() {
   navigator.permissions.query({name: "midi"}).then((permissionStatus) => {
-    //console.log("RESULT: " + permissionStatus.state);
-    //if (permissionStatus.state === "granted") {
-    if (permissionStatus.state === "prompt") {
+    if (permissionStatus.state === "granted") {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
     }
-    else {
+    if (permissionStatus.state === "prompt") {
       alert("This browser does not support MIDI!");
     }
-    
   });
 };
 
