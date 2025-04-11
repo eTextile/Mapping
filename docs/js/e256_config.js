@@ -80,19 +80,6 @@ const SYSEX_CONF = 0x7C;       // DEC: 124
 const SYSEX_SOUND = 0x6C;      // DEC: 108
 //...
 
-/*
-const MIDI_TYPES = {
-  0x8: "NOTE_OFF",        // NOTE_OFF
-  0x9: "NOTE_ON",         // NOTE_ON
-  0xA: "P_AFTERTOUCH",    // POLYPHONIC_AFTERTOUCH
-  0xB: "C_CHANGE",        // CONTROL_CHANGE
-  0xC: "P_CHANGE",        // PROGRAM_CHANGE
-  0xD: "C_AFTERTOUCH",    // CHANNEL_AFTERTOUCH
-  0xE: "P_BEND",          // PITCH_BEND
-  0xF: "SYS_EX"           // SYSTEM_EXCLUSIVE
-};
-*/
-
 const MIDI_TYPES = {
   0x80: "NOTE_OFF",        // NOTE_OFF
   0x90: "NOTE_ON",         // NOTE_ON

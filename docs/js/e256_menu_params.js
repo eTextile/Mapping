@@ -406,7 +406,7 @@ circular_buffer.prototype.push = function (midiMsg) {
   let div_midi_msg = document.createElement("div");
   div_midi_msg.setAttribute("id", "midi_msg_" + this._msg_count);
 
-  let status = new midi_msg_status_unpack(midiMsg.status);
+  let status = midi_msg_status_unpack(midiMsg.status);
   div_midi_msg.textContent = MIDI_TYPES[status.type] + " : [ " + status.channel + ", " + midiMsg.data1 + ", " + midiMsg.data2 + " ]";
 
   $("#midi_term").append(div_midi_msg);

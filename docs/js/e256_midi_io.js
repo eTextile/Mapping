@@ -41,13 +41,11 @@ const default_midi_index = midi_index();
 // MIDI struct
 // https://www.midi.org/specifications-old/item/table-2-expanded-messages-list-status-bytes
 function midi_msg_status_pack(type, channel) {
-  //return (channel - 1) | (type << 4);
   return(channel - 1) | type;
 };
 
 function midi_msg_status_unpack(status) {
   return {
-    //"type": (status >> 4) & 0xF, // Save the 4 MSB bits
     "type": status & 0xF0,
     "channel": (status & 0xF) + 1 // Save the 4 LSB bits [0000 === chan 1]
   }
@@ -153,7 +151,7 @@ function midi_msg_builder(mode) {
 function MIDIsetup() {
   navigator.permissions.query({name: "midi"}).then((permissionStatus) => {
     //console.log("RESULT: " + permissionStatus.state);
-    if (permissionStatus.state === "granted") { // FIXME!
+    if (permissionStatus.state === "granted") {
     //if (permissionStatus.state === "prompt") {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
     }
@@ -399,7 +397,7 @@ function onMIDIMessage(midiMsg) {
               console.log("REQUEST: EDIT_MODE");
               // Notification A
               alert("PRESS THE LEFT PUSH BUTTON\nOF THE ETEXTILE-SYNTHESIZER\nTO SAVE THE CONFIG IN THE\nFLASH MEMORY!");
-            break;
+              break;
 
             case WRITE_MODE_DONE:
               // TODO: close previous alert/notification by prrog!
@@ -430,6 +428,9 @@ function onMIDIMessage(midiMsg) {
           break;
           case EDIT_MODE:
             e256_blobs.update(midiMsg.data);
+          break;
+          case PLAY_MODE:
+            //e256_blobs.update(midiMsg.data);
           break;
         default:
           console.log("NOT_HANDLED_SISEX!")
