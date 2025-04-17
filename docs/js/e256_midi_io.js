@@ -23,9 +23,11 @@ const DEFAULT_MIDI_PGM = 10;
 const DEFAULT_MIDI_MIN = 0;
 const DEFAULT_MIDI_MAX = 127;
 
-const BLOB_PRESENT = 0;
-const BLOB_MISSING = 1;
-const BLOB_RELEASED = 2;
+const BLOB_NEW = 0;
+const BLOB_PRESENT = 1;
+const BLOB_MISSING = 2;
+const BLOB_RELEASED = 3;
+const BLOB_FREE = 4;
 
 function* midi_index() {
   let index = 1;
@@ -244,9 +246,7 @@ function updateMenu() {
   }
 };
 
-// RAW MIDI MESSAGES!
-// MIDI 1.0
-// midiMsg -> ROW MIDI mesage
+// RAW MIDI MESSAGES (MIDI 1.0)
 function onMIDIMessage(midiMsg) {
   let status = midi_msg_status_unpack(midiMsg.data[0]);
   let data1 = midiMsg.data[1];

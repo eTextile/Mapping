@@ -181,10 +181,10 @@ function slider_factory() {
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
           case EDIT_MODE:
-            break;
-          case PLAY_MODE:
             previous_touch = current_touch;
             current_touch = _touch_group;
+            break;
+          case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
             _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON ;
             _touch_group.msg.press.midi.data2 = 127;

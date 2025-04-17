@@ -149,10 +149,10 @@ function switch_factory() {
       }
 
       _touch_ellipse.onMouseDown = function () {
-        previous_touch = current_touch;
-        current_touch = _touch_group;
         switch (e256_current_mode) {
           case EDIT_MODE:
+            previous_touch = current_touch;
+            current_touch = _touch_group;
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
