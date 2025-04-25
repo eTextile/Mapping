@@ -35,6 +35,8 @@ paper.view.center = new paper.Point(canvas_width / 2, canvas_height / 2);
 paper.settings.handleSize = 20;
 //paper.settings.selectionLineWidth = 20; // FIXME!
 
+new paper.Layer({ project: paper.project, name: "blob", insert: true });
+
 new paper.Layer({ project: paper.project, name: "switch", insert: true });
 new paper.Layer({ project: paper.project, name: "slider", insert: true });
 new paper.Layer({ project: paper.project, name: "knob", insert: true });
@@ -62,8 +64,8 @@ paperTool.onMouseDown = function (mouseEvent) {
             item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
             item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
             create_item_menu_params(current_controleur);
-            update_menu_1st_level(current_controleur); // <== update_item_main_params(current_controleur);
-            update_menu_2nd_level(current_controleur); // <== update_item_touch_menu_params(current_controleur);
+            update_item_main_params(current_controleur);
+            update_item_touchs_menu_params(current_controleur);
             item_menu_params(current_controleur, "show");
           }
           else {
@@ -204,8 +206,8 @@ function create_controlers_from_config(configFile) {
       current_controleur.setup_from_config(configFile.mappings[_ctl_type][_ctl_index]);
       current_controleur.create();
       create_item_menu_params(current_controleur);
-      update_menu_1st_level(current_controleur);
-      update_menu_2nd_level(current_controleur);
+      update_item_main_params(current_controleur);
+      update_item_touchs_menu_params(current_controleur);
       item_menu_params(current_controleur, "hide");
     }
   }

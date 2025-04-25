@@ -27,7 +27,7 @@ function slider_factory() {
     "modes": {
       0: "NOTE_ON",     // TRIGGER WITH VELOCITY
       1: "C_CHANGE",    // PRESSURE ONLY
-      2: "P_AFTERTOUCH" // TRIGGER AND PRESSURE
+      2: "AFTERTOUCH_POLY" // TRIGGER AND PRESSURE
     },
     "data": {
       "touchs": null,
@@ -186,7 +186,7 @@ function slider_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON ;
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON;
             _touch_group.msg.press.midi.data2 = 127;
             send_midi_msg(_touch_group.msg.press.midi);
             break;
@@ -199,7 +199,7 @@ function slider_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & NOTE_OFF ;
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & NOTE_OFF;
             _touch_group.msg.press.midi.data2 = 0;
             send_midi_msg(_touch_group.msg.press.midi);
             break;
@@ -465,7 +465,7 @@ function slider_factory() {
                   break;
               }
             }
-            update_menu_1st_level(_slider_group.parent);
+            update_item_main_params(_slider_group.parent);
             break;
           case PLAY_MODE:
             // NA
@@ -483,7 +483,7 @@ function slider_factory() {
         case EDIT_MODE:
           if (current_part.type === "fill") {
             move_item(this, mouseEvent);
-            update_menu_1st_level(this);
+            update_item_main_params(this);
           }
           break;
         case PLAY_MODE:

@@ -8,8 +8,8 @@
 function grid_factory() {
   const DEFAULT_GRID_WIDTH = 400;
   const DEFAULT_GRID_HEIGHT = 400;
-  const DEFAULT_GRID_COLS = 8;
-  const DEFAULT_GRID_ROWS = 8;
+  const DEFAULT_GRID_COLS = 4;
+  const DEFAULT_GRID_ROWS = 4;
   const DEFAULT_GRID_MODE_Z = NOTE_ON;
   const GRID_MIN_SIZE = 30;
   
@@ -29,7 +29,7 @@ function grid_factory() {
     "modes": {
       0: "NOTE_ON",     // TRIGGER WITH VELOCITY
       1: "C_CHANGE",    // PRESSURE ONLY
-      2: "P_AFTERTOUCH" // TRIGGER AND PRESSURE
+      2: "AFTERTOUCH_POLY" // TRIGGER AND PRESSURE
     },
     "data": {
       "from": null,
@@ -161,7 +161,7 @@ function grid_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status | NOTE_ON ;
+            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status | NOTE_ON;
             _key_group.msg.press.midi.data2 = 127;
             send_midi_msg(_key_group.msg.press.midi);
             break;
@@ -175,7 +175,7 @@ function grid_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_OFF
-            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status & NOTE_OFF ;
+            _key_group.msg.press.midi.status = _key_group.msg.press.midi.status & NOTE_OFF;
             _key_group.msg.press.midi.data2 = 0;
             send_midi_msg(_key_group.msg.press.midi);
             break;
@@ -354,7 +354,7 @@ function grid_factory() {
                   console.log("PART_NOT_USE: " + current_part.name);
                   break;
               }
-              update_menu_1st_level(_grid_group.parent);
+              update_item_main_params(_grid_group.parent);
             }
             break;
           case PLAY_MODE:
@@ -372,7 +372,7 @@ function grid_factory() {
         case EDIT_MODE:
           if (current_part.type === "fill") {
             move_item(this, mouseEvent);
-            update_menu_1st_level(this);
+            update_item_main_params(this);
           }
           break;
         case PLAY_MODE:

@@ -23,6 +23,9 @@ function blob_factory() {
 
     create: function (sysExMsg) {
 
+      paper.project.layers['blob'].activate();
+      paper.project.layers['blob'].bringToFront();
+
       this.UID = sysExMsg[BLOB_UID_INDEX];
 
       let _blob_group = new paper.Group({
@@ -133,7 +136,6 @@ function blob_factory() {
 };
 
 function blobs_factory() {
-  //var blobs_array = []; 
 
   var _blobs_array = new paper.Group({
     "blobs_array": [],
@@ -148,22 +150,22 @@ function blobs_factory() {
           new_blob.create(sysExMsg);
           new_blob.present();
           this.blobs_array.push(new_blob);
-          console.log("BLOB_NEW: " + sysExMsg[BLOB_UID_INDEX]);
+          //console.log("BLOB_NEW: " + sysExMsg[BLOB_UID_INDEX]);
         }
       }
       else {
         if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_MISSING && sysExMsg[BLOB_LAST_STATUS_INDEX] === BLOB_PRESENT) {
           this.blobs_array[index].missing();
-          console.log("BLOB_IS_MISSING: " + sysExMsg[BLOB_UID_INDEX]);
+          //console.log("BLOB_IS_MISSING: " + sysExMsg[BLOB_UID_INDEX]);
         }
         else if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_PRESENT && sysExMsg[BLOB_LAST_STATUS_INDEX] === BLOB_MISSING) {
           this.blobs_array[index].present();
-          console.log("BLOB_IS_BACK: " + sysExMsg[BLOB_UID_INDEX]);
+          //console.log("BLOB_IS_BACK: " + sysExMsg[BLOB_UID_INDEX]);
         }
         else if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_FREE) {
           this.blobs_array[index].relesed();
           this.blobs_array.splice(index, 1);
-          console.log("BLOB_SI_FREE: " + sysExMsg[BLOB_UID_INDEX]);
+          //console.log("BLOB_SI_FREE: " + sysExMsg[BLOB_UID_INDEX]);
         }
         else {
           this.blobs_array[index].update(sysExMsg);

@@ -50,14 +50,14 @@ const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
 const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
 
 // E256 MIDI TYPES CONSTANTS
-const NOTE_OFF = 0x80;     // NOTE_OFF // 1 0 0 0  // OFF to ON = OFF | ON
-const NOTE_ON = 0x90;      // NOTE_ON // 1 0 0 1  // ON to OFF = ON & OFF
-const P_AFTERTOUCH = 0xA0; // POLYPHONIC_AFTERTOUCH
-const C_CHANGE = 0xB0;     // CONTROL_CHANGE
-const P_CHANGE = 0xC0;     // PROGRAM_CHANGE
-const C_AFTERTOUCH = 0xD0; // CHANNEL_AFTERTOUCH
-const P_BEND = 0xE0;       // PITCH_BEND
-const SYS_EX = 0xF0;       // SYSTEM_EXCLUSIVE
+const NOTE_OFF = 0x80;           // NOTE_OFF // 1 0 0 0  // OFF to ON = OFF | ON
+const NOTE_ON = 0x90;            // NOTE_ON // 1 0 0 1  // ON to OFF = ON & OFF
+const AFTERTOUCH_POLY = 0xA0;    // POLYPHONIC_AFTERTOUCH
+const C_CHANGE = 0xB0;           // CONTROL_CHANGE
+const P_CHANGE = 0xC0;           // PROGRAM_CHANGE
+const AFTERTOUCH_CHANNEL = 0xD0; // CHANNEL_AFTERTOUCH
+const P_BEND = 0xE0;             // PITCH_BEND
+const SYS_EX = 0xF0;             // SYSTEM_EXCLUSIVE
 
 // const TIMECODEQUARTERFRAME = 0xF1;
 // const SONGPOSITION = 0xF2;
@@ -77,24 +77,24 @@ const SYSEX_END = 0xF7;        // DEC: 247
 const SYSEX_DEVICE_ID = 0x7D;  // DEC: 253 http://midi.teragonaudio.com/tech/midispec/id.html
 
 const SYSEX_CONF = 0x7C;       // DEC: 124
-const SYSEX_SOUND = 0x6C;      // DEC: 108
-//...
+//const SYSEX_SOUND = 0x6C;    // DEC: 108
+//const SYSEX_VOLUMES = ;      //
 
 const MIDI_TYPES = {
-  0x80: "NOTE_OFF",        // NOTE_OFF
-  0x90: "NOTE_ON",         // NOTE_ON
-  0xA0: "P_AFTERTOUCH",    // POLYPHONIC_AFTERTOUCH
-  0xB0: "C_CHANGE",        // CONTROL_CHANGE
-  0xC0: "P_CHANGE",        // PROGRAM_CHANGE
-  0xD0: "C_AFTERTOUCH",    // CHANNEL_AFTERTOUCH
-  0xE0: "P_BEND",          // PITCH_BEND
-  0xF0: "SYS_EX"           // SYSTEM_EXCLUSIVE
+  0x80: "NOTE_OFF",           // NOTE_OFF
+  0x90: "NOTE_ON",            // NOTE_ON
+  0xA0: "AFTERTOUCH_POLY",    // POLYPHONIC_AFTERTOUCH
+  0xB0: "C_CHANGE",           // CONTROL_CHANGE
+  0xC0: "P_CHANGE",           // PROGRAM_CHANGE
+  0xD0: "AFTERTOUCH_CHANNEL", // CHANNEL_AFTERTOUCH
+  0xE0: "P_BEND",             // PITCH_BEND
+  0xF0: "SYS_EX"              // SYSTEM_EXCLUSIVE
 };
 
 const DATA1 = {
   0x80: "note",
   0x90: "note",
-  0xA0: "press",
+  0xA0: "note",
   0xB0: "cc",
   0xC0: "pgm",
   0xD0: "lsb",
@@ -105,7 +105,7 @@ const DATA1 = {
 const DATA2 = {
   0x80: "velo",
   0x90: "velo",
-  0xA0: null,
+  0xA0: "ctr", // TESTING
   0xB0: null,
   0xC0: null,
   0xD0: "msb",
@@ -120,15 +120,16 @@ const CALIBRATE_MODE = 2;   //
 const MATRIX_MODE = 3;      // Get matrix analog sensor values (16x16) over USB using MIDI format
 const MAPPING_MODE = 4;     //
 const EDIT_MODE = 5;        // Get all blobs values over USB using MIDI format
-const PLAY_MODE = 6;        // Get mappings values over USB using MIDI format
-const ALLOCATE_MODE = 7;    //
-const UPLOAD_MODE = 8;      //
-const APPLY_MODE = 9;       //
-const WRITE_MODE = 10;      //
-const LOAD_MODE = 11;       //
-const FETCH_MODE = 12;      // Request mapping config file
-const STANDALONE_MODE = 13; // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
-const ERROR_MODE = 14;      // Unexpected behaviour
+const THROUGH_MODE = 6;     // 
+const PLAY_MODE = 7;        // Get mappings values over USB using MIDI format
+const ALLOCATE_MODE = 8;    //
+const UPLOAD_MODE = 9;      //
+const APPLY_MODE = 10;      //
+const WRITE_MODE = 11;      //
+const LOAD_MODE = 12;       //
+const FETCH_MODE = 13;      // Request mapping config file
+const STANDALONE_MODE = 14; // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
+const ERROR_MODE = 15;      // Unexpected behaviour
 
 // VERBOSITY MODES CONSTANTS
 const MODE_CODES = {
@@ -138,15 +139,16 @@ const MODE_CODES = {
   3: "MATRIX_MODE",
   4: "MAPPING_MODE",
   5: "EDIT_MODE",
-  6: "PLAY_MODE",
-  7: "ALLOCATE_MODE",
-  8: "UPLOAD_MODE",
-  9: "APPLY_MODE",
-  10: "WRITE_MODE",
-  11: "LOAD_MODE",
-  12: "FETCH_MODE",
-  13: "STANDALONE_MODE",
-  14: "ERROR_MODE"
+  6: "THROUGH_MODE",
+  7: "PLAY_MODE",
+  8: "ALLOCATE_MODE",
+  9: "UPLOAD_MODE",
+  10: "APPLY_MODE",
+  11: "WRITE_MODE",
+  12: "LOAD_MODE",
+  13: "FETCH_MODE",
+  14: "STANDALONE_MODE",
+  15: "ERROR_MODE"
 };
 
 // VERBOSITY CODES CONSTANTS
@@ -156,17 +158,18 @@ const CALIBRATE_MODE_DONE = 2;
 const MATRIX_MODE_DONE = 3;
 const MAPPING_MODE_DONE = 4
 const EDIT_MODE_DONE = 5;
-const PLAY_MODE_DONE = 6;
-const ALLOCATE_MODE_DONE = 7;
-const ALLOCATE_DONE = 8;
-const UPLOAD_MODE_DONE = 9;
-const UPLOAD_DONE = 10;
-const APPLY_MODE_DONE = 11;
-const WRITE_MODE_DONE = 12;
-const LOAD_MODE_DONE = 13;
-const FETCH_MODE_DONE = 14;
-const STANDALONE_MODE_DONE = 15;
-const DONE_ACTION = 16;
+const THROUGH_MODE_DONE = 6;
+const PLAY_MODE_DONE = 7;
+const ALLOCATE_MODE_DONE = 8;
+const ALLOCATE_DONE = 9;
+const UPLOAD_MODE_DONE = 10;
+const UPLOAD_DONE = 11;
+const APPLY_MODE_DONE = 12;
+const WRITE_MODE_DONE = 13;
+const LOAD_MODE_DONE = 14;
+const FETCH_MODE_DONE = 15;
+const STANDALONE_MODE_DONE = 16;
+const DONE_ACTION = 17;
 
 const VERBOSITY_CODES = {
   0: "PENDING_MODE_DONE",
@@ -175,17 +178,18 @@ const VERBOSITY_CODES = {
   3: "MATRIX_MODE_DONE",
   4: "MAPPING_MODE_DONE",
   5: "EDIT_MODE_DONE",
-  6: "PLAY_MODE_DONE",
-  7: "ALLOCATE_MODE_DONE",
-  8: "ALLOCATE_DONE",
-  9: "UPLOAD_MODE_DONE",
-  10: "UPLOAD_DONE",
-  11: "APPLY_MODE_DONE",
-  12: "WRITE_MODE_DONE",
-  13: "LOAD_MODE_DONE",
-  14: "FETCH_MODE_DONE",
-  15: "STANDALONE_MODE_DONE",
-  16: "DONE_ACTION"
+  6: "THROUGH_MODE_DONE",
+  7: "PLAY_MODE_DONE",
+  8: "ALLOCATE_MODE_DONE",
+  9: "ALLOCATE_DONE",
+  10: "UPLOAD_MODE_DONE",
+  11: "UPLOAD_DONE",
+  12: "APPLY_MODE_DONE",
+  13: "WRITE_MODE_DONE",
+  14: "LOAD_MODE_DONE",
+  15: "FETCH_MODE_DONE",
+  16: "STANDALONE_MODE_DONE",
+  17: "DONE_ACTION"
 };
 
 // ERROR CODES CONSTANTS

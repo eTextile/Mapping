@@ -22,7 +22,7 @@ function knob_factory() {
     "modes": {
       0: "NOTE_ON",     // TRIGGER WITH VELOCITY
       1: "C_CHANGE",    // PRESSURE ONLY
-      2: "P_AFTERTOUCH" // TRIGGER AND PRESSURE
+      2: "AFTERTOUCH_POLY" // TRIGGER AND PRESSURE
     },
     "data": {
       "touchs": null,
@@ -174,7 +174,7 @@ function knob_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON ;
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON;
             _touch_group.msg.press.midi.data2 = 127;
             send_midi_msg(_touch_group.msg.press.midi);
             break;
@@ -183,7 +183,7 @@ function knob_factory() {
 
       _knob_touch.onMouseUp = function () {
         // Set midi_msg status to NOTE_OFF
-        _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & NOTE_OFF ;
+        _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & NOTE_OFF;
         _touch_group.msg.press.midi.data2 = 0;
         send_midi_msg(_touch_group.msg.press.midi);
       }
@@ -287,7 +287,7 @@ function knob_factory() {
             if (current_part.type === "fill") {
               move_item(_knob_group.parent, mouseEvent);
               _knob_group.center = this.position;
-              update_menu_1st_level(_knob_group.parent);
+              update_item_main_params(_knob_group.parent);
             }
             break;
           case PLAY_MODE:
@@ -323,7 +323,7 @@ function knob_factory() {
             );
 
             _knob_group.data.offset = rad_to_deg(_knob_group.theta);
-            update_menu_1st_level(_knob_group.parent);
+            update_item_main_params(_knob_group.parent);
             break;
           case PLAY_MODE:
             // NA
@@ -520,7 +520,7 @@ function knob_factory() {
                   //console.log("PART_NOT_USE: " + current_part.name);
                   break;
               }
-              update_menu_1st_level(_knob_group.parent);
+              update_item_main_params(_knob_group.parent);
             }
             break;
           case PLAY_MODE:

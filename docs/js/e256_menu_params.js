@@ -21,11 +21,11 @@ function create_item_menu_params(item) {
 
   for (const part of item.children) { // 1ST LEVEL ITEM MENU PARAMS
     if (part.data) {
-      div_item_menu_params.appendChild(create_menu_1st_level(part));
+      div_item_menu_params.appendChild(create_item_main_params(part));
     }
     for (const sub_part of part.children) { // 2ND LEVEL ITEM MENU PARAMS
       if (sub_part.msg) {
-        div_item_menu_params.appendChild(create_menu_2nd_level(sub_part));
+        div_item_menu_params.appendChild(create_item_touchs_menu_params(sub_part));
       }
     }
   }
@@ -41,7 +41,7 @@ function remove_item_menu_params(item) {
 };
 
 //////////////////////////////////////////////// 1ST_LEVEL_ITEMS_MENU
-function create_menu_1st_level(item) {
+function create_item_main_params(item) {
   let part_params = document.createElement("div");
   //console.log("SET_ID_1ST: " + item.name + "_" + item.id); // PROB!
   part_params.setAttribute("id", item.name + "_" + item.id); // Menu UID
@@ -177,9 +177,9 @@ function create_menu_1st_level(item) {
     part_params.appendChild(part_param);
   }
   return part_params;
-}
+};
 
-function update_menu_1st_level(item) {
+function update_item_main_params(item) {
   for (const part of item.children) {
     for (const param in part.data) {
       if (part.data[param].constructor.name === "Point") {
@@ -191,12 +191,13 @@ function update_menu_1st_level(item) {
       }
     }
   }
-}
+};
 
 //////////////////////////////////////////////// 2ND_LEVEL_ITEMS_MENU
 // For details on the html form_control structure refer to:
 // https://getbootstrap.com/docs/5.0/forms/form-control/
-function create_menu_2nd_level(item) {
+
+function create_item_touchs_menu_params(item) {
   let sub_part_params = document.createElement("div");           // Sub part menu main div 
   sub_part_params.setAttribute("id", item.name + "_" + item.id); // Sub part menu UID
 
@@ -332,7 +333,7 @@ function create_menu_2nd_level(item) {
 
 // UPADTE 2ND_LEVEL_ITEMS_MENU (FROM TOP ITEM)
 //function update_item_touch_menu_params(item) {
-function update_menu_2nd_level(item) {
+function update_item_touchs_menu_params(item) {
   for (const part of item.children) {
     for (const sub_part of part.children) {
       let status = null;
@@ -370,7 +371,7 @@ function update_menu_2nd_level(item) {
       }
     }
   }
-}
+};
 
 // Show/Hide menu params
 function item_menu_params(item, state) {
@@ -383,21 +384,21 @@ function re_create_item(item) {
   item.removeChildren();
   item.create();
   create_item_menu_params(item);
-  update_menu_1st_level(item);
-  update_menu_2nd_level(item);
+  update_item_main_params(item);
+  update_item_touchs_menu_params(item);
   item_menu_params(item, "show");
-}
+};
 
 //////////////// Tail effect
 function scroll() {
   let div_height = $("#midi_term").get(0).scrollHeight;
   $("#midi_tescrollrm").animate({ scrollTop: div_height }, 10);
-}
+};
 
 function circular_buffer(max_length) {
   this._max_length = max_length;
   this._msg_count = 0;
-}
+};
 
 circular_buffer.prototype = Object.create(Array.prototype);
 
@@ -410,12 +411,13 @@ circular_buffer.prototype.push = function (midiMsg) {
   div_midi_msg.textContent = MIDI_TYPES[status.type] + " : [ " + status.channel + ", " + midiMsg.data1 + ", " + midiMsg.data2 + " ]";
 
   $("#midi_term").append(div_midi_msg);
+  
   while (this.length > this._max_length) {
     this.shift();
     scroll();
     $("#midi_msg_" + (this._msg_count - this._max_length)).remove();
   }
   this._msg_count++;
-}
+};
 
 var midi_term = new circular_buffer(25);

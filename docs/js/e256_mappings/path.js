@@ -80,7 +80,7 @@ function path_factory() {
             break;
           case PLAY_MODE:
             // Set midi_msg status to NOTE_ON
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON ;
+            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON;
             _touch_group.msg.press.midi.data2 = 127;
             send_midi_msg(_touch_group.msg.press.midi);
             break;
@@ -209,7 +209,7 @@ function path_factory() {
               let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.data.midi.position.max - _touch.data.midi.position.min);
               _touch.children["path-graduations"].dashArray = [1, _path_graduation_interval];
             }
-            update_menu_1st_level(_path_group.parent);
+            update_item_main_params(_path_group.parent);
           }
           break;
         case PLAY_MODE:

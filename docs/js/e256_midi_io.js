@@ -23,11 +23,11 @@ const DEFAULT_MIDI_PGM = 10;
 const DEFAULT_MIDI_MIN = 0;
 const DEFAULT_MIDI_MAX = 127;
 
-const BLOB_NEW = 0;
-const BLOB_PRESENT = 1;
-const BLOB_MISSING = 2;
-const BLOB_RELEASED = 3;
-const BLOB_FREE = 4;
+const BLOB_FREE = 0;
+const BLOB_NEW = 1;
+const BLOB_PRESENT = 2;
+const BLOB_MISSING = 3;
+const BLOB_RELEASED = 4;
 
 function* midi_index() {
   let index = 1;
@@ -80,12 +80,12 @@ function control_change(chan, ctr, val) {
   }
 };
 
-function polyphonic_aftertouch(chan, aft) {
-  let status = midi_msg_status_pack(P_AFTERTOUCH, chan);
+function polyphonic_aftertouch(chan, note, press) {
+  let status = midi_msg_status_pack(AFTERTOUCH_POLY, chan);
   return {
     "status": status,
-    "data1": aft,
-    "data2": null
+    "data1": note,
+    "data2": press
   }
 };
 
@@ -109,7 +109,7 @@ function limit(min, max) {
 function midi_msg_builder(mode) {
   // NOTE_OFF
   // NOTE_ON 
-  // P_AFTERTOUCH
+  // AFTERTOUCH_POLY
   // C_CHANGE
   // P_CHANGE
   // C_AFTERTOUCH
@@ -136,10 +136,11 @@ function midi_msg_builder(mode) {
         DEFAULT_MIDI_MAX
       );
       break;
-    case P_AFTERTOUCH:
+    case AFTERTOUCH_POLY:
       msg.midi = new polyphonic_aftertouch(
         DEFAULT_MIDI_CHANNEL,
-        default_midi_index.next().value
+        default_midi_index.next().value,
+        DEFAULT_MIDI_VELOCITY
       );
       msg.limit = new limit(
         DEFAULT_MIDI_MIN,
@@ -263,13 +264,16 @@ function onMIDIMessage(midiMsg) {
 
   switch (status.type) {
     case NOTE_ON:
-      // N/A
+      console.log ("NOTE_ON: " + midiMsg.data[1] + " " + midiMsg.data[2]); // FIXME!
       break;
     case NOTE_OFF:
-      // N/A
+      console.log ("NOTE_OFF: " + midiMsg.data[1] + " " + midiMsg.data[2]); // FIXME!
       break;
     case C_CHANGE:
-      // N/A
+      console.log ("C_CHANGE: " + midiMsg.data[1] + " " + midiMsg.data[2]); // FIXME!
+      break;
+    case AFTERTOUCH_POLY:
+      console.log ("AFTERTOUCH_POLY: " + midiMsg.data[1] + " " + midiMsg.data[2]); // FIXME!
       break;
     case P_CHANGE:
       switch (status.channel) {
@@ -308,10 +312,33 @@ function onMIDIMessage(midiMsg) {
               item_menu_params(current_touch, "show");
 
               $("#PLAY_MODE").removeClass("active");
+              $("#THROUGH_MODE").removeClass("active");
               $("#EDIT_MODE").addClass("active");
               e256_current_mode = EDIT_MODE;
               break;
+
+            case THROUGH_MODE_DONE:
+                $("#calibrate_menu").collapse("show");
+                $("#matrix_menu").collapse("hide");
+                $("#mapping_menu").collapse("show");
+                $("#loading_canvas").collapse("hide");
+                $("#matrix_canvas").collapse("hide");
+                $("#mapping_canvas").collapse("show");
+                $("#edit_menu").collapse("hide");
+                $("#load_menu").collapse("hide");
+                $("#set_button_params").collapse("hide");
+                $("#summary_action").html("CONNECTED / PLAY_MODE");
+                $("#contextual_content").html("Using THROUGH MODE you can play the external synth");
+                $("#midi_term").collapse("show");
+                item_menu_params(current_controleur, "hide");
+                item_menu_params(current_touch, "hide");
   
+                $("#EDIT_MODE").removeClass("active");
+                $("#THROUGH_MODE").addClass("active");
+                $("#PLAY_MODE").removeClass("active");
+                e256_current_mode = THROUGH_MODE;
+                break;
+
             case PLAY_MODE_DONE:
               $("#calibrate_menu").collapse("show");
               $("#matrix_menu").collapse("hide");
@@ -329,6 +356,7 @@ function onMIDIMessage(midiMsg) {
               item_menu_params(current_touch, "hide");
 
               $("#EDIT_MODE").removeClass("active");
+              $("#THROUGH_MODE").removeClass("active");
               $("#PLAY_MODE").addClass("active");
               e256_current_mode = PLAY_MODE;
               break;
@@ -426,8 +454,12 @@ function onMIDIMessage(midiMsg) {
           case EDIT_MODE:
             e256_blobs.update(midiMsg.data);
           break;
+          case THROUGH_MODE:
+            // NA
+          break;
           case PLAY_MODE:
-            //e256_blobs.update(midiMsg.data);
+            // Update the ctrl using MIDI values 
+            e256_blobs.update(midiMsg.data);
           break;
         default:
           console.log("NOT_HANDLED_SISEX!")
