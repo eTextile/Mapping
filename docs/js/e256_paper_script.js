@@ -61,8 +61,8 @@ paperTool.onMouseDown = function (mouseEvent) {
             }
             previous_controleur = current_controleur;
             draw_controler_from_mouse(mouseEvent);
-            item_menu_params(previous_controleur, "hide"); // if (previous_controleur !== null)
-            item_menu_params(previous_touch, "hide"); // if (previous_touch !== null)
+            item_menu_params(previous_controleur, "hide"); // if (previous_controleur != null)
+            item_menu_params(previous_touch, "hide"); // if (previous_touch != null)
             create_item_menu_params(current_controleur);
             update_item_main_params(current_controleur);
             update_item_touchs_menu_params(current_controleur);
@@ -92,7 +92,7 @@ paperTool.onMouseDown = function (mouseEvent) {
         e256_draw_mode = current_controleur.name;
 
         if (previous_controleur) {
-          if (current_controleur.id !== previous_controleur.id) {
+          if (current_controleur.id != previous_controleur.id) {
             item_menu_params(previous_controleur, "hide");
             $("#" + previous_controleur.name).removeClass("active");
           }
@@ -101,7 +101,7 @@ paperTool.onMouseDown = function (mouseEvent) {
         $("#" + current_controleur.name).addClass("active");
 
         if (previous_touch) {
-          if (current_touch.id !== previous_touch.id) {
+          if (current_touch.id != previous_touch.id) {
             item_menu_params(previous_touch, "hide");
           }
         }
@@ -110,7 +110,7 @@ paperTool.onMouseDown = function (mouseEvent) {
       }
       break;
     case PLAY_MODE:
-      // NA
+      // N/A
       break;
   };
 };

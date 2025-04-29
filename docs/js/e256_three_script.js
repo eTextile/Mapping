@@ -30,7 +30,7 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
 
-  const light = new THREE.HemisphereLight();
+  const light = new THREE.AmbientLight( 0x404040 ); // soft white light
   scene.add(light);
 
   /*

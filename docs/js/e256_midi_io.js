@@ -106,36 +106,38 @@ function limit(min, max) {
 };
 
 // MIDI MESSAGE BUILDER
-function midi_msg_builder(mode) {
-  // NOTE_OFF
-  // NOTE_ON 
-  // AFTERTOUCH_POLY
-  // C_CHANGE
-  // P_CHANGE
-  // C_AFTERTOUCH
-  // P_BEND
-  // SYS_EX
+// NOTE_OFF
+// -> NOTE_ON 
+// AFTERTOUCH_POLY
+// -> C_CHANGE
+// P_CHANGE
+// C_AFTERTOUCH
+// P_BEND
+// SYS_EX
 
+function midi_msg_builder(midi_msg_type) {
   let msg = {};
-  switch (mode) {
+
+  switch (midi_msg_type) {
     case NOTE_ON:
       msg.midi = new note_on(
         DEFAULT_MIDI_CHANNEL,
         default_midi_index.next().value,
         DEFAULT_MIDI_VELOCITY
-      );
+      )
       break;
     case C_CHANGE:
       msg.midi = new control_change(
         DEFAULT_MIDI_CHANNEL,
         default_midi_index.next().value,
         DEFAULT_MIDI_VELOCITY
-      );
+      )
       msg.limit = new limit(
         DEFAULT_MIDI_MIN,
         DEFAULT_MIDI_MAX
-      );
+      )
       break;
+      /*
     case AFTERTOUCH_POLY:
       msg.midi = new polyphonic_aftertouch(
         DEFAULT_MIDI_CHANNEL,
@@ -147,6 +149,7 @@ function midi_msg_builder(mode) {
         DEFAULT_MIDI_MAX
       );
       break;
+      */
   };
   return msg;
 };
@@ -196,7 +199,6 @@ function onMIDISuccess(midiAccess) {
         outputSetup = false;
         midi_device_connected = false;
         //e256_current_mode = PENDING_MODE;
-        //console.log("MODE: " + MODE_CODES[e256_current_mode]);
         updateMenu();
         break;
     }
@@ -264,16 +266,16 @@ function onMIDIMessage(midiMsg) {
 
   switch (status.type) {
     case NOTE_ON:
-      console.log ("NOTE_ON: " + midiMsg.data[1] + " " + midiMsg.data[2]); // FIXME!
+      console.log ("NOTE_ON: " + midiMsg.data[1] + " " + midiMsg.data[2]);
       break;
     case NOTE_OFF:
-      console.log ("NOTE_OFF: " + midiMsg.data[1] + " " + midiMsg.data[2]); // FIXME!
+      console.log ("NOTE_OFF: " + midiMsg.data[1] + " " + midiMsg.data[2]);
       break;
     case C_CHANGE:
-      console.log ("C_CHANGE: " + midiMsg.data[1] + " " + midiMsg.data[2]); // FIXME!
+      console.log ("C_CHANGE: " + midiMsg.data[1] + " " + midiMsg.data[2]);
       break;
     case AFTERTOUCH_POLY:
-      console.log ("AFTERTOUCH_POLY: " + midiMsg.data[1] + " " + midiMsg.data[2]); // FIXME!
+      console.log ("AFTERTOUCH_POLY: " + midiMsg.data[1] + " " + midiMsg.data[2]); // NOTE USED!
       break;
     case P_CHANGE:
       switch (status.channel) {
@@ -318,26 +320,26 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case THROUGH_MODE_DONE:
-                $("#calibrate_menu").collapse("show");
-                $("#matrix_menu").collapse("hide");
-                $("#mapping_menu").collapse("show");
-                $("#loading_canvas").collapse("hide");
-                $("#matrix_canvas").collapse("hide");
-                $("#mapping_canvas").collapse("show");
-                $("#edit_menu").collapse("hide");
-                $("#load_menu").collapse("hide");
-                $("#set_button_params").collapse("hide");
-                $("#summary_action").html("CONNECTED / PLAY_MODE");
-                $("#contextual_content").html("Using THROUGH MODE you can play the external synth");
-                $("#midi_term").collapse("show");
-                item_menu_params(current_controleur, "hide");
-                item_menu_params(current_touch, "hide");
+              $("#calibrate_menu").collapse("show");
+              $("#matrix_menu").collapse("hide");
+              $("#mapping_menu").collapse("show");
+              $("#loading_canvas").collapse("hide");
+              $("#matrix_canvas").collapse("hide");
+              $("#mapping_canvas").collapse("show");
+              $("#edit_menu").collapse("hide");
+              $("#load_menu").collapse("hide");
+              $("#set_button_params").collapse("hide");
+              $("#summary_action").html("CONNECTED / PLAY_MODE");
+              $("#contextual_content").html("Using THROUGH MODE you can play the external synth");
+              $("#midi_term").collapse("show");
+              item_menu_params(current_controleur, "hide");
+              item_menu_params(current_touch, "hide");
   
-                $("#EDIT_MODE").removeClass("active");
-                $("#THROUGH_MODE").addClass("active");
-                $("#PLAY_MODE").removeClass("active");
-                e256_current_mode = THROUGH_MODE;
-                break;
+              $("#EDIT_MODE").removeClass("active");
+              $("#THROUGH_MODE").addClass("active");
+              $("#PLAY_MODE").removeClass("active");
+              e256_current_mode = THROUGH_MODE;
+              break;
 
             case PLAY_MODE_DONE:
               $("#calibrate_menu").collapse("show");
@@ -373,7 +375,7 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case CALIBRATE_MODE_DONE:
-               e256_current_mode = e256_last_mode;
+              e256_current_mode = e256_last_mode;
               break;
 
             case LOAD_MODE_DONE:
@@ -449,20 +451,20 @@ function onMIDIMessage(midiMsg) {
           fetch_config_file = conf_str.slice(1, -1);
           break;
         case MATRIX_MODE:
-            e256_matrix.update(midiMsg.data);
+          e256_matrix.update(midiMsg.data);
           break;
-          case EDIT_MODE:
-            e256_blobs.update(midiMsg.data);
+        case EDIT_MODE:
+          e256_blobs.update(midiMsg.data);
           break;
-          case THROUGH_MODE:
-            // NA
+        case THROUGH_MODE:
+          // N/A
           break;
-          case PLAY_MODE:
-            // Update the ctrl using MIDI values 
-            e256_blobs.update(midiMsg.data);
+        case PLAY_MODE:
+          // Update the ctrl using MIDI values 
+          e256_blobs.update(midiMsg.data);
           break;
         default:
-          console.log("NOT_HANDLED_SISEX!")
+          console.log("NOT_HANDLED_SISEX!: " +  MODE_CODES[e256_current_mode])
           break;
       }
       break;
@@ -473,7 +475,7 @@ function onMIDIMessage(midiMsg) {
 
 function send_midi_msg(midiMsg) {
   if (midi_device_connected) {
-    if (midiMsg.data2 === null) {
+    if (midiMsg.data2 === null) { // ??
       MIDI_output.send([midiMsg.status, midiMsg.data1]);
     } else {
       MIDI_output.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);

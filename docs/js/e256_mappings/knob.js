@@ -20,9 +20,9 @@ function knob_factory() {
     "radius": null,
     "theta": null,
     "modes": {
-      0: "NOTE_ON",     // TRIGGER WITH VELOCITY
-      1: "C_CHANGE",    // PRESSURE ONLY
-      2: "AFTERTOUCH_POLY" // TRIGGER AND PRESSURE
+      0: "NOTE_ON",        // TRIGGER NOTE WITH VELOCITY
+      1: "C_CHANGE",       // PRESSURE ONLY
+      2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
     },
     "data": {
       "touchs": null,
@@ -90,7 +90,7 @@ function knob_factory() {
 
       this.data.msg = [];
       let midi_touch;
-      if (this.data.mode_z !== previous_touch_mode_z) {
+      if (this.data.mode_z != previous_touch_mode_z) {
         for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           midi_touch = {};
           midi_touch.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
@@ -102,9 +102,10 @@ function knob_factory() {
       else {
         for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           if (_touch < previous_touch_count) {
-            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
-            let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
+            // ERROR -> QUIK_FIXME
+            //let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
+            //let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
+            //this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
             this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
           }
           else {
@@ -191,7 +192,7 @@ function knob_factory() {
       _knob_touch.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
           case EDIT_MODE:
-            // NA
+            // N/A
             break;
           case PLAY_MODE:
             let x = mouseEvent.point.x - _knob.center.x; // Place the x origin to the circle center
@@ -291,7 +292,7 @@ function knob_factory() {
             }
             break;
           case PLAY_MODE:
-            // NA
+            // N/A
             break;
         }
       }
@@ -326,7 +327,7 @@ function knob_factory() {
             update_item_main_params(_knob_group.parent);
             break;
           case PLAY_MODE:
-            // NA
+            // N/A
             break;
         }
       }

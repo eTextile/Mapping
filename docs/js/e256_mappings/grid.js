@@ -27,9 +27,9 @@ function grid_factory() {
   var _grid = new paper.Group({
     "name": "grid",
     "modes": {
-      0: "NOTE_ON",     // TRIGGER WITH VELOCITY
-      1: "C_CHANGE",    // PRESSURE ONLY
-      2: "AFTERTOUCH_POLY" // TRIGGER AND PRESSURE
+      0: "NOTE_ON",        // TRIGGER NOTE WITH VELOCITY
+      1: "C_CHANGE",       // PRESSURE ONLY
+      2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
     },
     "data": {
       "from": null,
@@ -75,7 +75,7 @@ function grid_factory() {
       this.data.cols = params.cols;
       this.data.rows = params.rows;
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
+      let status = midi_msg_status_unpack(params.msg[0].press.midi.status).type;
       this.data.mode_z = status.type;
     },
 
@@ -90,7 +90,7 @@ function grid_factory() {
       previous_key_count = current_key_count;
       current_key_count = this.data.cols * this.data.rows;
       this.data.msg = [];
-      if (this.data.mode_z !== previous_key_mode_z) {
+      if (this.data.mode_z != previous_key_mode_z) {
         for (let _key = 0; _key < current_key_count; _key++) {
           let key_msg = {};
           key_msg.press = midi_msg_builder(this.data.mode_z);
@@ -100,9 +100,10 @@ function grid_factory() {
       else {
         for (let _key = 0; _key < current_key_count; _key++) {
           if (_key < previous_key_count) {
-            let status = midi_msg_status_unpack(this.children["keys-group"].children[_key].msg.press.midi.status);
-            let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["keys-group"].children[_key].msg.press.midi.status = new_status;
+            // ERROR -> QUIK_FIXME
+            //let status = midi_msg_status_unpack(this.children["keys-group"].children[_key].msg.press.midi.status);
+            //let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
+            //this.children["keys-group"].children[_key].msg.press.midi.status = new_status;
             this.data.msg.push(this.children["keys-group"].children[_key].msg);
           }
           else {
@@ -146,11 +147,11 @@ function grid_factory() {
 
       _key_frame.onMouseEnter = function () {
         this.style.fillColor = "orange";
-      }
+      };
 
       _key_frame.onMouseLeave = function () {
         this.style.fillColor = "pink";
-      }
+      };
 
       _key_frame.onMouseDown = function () {
         previous_touch = current_touch;
@@ -158,29 +159,42 @@ function grid_factory() {
         this.style.fillColor = "red";
         switch (e256_current_mode) {
           case EDIT_MODE:
+            // N/A
             break;
-          case PLAY_MODE:
+          case THROUGH_MODE:
             // Set midi_msg status to NOTE_ON
             _key_group.msg.press.midi.status = _key_group.msg.press.midi.status | NOTE_ON;
             _key_group.msg.press.midi.data2 = 127;
             send_midi_msg(_key_group.msg.press.midi);
             break;
+          case PLAY_MODE:
+            // N/A
+            break;
         }
-      }
+      };
 
       _key_frame.onMouseUp = function () {
         this.style.fillColor = "orange";
         switch (e256_current_mode) {
           case EDIT_MODE:
+            // N/A
             break;
-          case PLAY_MODE:
+          case THROUGH_MODE:
             // Set midi_msg status to NOTE_OFF
             _key_group.msg.press.midi.status = _key_group.msg.press.midi.status & NOTE_OFF;
             _key_group.msg.press.midi.data2 = 0;
             send_midi_msg(_key_group.msg.press.midi);
             break;
+          case PLAY_MODE:
+            // N/A
+            break;
         }
-      }
+      };
+
+      _key_frame.onMidiMsg = function (midiMsg) {
+        // TODO
+        //midiMsg
+      };
 
       _key_group.addChild(_key_frame);
 
@@ -358,7 +372,7 @@ function grid_factory() {
             }
             break;
           case PLAY_MODE:
-            // NA
+            // N/A
             break;
         }
       }
@@ -376,7 +390,7 @@ function grid_factory() {
           }
           break;
         case PLAY_MODE:
-          // NA
+          // N/A
           break;
       }
     }

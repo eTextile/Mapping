@@ -249,7 +249,6 @@ function create_item_touchs_menu_params(item) {
                 param_arg = DATA2[status.type];
                 break;
             }
-            //if (param_arg !== "null") {
             if (param_arg) {
               let param_atr = document.createElement("th");
               param_atr.setAttribute("id", item.id + "_" + msg_type + "_" + param_arg + "_atr");
@@ -392,7 +391,7 @@ function re_create_item(item) {
 //////////////// Tail effect
 function scroll() {
   let div_height = $("#midi_term").get(0).scrollHeight;
-  $("#midi_tescrollrm").animate({ scrollTop: div_height }, 10);
+  //$("#midi_tescrollrm").animate({ scrollTop: div_height }, 10); // FIXME
 };
 
 function circular_buffer(max_length) {

@@ -105,7 +105,7 @@ const DATA1 = {
 const DATA2 = {
   0x80: "velo",
   0x90: "velo",
-  0xA0: "ctr", // TESTING
+  0xA0: "ctr",
   0xB0: null,
   0xC0: null,
   0xD0: "msb",

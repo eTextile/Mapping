@@ -12,8 +12,8 @@ function slider_factory() {
   const DEFAULT_SLIDER_MIN_WIDTH = 50;
   const DEFAULT_SLIDER_MIN_HEIGHT = 100;
   const DEFAULT_SLIDER_TOUCHS = 1;
-  const DEFAULT_SLIDER_TOUCHS_MODE = C_CHANGE;
-  const DEFAULT_SLIDER_TOUCHS_MODE_Z = NOTE_ON;
+  const DEFAULT_SLIDER_MODE_POS = C_CHANGE;
+  const DEFAULT_SLIDER_MODE_Z = NOTE_ON;
   const DEFAULT_SLIDER_DIR = "V_SLIDER";
 
   let current_frame_width = null;
@@ -25,9 +25,9 @@ function slider_factory() {
     "name": "slider",
     "dir": null,
     "modes": {
-      0: "NOTE_ON",     // TRIGGER WITH VELOCITY
-      1: "C_CHANGE",    // PRESSURE ONLY
-      2: "AFTERTOUCH_POLY" // TRIGGER AND PRESSURE
+      0: "NOTE_ON",        // TRIGGER NOTE WITH VELOCITY
+      1: "C_CHANGE",       // PRESSURE ONLY
+      2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
     },
     "data": {
       "touchs": null,
@@ -40,7 +40,7 @@ function slider_factory() {
     setup_from_mouse_event: function (mouseEvent) {
       this.dir = DEFAULT_SLIDER_DIR;
       this.data.touchs = DEFAULT_SLIDER_TOUCHS;
-      this.data.mode_z = DEFAULT_SLIDER_TOUCHS_MODE_Z;
+      this.data.mode_z = DEFAULT_SLIDER_MODE_Z;
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_SLIDER_WIDTH / 2),
         mouseEvent.point.y - (DEFAULT_SLIDER_HEIGHT / 2)
@@ -50,12 +50,23 @@ function slider_factory() {
         mouseEvent.point.y + (DEFAULT_SLIDER_HEIGHT / 2)
       );
       this.data.msg = [];
-      let touch_msg;
       for (let _touch = 0; _touch < DEFAULT_SLIDER_TOUCHS; _touch++) {
-        touch_msg = {};
-        touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
-        touch_msg.press = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE_Z);
-        this.data.msg.push(touch_msg);
+        let touch_msg = {};
+        touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
+        switch (this.data.mode_z) {
+          case NOTE_ON:
+            touch_msg.note = midi_msg_builder(NOTE_ON);
+            //touch_msg.press = null;
+            break;
+          case C_CHANGE:
+            //touch_msg.note = null;
+            touch_msg.press = midi_msg_builder(C_CHANGE);
+            break;
+          case AFTERTOUCH_POLY:
+            touch_msg.note = midi_msg_builder(NOTE_ON);
+            touch_msg.press = midi_msg_builder(C_CHANGE);
+            break;
+        }        this.data.msg.push(touch_msg);
       }
     },
 
@@ -84,17 +95,18 @@ function slider_factory() {
     save_params: function () {
       this.dir = this.children["slider-group"].dir;
       let previous_touch_count = this.data.touchs;
-      let previous_touch_mode_z = this.data.mode_z;
       this.data.touchs = this.children["slider-group"].data.touchs;
       this.data.from = this.children["slider-group"].data.from;
       this.data.to = this.children["slider-group"].data.to;
+
+      let previous_mode_z = this.data.mode_z;
       this.data.mode_z = this.children["slider-group"].data.mode_z;
 
       this.data.msg = [];
-      if (this.data.mode_z !== previous_touch_mode_z) {
+      if (this.data.mode_z != previous_mode_z) {
         for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           let touch_msg = {};
-          touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
+          touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
           touch_msg.press = midi_msg_builder(this.data.mode_z);
           this.data.msg.push(touch_msg);
         }
@@ -102,14 +114,30 @@ function slider_factory() {
       else {
         for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           if (_touch < previous_touch_count) {
-            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
-            let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
+            // ERROR -> QUIK_FIXME
+            //let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
+            //let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
+            //this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
             this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
           }
           else {
             let touch_msg = {};
-            touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_TOUCHS_MODE);
+            touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
+            switch (this.data.mode_z) {
+              case NOTE_ON:
+                touch_msg.note = midi_msg_builder(NOTE_ON);
+                //touch_msg.press = null;
+                break;
+              case C_CHANGE:
+                //touch_msg.note = null;
+                touch_msg.press = midi_msg_builder(C_CHANGE);
+                break;
+              case AFTERTOUCH_POLY:
+                touch_msg.note = midi_msg_builder(NOTE_ON);
+                touch_msg.press = midi_msg_builder(C_CHANGE);
+                break;
+            }
+
             touch_msg.press = midi_msg_builder(this.data.mode_z);
             this.data.msg.push(touch_msg);
           }
@@ -221,7 +249,7 @@ function slider_factory() {
       _touch_circle.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
           case EDIT_MODE:
-            // NA
+            // N/A
             break;
           case PLAY_MODE:
             switch (_slider.dir) {
@@ -468,7 +496,7 @@ function slider_factory() {
             update_item_main_params(_slider_group.parent);
             break;
           case PLAY_MODE:
-            // NA
+            // N/A
             break;
         }
       }
@@ -487,7 +515,7 @@ function slider_factory() {
           }
           break;
         case PLAY_MODE:
-          // NA
+          // N/A
           break;
       }
     }

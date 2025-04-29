@@ -16,6 +16,7 @@ function path_factory() {
     "data": {
       "touchs": null,
       "segments": null,
+      "mode_z": null,
       "msg": null
     },
 
@@ -108,7 +109,7 @@ function path_factory() {
       _touch_group.onMouseMove = function (mouseEvent) {
         switch (e256_current_mode) {
           case EDIT_MODE:
-            // NA
+            // N/A
             break;
           case PLAY_MODE:
             if (_touch_group.data.midi.position.val != _touch_group.prev_position) {
@@ -213,7 +214,7 @@ function path_factory() {
           }
           break;
         case PLAY_MODE:
-          // NA
+          // N/A
           break;
       }
     }

@@ -27,9 +27,9 @@ function switch_factory() {
   var _switch = new paper.Group({
     "name": "switch",
     "modes": {
-      0: "NOTE_ON",     // TRIGGER WITH VELOCITY
-      1: "C_CHANGE",    // PRESSURE ONLY
-      2: "AFTERTOUCH_POLY" // TRIGGER AND PRESSURE
+      0: "NOTE_ON",        // TRIGGER NOTE WITH VELOCITY
+      1: "C_CHANGE",       // PRESSURE ONLY
+      2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
     },
     "data": {
       "touchs": null,
@@ -51,10 +51,22 @@ function switch_factory() {
         mouseEvent.point.y + (DEFAULT_SWITCH_HEIGHT / 2)
       );
       this.data.msg = [];
-      let touch_msg;
       for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
-        touch_msg = {};
-        touch_msg.press = midi_msg_builder(DEFAULT_SWITCH_MODE_Z);
+        let touch_msg = {};
+        switch (this.data.mode_z) {
+          case NOTE_ON:
+            touch_msg.note = midi_msg_builder(NOTE_ON);
+            //touch_msg.press = null;
+            break;
+          case C_CHANGE:
+            //touch_msg.note = null;
+            touch_msg.press = midi_msg_builder(C_CHANGE);
+            break;
+          case AFTERTOUCH_POLY:
+            touch_msg.note = midi_msg_builder(NOTE_ON);
+            touch_msg.press = midi_msg_builder(C_CHANGE);
+            break;
+        }
         this.data.msg.push(touch_msg);
       }
     },
@@ -69,38 +81,65 @@ function switch_factory() {
         mapp(params.to[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
+      this.data.mode_z = params.mode_z;
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.mode_z = status.type;
     },
 
     save_params: function () {
       let previous_touch_count = this.data.touchs;
-      let previous_touch_mode_z = this.data.mode_z;
       this.data.touchs = this.children["switch-group"].data.touchs;
       this.data.from = this.children["switch-group"].data.from;
       this.data.to = this.children["switch-group"].data.to;
+
+      let previous_mode_z = this.data.mode_z;
       this.data.mode_z = this.children["switch-group"].data.mode_z;
       
       this.data.msg = [];
-      if (this.data.mode_z !== previous_touch_mode_z) {
+      if (this.data.mode_z != previous_mode_z) {
         for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           let touch_msg = {};
-          touch_msg.press = midi_msg_builder(this.data.mode_z);
+          switch (this.data.mode_z) {
+            case NOTE_ON:
+              touch_msg.note = midi_msg_builder(NOTE_ON);
+              //touch_msg.press = null;
+              break;
+            case C_CHANGE:
+              //touch_msg.note = null;
+              touch_msg.press = midi_msg_builder(C_CHANGE);
+              break;
+            case AFTERTOUCH_POLY:
+              touch_msg.note = midi_msg_builder(NOTE_ON);
+              touch_msg.press = midi_msg_builder(C_CHANGE);
+              break;
+          }
           this.data.msg.push(touch_msg);
         }
       }
       else {
         for (let _touch = 0; _touch < this.data.touchs; _touch++) {
           if (_touch < previous_touch_count) {
-            let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
-            let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
+            // ERROR -> QUIK_FIXME
+            //let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
+            //let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
+            //this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
             this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
           }
           else {
             let touch_msg = {};
-            touch_msg.press = midi_msg_builder(this.data.mode_z);
+            switch (this.data.mode_z) {
+              case NOTE_ON:
+                touch_msg.note = midi_msg_builder(NOTE_ON);
+                //touch_msg.press = null;
+                break;
+              case C_CHANGE:
+                //touch_msg.note = null;
+                touch_msg.press = midi_msg_builder(C_CHANGE);
+                break;
+              case AFTERTOUCH_POLY:
+                touch_msg.note = midi_msg_builder(NOTE_ON);
+                touch_msg.press = midi_msg_builder(C_CHANGE);
+                break;
+            }
             this.data.msg.push(touch_msg);
           }
         }
@@ -128,24 +167,10 @@ function switch_factory() {
 
       _touch_ellipse.onMouseEnter = function () {
         this.style.fillColor = "orange";
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            break;
-          case PLAY_MODE:
-            // NA
-            break;
-        }
       }
 
       _touch_ellipse.onMouseLeave = function () {
         this.style.fillColor = "pink";
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            break;
-          case PLAY_MODE:
-            // NA
-            break;
-        }
       }
 
       _touch_ellipse.onMouseDown = function () {
@@ -154,23 +179,60 @@ function switch_factory() {
             previous_touch = current_touch;
             current_touch = _touch_group;
             break;
+          case THROUGH_MODE:
+            switch (_switch.data.mode_z) { // BUG_FIX: this.data.mode_z -> _switch.data.mode_z
+              case NOTE_ON:
+                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
+                _touch_group.msg.note.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.note.midi);
+                break;
+              case C_CHANGE:
+                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
+                send_midi_msg(_touch_group.msg.press.midi);
+                break;
+              case AFTERTOUCH_POLY:
+                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
+                _touch_group.msg.note.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
+                send_midi_msg(_touch_group.msg.press.midi);
+                break;
+            }
+            break;
           case PLAY_MODE:
-            // Set midi_msg status to NOTE_ON
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON;
-            _touch_group.msg.press.midi.data2 = 127;
-            send_midi_msg(_touch_group.msg.press.midi);
+            // N/A
+            break;
         }
       }
 
       _touch_ellipse.onMouseUp = function () {
         switch (e256_current_mode) {
           case EDIT_MODE:
+            // N/A
+            break;
+          case THROUGH_MODE:
+            switch (_switch.data.mode_z) { // BUG_FIX: this.data.mode_z -> _switch.data.mode_z
+              case NOTE_ON:
+                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
+                _touch_group.msg.note.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.note.midi);
+                break;
+              case C_CHANGE:
+                _touch_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.press.midi);
+                break;
+              case AFTERTOUCH_POLY:
+                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
+                _touch_group.msg.note.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.press.midi);
+                break;
+              }
             break;
           case PLAY_MODE:
-            // Set midi_msg status to NOTE_OFF
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & NOTE_OFF;
-            _touch_group.msg.press.midi.data2 = 0;
-            send_midi_msg(_touch_group.msg.press.midi);
+            // N/A
+            break;
         }
       }
       _touch_group.addChild(_touch_ellipse);
@@ -235,6 +297,8 @@ function switch_factory() {
           case EDIT_MODE:
             this.selected = true;
             break;
+          case THROUGH_MODE:
+            break;
           case PLAY_MODE:
             break;
         }
@@ -244,6 +308,8 @@ function switch_factory() {
         switch (e256_current_mode) {
           case EDIT_MODE:
             this.selected = false;
+            break;
+          case THROUGH_MODE:
             break;
           case PLAY_MODE:
             break;
@@ -302,7 +368,6 @@ function switch_factory() {
                     ];
                   }
                   break;
-
                 case "bottom-right":
                   this.segments[2].point.x = mouseEvent.point.x;
                   this.segments[3].point = mouseEvent.point;
@@ -323,7 +388,6 @@ function switch_factory() {
                     ];
                   }
                   break;
-
                 case "bottom-left":
                   this.segments[3].point.y = mouseEvent.point.y;
                   this.segments[0].point = mouseEvent.point;
@@ -353,7 +417,7 @@ function switch_factory() {
             update_item_main_params(_switch_group.parent);
             break;
           case PLAY_MODE:
-            // NA
+            // N/A
             break;
         }
       }
@@ -372,7 +436,7 @@ function switch_factory() {
           }
           break;
         case PLAY_MODE:
-          // NA
+          // N/A
           break;
       }
     }
