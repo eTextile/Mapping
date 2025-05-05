@@ -255,7 +255,7 @@ function onReaderLoad(event) {
 };
 
 function loadFile(event) {
-  loaded_file = event.target.files[0]; // loaded_file => ?
+  let loaded_file = event.target.files[0]; // loaded_file => ?
   switch (loaded_file.type) {
     case "application/json":
       var reader = new FileReader();

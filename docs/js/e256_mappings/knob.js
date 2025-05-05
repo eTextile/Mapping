@@ -5,6 +5,7 @@
 */
 
 /////////// KNOB Factory
+// Multitouch MIDI knob GUI
 function knob_factory() {
   const DEFAULT_KNOB_TOUCHS = 1;
   const DEFAULT_KNOB_RADIUS = 250;
@@ -49,13 +50,24 @@ function knob_factory() {
       this.center = mouseEvent.point;
       this.theta = deg_to_rad(DEFAULT_KNOB_OFFSET);
       this.data.msg = [];
-      let midi_touch;
+      let touch_msg;
       for (let _touch = 0; _touch < DEFAULT_KNOB_TOUCHS; _touch++) {
-        midi_touch = {};
-        midi_touch.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
-        midi_touch.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
-        midi_touch.press = midi_msg_builder(DEFAULT_KNOB_MODE_Z);
-        this.data.msg.push(midi_touch);
+        touch_msg = {};
+        touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
+        touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
+        switch (this.data.mode_z) {
+          case NOTE_ON:
+            touch_msg.note = midi_msg_builder(NOTE_ON);
+            break;
+          case C_CHANGE:
+            touch_msg.press = midi_msg_builder(C_CHANGE);
+            break;
+          case AFTERTOUCH_POLY:
+            touch_msg.note = midi_msg_builder(NOTE_ON);
+            touch_msg.press = midi_msg_builder(C_CHANGE);
+            break;
+        }
+        this.data.msg.push(touch_msg);
       }
     },
 
@@ -89,33 +101,46 @@ function knob_factory() {
       this.data.mode_z = this.children["knob-group"].data.mode_z;
 
       this.data.msg = [];
-      let midi_touch;
-      if (this.data.mode_z != previous_touch_mode_z) {
-        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
-          midi_touch = {};
-          midi_touch.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
-          midi_touch.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
-          midi_touch.press = midi_msg_builder(this.data.mode_z);
-          this.data.msg.push(midi_touch);
+      for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+        let touch_msg = {};
+        if (this.data.mode_z != previous_touch_mode_z) {
+          touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
+          touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
+          switch (this.data.mode_z) {
+            case NOTE_ON:
+              touch_msg.note = midi_msg_builder(NOTE_ON);
+              break;
+            case C_CHANGE:
+              touch_msg.press = midi_msg_builder(C_CHANGE);
+              break;
+            case AFTERTOUCH_POLY:
+              touch_msg.note = midi_msg_builder(NOTE_ON);
+              touch_msg.press = midi_msg_builder(C_CHANGE);
+              break;
+          }
         }
-      }
-      else {
-        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+        else {
           if (_touch < previous_touch_count) {
-            // ERROR -> QUIK_FIXME
-            //let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
-            //let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            //this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
-            this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
+            touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            midi_touch = {};
-            midi_touch.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
-            midi_touch.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
-            midi_touch.press = midi_msg_builder(this.data.mode_z);
-            this.data.msg.push(midi_touch);
+            touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
+            touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
+            switch (this.data.mode_z) {
+              case NOTE_ON:
+                touch_msg.note = midi_msg_builder(NOTE_ON);
+                break;
+              case C_CHANGE:
+                touch_msg.press = midi_msg_builder(C_CHANGE);
+                break;
+              case AFTERTOUCH_POLY:
+                touch_msg.note = midi_msg_builder(NOTE_ON);
+                touch_msg.press = midi_msg_builder(C_CHANGE);
+                break;
+            }
           }
         }
+        this.data.msg.push(touch_msg);
       }
       this.center = this.children["knob-group"].center;
       this.radius = this.children["knob-group"].radius;
@@ -173,20 +198,60 @@ function knob_factory() {
             previous_touch = current_touch;
             current_touch = _touch_group;
             break;
+          case THROUGH_MODE:
+            switch (_knob.data.mode_z) {
+              case NOTE_ON:
+                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
+                _touch_group.msg.note.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.note.midi);
+                break;
+              case C_CHANGE:
+                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
+                send_midi_msg(_touch_group.msg.press.midi);
+                break;
+              case AFTERTOUCH_POLY:
+                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
+                _touch_group.msg.note.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
+                send_midi_msg(_touch_group.msg.press.midi);
+                break;
+            }
+            break;
           case PLAY_MODE:
-            // Set midi_msg status to NOTE_ON
-            _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status | NOTE_ON;
-            _touch_group.msg.press.midi.data2 = 127;
-            send_midi_msg(_touch_group.msg.press.midi);
+            // N/A
             break;
         }
       }
 
       _knob_touch.onMouseUp = function () {
-        // Set midi_msg status to NOTE_OFF
-        _touch_group.msg.press.midi.status = _touch_group.msg.press.midi.status & NOTE_OFF;
-        _touch_group.msg.press.midi.data2 = 0;
-        send_midi_msg(_touch_group.msg.press.midi);
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            break;
+          case THROUGH_MODE:
+            switch (_knob.data.mode_z) {
+              case NOTE_ON:
+                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
+                _touch_group.msg.note.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.note.midi);
+                break;
+              case C_CHANGE:
+                _touch_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.press.midi);
+                break;
+              case AFTERTOUCH_POLY:
+                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
+                _touch_group.msg.note.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.press.midi);
+                break;
+            }
+            break;
+          case PLAY_MODE:
+            // N/A
+            break;
+        }
       }
 
       _knob_touch.onMouseDrag = function (mouseEvent) {
@@ -194,7 +259,7 @@ function knob_factory() {
           case EDIT_MODE:
             // N/A
             break;
-          case PLAY_MODE:
+          case THROUGH_MODE:
             let x = mouseEvent.point.x - _knob.center.x; // Place the x origin to the circle center
             let y = mouseEvent.point.y - _knob.center.y; // Place the y origin to the circle center
             let polar = cart_to_pol(x, y);
@@ -223,13 +288,16 @@ function knob_factory() {
               send_midi_msg(_touch_group.msg.theta.midi);
             }
             break;
+          case PLAY_MODE:
+            break;            
         }
       }
 
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y),
-        "content": _touch_group.msg.press.midi.data1,
+        //"content": JSON.stringify(_touch_group.msg), // MAKE TI DESIGN ;-)
+        "content": null,
         "locked": true
       });
 

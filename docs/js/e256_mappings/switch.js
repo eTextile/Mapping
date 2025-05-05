@@ -8,15 +8,10 @@ This work is licensed under Creative Commons Attribution-ShareAlike 4.0 Internat
 function switch_factory() {
   const DEFAULT_SWITCH_WIDTH = canvas_width / SCALE_X;
   const DEFAULT_SWITCH_HEIGHT = canvas_height / SCALE_X;
-  const DEFAULT_SWITCH_MIN_SIZE = canvas_height / SCALE_X;
+  //const DEFAULT_SWITCH_MIN_SIZE = 50;
   const DEFAULT_SWITCH_TOUCHS = 3;
   const DEFAULT_SWITCH_MODE_Z = NOTE_ON;
   const DEFAULT_SWITCH_BUTTON_PADDING = 8;
-
-  //let current_frame_width = null;
-  //let previous_frame_width = null;
-  //let current_frame_height = null;
-  //let previous_frame_height = null;
 
   let half_frame_width = null;
   let half_frame_height = null;
@@ -56,10 +51,8 @@ function switch_factory() {
         switch (this.data.mode_z) {
           case NOTE_ON:
             touch_msg.note = midi_msg_builder(NOTE_ON);
-            //touch_msg.press = null;
             break;
           case C_CHANGE:
-            //touch_msg.note = null;
             touch_msg.press = midi_msg_builder(C_CHANGE);
             break;
           case AFTERTOUCH_POLY:
@@ -95,16 +88,14 @@ function switch_factory() {
       this.data.mode_z = this.children["switch-group"].data.mode_z;
       
       this.data.msg = [];
-      if (this.data.mode_z != previous_mode_z) {
-        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
-          let touch_msg = {};
+      for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+        let touch_msg = {};
+        if (this.data.mode_z != previous_mode_z) {
           switch (this.data.mode_z) {
             case NOTE_ON:
               touch_msg.note = midi_msg_builder(NOTE_ON);
-              //touch_msg.press = null;
               break;
             case C_CHANGE:
-              //touch_msg.note = null;
               touch_msg.press = midi_msg_builder(C_CHANGE);
               break;
             case AFTERTOUCH_POLY:
@@ -112,27 +103,17 @@ function switch_factory() {
               touch_msg.press = midi_msg_builder(C_CHANGE);
               break;
           }
-          this.data.msg.push(touch_msg);
         }
-      }
-      else {
-        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+        else {
           if (_touch < previous_touch_count) {
-            // ERROR -> QUIK_FIXME
-            //let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
-            //let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            //this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
-            this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
+            touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            let touch_msg = {};
             switch (this.data.mode_z) {
               case NOTE_ON:
                 touch_msg.note = midi_msg_builder(NOTE_ON);
-                //touch_msg.press = null;
                 break;
               case C_CHANGE:
-                //touch_msg.note = null;
                 touch_msg.press = midi_msg_builder(C_CHANGE);
                 break;
               case AFTERTOUCH_POLY:
@@ -140,9 +121,9 @@ function switch_factory() {
                 touch_msg.press = midi_msg_builder(C_CHANGE);
                 break;
             }
-            this.data.msg.push(touch_msg);
           }
         }
+        this.data.msg.push(touch_msg);
       }
     },
 
@@ -157,7 +138,6 @@ function switch_factory() {
       let _touch_ellipse = new paper.Shape.Ellipse({
         "name": "touch-ellipse",
         "center": _touch_group.pos,
-        //"radius": new paper.Point(half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING, half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING),
         "radius": new paper.Point((switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch_id * switch_radius_size_width), (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch_id * switch_radius_size_height)),
       });
 
@@ -180,7 +160,7 @@ function switch_factory() {
             current_touch = _touch_group;
             break;
           case THROUGH_MODE:
-            switch (_switch.data.mode_z) { // BUG_FIX: this.data.mode_z -> _switch.data.mode_z
+            switch (_switch.data.mode_z) {
               case NOTE_ON:
                 _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
                 _touch_group.msg.note.midi.data2 = 127;
@@ -240,7 +220,8 @@ function switch_factory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": _touch_group.msg.press.midi.data1,
+        //"content": JSON.stringify(_touch_group.msg),
+        "content": null,
         "locked": true
       });
 
@@ -277,7 +258,6 @@ function switch_factory() {
         "name": "touchs-group"
       });
 
-      //_touchs_group.addChild(this.new_touch(_switch_group, 0));
       for (let _touch = 0; _touch < _switch_group.data.touchs; _touch++) {
         _touchs_group.addChild(this.new_touch(_switch_group, _touch));
       }

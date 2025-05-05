@@ -94,18 +94,16 @@ function touchpad_factory() {
       this.data.mode_z = this.children["pad-group"].data.mode_z;
 
       this.data.msg = [];
-      if (this.data.mode_z != previous_mode_z) {
-        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
-          let touch_msg = {};
+      for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+        let touch_msg = {};
+        if (this.data.mode_z != previous_mode_z) {
           touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
           touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
           switch (this.data.mode_z) {
             case NOTE_ON:
               touch_msg.note = midi_msg_builder(NOTE_ON);
-              //touch_msg.press = null;
               break;
             case C_CHANGE:
-              //touch_msg.note = null;
               touch_msg.press = midi_msg_builder(C_CHANGE);
               break;
             case AFTERTOUCH_POLY:
@@ -113,29 +111,19 @@ function touchpad_factory() {
               touch_msg.press = midi_msg_builder(C_CHANGE);
               break;
           }
-          this.data.msg.push(touch_msg);
         }
-      }
-      else {
-        for (let _touch = 0; _touch < this.data.touchs; _touch++) {
+        else {
           if (_touch < previous_touch_count) {
-            // ERROR -> QUIK_FIXME
-            //let status = midi_msg_status_unpack(this.children["touchs-group"].children[_touch].msg.press.midi.status);
-            //let new_status = midi_msg_status_pack(this.data.mode_z, status.channel);
-            //this.children["touchs-group"].children[_touch].msg.press.midi.status = new_status;
-            this.data.msg.push(this.children["touchs-group"].children[_touch].msg);
+            touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            let touch_msg = {};
             touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
             touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
             switch (this.data.mode_z) {
               case NOTE_ON:
                 touch_msg.note = midi_msg_builder(NOTE_ON);
-                //touch_msg.press = null;
                 break;
               case C_CHANGE:
-                //touch_msg.note = null;
                 touch_msg.press = midi_msg_builder(C_CHANGE);
                 break;
               case AFTERTOUCH_POLY:
@@ -143,9 +131,9 @@ function touchpad_factory() {
                 touch_msg.press = midi_msg_builder(C_CHANGE);
                 break;
             }
-            this.data.msg.push(touch_msg);
           }
         }
+        this.data.msg.push(touch_msg);
       }
     },
 
@@ -532,6 +520,9 @@ function touchpad_factory() {
             move_item(this, mouseEvent);
             update_item_main_params(this);
           }
+          break;
+        case THROUGH_MODE:
+          // N/A
           break;
         case PLAY_MODE:
           // N/A

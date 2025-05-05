@@ -198,7 +198,7 @@ function update_item_main_params(item) {
 // https://getbootstrap.com/docs/5.0/forms/form-control/
 
 function create_item_touchs_menu_params(item) {
-  let sub_part_params = document.createElement("div");           // Sub part menu main div 
+  let sub_part_params = document.createElement("div");           // Sub part menu main div
   sub_part_params.setAttribute("id", item.name + "_" + item.id); // Sub part menu UID
 
   sub_part_params.className = "collapse";

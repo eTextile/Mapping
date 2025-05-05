@@ -29,9 +29,7 @@ function init() {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
-
-  const light = new THREE.AmbientLight( 0x404040 ); // soft white light
-  scene.add(light);
+  scene.add(new THREE.AmbientLight(0xffffff, 1));
 
   /*
   const pointMaterial = new THREE.PointsMaterial({size: 0.2, color: "red"})
@@ -83,6 +81,7 @@ function init() {
 
   const material = new THREE.MeshPhongMaterial({
     side: THREE.DoubleSide,
+    shininess: 100,
     vertexColors: true
   });
 
@@ -99,7 +98,10 @@ function init() {
   
   scene.add(mesh);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+ });
+
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(canvas_width, canvas_height);
   threeCanvas.appendChild(renderer.domElement);
