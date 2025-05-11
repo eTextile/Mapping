@@ -71,7 +71,11 @@ input[type=number] {
 }
 
 #midi_term {
-  background-color: rgb(93, 93, 119);
+  background-color: rgb(90, 80, 100);
+
+  /*background-color: rgb(93, 93, 119);*/
+  /*background-color: rgb(13, 09, 79);*/
+  /*background-color: rgb(22, 01, 90);*/
   color: white;
   overflow: hidden;
 }

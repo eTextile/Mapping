@@ -105,8 +105,7 @@ paperTool.onMouseDown = function (mouseEvent) {
             item_menu_params(previous_touch, "hide");
           }
         }
-        item_menu_params(current_touch, "show");         
-
+        item_menu_params(current_touch, "show");
       }
       break;
     case PLAY_MODE:
@@ -150,7 +149,6 @@ paperTool.onKeyDown = function (keyEvent) {
 
 paper.onFrame = function () {
   // Every frame
-
 };
 
 function draw_controler_from_mouse(mouseEvent) {
@@ -250,16 +248,16 @@ paper.view.onResize = function () {
 
 function onReaderLoad(event) {
   conf_size = Object.keys(event.target.result).length;
-  console.log("CONF_SIZE_IN: " + conf_size);
+  console.log("INPUT_CONF_SIZE: " + conf_size);
   draw_controlers_from_config(event.target.result);
 };
 
 function loadFile(event) {
-  let loaded_file = event.target.files[0]; // loaded_file => ?
+  let loaded_file = event.target.files[0]; // File loaded from user desktop
   switch (loaded_file.type) {
     case "application/json":
       var reader = new FileReader();
-      reader.onload = onReaderLoad;
+      reader.onload = onReaderLoad; // Arg?
       reader.readAsText(event.target.files[0]);
       break;
     case "application/wav":

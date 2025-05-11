@@ -56,7 +56,7 @@ const AFTERTOUCH_POLY = 0xA0;    // POLYPHONIC_AFTERTOUCH
 const C_CHANGE = 0xB0;           // CONTROL_CHANGE
 const P_CHANGE = 0xC0;           // PROGRAM_CHANGE
 const AFTERTOUCH_CHANNEL = 0xD0; // CHANNEL_AFTERTOUCH
-const P_BEND = 0xE0;             // PITCH_BEND
+const PITCH_BEND = 0xE0;         // PITCH_BEND
 const SYS_EX = 0xF0;             // SYSTEM_EXCLUSIVE
 
 // const TIMECODEQUARTERFRAME = 0xF1;
@@ -117,8 +117,8 @@ const DATA2 = {
 const PENDING_MODE = 0;     // Waiting mode
 const SYNC_MODE = 1;        // Hand chake mode
 const CALIBRATE_MODE = 2;   //
-const MATRIX_MODE = 3;      // Get matrix analog sensor values (16x16) over USB using MIDI format
-const MAPPING_MODE = 4;     //
+const MATRIX_RAW_MODE = 3;  // Get matrix analog sensor values (16x16) over USB using MIDI format
+const MAPPING_MODE = 4;     // 
 const EDIT_MODE = 5;        // Get all blobs values over USB using MIDI format
 const THROUGH_MODE = 6;     // 
 const PLAY_MODE = 7;        // Get mappings values over USB using MIDI format
@@ -136,7 +136,7 @@ const MODE_CODES = {
   0: "PENDING_MODE",
   1: "SYNC_MODE",
   2: "CALIBRATE_MODE",
-  3: "MATRIX_MODE",
+  3: "MATRIX_RAW_MODE",
   4: "MAPPING_MODE",
   5: "EDIT_MODE",
   6: "THROUGH_MODE",
@@ -151,11 +151,11 @@ const MODE_CODES = {
   15: "ERROR_MODE"
 };
 
-// VERBOSITY CODES CONSTANTS
+// VERBOSITY MODES CONSTANTS ACKNOWLEDGMENT
 const PENDING_MODE_DONE = 0;
 const SYNC_MODE_DONE = 1;
 const CALIBRATE_MODE_DONE = 2;
-const MATRIX_MODE_DONE = 3;
+const MATRIX_RAW_MODE_DONE = 3;
 const MAPPING_MODE_DONE = 4
 const EDIT_MODE_DONE = 5;
 const THROUGH_MODE_DONE = 6;
@@ -164,7 +164,7 @@ const ALLOCATE_MODE_DONE = 8;
 const ALLOCATE_DONE = 9;
 const UPLOAD_MODE_DONE = 10;
 const UPLOAD_DONE = 11;
-const APPLY_MODE_DONE = 12;
+const CONFIG_APPLY_DONE = 12;
 const WRITE_MODE_DONE = 13;
 const LOAD_MODE_DONE = 14;
 const FETCH_MODE_DONE = 15;
@@ -175,7 +175,7 @@ const VERBOSITY_CODES = {
   0: "PENDING_MODE_DONE",
   1: "SYNC_MODE_DONE",
   2: "CALIBRATE_MODE_DONE",
-  3: "MATRIX_MODE_DONE",
+  3: "MATRIX_RAW_MODE_DONE",
   4: "MAPPING_MODE_DONE",
   5: "EDIT_MODE_DONE",
   6: "THROUGH_MODE_DONE",
@@ -184,7 +184,7 @@ const VERBOSITY_CODES = {
   9: "ALLOCATE_DONE",
   10: "UPLOAD_MODE_DONE",
   11: "UPLOAD_DONE",
-  12: "APPLY_MODE_DONE",
+  12: "CONFIG_APPLY_DONE",
   13: "WRITE_MODE_DONE",
   14: "LOAD_MODE_DONE",
   15: "FETCH_MODE_DONE",

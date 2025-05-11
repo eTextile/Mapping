@@ -55,10 +55,8 @@ function touchpad_factory() {
         switch (this.data.mode_z) {
           case NOTE_ON:
             touch_msg.note = midi_msg_builder(NOTE_ON);
-            //touch_msg.press = null;
             break;
           case C_CHANGE:
-            //touch_msg.note = null;
             touch_msg.press = midi_msg_builder(C_CHANGE);
             break;
           case AFTERTOUCH_POLY:
@@ -205,7 +203,7 @@ function touchpad_factory() {
             current_touch = _touch_group;
             break;
           case THROUGH_MODE:
-            switch (_touchpad.data.mode_z) { // BUG_FIX: this.data.mode_z -> _touchpad.data.mode_z
+            switch (_touchpad.data.mode_z) {
               case NOTE_ON:
                 _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
                 _touch_group.msg.note.midi.data2 = 127;
@@ -236,7 +234,7 @@ function touchpad_factory() {
             // N/A
             break;
           case THROUGH_MODE:
-            switch (_touchpad.data.mode_z) { // BUG_FIX: this.data.mode_z -> _touchpad.data.mode_z
+            switch (_touchpad.data.mode_z) {
               case NOTE_ON:
                 _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
                 _touch_group.msg.note.midi.data2 = 0;
@@ -276,19 +274,20 @@ function touchpad_factory() {
               _touch_circle.position = mouseEvent.point;
               _touch_txt.position = mouseEvent.point;
 
+              _touch_group.prev_pos_x = _touch_group.msg.pos_x.midi.data2;
               _touch_group.msg.pos_x.midi.data2 = Math.round(
                 mapp(mouseEvent.point.x,
-                  _touchpad.children["pad-frame"].bounds.right,
                   _touchpad.children["pad-frame"].bounds.left,
+                  _touchpad.children["pad-frame"].bounds.right,
                   _touch_group.msg.pos_x.limit.min,
                   _touch_group.msg.pos_x.limit.max
                 )
               )
               if (_touch_group.msg.pos_x.midi.data2 != _touch_group.prev_pos_x) {
-                _touch_group.prev_pos_x = _touch_group.msg.pos_x.midi.data2;
                 send_midi_msg(_touch_group.msg.pos_x.midi);
               }
 
+              _touch_group.prev_pos_y = _touch_group.msg.pos_y.midi.data2;
               _touch_group.msg.pos_y.midi.data2 = Math.round(
                 mapp(mouseEvent.point.y,
                   _touchpad.children["pad-frame"].bounds.top,
@@ -298,13 +297,12 @@ function touchpad_factory() {
                 )
               )
               if (_touch_group.msg.pos_y.midi.data2 != _touch_group.prev_pos_y) {
-                _touch_group.prev_pos_y = _touch_group.msg.pos_y.midi.data2;
                 send_midi_msg(_touch_group.msg.pos_y.midi);
               }
             }
             break;
           case PLAY_MODE:
-            // TODO
+            // N/A
             break;
         }
       };
@@ -314,7 +312,7 @@ function touchpad_factory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": _touch_group.msg.pos_y.midi.data1,
+        "content": "T: " + _touch_id,
         "locked": true
       });
 

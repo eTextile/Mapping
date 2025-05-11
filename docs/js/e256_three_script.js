@@ -84,19 +84,18 @@ function init() {
     shininess: 100,
     vertexColors: true
   });
-
+  let mesh = new THREE.Mesh(geometry, material);
+  //scene.add(mesh);
+  
   const wireMaterial = new THREE.MeshPhongMaterial({
     wireframe: true,
     color: 0xffffff
   });
-
-  let mesh = new THREE.Mesh(geometry, material);
   let edges = new THREE.Mesh(geometry, wireMaterial);
+  scene.add(edges);  
 
-  mesh.add(edges);
-  mesh.rotation.set(deg_to_rad(-40), 0, 0);
-  
-  scene.add(mesh);
+  //mesh.rotation.set(deg_to_rad(-40), 0, 0);
+  edges.rotation.set(deg_to_rad(-40), 0, 0);
 
   renderer = new THREE.WebGLRenderer({
     antialias: true

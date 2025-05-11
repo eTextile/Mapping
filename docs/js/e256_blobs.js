@@ -79,7 +79,7 @@ function blob_factory() {
       });
 
       _blob_path.style = {
-        "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
+        "strokeWidth": 1,
         "strokeColor": "black",
         "strokeCap": "round",
         "strokeJoin": "round",
@@ -122,7 +122,11 @@ function blob_factory() {
       this.children["blob-group"].children["blob-box"].size = size;
 
       this.children["blob-group"].children["blob-txt"].position = centroid;
-      this.children["blob-group"].children["blob-txt"].content = "UID: " + sysExMsg[BLOB_UID_INDEX] + "\nX: " + centroid.x.toFixed(2) + "\nY: " + centroid.y.toFixed(2);
+      this.children["blob-group"].children["blob-txt"].content = 
+        "UID: " + sysExMsg[BLOB_UID_INDEX] +
+        "\nX: " + centroid.x.toFixed(2) +
+        "\nY: " + centroid.y.toFixed(2) +
+        "\nZ: " + sysExMsg[8];
 
       //this.children["blob-group"].children["blob-path"].segments.push(centroid); // FIXME!      
       //this.path.smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15

@@ -9,7 +9,7 @@ var MIDI_output = null;
 
 let inputSetup = false;
 let outputSetup = false;
-var midi_device_connected = false; // SET IT TO FALSE
+var midi_device_connected = false;
 var loaded_file = null; // from user desktop
 var fetch_config_file = null; // from e256 flash memory
 
@@ -42,7 +42,7 @@ const default_midi_index = midi_index();
 
 // MIDI struct
 // https://www.midi.org/specifications-old/item/table-2-expanded-messages-list-status-bytes
-function midi_msg_status_pack(type, channel) {
+function midi_msg_status_pack(channel, type) {
   return(channel - 1) | type;
 };
 
@@ -54,7 +54,7 @@ function midi_msg_status_unpack(status) {
 };
 
 function note_on(chan, note, velo) {
-  let status = midi_msg_status_pack(NOTE_ON, chan);
+  let status = midi_msg_status_pack(chan, NOTE_ON);
   return {
     "status": status,
     "data1": note,
@@ -63,7 +63,7 @@ function note_on(chan, note, velo) {
 };
 
 function note_off(chan, note, velo) {
-  let status = midi_msg_status_pack(NOTE_OFF, chan);
+  let status = midi_msg_status_pack(chan, NOTE_OFF);
   return {
     "status": status,
     "data1": note,
@@ -72,7 +72,7 @@ function note_off(chan, note, velo) {
 };
 
 function control_change(chan, ctr, val) {
-  let status = midi_msg_status_pack(C_CHANGE, chan);
+  let status = midi_msg_status_pack(chan, C_CHANGE);
   return {
     "status": status,
     "data1": ctr,
@@ -81,7 +81,7 @@ function control_change(chan, ctr, val) {
 };
 
 function polyphonic_aftertouch(chan, note, press) {
-  let status = midi_msg_status_pack(AFTERTOUCH_POLY, chan);
+  let status = midi_msg_status_pack(chan, AFTERTOUCH_POLY);
   return {
     "status": status,
     "data1": note,
@@ -90,11 +90,22 @@ function polyphonic_aftertouch(chan, note, press) {
 };
 
 function program_change(chan, pgm) {
-  let status = midi_msg_status_pack(P_CHANGE, chan);
+  let status = midi_msg_status_pack(chan, P_CHANGE);
   return {
     "status": status,
     "data1": pgm,
     "data2": null
+  }
+};
+
+function pitch_bend(chan, pitch) {
+  let status = midi_msg_status_pack(chan, PITCH_BEND);
+  let data1 = pitch & 0x7F // Lsb
+  let data2 = pitch >> 7 // Msb
+  return {
+    "status": status,
+    "data1": data1,
+    "data2": data2
   }
 };
 
@@ -107,18 +118,19 @@ function limit(min, max) {
 
 // MIDI MESSAGE BUILDER
 // NOTE_OFF
-// -> NOTE_ON 
+// -> NOTE_ON
 // AFTERTOUCH_POLY
 // -> C_CHANGE
 // P_CHANGE
 // C_AFTERTOUCH
-// P_BEND
+// -> P_BEND
 // SYS_EX
 
 function midi_msg_builder(midi_msg_type) {
   let msg = {};
 
   switch (midi_msg_type) {
+
     case NOTE_ON:
       msg.midi = new note_on(
         DEFAULT_MIDI_CHANNEL,
@@ -126,6 +138,7 @@ function midi_msg_builder(midi_msg_type) {
         DEFAULT_MIDI_VELOCITY
       )
       break;
+
     case C_CHANGE:
       msg.midi = new control_change(
         DEFAULT_MIDI_CHANNEL,
@@ -137,7 +150,7 @@ function midi_msg_builder(midi_msg_type) {
         DEFAULT_MIDI_MAX
       )
       break;
-      /*
+
     case AFTERTOUCH_POLY:
       msg.midi = new polyphonic_aftertouch(
         DEFAULT_MIDI_CHANNEL,
@@ -149,7 +162,19 @@ function midi_msg_builder(midi_msg_type) {
         DEFAULT_MIDI_MAX
       );
       break;
-      */
+
+    case PITCH_BEND:
+      msg.midi = new pitch_bend(
+        DEFAULT_MIDI_CHANNEL,
+        DEFAULT_MIDI_VELOCITY
+      )
+      msg.limit = new limit(
+        DEFAULT_MIDI_MIN,
+        DEFAULT_MIDI_MAX
+      );
+      break;
+    default:
+      break;
   };
   return msg;
 };
@@ -226,7 +251,7 @@ function updateMenu() {
     $("#mapping_canvas").collapse("hide");
     $("#summary_action").html("CONNECTED");
     $("#contextual_content").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
-    $("#MATRIX_MODE").addClass("active");
+    $("#MATRIX_RAW_MODE").addClass("active");
     $("#MAPPING_MODE").removeClass("active");
   }
   else {
@@ -245,47 +270,28 @@ function updateMenu() {
     $("#e256_params").collapse("hide");
     $("#set_button_params").collapse("hide");
     $("#MAPPING_MODE").removeClass("active");
-    $("#MATRIX_MODE").removeClass("active");
+    $("#MATRIX_RAW_MODE").removeClass("active");
   }
 };
 
 // RAW MIDI MESSAGES (MIDI 1.0)
 function onMIDIMessage(midiMsg) {
+  let msg = {};
+  msg.status = midiMsg.data[0];
+  msg.data1 = midiMsg.data[1];
+  msg.data2 = midiMsg.data[2];
+
   let status = midi_msg_status_unpack(midiMsg.data[0]);
-  let data1 = midiMsg.data[1];
-  //let data2 = midiMsg.data[2];
-
-  /*
-  console.log (
-    "TYPE: " + status.type +
-    " CHAN: " + status.channel +
-    " DATA1: " + midiMsg.data[1] +
-    " DATA2: " + midiMsg.data[2]
-  );
-  */
-
   switch (status.type) {
-    case NOTE_ON:
-      console.log ("NOTE_ON: " + midiMsg.data[1] + " " + midiMsg.data[2]);
-      break;
-    case NOTE_OFF:
-      console.log ("NOTE_OFF: " + midiMsg.data[1] + " " + midiMsg.data[2]);
-      break;
-    case C_CHANGE:
-      console.log ("C_CHANGE: " + midiMsg.data[1] + " " + midiMsg.data[2]);
-      break;
-    case AFTERTOUCH_POLY:
-      console.log ("AFTERTOUCH_POLY: " + midiMsg.data[1] + " " + midiMsg.data[2]); // NOTE USED!
-      break;
     case P_CHANGE:
       switch (status.channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          console.log("RECEIVED: " + VERBOSITY_CODES[data1]);
-          switch (data1) {
+          console.log("RECEIVED: " + VERBOSITY_CODES[msg.data1]);
+          switch (msg.data1) {
   
-            case MATRIX_MODE_DONE:
+            case MATRIX_RAW_MODE_DONE:
               updateMenu();
-              e256_current_mode = MATRIX_MODE;
+              e256_current_mode = MATRIX_RAW_MODE;
               break;
 
             case MAPPING_MODE_DONE:
@@ -297,8 +303,7 @@ function onMIDIMessage(midiMsg) {
               $("#mapping_canvas").collapse("show");
               $("#summary_action").html("CONNECTED");
               $("#contextual_content").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces");
-
-              $("#MATRIX_MODE").removeClass("active");
+              $("#MATRIX_RAW_MODE").removeClass("active");
               $("#MAPPING_MODE").addClass("active");
               e256_current_mode = MAPPING_MODE;
               break;
@@ -312,7 +317,6 @@ function onMIDIMessage(midiMsg) {
               $("#midi_term").collapse("hide");
               item_menu_params(current_controleur, "show");
               item_menu_params(current_touch, "show");
-
               $("#PLAY_MODE").removeClass("active");
               $("#THROUGH_MODE").removeClass("active");
               $("#EDIT_MODE").addClass("active");
@@ -329,12 +333,11 @@ function onMIDIMessage(midiMsg) {
               $("#edit_menu").collapse("hide");
               $("#load_menu").collapse("hide");
               $("#set_button_params").collapse("hide");
-              $("#summary_action").html("CONNECTED / PLAY_MODE");
+              $("#summary_action").html("CONNECTED / THROUGH_MODE");
               $("#contextual_content").html("Using THROUGH MODE you can play the external synth");
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
-  
               $("#EDIT_MODE").removeClass("active");
               $("#THROUGH_MODE").addClass("active");
               $("#PLAY_MODE").removeClass("active");
@@ -356,7 +359,6 @@ function onMIDIMessage(midiMsg) {
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
-
               $("#EDIT_MODE").removeClass("active");
               $("#THROUGH_MODE").removeClass("active");
               $("#PLAY_MODE").addClass("active");
@@ -370,8 +372,8 @@ function onMIDIMessage(midiMsg) {
   
             case SYNC_MODE_DONE:
               updateMenu();
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MATRIX_MODE));
-              console.log("REQUEST: MATRIX_MODE");
+              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MATRIX_RAW_MODE));
+              console.log("REQUEST: MATRIX_RAW_MODE");
               break;
 
             case CALIBRATE_MODE_DONE:
@@ -385,23 +387,30 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case FETCH_MODE_DONE:
-              draw_controlers_from_config(fetch_config_file);
-              if (previous_controleur){
+              /*
+              if (previous_controleur) {
                 $("#" + previous_controleur.name).removeClass("active");
                 previous_controleur = null;
               }
-              if (current_controleur){
+              if (current_controleur) {
                 $("#" + current_controleur.name).removeClass("active");
                 current_controleur = null;
               }
-              e256_current_mode = EDIT_MODE;
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
-              console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
+              */
+              if (fetch_config_file.length != 15){
+                draw_controlers_from_config(fetch_config_file);
+              }
+              else {
+                alert("NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!");
+              }
+              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
+              console.log("REQUEST: EDIT_MODE");
               break;
 
             case ALLOCATE_MODE_DONE:
               e256_export_params();
               sysex_alloc(conf_size);
+              console.log("ALLOCATE_CONFIG_SIZE: " + conf_size);
               break;
 
             case ALLOCATE_DONE:
@@ -411,7 +420,7 @@ function onMIDIMessage(midiMsg) {
 
             case UPLOAD_MODE_DONE:
               sysex_upload(string_to_bytes(JSON.stringify(e256_config)));
-              console.log("CONFIG_SEND");
+              console.log("UPLOAD_CONFIG: " + JSON.stringify(e256_config));
               break;
 
             case UPLOAD_DONE:
@@ -419,7 +428,7 @@ function onMIDIMessage(midiMsg) {
               console.log("REQUEST: APPLY_MODE");
               break;
             
-            case APPLY_MODE_DONE:
+            case CONFIG_APPLY_DONE:
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
               // Notification A
@@ -437,8 +446,9 @@ function onMIDIMessage(midiMsg) {
               break;
           }
           break;
+
         case MIDI_ERROR_CHANNEL:
-          console.log("ERROR: " + ERROR_CODES[data1]);
+          console.log("ERROR: " + ERROR_CODES[msg.data1]);
           break;
       }
       break;
@@ -450,7 +460,7 @@ function onMIDIMessage(midiMsg) {
           let conf_str = decoder.decode(midiMsg.data);
           fetch_config_file = conf_str.slice(1, -1);
           break;
-        case MATRIX_MODE:
+        case MATRIX_RAW_MODE:
           e256_matrix.update(midiMsg.data);
           break;
         case EDIT_MODE:
@@ -460,22 +470,23 @@ function onMIDIMessage(midiMsg) {
           // N/A
           break;
         case PLAY_MODE:
-          // Update the ctrl using MIDI values 
-          e256_blobs.update(midiMsg.data);
+          // TODO: update the mappings controleurs using MIDI values
           break;
         default:
-          console.log("NOT_HANDLED_SISEX!: " +  MODE_CODES[e256_current_mode])
+          console.log("NOT_HANDLED_SISEX: " +  MODE_CODES[e256_current_mode]);
           break;
       }
       break;
     default:
+      //console.log("MIDI_OTHER_TYPE");
+      midi_term.push(msg);
       break;
   }
 };
 
 function send_midi_msg(midiMsg) {
   if (midi_device_connected) {
-    if (midiMsg.data2 === null) { // ??
+    if (midiMsg.data2 === null) {
       MIDI_output.send([midiMsg.status, midiMsg.data1]);
     } else {
       MIDI_output.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);
@@ -499,7 +510,6 @@ function sysex_alloc(conf_size) {
     let size_msb = (conf_size >> 7) & 0x7F; // 0x7F Mask -> 0111 1111
     let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
     let midiMsg = header.concat(size_msb).concat(size_lsb).concat(SYSEX_END);
-    //MIDI_output.send([SYSEX_BEGIN, SYSEX_DEVICE_ID, size_msb, size_lsb, SYSEX_END]);
     MIDI_output.send(midiMsg);
   } else {
     alert("FILE TO BIG!");
@@ -509,7 +519,6 @@ function sysex_alloc(conf_size) {
 function sysex_upload(data) {
   let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
   let midiMsg = header.concat(data).concat(SYSEX_END);
-  //let midiMsg = [SYSEX_BEGIN, SYSEX_DEVICE_ID, data, SYSEX_END]; // NOT WORKING!
   MIDI_output.send(midiMsg);
 };
 

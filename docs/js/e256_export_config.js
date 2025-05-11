@@ -9,14 +9,12 @@ var e256_config = ({}); // empty JSON declaration
 function e256_export_params() {
   e256_config["mappings"] = {};
   for (const layer of paper.project.layers) {
-    console.log("LAYER: " + layer.name);
+    //console.log("LAYER: " + layer.name);
     if (layer.hasChildren()) {
       e256_config["mappings"][layer.name] = list_layer_params(layer);
     }
   }
   conf_size = Object.keys(JSON.stringify(e256_config)).length;
-  console.log("CONF_SIZE_OUT: " + conf_size);
-  console.log("CONF_OUT: " + JSON.stringify(e256_config));
 };
 
 function list_layer_params(layer) {

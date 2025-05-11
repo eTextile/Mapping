@@ -15,7 +15,7 @@ function create_item_menu_params(item) {
   div_item_menu_params.className = "collapse";                         // Used to show/hide item params
 
   let card_header = document.createElement("div");                     // div item name
-  card_header.className = "card-title display-5";
+  card_header.className = "card-title display-6";
   card_header.append(item.name + " params");
   div_item_menu_params.appendChild(card_header);
 
@@ -207,7 +207,7 @@ function create_item_touchs_menu_params(item) {
   table_params.className = "table table-sm table-striped table-bordered";
 
   let table_caption = document.createElement("caption");
-  table_caption.className = "caption-top card-subtitle mb-2 text-body-secondary display-6";
+  table_caption.className = "caption-top card-title display-6";
   table_caption.textContent = item.name;
   table_params.appendChild(table_caption);
 
@@ -266,7 +266,7 @@ function create_item_touchs_menu_params(item) {
                 if (event.target.type === "number") {
                   if (midi_byte === "status") {
                     if (event.target.value > 0 && event.target.value <= 16) {
-                      item.msg[msg_type][param][midi_byte] = midi_msg_status_pack(status.type, event.target.value);
+                      item.msg[msg_type][param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
                       $("#" + event.target.id).css("background-color", "lightGreen");
                     }
                     else {
@@ -372,9 +372,11 @@ function update_item_touchs_menu_params(item) {
   }
 };
 
-// Show/Hide menu params
+// Show / Hide item menu params
 function item_menu_params(item, state) {
-  if(item) $("#" + item.name + "_" + item.id).collapse(state);
+  if(item) { 
+    $("#" + item.name + "_" + item.id).collapse(state);
+  }
 };
 
 function re_create_item(item) {
@@ -391,7 +393,7 @@ function re_create_item(item) {
 //////////////// Tail effect
 function scroll() {
   let div_height = $("#midi_term").get(0).scrollHeight;
-  //$("#midi_tescrollrm").animate({ scrollTop: div_height }, 10); // FIXME
+  //$("#midi_term").animate({ scrollTop: div_height }, 10); // FIXME
 };
 
 function circular_buffer(max_length) {
@@ -402,15 +404,28 @@ function circular_buffer(max_length) {
 circular_buffer.prototype = Object.create(Array.prototype);
 
 circular_buffer.prototype.push = function (midiMsg) {
+  
   Array.prototype.push.call(this, midiMsg);
+
   let div_midi_msg = document.createElement("div");
+
   div_midi_msg.setAttribute("id", "midi_msg_" + this._msg_count);
 
   let status = midi_msg_status_unpack(midiMsg.status);
+
   div_midi_msg.textContent = MIDI_TYPES[status.type] + " : [ " + status.channel + ", " + midiMsg.data1 + ", " + midiMsg.data2 + " ]";
 
+  switch (e256_current_mode) {
+    case THROUGH_MODE:
+      div_midi_msg.style.color = 'white';
+      break;
+    case PLAY_MODE:
+      div_midi_msg.style.color = 'lightGreen';
+      break;
+  }
+
   $("#midi_term").append(div_midi_msg);
-  
+
   while (this.length > this._max_length) {
     this.shift();
     scroll();

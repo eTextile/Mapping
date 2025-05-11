@@ -6,10 +6,10 @@
 
 function move_item(item, mouseEvent) {
   item.translate(mouseEvent.delta);
-  //item.firstChild.data.from = new paper.Point(item.bounds.left, item.bounds.top);
-  //item.firstChild.data.to = new paper.Point(item.bounds.right, item.bounds.bottom);
-  item.firstChild.data.from = item.bounds.topLeft;
-  item.firstChild.data.to = item.bounds.bottomRight;
+  //item.firstChild.data.from = item.bounds.topLeft;
+  //item.firstChild.data.to = item.bounds.bottomRight;
+  item.firstChild.data.from = new paper.Point(item.bounds.left, item.bounds.top);
+  item.firstChild.data.to = new paper.Point(item.bounds.right, item.bounds.bottom);
 };
 
 function round2(value) {
