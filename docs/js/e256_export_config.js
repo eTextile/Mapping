@@ -75,11 +75,6 @@ function list_layer_params(layer) {
       case "switch":
         let switch_params = {};
         for (const param in item.data) {
-          /*
-          if (param === "mode_z") {
-            // This parameter could be removed!
-          }
-          */
           if (item.data[param].constructor.name === "Point") {
             switch_params[param] = [
               round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
@@ -112,7 +107,6 @@ function list_layer_params(layer) {
       case "path":
         let path_params = {};
         for (const param in item.data) {
-          //path_params.data[param] = parseInt(item.data[param]);
           path_params.data[param] = parseFloat(item.data[param]);
         }
         e256_params.push(path_params);
@@ -121,7 +115,6 @@ function list_layer_params(layer) {
       case "polygon":
         let polygon_params = {};
         for (const param in item.data) {
-          //polygon_params.data[param] = parseInt(item.data[param]);
           polygon_params.data[param] = parseFloat(item.data[param]);
         }
         e256_params.push(polygon_params);
