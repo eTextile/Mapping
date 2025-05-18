@@ -374,7 +374,7 @@ function update_item_touchs_menu_params(item) {
 
 // Show / Hide item menu params
 function item_menu_params(item, state) {
-  if(item) { 
+  if (item) { 
     $("#" + item.name + "_" + item.id).collapse(state);
   }
 };
@@ -435,3 +435,24 @@ circular_buffer.prototype.push = function (midiMsg) {
 };
 
 var midi_term = new circular_buffer(25);
+
+//////////////// Alert
+function alert_msg(message, type, timeout, identifier) {
+
+  const div_alert = document.createElement('div');
+  div_alert.setAttribute("id", "alert_msg_" + identifier);
+  div_alert.className = "alert alert-" + type;
+  div_alert.setAttribute("role", "alert");
+  div_alert.textContent = message;
+  
+  $("#live_alert_placeholder").append(div_alert);
+
+  if (timeout) {
+    setTimeout(
+      function () {
+      const _alert_msg = bootstrap.Alert.getOrCreateInstance("#alert_msg_" + identifier);
+      _alert_msg.close();
+    }, timeout);
+  }
+
+};

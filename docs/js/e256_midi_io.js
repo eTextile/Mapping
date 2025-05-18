@@ -185,7 +185,7 @@ async function MIDIsetup() {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
     }
     if (permissionStatus.state === "prompt") {
-      alert("This browser does not support MIDI!");
+      alert_msg("This browser does not support MIDI!", "danger", 2000, null);
     }
   });
 };
@@ -401,7 +401,7 @@ function onMIDIMessage(midiMsg) {
                 draw_controlers_from_config(fetch_config_file);
               }
               else {
-                alert("NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!");
+                alert_msg("NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger", 2000, null);
               }
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
@@ -429,16 +429,15 @@ function onMIDIMessage(midiMsg) {
               break;
             
             case CONFIG_APPLY_DONE:
+              alert_msg("PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning", false, "save"); // FIXME!
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
-              // Notification A
-              alert("PRESS THE LEFT PUSH BUTTON\nOF THE ETEXTILE-SYNTHESIZER\nTO SAVE THE CONFIG IN THE\nFLASH MEMORY!");
               break;
 
             case WRITE_MODE_DONE:
-              // TODO: close previous alert/notification by prrog!
-              // Notification B
-              alert("NOW THE ETEXTILE-SYNTHESIZER\nCAN BE USED IN STANDALONE MODE!");
+              const alert = bootstrap.Alert.getOrCreateInstance('#alert_msg_save')
+              if (alert) alert.close();
+              alert_msg("NOW THE ETEXTILE-SYNTHESIZER CAN BE USED IN STANDALONE MODE!", "success", 3000);
               break;
             
             default:
@@ -473,7 +472,8 @@ function onMIDIMessage(midiMsg) {
           // TODO: update the mappings controleurs using MIDI values
           break;
         default:
-          console.log("NOT_HANDLED_SISEX: " +  MODE_CODES[e256_current_mode]);
+          //console.log("NOT_HANDLED_SISEX: " +  MODE_CODES[e256_current_mode]);
+          alert_msg("NOT_HANDLED_SISEX: " +  MODE_CODES[e256_current_mode], "danger", 2000);
           break;
       }
       break;
@@ -494,7 +494,7 @@ function send_midi_msg(midiMsg) {
     midi_term.push(midiMsg);
   }
   else {
-    alert("MIDI_HARDWARE IS NOT CONNECTED!");
+    alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger", 1500);
   }
 };
 

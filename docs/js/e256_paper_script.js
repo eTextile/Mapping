@@ -73,7 +73,7 @@ paperTool.onMouseDown = function (mouseEvent) {
           }
         }
         else {
-          alert("SELECT A MAPPING!");
+          alert_msg("SELECT A MAPPING!", "danger", 2000, null);
         }
       }
       else { // If cliking on item
