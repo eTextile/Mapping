@@ -9,7 +9,7 @@ function switch_factory() {
   const DEFAULT_SWITCH_WIDTH = canvas_width / SCALE_X;
   const DEFAULT_SWITCH_HEIGHT = canvas_height / SCALE_X;
   //const DEFAULT_SWITCH_MIN_SIZE = 50;
-  const DEFAULT_SWITCH_TOUCHS = 3;
+  const DEFAULT_SWITCH_TOUCHS = 1;
   const DEFAULT_SWITCH_MODE_Z = NOTE_ON;
   const DEFAULT_SWITCH_BUTTON_PADDING = 8;
 
@@ -146,11 +146,11 @@ function switch_factory() {
       }
 
       _touch_ellipse.onMouseEnter = function () {
-        this.style.fillColor = "orange";
+        //this.style.fillColor = "orange";
       }
 
       _touch_ellipse.onMouseLeave = function () {
-        this.style.fillColor = "pink";
+        //this.style.fillColor = "pink";
       }
 
       _touch_ellipse.onMouseDown = function () {
@@ -160,6 +160,7 @@ function switch_factory() {
             current_touch = _touch_group;
             break;
           case THROUGH_MODE:
+            this.style.fillColor = "orange";
             switch (_switch.data.mode_z) {
               case NOTE_ON:
                 _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
@@ -191,6 +192,7 @@ function switch_factory() {
             // N/A
             break;
           case THROUGH_MODE:
+            this.style.fillColor = "pink";
             switch (_switch.data.mode_z) { // BUG_FIX: this.data.mode_z -> _switch.data.mode_z
               case NOTE_ON:
                 _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);

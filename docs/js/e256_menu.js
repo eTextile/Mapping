@@ -40,7 +40,7 @@ $(".e256_setMode").click(
       send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
       console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
     } else {
-      alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger", 1500, null);
+      alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
   }
 );
@@ -59,7 +59,7 @@ $("#uploadConfig").click(
       send_midi_msg(new program_change(MIDI_MODES_CHANNEL, ALLOCATE_MODE));
       console.log("REQUEST: ALLOCATE_MODE");
     } else {
-      alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger", 1500, null);
+      alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
   }
 );
@@ -80,7 +80,7 @@ $("#fetchConfig").click(
       send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
       console.log("REQUEST: LOAD_MODE");
     } else {
-      alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger", 1500, null);
+      alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
   }
 );

@@ -403,17 +403,17 @@ function circular_buffer(max_length) {
 
 circular_buffer.prototype = Object.create(Array.prototype);
 
-circular_buffer.prototype.push = function (midiMsg) {
+circular_buffer.prototype.push = function (midi_msg) {
   
-  Array.prototype.push.call(this, midiMsg);
+  Array.prototype.push.call(this, midi_msg);
 
   let div_midi_msg = document.createElement("div");
 
   div_midi_msg.setAttribute("id", "midi_msg_" + this._msg_count);
 
-  let status = midi_msg_status_unpack(midiMsg.status);
+  let status = midi_msg_status_unpack(midi_msg.status);
 
-  div_midi_msg.textContent = MIDI_TYPES[status.type] + " : [ " + status.channel + ", " + midiMsg.data1 + ", " + midiMsg.data2 + " ]";
+  div_midi_msg.textContent = MIDI_TYPES[status.type] + " : [ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
 
   switch (e256_current_mode) {
     case THROUGH_MODE:
@@ -436,23 +436,28 @@ circular_buffer.prototype.push = function (midiMsg) {
 
 var midi_term = new circular_buffer(25);
 
+
 //////////////// Alert
-function alert_msg(message, type, timeout, identifier) {
+function alert_msg(identifier, message, type) {
 
-  const div_alert = document.createElement('div');
-  div_alert.setAttribute("id", "alert_msg_" + identifier);
-  div_alert.className = "alert alert-" + type;
-  div_alert.setAttribute("role", "alert");
-  div_alert.textContent = message;
+  const is_existing_alert_node = document.querySelector("#" + identifier);
+
+  if (is_existing_alert_node === null) {
+
+    const div_alert = document.createElement('div');
+
+    div_alert.setAttribute("id", identifier);
+    div_alert.className = "alert alert-" + type;
+    div_alert.setAttribute("role", "alert");
+    div_alert.textContent = message;
   
-  $("#live_alert_placeholder").append(div_alert);
+    $("#live_alert_placeholder").append(div_alert);
 
-  if (timeout) {
     setTimeout(
       function () {
-      const _alert_msg = bootstrap.Alert.getOrCreateInstance("#alert_msg_" + identifier);
-      _alert_msg.close();
-    }, timeout);
+        const alert_timeout =bootstrap.Alert.getOrCreateInstance("#" + identifier);
+        alert_timeout.close();
+    }, 2000);
   }
 
 };

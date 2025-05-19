@@ -185,7 +185,7 @@ async function MIDIsetup() {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
     }
     if (permissionStatus.state === "prompt") {
-      alert_msg("This browser does not support MIDI!", "danger", 2000, null);
+      alert_msg("no_midi_support", "This browser does not support MIDI!", "danger");
     }
   });
 };
@@ -401,7 +401,7 @@ function onMIDIMessage(midiMsg) {
                 draw_controlers_from_config(fetch_config_file);
               }
               else {
-                alert_msg("NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger", 2000, null);
+                alert_msg("no_config_file", "NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger");
               }
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
@@ -429,15 +429,13 @@ function onMIDIMessage(midiMsg) {
               break;
             
             case CONFIG_APPLY_DONE:
-              alert_msg("PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning", false, "save"); // FIXME!
+              alert_msg("config_apply", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               console.log("REQUEST: EDIT_MODE");
               break;
 
             case WRITE_MODE_DONE:
-              const alert = bootstrap.Alert.getOrCreateInstance('#alert_msg_save')
-              if (alert) alert.close();
-              alert_msg("NOW THE ETEXTILE-SYNTHESIZER CAN BE USED IN STANDALONE MODE!", "success", 3000);
+              alert_msg("config_saved", "NOW THE ETEXTILE-SYNTHESIZER CAN BE USED IN STANDALONE MODE!", "success");
               break;
             
             default:
@@ -473,7 +471,7 @@ function onMIDIMessage(midiMsg) {
           break;
         default:
           //console.log("NOT_HANDLED_SISEX: " +  MODE_CODES[e256_current_mode]);
-          alert_msg("NOT_HANDLED_SISEX: " +  MODE_CODES[e256_current_mode], "danger", 2000);
+          alert_msg("wrong_sysex", "NOT_HANDLED_SYSEX: " +  MODE_CODES[e256_current_mode], "danger");
           break;
       }
       break;
@@ -485,6 +483,7 @@ function onMIDIMessage(midiMsg) {
 };
 
 function send_midi_msg(midiMsg) {
+
   if (midi_device_connected) {
     if (midiMsg.data2 === null) {
       MIDI_output.send([midiMsg.status, midiMsg.data1]);
@@ -494,7 +493,7 @@ function send_midi_msg(midiMsg) {
     midi_term.push(midiMsg);
   }
   else {
-    alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger", 1500);
+    alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
   }
 };
 
@@ -538,14 +537,16 @@ function e256_alocate_memory() {
 };
 */
 
-$(document).ready(function () {
-  $("#loading_canvas").collapse("show");
-  MIDIsetup();
-});
+$(document).ready(
+  function () {
+    $("#loading_canvas").collapse("show");
+    MIDIsetup();
+  }
+);
 
 function string_to_bytes(str) {
   let bytes = [];
-  for (let i = 0, n = str.length; i < n; i++) {
+  for (let i = 0; i < str.length; i++) {
     let char = str.charCodeAt(i);
     bytes.push(char);
   }
