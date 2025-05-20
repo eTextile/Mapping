@@ -18,7 +18,7 @@ function matrix_factory() {
     getZ: function (index) {
       let val = this.matrix[index];
       if (val != null) {
-        return val;
+        return -val;
       }
       else {
         return 0;

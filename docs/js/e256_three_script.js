@@ -95,7 +95,7 @@ function init() {
   scene.add(edges);  
 
   //mesh.rotation.set(deg_to_rad(-40), 0, 0);
-  edges.rotation.set(deg_to_rad(-40), 0, 0);
+  edges.rotation.set(deg_to_rad(140), 0, 0);
 
   renderer = new THREE.WebGLRenderer({
     antialias: true
@@ -125,9 +125,11 @@ function animate() {
 
 function render() {
   let position = geometry.getAttribute('position');
+  
   for (let i = 0; i < RAW_FRAME; i++) {
     position.setZ(i, e256_matrix.getZ(i));
   }
+
   geometry.attributes.position.needsUpdate = true;
   camera.lookAt(scene.position);
   renderer.render(scene, camera);

@@ -109,6 +109,7 @@ function blob_factory() {
         mapp((sysExMsg[2] + (sysExMsg[3] / 100)), 0, NEW_COLS, 0, canvas_width),
         mapp((sysExMsg[4] + (sysExMsg[5] / 100)), 0, NEW_ROWS, 0, canvas_height)
       );
+      
       this.children["blob-group"].children["blob-centroid"].position = centroid;
       this.children["blob-group"].children["blob-centroid"].radius = sysExMsg[BLOB_DEPTH_INDEX];
 
@@ -117,9 +118,9 @@ function blob_factory() {
       //console.log("WIDTH: " + blob_width.toFixed(2), " HEIGHT: " + blob_height.toFixed(2));
       //console.log("WIDTH: " + blob_width, " HEIGHT: " + blob_height);
       
-      let size = new paper.Size(blob_width, blob_height);
+      let size = new paper.Size(blob_width, blob_height); // FIXME: boxe is not visible
       this.children["blob-group"].children["blob-box"].point = centroid;
-      this.children["blob-group"].children["blob-box"].size = size;
+      this.children["blob-group"].children["blob-box"].size = size; 
 
       this.children["blob-group"].children["blob-txt"].position = centroid;
       this.children["blob-group"].children["blob-txt"].content = 
@@ -173,7 +174,7 @@ function blobs_factory() {
         }
         else {
           this.blobs_array[index].update(sysExMsg);
-          //console.log("UPDATE: " + sysExMsg[BLOB_UID_INDEX]);
+          //console.log("BLOB_UPDATE: " + sysExMsg[BLOB_UID_INDEX]);
         }
       }
     }
