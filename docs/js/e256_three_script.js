@@ -33,7 +33,7 @@ function init() {
 
   /*
   const pointMaterial = new THREE.PointsMaterial({size: 0.2, color: "red"})
-  let points = new THREE.Points(geometry, pointMaterial);  
+  let points = new THREE.Points(geometry, pointMaterial);
   scene.add(points);
   */
 

@@ -63,8 +63,16 @@
 
         </br>
         <div class="form-check form-switch">
-          <input id="connect_switch" class="form-check-input btn btn-danger" type="checkbox" role="button" />
+          <input id="connect_switch" class="form-check-input btn btn-danger" type="checkbox" role="button">
+          <label class="form-check-label connection_status" for="connect_switch">
+            <div id="connection_status">DISCONNECTED</div>
+          </br>
+            <p id="mode_explanation" class="text">
+              Load MIDI tactile commands into your eTextile-Synthesizer
+            </p>
+          </label>
         </div>
+
         </br>
 
         <div id="start_menu" class="collapse">
@@ -112,12 +120,8 @@
           </div>
         </div>
       </div>
-
-      <div class="card card-body shadow">
-        <p id="contextual_content" class="text card-text">
-          This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.
-        </p>
-      </div>
+      
+      <div id="live_alert_placeholder"></div>
 
     </section>
 
@@ -144,20 +148,19 @@
     </section>
 
     <section class="col-sm-3 sidenav d-flex flex-column">
+      
+      <div class="card-body card shadow d-flex flex-column mb-3">
 
-      <div class="card-body card shadow">
-        <div id="summary_action" class="alert alert-warning text-center">DISCONNECTED</div>
-        <div id="e256_params"></div>
+        <div id="e256_params" class="p-2"></div>
 
-        <div id="set_button_params" class="param collapse">
+        <div id="midi_term" class="collapse p-2"></div>
+
+        <div id="set_button_params" class="collapse mt-auto">
           <button id="btnSet" class="btn w-100 btn-warning" type="button">SET PARAMS</button>
         </div>
 
-        <div id="midi_term" class="card-body h-100 collapse"></div>
-        <div id="live_alert_placeholder" style="z-index: 10;"></div>
-
       </div>
-      
+
     </section>
   </div>
 

@@ -5,7 +5,10 @@
 */
 
 const BLOB_UID_INDEX = 1;
-//..
+const BLOB_X_CENTROID_WHOLE_PART_INDEX = 2;
+const BLOB_X_CENTROID_FRACTIONAL_PART_INDEX = 3;
+const BLOB_Y_CENTROID_WHOLE_PART_INDEX = 4;
+const BLOB_Y_CENTROID_FRACTIONAL_PART_INDEX = 5;
 const BLOB_WIDTH_INDEX = 6;
 const BLOB_HEIGHT_INDEX = 7;
 const BLOB_DEPTH_INDEX = 8;
@@ -31,20 +34,6 @@ function blob_factory() {
       let _blob_group = new paper.Group({
         "name": "blob-group"
       });
-     
-      let _blob_rect = new paper.Path.Rectangle({
-        "name": "blob-box",
-        "point": null,
-        "size": null
-      });
-
-      _blob_rect.style = {
-        "fillColor": "black",
-        "strokeWidth": 1,
-        "strokeColor": "black",
-        "locked": true
-      }
-      _blob_group.addChild(_blob_rect);
 
       let _blob_centroid = new paper.Shape.Ellipse({
         "name": "blob-centroid",
@@ -88,6 +77,20 @@ function blob_factory() {
       _blob_group.addChild(_blob_path);
       */
 
+
+      let _blob_rect = new paper.Path.Rectangle({
+        "name": "blob-box",
+        "point": null,
+        "size": null
+      });
+
+      _blob_rect.style = {
+        "strokeWidth": 10,
+        "strokeColor": "black"
+        //"locked": true
+      }
+      _blob_group.addChild(_blob_rect);
+
       this.addChild(_blob_group);
     },
 
@@ -96,7 +99,7 @@ function blob_factory() {
     },
 
     missing: function () {
-      this.children["blob-group"].children["blob-centroid"].style.fillColor = 'red';
+      this.children["blob-group"].children["blob-centroid"].style.fillColor = 'orange';
     },
     
     relesed: function () {
@@ -106,8 +109,8 @@ function blob_factory() {
     update: function (sysExMsg) {
 
       let centroid = new paper.Point(
-        mapp((sysExMsg[2] + (sysExMsg[3] / 100)), 0, NEW_COLS, 0, canvas_width),
-        mapp((sysExMsg[4] + (sysExMsg[5] / 100)), 0, NEW_ROWS, 0, canvas_height)
+        mapp((sysExMsg[BLOB_X_CENTROID_WHOLE_PART_INDEX] + (sysExMsg[BLOB_X_CENTROID_FRACTIONAL_PART_INDEX] / 100)), 0, NEW_COLS, 0, canvas_width),
+        mapp((sysExMsg[BLOB_Y_CENTROID_WHOLE_PART_INDEX] + (sysExMsg[BLOB_Y_CENTROID_FRACTIONAL_PART_INDEX] / 100)), 0, NEW_ROWS, 0, canvas_height)
       );
       
       this.children["blob-group"].children["blob-centroid"].position = centroid;
@@ -115,20 +118,21 @@ function blob_factory() {
 
       let blob_width = Math.round(mapp(sysExMsg[BLOB_WIDTH_INDEX], 0, NEW_COLS, 0, canvas_width));
       let blob_height = Math.round(mapp(sysExMsg[BLOB_HEIGHT_INDEX], 0, NEW_ROWS, 0, canvas_height));
-      //console.log("WIDTH: " + blob_width.toFixed(2), " HEIGHT: " + blob_height.toFixed(2));
-      //console.log("WIDTH: " + blob_width, " HEIGHT: " + blob_height);
       
-      let size = new paper.Size(blob_width, blob_height); // FIXME: boxe is not visible
+      // FIXME: boxe is not visible
+      let size = new paper.Size(blob_width, blob_height);
       this.children["blob-group"].children["blob-box"].point = centroid;
-      this.children["blob-group"].children["blob-box"].size = size; 
+      this.children["blob-group"].children["blob-box"].size = size;
 
       this.children["blob-group"].children["blob-txt"].position = centroid;
       this.children["blob-group"].children["blob-txt"].content = 
         "UID: " + sysExMsg[BLOB_UID_INDEX] +
         "\nX: " + centroid.x.toFixed(2) +
         "\nY: " + centroid.y.toFixed(2) +
-        "\nZ: " + sysExMsg[8];
-
+        "\nZ: " + sysExMsg[BLOB_DEPTH_INDEX] +
+        "\nW: " + blob_width +
+        "\nH: " + blob_height;
+      
       //this.children["blob-group"].children["blob-path"].segments.push(centroid); // FIXME!      
       //this.path.smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15
       //this.path.smooth({ type: 'continuous' }); // http://paperjs.org/reference/path/#smooth

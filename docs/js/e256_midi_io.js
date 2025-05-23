@@ -240,7 +240,7 @@ function updateMenu() {
   if (midi_device_connected) {
     connect_switch.checked = true;
     $("#connect_switch").removeClass("btn-danger").addClass("btn-success");
-    $("#summary_action").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
+    $("#connection_status").html("CONNECTED").removeClass("alert-warning").addClass("alert-success");
     $("#start_menu").collapse("show");
     $("#e256_params").collapse("show");
     $("#calibrate_menu").collapse("show");
@@ -249,8 +249,8 @@ function updateMenu() {
     $("#loading_canvas").collapse("hide");
     $("#matrix_canvas").collapse("show");
     $("#mapping_canvas").collapse("hide");
-    $("#summary_action").html("CONNECTED");
-    $("#contextual_content").html("MATRIX is 3D visualisation made for checking all the eTextile matrix piezoresistive pressure sensors");
+    $("#connection_status").html("CONNECTED");
+    $("#mode_explanation").html("Check if all the eTextile matrix piezoresistive pressure sensors are working properly");
     $("#MATRIX_RAW_MODE").addClass("active");
     $("#MAPPING_MODE").removeClass("active");
   }
@@ -263,8 +263,8 @@ function updateMenu() {
     $("#loading_canvas").collapse("show");
     $("#matrix_canvas").collapse("hide");
     $("#mapping_canvas").collapse("hide");
-    $("#summary_action").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
-    $("#contextual_content").html("This is the web app made for loading graphic & audio modules in to your eTextile-Synthesizer.");
+    $("#connection_status").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
+    $("#mode_explanation").html("Load MIDI tactile commands into your eTextile-Synthesizer");
     $("#midi_term").collapse("hide");
     $("#connect_switch").removeClass("btn-success").addClass("btn-danger");
     $("#e256_params").collapse("hide");
@@ -286,12 +286,15 @@ function onMIDIMessage(midiMsg) {
     case P_CHANGE:
       switch (status.channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          console.log("RECEIVED: " + VERBOSITY_CODES[msg.data1]);
+          //console.log("RECEIVED: " + VERBOSITY_CODES[msg.data1]);
           switch (msg.data1) {
   
             case MATRIX_RAW_MODE_DONE:
+              $("#set_button_params").collapse("hide");
               updateMenu();
               e256_current_mode = MATRIX_RAW_MODE;
+              $("#connection_status").html("CONNECTED / MATRIX_MODE");
+              alert_msg("matrix_mode", "MATRIX MODE DONE", "success");
               break;
 
             case MAPPING_MODE_DONE:
@@ -301,19 +304,21 @@ function onMIDIMessage(midiMsg) {
               $("#loading_canvas").collapse("hide");
               $("#matrix_canvas").collapse("hide");
               $("#mapping_canvas").collapse("show");
-              $("#summary_action").html("CONNECTED");
-              $("#contextual_content").html("MAPPING is 2D graphic user interface made for drawing your own eTextile custom interfaces");
+              $("#set_button_params").collapse("hide");
+              $("#connection_status").html("CONNECTED / MAPPING_MODE");
+              $("#mode_explanation").html("Define custom MIDI user interface onto the eTextile device");
               $("#MATRIX_RAW_MODE").removeClass("active");
               $("#MAPPING_MODE").addClass("active");
               e256_current_mode = MAPPING_MODE;
+              alert_msg("mapping_mode", "MAPPING MODE DONE", "success");
               break;
 
             case EDIT_MODE_DONE:
               $("#edit_menu").collapse("show");
               $("#load_menu").collapse("show");
               $("#set_button_params").collapse("show");
-              $("#summary_action").html("CONNECTED / EDIT_MODE");
-              $("#contextual_content").html("Using EDIT MODE you can add components to the matrix controler");
+              $("#connection_status").html("CONNECTED / EDIT_MODE");
+              $("#mode_explanation").html("Add tactile components to the eTextile device");
               $("#midi_term").collapse("hide");
               item_menu_params(current_controleur, "show");
               item_menu_params(current_touch, "show");
@@ -321,6 +326,7 @@ function onMIDIMessage(midiMsg) {
               $("#THROUGH_MODE").removeClass("active");
               $("#EDIT_MODE").addClass("active");
               e256_current_mode = EDIT_MODE;
+              alert_msg("edit_mode", "EDIT MODE DONE", "success");
               break;
 
             case THROUGH_MODE_DONE:
@@ -333,8 +339,8 @@ function onMIDIMessage(midiMsg) {
               $("#edit_menu").collapse("hide");
               $("#load_menu").collapse("hide");
               $("#set_button_params").collapse("hide");
-              $("#summary_action").html("CONNECTED / THROUGH_MODE");
-              $("#contextual_content").html("Using THROUGH MODE you can play the external synth");
+              $("#connection_status").html("CONNECTED / THROUGH_MODE");
+              $("#mode_explanation").html("Send Midi msg to the external synth");
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
@@ -342,6 +348,7 @@ function onMIDIMessage(midiMsg) {
               $("#THROUGH_MODE").addClass("active");
               $("#PLAY_MODE").removeClass("active");
               e256_current_mode = THROUGH_MODE;
+              alert_msg("through_mode", "THROUGH MODE DONE", "success");
               break;
 
             case PLAY_MODE_DONE:
@@ -354,8 +361,8 @@ function onMIDIMessage(midiMsg) {
               $("#edit_menu").collapse("hide");
               $("#load_menu").collapse("hide");
               $("#set_button_params").collapse("hide");
-              $("#summary_action").html("CONNECTED / PLAY_MODE");
-              $("#contextual_content").html("Using PLAY MODE you can evaluate what you have made");
+              $("#connection_status").html("CONNECTED / PLAY_MODE");
+              $("#mode_explanation").html("Evaluate what you have made");
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
@@ -363,6 +370,7 @@ function onMIDIMessage(midiMsg) {
               $("#THROUGH_MODE").removeClass("active");
               $("#PLAY_MODE").addClass("active");
               e256_current_mode = PLAY_MODE;
+              alert_msg("play_mode", "PLAY MODE DONE", "success");
               break;
   
             case PENDING_MODE_DONE:
@@ -377,7 +385,8 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case CALIBRATE_MODE_DONE:
-              e256_current_mode = e256_last_mode;
+              e256_current_mode = e256_previous_mode;
+              alert_msg("calibrate_mode", "CALIBRATE MODE DONE", "success");
               break;
 
             case LOAD_MODE_DONE:
@@ -387,7 +396,6 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case FETCH_MODE_DONE:
-              /*
               if (previous_controleur) {
                 $("#" + previous_controleur.name).removeClass("active");
                 previous_controleur = null;
@@ -396,15 +404,16 @@ function onMIDIMessage(midiMsg) {
                 $("#" + current_controleur.name).removeClass("active");
                 current_controleur = null;
               }
-              */
-              if (fetch_config_file.length != 15){
+              
+              if (fetch_config_file.length != 15) {
                 draw_controlers_from_config(fetch_config_file);
               }
               else {
                 alert_msg("no_config_file", "NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger");
               }
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
-              console.log("REQUEST: EDIT_MODE");
+              //alert_msg("request_edit", "REQUEST EDIT MODE", "warning");
+              //console.log("REQUEST: EDIT_MODE");
               break;
 
             case ALLOCATE_MODE_DONE:
@@ -429,9 +438,11 @@ function onMIDIMessage(midiMsg) {
               break;
             
             case CONFIG_APPLY_DONE:
+              console.log("RECEIVED: CONFIG_APPLY_DONE");
               alert_msg("config_apply", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
-              console.log("REQUEST: EDIT_MODE");
+              //alert_msg("request_edit", "REQUEST EDIT MODE", "warning");
+              //console.log("REQUEST: EDIT_MODE");
               break;
 
             case WRITE_MODE_DONE:
@@ -439,13 +450,13 @@ function onMIDIMessage(midiMsg) {
               break;
             
             default:
-              console.log("NOT_HANDLED_MODE!");
+              console.log("NOT_HANDLED_MODE: " + VERBOSITY_CODES[msg.data1]);
               break;
           }
           break;
 
         case MIDI_ERROR_CHANNEL:
-          console.log("ERROR: " + ERROR_CODES[msg.data1]);
+          alert_msg("config_saved", "ERROR: " + ERROR_CODES[msg.data1], "danger");
           break;
       }
       break;
@@ -456,6 +467,7 @@ function onMIDIMessage(midiMsg) {
           const decoder = new TextDecoder();
           let conf_str = decoder.decode(midiMsg.data);
           fetch_config_file = conf_str.slice(1, -1);
+          alert_msg("fetch_config", "FETCH CONFIG DONE", "success");
           break;
         case MATRIX_RAW_MODE:
           e256_matrix.update(midiMsg.data);
@@ -467,17 +479,15 @@ function onMIDIMessage(midiMsg) {
           // N/A
           break;
         case PLAY_MODE:
-          // TODO: update the mappings controleurs using MIDI values
+          // TODO: update the mappings controleurs using the input MIDI values
           break;
         default:
-          //console.log("NOT_HANDLED_SISEX: " +  MODE_CODES[e256_current_mode]);
-          alert_msg("wrong_sysex", "NOT_HANDLED_SYSEX: " +  MODE_CODES[e256_current_mode], "danger");
+          alert_msg("wrong_sysex", "SYSEX_TYPE_NOT_HANDLED: " +  MODE_CODES[e256_current_mode], "warning");
           break;
       }
       break;
     default:
-      //console.log("MIDI_OTHER_TYPE");
-      midi_term.push(msg);
+      alert_msg("wrong_sysex", "MIDI_TYPE_NOT_HANDLED: " +  VERBOSITY_CODES[msg.data1], "warning");
       break;
   }
 };
@@ -487,7 +497,8 @@ function send_midi_msg(midiMsg) {
   if (midi_device_connected) {
     if (midiMsg.data2 === null) {
       MIDI_output.send([midiMsg.status, midiMsg.data1]);
-    } else {
+    }
+    else {
       MIDI_output.send([midiMsg.status, midiMsg.data1, midiMsg.data2]);
     }
     midi_term.push(midiMsg);
@@ -499,9 +510,10 @@ function send_midi_msg(midiMsg) {
 
 // Send data via MIDI system exclusive message
 // Send: [ SYSEX_BEGIN, SYSEX_DEVICE_ID, SYSEX_IDENTIFIER, SYSEX_SIZE_MSB, SYSEX_SIZE_LSB, SYSEX_END ] 
-// Recive: USBMIDI_CONFIG_ALLOC_DONE
+// Receive: USBMIDI_CONFIG_ALLOC_DONE
 // Send: [ SYSEX_BEGIN, SYSEX_DEVICE_ID, SYSEX_DATA, SYSEX_END ]
-// Recive: USBMIDI_CONFIG_LOAD_DONE
+// Receive: USBMIDI_CONFIG_LOAD_DONE
+
 function sysex_alloc(conf_size) {
   if (conf_size < FLASH_SIZE) {
     console.log("DEBUG_CONF_SIZE: " + conf_size);

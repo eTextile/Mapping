@@ -34,11 +34,14 @@ $("#connect_switch").on("change",
 
 $(".e256_setMode").click(
   function (event) {
-    e256_last_mode = e256_current_mode;
+    e256_previous_mode = e256_current_mode;
     e256_current_mode = eval(event.target.id);
     if (midi_device_connected) {
-      send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
-      console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
+      if(e256_current_mode != e256_previous_mode) {
+        send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
+        //console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
+        //alert_msg("request_" + MODE_CODES[e256_current_mode], "REQUEST_" + MODE_CODES[e256_current_mode], "warning");
+      }
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }

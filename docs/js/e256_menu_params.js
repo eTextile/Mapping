@@ -37,7 +37,7 @@ function remove_item_menu_params(item) {
   let div_menu_params = document.getElementById("e256_params");
   let div_item_menu_params = document.getElementById(item.name + "_" + item.id);
   if (div_item_menu_params) div_menu_params.removeChild(div_item_menu_params);
-  //$("#contextual_content").html(" ");
+  //$("#mode_explanation").html(" ");
 };
 
 //////////////////////////////////////////////// 1ST_LEVEL_ITEMS_MENU
@@ -413,7 +413,7 @@ circular_buffer.prototype.push = function (midi_msg) {
 
   let status = midi_msg_status_unpack(midi_msg.status);
 
-  div_midi_msg.textContent = MIDI_TYPES[status.type] + " : [ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
+  div_midi_msg.textContent = MIDI_TYPES[status.type] + " :\t[ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
 
   switch (e256_current_mode) {
     case THROUGH_MODE:
@@ -457,7 +457,7 @@ function alert_msg(identifier, message, type) {
       function () {
         const alert_timeout =bootstrap.Alert.getOrCreateInstance("#" + identifier);
         alert_timeout.close();
-    }, 2000);
+    }, 3000);
   }
 
 };
