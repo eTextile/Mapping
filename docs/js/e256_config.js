@@ -8,6 +8,8 @@ const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
 const VERSION = "1.0.23";
 
+const DEBUG = false;
+
 var current_controleur = { "id": null };
 var previous_controleur = { "id": null };
 var current_touch = { "id": null };

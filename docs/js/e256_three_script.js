@@ -12,7 +12,7 @@ var canvas_width = null;
 var canvas_height = null;
 var half_canvas = null;
 
-//console.log("THREE.JS: " + THREE.version); // FIXME!
+//console.log("THREE.JS: " + THREE.version); // FIXME: no implementation!
 
 canvas_height = $("#loading_canvas").height();
 canvas_width = canvas_height;

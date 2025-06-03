@@ -39,7 +39,7 @@ $(".e256_setMode").click(
     if (midi_device_connected) {
       if(e256_current_mode != e256_previous_mode) {
         send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
-        //console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
+        if (DEBUG) console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
         //alert_msg("request_" + MODE_CODES[e256_current_mode], "REQUEST_" + MODE_CODES[e256_current_mode], "warning");
       }
     } else {
@@ -60,7 +60,7 @@ $("#uploadConfig").click(
   function () {
     if (midi_device_connected) {
       send_midi_msg(new program_change(MIDI_MODES_CHANNEL, ALLOCATE_MODE));
-      console.log("REQUEST: ALLOCATE_MODE");
+      if (DEBUG) console.log("REQUEST: ALLOCATE_MODE");
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
@@ -81,7 +81,7 @@ $("#fetchConfig").click(
   function () {
     if (midi_device_connected) {
       send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
-      console.log("REQUEST: LOAD_MODE");
+      if (DEBUG) console.log("REQUEST: LOAD_MODE");
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }

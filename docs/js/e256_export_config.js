@@ -21,7 +21,7 @@ function list_layer_params(layer) {
   var e256_params = [];
   for (const item of layer.children) {
     if (item.name === null) return;
-    console.log("ITEM: " + item.name);
+    if (DEBUG) console.log("ITEM: " + item.name);
     item.save_params();
     switch (item.name) {
 
@@ -120,7 +120,7 @@ function list_layer_params(layer) {
         e256_params.push(polygon_params);
         break;
       default:
-        console.log("ITEM_NOT_SUPORTED: " + item.name);
+        if (DEBUG) console.log("ITEM_NOT_SUPORTED: " + item.name);
         break;
     }
   }

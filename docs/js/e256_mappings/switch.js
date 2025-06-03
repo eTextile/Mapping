@@ -193,7 +193,7 @@ function switch_factory() {
             break;
           case THROUGH_MODE:
             this.style.fillColor = "pink";
-            switch (_switch.data.mode_z) { // BUG_FIX: this.data.mode_z -> _switch.data.mode_z
+            switch (_switch.data.mode_z) {
               case NOTE_ON:
                 _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
                 _touch_group.msg.note.midi.data2 = 0;
@@ -392,7 +392,7 @@ function switch_factory() {
                   }
                   break;
                 default:
-                  console.log("PART_NOT_USE: " + current_part.name);
+                  //console.log("PART_NOT_USE: " + current_part.name);
                   break;
               }
             }

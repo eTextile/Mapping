@@ -7,8 +7,6 @@
 var MIDI_input = null;
 var MIDI_output = null;
 
-let inputSetup = false;
-let outputSetup = false;
 var midi_device_connected = false;
 var loaded_file = null; // from user desktop
 var fetch_config_file = null; // from e256 flash memory
@@ -191,6 +189,9 @@ async function MIDIsetup() {
 };
 
 function onMIDISuccess(midiAccess) {
+  let inputSetup = false;
+  let outputSetup = false;
+  
   midiAccess.onstatechange = function (msg) {
     switch (msg.port.state) {
       case "connected":
@@ -209,11 +210,11 @@ function onMIDISuccess(midiAccess) {
         if (inputSetup && outputSetup && !midi_device_connected) {
           midi_device_connected = true;
           MIDI_input.onmidimessage = onMIDIMessage;
-          //console.log("IN: " + MIDI_input.name);
-          //console.log("OUT: " + MIDI_output.name);
+          if (DEBUG) console.log("MIDI_IN: " + MIDI_input.name);
+          if (DEBUG) console.log("MIDI_OUT: " + MIDI_output.name);
           setTimeout(function () {
             send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
-            console.log("REQUEST: SYNC_MODE");
+            if (DEBUG) console.log("REQUEST: SYNC_MODE");
           }, 1000);
         }
         break;
@@ -264,7 +265,7 @@ function updateMenu() {
     $("#matrix_canvas").collapse("hide");
     $("#mapping_canvas").collapse("hide");
     $("#connection_status").html("DISCONNECTED").removeClass("alert-success").addClass("alert-warning");
-    $("#mode_explanation").html("Load MIDI tactile commands into your eTextile-Synthesizer");
+    $("#mode_explanation").html("Configure the MIDI tactile commands of your eTextile-Synthesizer");
     $("#midi_term").collapse("hide");
     $("#connect_switch").removeClass("btn-success").addClass("btn-danger");
     $("#e256_params").collapse("hide");
@@ -306,7 +307,7 @@ function onMIDIMessage(midiMsg) {
               $("#mapping_canvas").collapse("show");
               $("#set_button_params").collapse("hide");
               $("#connection_status").html("CONNECTED / MAPPING_MODE");
-              $("#mode_explanation").html("Define custom MIDI user interface onto the eTextile device");
+              $("#mode_explanation").html("Define your custom MIDI interface onto the eTextile device");
               $("#MATRIX_RAW_MODE").removeClass("active");
               $("#MAPPING_MODE").addClass("active");
               e256_current_mode = MAPPING_MODE;
@@ -318,7 +319,7 @@ function onMIDIMessage(midiMsg) {
               $("#load_menu").collapse("show");
               $("#set_button_params").collapse("show");
               $("#connection_status").html("CONNECTED / EDIT_MODE");
-              $("#mode_explanation").html("Add tactile components to the eTextile device");
+              $("#mode_explanation").html("Add tactile commands to the eTextile device");
               $("#midi_term").collapse("hide");
               item_menu_params(current_controleur, "show");
               item_menu_params(current_touch, "show");
@@ -381,7 +382,7 @@ function onMIDIMessage(midiMsg) {
             case SYNC_MODE_DONE:
               updateMenu();
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MATRIX_RAW_MODE));
-              console.log("REQUEST: MATRIX_RAW_MODE");
+              if (DEBUG) console.log("REQUEST: MATRIX_RAW_MODE");
               break;
 
             case CALIBRATE_MODE_DONE:
@@ -392,7 +393,7 @@ function onMIDIMessage(midiMsg) {
             case LOAD_MODE_DONE:
               e256_current_mode = FETCH_MODE;
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, FETCH_MODE));
-              console.log("REQUEST: FETCH_MODE");
+              if (DEBUG) console.log("REQUEST: FETCH_MODE");
               break;
 
             case FETCH_MODE_DONE:
@@ -424,21 +425,21 @@ function onMIDIMessage(midiMsg) {
 
             case ALLOCATE_DONE:
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, UPLOAD_MODE));
-              console.log("REQUEST: UPLOAD_MODE");
+              if (DEBUG) console.log("REQUEST: UPLOAD_MODE");
               break;
 
             case UPLOAD_MODE_DONE:
               sysex_upload(string_to_bytes(JSON.stringify(e256_config)));
-              console.log("UPLOAD_CONFIG: " + JSON.stringify(e256_config));
+              if (DEBUG) console.log("UPLOAD_CONFIG: " + JSON.stringify(e256_config));
               break;
 
             case UPLOAD_DONE:
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, APPLY_MODE));
-              console.log("REQUEST: APPLY_MODE");
+              if (DEBUG) console.log("REQUEST: APPLY_MODE");
               break;
             
             case CONFIG_APPLY_DONE:
-              console.log("RECEIVED: CONFIG_APPLY_DONE");
+              if (DEBUG) console.log("RECEIVED: CONFIG_APPLY_DONE");
               alert_msg("config_apply", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
               //alert_msg("request_edit", "REQUEST EDIT MODE", "warning");
@@ -450,7 +451,7 @@ function onMIDIMessage(midiMsg) {
               break;
             
             default:
-              console.log("NOT_HANDLED_MODE: " + VERBOSITY_CODES[msg.data1]);
+              if (DEBUG) console.log("NOT_HANDLED_MODE: " + VERBOSITY_CODES[msg.data1]);
               break;
           }
           break;
@@ -487,13 +488,13 @@ function onMIDIMessage(midiMsg) {
       }
       break;
     default:
-      alert_msg("wrong_sysex", "MIDI_TYPE_NOT_HANDLED: " +  VERBOSITY_CODES[msg.data1], "warning");
+      alert_msg("wrong_sysex", "MIDI_TYPE_NOT_HANDLED: " +  VERBOSITY_CODES[msg.data1], "danger");
       break;
   }
 };
 
 function send_midi_msg(midiMsg) {
-
+  
   if (midi_device_connected) {
     if (midiMsg.data2 === null) {
       MIDI_output.send([midiMsg.status, midiMsg.data1]);
@@ -516,7 +517,7 @@ function send_midi_msg(midiMsg) {
 
 function sysex_alloc(conf_size) {
   if (conf_size < FLASH_SIZE) {
-    console.log("DEBUG_CONF_SIZE: " + conf_size);
+    if (DEBUG) console.log("CONF_SIZE: " + conf_size);
     let size_lsb = conf_size & 0x7F; // 0x7F Mask -> 0111 1111
     let size_msb = (conf_size >> 7) & 0x7F; // 0x7F Mask -> 0111 1111
     let header = [SYSEX_BEGIN, SYSEX_DEVICE_ID];
@@ -563,4 +564,35 @@ function string_to_bytes(str) {
     bytes.push(char);
   }
   return bytes;
+};
+
+// FIXME!!!!!!!!!!!!!!!!!!!!!
+function midi_msg_as_txt(midi_msg) {
+  let key_msg_txt = null;
+  let status = midi_msg_status_unpack(midi_msg.midi.status);
+
+  switch (status.type) {
+    case NOTE_ON:
+      key_msg_txt =
+      "type: " + MIDI_TYPES[status.type] + "\n" +
+      "chan: " + status.channel + "\n" +
+      "note: " + midi_msg.midi.data1 + "\n" +
+      "velo: " + midi_msg.midi.data2 + "\n";
+      break;
+    case C_CHANGE:
+      key_msg_txt =
+      "type: " + MIDI_TYPES[status.type] + "\n" +
+      "chan: " + status.channel + "\n" +
+      "cc: " + midi_msg.midi.data1 + "\n" +
+      "val: " + midi_msg.midi.data2 + "\n";
+      break;
+    case AFTERTOUCH_POLY:
+      key_msg_txt =
+      "type: " + MIDI_TYPES[status.type] + "\n" +
+      "chan: " + status.channel + "\n" +
+      "note: " + midi_msg.midi.data1 + "\n" +
+      "press: " + midi_msg.midi.data2 + "\n";
+      break;
+  }
+  return key_msg_txt;
 };

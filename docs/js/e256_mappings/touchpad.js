@@ -494,7 +494,7 @@ function touchpad_factory() {
                   }
                   break;
                 default:
-                  console.log("PART_NOT_USE: " + current_part.name);
+                  //console.log("PART_NOT_USE: " + current_part.name);
                   break;
               }
             }

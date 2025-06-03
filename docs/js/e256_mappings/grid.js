@@ -59,14 +59,13 @@ function grid_factory() {
         let key_msg = {};
         switch (this.data.mode_z) {
           case NOTE_ON:
-            key_msg.note = midi_msg_builder(NOTE_ON);
+            key_msg.press = midi_msg_builder(NOTE_ON);
             break;
           case C_CHANGE:
             key_msg.press = midi_msg_builder(C_CHANGE);
             break;
           case AFTERTOUCH_POLY:
-            key_msg.note = midi_msg_builder(NOTE_ON);
-            key_msg.press = midi_msg_builder(C_CHANGE);
+            key_msg.press = midi_msg_builder(AFTERTOUCH_POLY);
             break;
         }
         this.data.msg.push(key_msg);
@@ -85,8 +84,7 @@ function grid_factory() {
       this.data.cols = params.cols;
       this.data.rows = params.rows;
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].press.midi.status).type;
-      this.data.mode_z = status.type;
+      this.data.mode_z = params.mode_z;
     },
 
     save_params: function () {
@@ -105,32 +103,32 @@ function grid_factory() {
         if (this.data.mode_z != previous_key_mode_z) {
           switch (this.data.mode_z) {
             case NOTE_ON:
-              key_msg.note = midi_msg_builder(NOTE_ON);
+              key_msg.press = midi_msg_builder(NOTE_ON);
               break;
             case C_CHANGE:
               key_msg.press = midi_msg_builder(C_CHANGE);
               break;
             case AFTERTOUCH_POLY:
-              key_msg.note = midi_msg_builder(NOTE_ON);
-              key_msg.press = midi_msg_builder(C_CHANGE);
+              key_msg.press = midi_msg_builder(AFTERTOUCH_POLY);
               break;
           }
         }
         else {
           if (_key < previous_key_count) {
-            key_msg = this.children["keys-group"].children[_key].msg;
+            key_msg.press = this.children["keys-group"].children[_key].msg.press;
           }
           else {
             switch (this.data.mode_z) {
               case NOTE_ON:
-                key_msg.note = midi_msg_builder(NOTE_ON);
+                key_msg.press = midi_msg_builder(NOTE_ON);
                 break;
               case C_CHANGE:
                 key_msg.press = midi_msg_builder(C_CHANGE);
                 break;
               case AFTERTOUCH_POLY:
-                key_msg.note = midi_msg_builder(NOTE_ON);
-                key_msg.press = midi_msg_builder(C_CHANGE);
+                //key_msg.note = midi_msg_builder(NOTE_ON);
+                //key_msg.press = midi_msg_builder(C_CHANGE);
+                key_msg.press = midi_msg_builder(AFTERTOUCH_POLY);
                 break;
             }
           }
@@ -141,6 +139,7 @@ function grid_factory() {
 
     new_key: function (index_x, index_y) {
       let _key_id = index_y * this.data.cols + index_x;
+
       let _key_group = new paper.Group({
         "name": "key-" + _key_id,
         "pos": new paper.Point(index_x, index_y),
@@ -170,76 +169,70 @@ function grid_factory() {
 
       _key_frame.onMouseEnter = function () {
         this.style.fillColor = "orange";
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            // N/A
+            break;
+          case THROUGH_MODE:
+            switch (_grid.data.mode_z) {
+              case NOTE_ON:
+                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status | NOTE_ON);
+                _key_group.msg.press.midi.data2 = 127;
+                send_midi_msg(_key_group.msg.press.midi);
+                break;
+              case C_CHANGE:
+                _key_group.msg.press.midi.data2 = get_random_int(64, 127);
+                send_midi_msg(_key_group.msg.press.midi);
+                break;
+              case AFTERTOUCH_POLY:
+                _key_group.msg.press.midi.data2 = get_random_int(64, 127);
+                send_midi_msg(_key_group.msg.press.midi);
+                break;
+            }
+            break;
+          case PLAY_MODE:
+            // N/A
+            break;
+        }
       };
 
       _key_frame.onMouseLeave = function () {
         this.style.fillColor = "pink";
+        switch (e256_current_mode) {
+          case EDIT_MODE:
+            // N/A
+            break;
+          case THROUGH_MODE:
+            switch (_grid.data.mode_z) {
+              case NOTE_ON:
+                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status & NOTE_OFF);
+                _key_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_key_group.msg.press.midi);
+                break;
+              case C_CHANGE:
+                _key_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_key_group.msg.press.midi);
+                break;
+              case AFTERTOUCH_POLY:
+                _key_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_key_group.msg.press.midi);
+                break;
+            }
+            break;
+          case PLAY_MODE:
+            // N/A
+            break;
+        }
       };
 
       _key_frame.onMouseDown = function () {
         previous_touch = current_touch;
         current_touch = _key_group;
         this.style.fillColor = "red";
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            // N/A
-            break;
-          case THROUGH_MODE:
-            switch (this.data.mode_z) {
-              case NOTE_ON:
-                _key_group.msg.note.midi.status = (_key_group.msg.note.midi.status | NOTE_ON);
-                _key_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_key_group.msg.note.midi);
-                break;
-              case C_CHANGE:
-                _key_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_key_group.msg.press.midi);
-                break;
-              case AFTERTOUCH_POLY:
-                _key_group.msg.note.midi.status = (_key_group.msg.note.midi.status | NOTE_ON);
-                _key_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_key_group.msg.note.midi);
-                _key_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_key_group.msg.press.midi);
-                break;
-            }
-            break;
-          case PLAY_MODE:
-            // N/A
-            break;
-        }
       };
 
       _key_frame.onMouseUp = function () {
         this.style.fillColor = "orange";
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            // N/A
-            break;
-          case THROUGH_MODE:
-            switch (this.data.mode_z) {
-              case NOTE_ON:
-                _key_group.msg.note.midi.status = (_key_group.msg.note.midi.status & NOTE_OFF);
-                _key_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_key_group.msg.note.midi);
-                break;
-              case C_CHANGE:
-                _key_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_key_group.msg.press.midi);
-                break;
-              case AFTERTOUCH_POLY:
-                _key_group.msg.note.midi.status = (_key_group.msg.note.midi.status & NOTE_OFF);
-                _key_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_key_group.msg.note.midi);
-                _key_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_key_group.msg.press.midi);
-                break;
-            }
-            break;
-          case PLAY_MODE:
-            // N/A
-            break;
-        }
       };
 
       /*
@@ -253,8 +246,7 @@ function grid_factory() {
       let _key_txt = new paper.PointText({
         "name": "key-text",
         "point": _key_frame.position,
-        //"content": JSON.stringify(_key_group.msg), // MAKE IT CLEAR
-        "content": null,
+        "content": midi_msg_as_txt(_key_group.msg.press),
         "locked": true
       });
 
@@ -418,7 +410,7 @@ function grid_factory() {
                   _grid_group.data.to.y = mouseEvent.point.y;
                   break;
                 default:
-                  console.log("PART_NOT_USE: " + current_part.name);
+                  //console.log("PART_NOT_USE: " + current_part.name);
                   break;
               }
               update_item_main_params(_grid_group.parent);

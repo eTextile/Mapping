@@ -529,7 +529,7 @@ function slider_factory() {
                   }
                   break;
                 default:
-                  console.log("PART_NOT_USE: " + current_part.name);
+                  //console.log("PART_NOT_USE: " + current_part.name);
                   break;
               }
               update_item_main_params(_slider_group.parent);

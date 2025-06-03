@@ -137,7 +137,6 @@ paperTool.onKeyDown = function (keyEvent) {
     else {
       switch (keyEvent.key) {
         case "space":
-          console.log("SPACE");
           create_once = false;
           break;
         default:
@@ -248,7 +247,7 @@ paper.view.onResize = function () {
 
 function onReaderLoad(event) {
   conf_size = Object.keys(event.target.result).length;
-  console.log("INPUT_CONF_SIZE: " + conf_size);
+  if (DEBUG) console.log("INPUT_CONF_SIZE: " + conf_size);
   draw_controlers_from_config(event.target.result);
 };
 
