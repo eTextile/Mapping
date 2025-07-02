@@ -11,6 +11,7 @@ function switch_factory() {
   //const DEFAULT_SWITCH_MIN_SIZE = 50;
   const DEFAULT_SWITCH_TOUCHS = 1;
   const DEFAULT_SWITCH_MODE_Z = NOTE_ON;
+  const DEFAULT_SWITCH_CHORD = 1;
   const DEFAULT_SWITCH_BUTTON_PADDING = 8;
 
   let half_frame_width = null;
@@ -27,16 +28,16 @@ function switch_factory() {
       2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
     },
     "data": {
-      "touchs": null,
       "from": null,
       "to": null,
+      "touchs": null,
+      "chord": null,
       "mode_z": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.touchs = DEFAULT_SWITCH_TOUCHS;
-      this.data.mode_z = DEFAULT_SWITCH_MODE_Z;
+ 
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_SWITCH_WIDTH / 2),
         mouseEvent.point.y - (DEFAULT_SWITCH_HEIGHT / 2)
@@ -45,27 +46,20 @@ function switch_factory() {
         mouseEvent.point.x + (DEFAULT_SWITCH_WIDTH / 2),
         mouseEvent.point.y + (DEFAULT_SWITCH_HEIGHT / 2)
       );
+      
+      this.data.touchs = DEFAULT_SWITCH_TOUCHS;
+      this.data.chord = DEFAULT_SWITCH_CHORD;
+      this.data.mode_z = DEFAULT_SWITCH_MODE_Z;
+
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
         let touch_msg = {};
-        switch (this.data.mode_z) {
-          case NOTE_ON:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
-            break;
-          case C_CHANGE:
-            touch_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-          case AFTERTOUCH_POLY:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
-            touch_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-        }
+        touch_msg.press = midi_msg_builder(this.data.mode_z);
         this.data.msg.push(touch_msg);
       }
     },
 
     setup_from_config: function (params) {
-      this.data.touchs = params.touchs;
       this.data.from = new paper.Point(
         mapp(params.from[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.from[1], 0, NEW_ROWS, 0, canvas_height)
@@ -74,53 +68,37 @@ function switch_factory() {
         mapp(params.to[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
+      this.data.touchs = params.touchs;
+      this.data.chord = params.chord;
       this.data.mode_z = params.mode_z;
       this.data.msg = params.msg;
     },
 
     save_params: function () {
-      let previous_touch_count = this.data.touchs;
-      this.data.touchs = this.children["switch-group"].data.touchs;
+
       this.data.from = this.children["switch-group"].data.from;
       this.data.to = this.children["switch-group"].data.to;
 
+      let previous_touch_count = this.data.touchs;
+      this.data.touchs = this.children["switch-group"].data.touchs;
+
+      this.data.chord = this.children["switch-group"].data.chord; // TESTING!
+
       let previous_mode_z = this.data.mode_z;
       this.data.mode_z = this.children["switch-group"].data.mode_z;
-      
+
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.mode_z != previous_mode_z) {
-          switch (this.data.mode_z) {
-            case NOTE_ON:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              break;
-            case C_CHANGE:
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-            case AFTERTOUCH_POLY:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-          }
+          touch_msg.press = midi_msg_builder(this.data.mode_z);
         }
         else {
           if (_touch < previous_touch_count) {
             touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            switch (this.data.mode_z) {
-              case NOTE_ON:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                break;
-              case C_CHANGE:
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-              case AFTERTOUCH_POLY:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-            }
+            touch_msg.press = midi_msg_builder(this.data.mode_z);
           }
         }
         this.data.msg.push(touch_msg);
@@ -163,18 +141,15 @@ function switch_factory() {
             this.style.fillColor = "orange";
             switch (_switch.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NOTE_ON);
+                _touch_group.msg.press.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -195,18 +170,15 @@ function switch_factory() {
             this.style.fillColor = "pink";
             switch (_switch.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
-                _touch_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NOTE_OFF);
+                _touch_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
-                _touch_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -222,8 +194,7 @@ function switch_factory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        //"content": JSON.stringify(_touch_group.msg),
-        "content": null,
+        "content": midi_msg_as_txt(_touch_group.msg.press),
         "locked": true
       });
 
@@ -243,10 +214,11 @@ function switch_factory() {
         "name": "switch-group",
         "modes": this.modes,
         "data": {
-          "touchs": this.data.touchs,
           "from": this.data.from,
           "to": this.data.to,
-          "mode_z": this.data.mode_z,
+          "touchs": this.data.touchs,
+          "chord": this.data.chord,
+          "mode_z": this.data.mode_z
         }
       });
 

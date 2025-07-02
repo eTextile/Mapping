@@ -89,3 +89,15 @@ function rotate_polar(degree, offset, dir) {
   }
   return polar_value;
 };
+
+function get_bounding_box(points) {
+  let xs = points.map(p => p[0]);
+  let ys = points.map(p => p[1]);
+
+  let left = Math.min(...xs);
+  let right = Math.max(...xs);
+  let top = Math.min(...ys);
+  let bottom = Math.max(...ys);
+
+  return { left, right, top, bottom };
+}

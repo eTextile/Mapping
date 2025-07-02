@@ -6,9 +6,9 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.23";
+const VERSION = "1.0.24";
 
-const DEBUG = false;
+const DEBUG = true;
 
 var current_controleur = { "id": null };
 var previous_controleur = { "id": null };
@@ -45,7 +45,7 @@ const MIDI_MODES_CHANNEL = 4;
 const MIDI_VERBOSITY_CHANNEL = 5;
 const MIDI_ERROR_CHANNEL = 6;
 
-// LEVELS CONSTANTS (MIDI_LEVELS_CHANNEL)
+// E256 LEVELS CONSTANTS (MIDI_LEVELS_CHANNEL)
 const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
 const SIG_IN = 1;    // E256-LEDs: | 1 | 0 |
 const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
@@ -153,7 +153,7 @@ const MODE_CODES = {
   15: "ERROR_MODE"
 };
 
-// VERBOSITY MODES CONSTANTS ACKNOWLEDGMENT
+// E256 VERBOSITY MODES CONSTANTS ACKNOWLEDGMENT
 const PENDING_MODE_DONE = 0;
 const SYNC_MODE_DONE = 1;
 const CALIBRATE_MODE_DONE = 2;
@@ -194,7 +194,7 @@ const VERBOSITY_CODES = {
   17: "DONE_ACTION"
 };
 
-// ERROR CODES CONSTANTS
+// E256 ERROR CODES CONSTANTS
 const WAITING_FOR_CONFIG = 0;
 const CONNECTING_FLASH = 1;
 const FLASH_FULL = 2;

@@ -20,19 +20,19 @@ $(".form-control").addClass("shadow-none");
 $(".btn-group").addClass("btn-group-sm");
 $(".btn").addClass("btn-sm");
 
-$(".btn-group > .btn").click(
+$(".btn-group > .btn").click (
   function () {
     $(this).addClass("active").siblings().removeClass("active");
   }
 );
 
-$("#connect_switch").on("change", 
+$("#connect_switch").on ("change", 
   function () {
     $("#start_menu").collapse("show");
   }
 );
 
-$(".e256_setMode").click(
+$(".e256_setMode").click (
   function (event) {
     e256_previous_mode = e256_current_mode;
     e256_current_mode = eval(event.target.id);
@@ -48,15 +48,26 @@ $(".e256_setMode").click(
   }
 );
 
-$(".mapingTool").click(
+$(".mapingTool").click (
   function (event) {
     //e256_last_draw_mode = e256_draw_mode; ///////////////////////////////// FIXME!
     e256_draw_mode = event.target.id;
+    switch (e256_draw_mode) {
+      case "path":
+        hit_options = hit_options_B;
+        break;
+      case "polygon":
+        hit_options = hit_options_B;
+        break;
+      default:
+        hit_options = hit_options_A;
+        break;
+    }
     create_once = false;
   }
 );
 
-$("#uploadConfig").click(
+$("#uploadConfig").click (
   function () {
     if (midi_device_connected) {
       send_midi_msg(new program_change(MIDI_MODES_CHANNEL, ALLOCATE_MODE));
@@ -67,7 +78,7 @@ $("#uploadConfig").click(
   }
 );
 
-$("#saveConfig").click(
+$("#saveConfig").click (
   function () {
     e256_export_params();
     console.log(JSON.stringify(e256_config));
@@ -77,7 +88,7 @@ $("#saveConfig").click(
   }
 );
 
-$("#fetchConfig").click(
+$("#fetchConfig").click (
   function () {
     if (midi_device_connected) {
       send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
@@ -89,7 +100,7 @@ $("#fetchConfig").click(
 );
 
 // Update graphic item using form params
-$("#btnSet").click(
+$("#btnSet").click (
   function () {
     re_create_item(current_controleur);
   }

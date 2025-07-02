@@ -33,22 +33,14 @@ function path_factory() {
 
       this.data.segments = [];
       this.data.segments.push(mouseEvent.point);
+      
+      //console.log("path: " + this.data.segments);
+
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_PATH_TOUCHS; _touch++) {
         let touch_msg = {};
         touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
-        switch (this.data.mode_z) {
-          case NOTE_ON:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
-            break;
-          case C_CHANGE:
-            touch_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-          case AFTERTOUCH_POLY:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
-            touch_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-        }
+        touch_msg.press = midi_msg_builder(this.data.mode_z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -62,24 +54,20 @@ function path_factory() {
     },
 
     save_params: function () {
+      let previous_touch_count = this.data.touchs;
+      this.data.touchs = this.children["path-group"].data.touchs;
+
+      let previous_mode_z = this.data.mode_z;
+      this.data.mode_z = this.children["path-group"].data.mode_z;
+
       this.data.segments = this.children["path-group"].data.segments;
+
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.mode_z != previous_mode_z) {
           touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
-          switch (this.data.mode_z) {
-            case NOTE_ON:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              break;
-            case C_CHANGE:
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-            case AFTERTOUCH_POLY:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-          }
+          touch_msg.press = midi_msg_builder(this.data.mode_z);
         }
         else {
           if (_touch < previous_touch_count) {
@@ -87,18 +75,7 @@ function path_factory() {
           }
           else {
             touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
-            switch (this.data.mode_z) {
-              case NOTE_ON:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                break;
-              case C_CHANGE:
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-              case AFTERTOUCH_POLY:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-            }
+            touch_msg.press = midi_msg_builder(this.data.mode_z);
           }
         }
         this.data.msg.push(touch_msg);
@@ -141,18 +118,15 @@ function path_factory() {
           case THROUGH_MODE:
             switch (_path.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NOTE_ON);
+                _touch_group.msg.press.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -164,15 +138,15 @@ function path_factory() {
         }
       }
 
-      _touch_group.addChild(_touch_circle);
-
-      //_touch_group.onMouseMove = function (mouseEvent) {
       _touch_circle.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
           case EDIT_MODE:
             // N/A
             break;
           case THROUGH_MODE:
+            // TODO: move the _touch_circle along the path
+            // http://paperjs.org/reference/path/#getnearestpoint-point
+            this.position = mouseEvent; // FIXME!
             if (_touch_group.msg.pos.midi.data2 != _touch_group.prev_pos) {
               _touch_group.prev_pos = _touch_group.msg.pos.midi.data2;
               send_midi_msg(_touch_group.msg.pos.midi);
@@ -183,6 +157,9 @@ function path_factory() {
             break;
         }
       }
+
+      _touch_group.addChild(_touch_circle);
+
       return _touch_group;
     },
 
@@ -219,49 +196,29 @@ function path_factory() {
       }
 
       _path_curve.onMouseEnter = function () {
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            this.selected = true;
-            break;
-          case THROUGH_MODE:
-            break;
-          case PLAY_MODE:
-            break;
+        if (e256_current_mode === EDIT_MODE) {
+          this.selected = true;
         }
       }
 
       _path_curve.onMouseLeave = function () {
-        switch (e256_current_mode) {
-          case EDIT_MODE:
+        if (e256_current_mode === EDIT_MODE) {
             this.selected = false;
-            break;
-          case THROUGH_MODE:
-            break;
-          case PLAY_MODE:
-            break;
         }
       }
 
       _path_curve.onMouseDrag = function (mouseEvent) {
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            if (current_part.type === "segment") {
-              current_part.segment.point = mouseEvent.point;
-              this.segments[current_part.segment.index].point = mouseEvent.point;
-              for (const _touch of _touchs_group.children) {
-                _path_group.children["path-graduations"].segments[current_part.segment.index].point = mouseEvent.point;
-                let _path_graduation_interval = this.length / (_touch.msg.pos.limit.max - _touch.msg.pos.limit.min);
-                _path_group.children["path-graduations"].dashArray = [1, _path_graduation_interval];
-              }
-              update_item_main_params(_path_group.parent);
+        if (e256_current_mode === EDIT_MODE) {
+          if (current_part.type === "segment") {
+            current_part.segment.point = mouseEvent.point;
+            this.segments[current_part.segment.index].point = mouseEvent.point;
+            for (const _touch of _touchs_group.children) {
+              _path_group.children["path-graduations"].segments[current_part.segment.index].point = mouseEvent.point;
+              let _path_graduation_interval = this.length / (_touch.msg.pos.limit.max - _touch.msg.pos.limit.min);
+              _path_group.children["path-graduations"].dashArray = [1, _path_graduation_interval];
             }
-            break;
-          case THROUGH_MODE:
-            // N/A
-            break;
-          case PLAY_MODE:
-            // N/A
-            break;
+            update_item_main_params(_path_group.parent);
+          }
         }
       }
 
@@ -297,6 +254,7 @@ function path_factory() {
         let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.msg.pos.limit.max - _touch.msg.pos.limit.min);
         this.children["path-group"].children["path-graduations"].dashArray = [1, _path_graduation_interval];
       }
+      //console.log(this.children["path-group"].children["path-curve"].segments);
     },
 
     onMouseDrag: function (mouseEvent) {

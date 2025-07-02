@@ -3979,13 +3979,13 @@ new function() {
 		var args = arguments;
 		return this._hitTest(
 				Point.read(args),
-				HitResult.getOptions(args));
+				hit_result.getOptions(args));
 	}
 
 	function hitTestAll() {
 		var args = arguments,
 			point = Point.read(args),
-			options = HitResult.getOptions(args),
+			options = hit_result.getOptions(args),
 			all = [];
 		this._hitTest(point, new Base({ all: all }, options));
 		return all;
@@ -4059,7 +4059,7 @@ new function() {
 		function checkPoint(type, part) {
 			var pt = part ? bounds['get' + part]() : that.getPosition();
 			if (point.subtract(pt).divide(tolerancePadding).length <= 1) {
-				return new HitResult(type, that, {
+				return new hit_result(type, that, {
 					name: part ? Base.hyphenate(part) : type,
 					point: pt
 				});
@@ -4104,7 +4104,7 @@ new function() {
 
 	_hitTestSelf: function(point, options) {
 		if (options.fill && this.hasFill() && this._contains(point))
-			return new HitResult('fill', this);
+			return new hit_result('fill', this);
 	},
 
 	matches: function(name, compare) {
@@ -5297,7 +5297,7 @@ new function() {
 					hit = isOnEllipseStroke(point, radius, strokePadding);
 				}
 			}
-			return hit ? new HitResult(hitStroke ? 'stroke' : 'fill', this)
+			return hit ? new hit_result(hitStroke ? 'stroke' : 'fill', this)
 					: _hitTestSelf.base.apply(this, arguments);
 		}
 	};
@@ -5751,7 +5751,7 @@ var Raster = Item.extend({
 	_hitTestSelf: function(point) {
 		if (this._contains(point)) {
 			var that = this;
-			return new HitResult('pixel', that, {
+			return new hit_result('pixel', that, {
 				offset: point.add(that._size.divide(2)).round(),
 				color: {
 					get: function() {
@@ -5906,10 +5906,10 @@ var SymbolDefinition = Base.extend({
 	}
 });
 
-var HitResult = Base.extend({
-	_class: 'HitResult',
+var hit_result = Base.extend({
+	_class: 'hit_result',
 
-	initialize: function HitResult(type, item, values) {
+	initialize: function hit_result(type, item, values) {
 		this.type = type;
 		this.item = item;
 		if (values)
@@ -9203,7 +9203,7 @@ var Path = PathItem.extend({
 				if (pt !== anchor)
 					pt = pt.add(anchor);
 				if (isCloseEnough(pt, strokePadding)) {
-					return new HitResult(name, that, {
+					return new hit_result(name, that, {
 						segment: seg,
 						point: pt
 					});
@@ -9282,9 +9282,9 @@ var Path = PathItem.extend({
 		}
 		return !loc && hitFill && this._contains(point)
 				|| loc && !hitStroke && !hitCurves
-					? new HitResult('fill', this)
+					? new hit_result('fill', this)
 					: loc
-						? new HitResult(hitStroke ? 'stroke' : 'curve', this, {
+						? new hit_result(hitStroke ? 'stroke' : 'curve', this, {
 							location: loc,
 							point: loc.getPoint()
 						})

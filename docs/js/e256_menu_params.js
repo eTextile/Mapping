@@ -378,17 +378,6 @@ function item_menu_params(item, state) {
   }
 };
 
-function re_create_item(item) {
-  item.save_params();
-  remove_item_menu_params(item);
-  item.removeChildren();
-  item.create();
-  create_item_menu_params(item);
-  update_item_main_params(item);
-  update_item_touchs_menu_params(item);
-  item_menu_params(item, "show");
-};
-
 //////////////// Tail effect
 function scroll() {
   let div_height = $("#midi_term").get(0).scrollHeight;
@@ -435,7 +424,6 @@ circular_buffer.prototype.push = function (midi_msg) {
 
 var midi_term = new circular_buffer(25);
 
-
 //////////////// Alert
 function alert_msg(identifier, message, type) {
 
@@ -447,16 +435,26 @@ function alert_msg(identifier, message, type) {
 
     div_alert.setAttribute("id", identifier);
     div_alert.className = "alert alert-" + type;
+    //div_alert.className = "alert-dismissible fade show"
     div_alert.setAttribute("role", "alert");
     div_alert.textContent = message;
-  
+    
+    /*
+    let button = document.createElement("button");
+    button.setAttribute("type", "button");
+    button.className = "btn-close";
+    button.setAttribute("data-bs-dismiss", "alert");
+    button.setAttribute("aria-label", "Close");
+    div_alert.appendChild(button);
+    */
+
     $("#live_alert_placeholder").append(div_alert);
 
     setTimeout(
       function () {
         const alert_timeout =bootstrap.Alert.getOrCreateInstance("#" + identifier);
         alert_timeout.close();
-    }, 1500);
+    }, 4000);
   }
 
 };

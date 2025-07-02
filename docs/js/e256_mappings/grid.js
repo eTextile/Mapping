@@ -57,17 +57,7 @@ function grid_factory() {
       current_key_count = this.data.cols * this.data.rows;
       for (let _key = 0; _key < current_key_count; _key++) {
         let key_msg = {};
-        switch (this.data.mode_z) {
-          case NOTE_ON:
-            key_msg.press = midi_msg_builder(NOTE_ON);
-            break;
-          case C_CHANGE:
-            key_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-          case AFTERTOUCH_POLY:
-            key_msg.press = midi_msg_builder(AFTERTOUCH_POLY);
-            break;
-        }
+        touch_msg.press = midi_msg_builder(this.data.mode_z);
         this.data.msg.push(key_msg);
       }
     },
@@ -88,49 +78,29 @@ function grid_factory() {
     },
 
     save_params: function () {
-      let previous_key_mode_z = this.data.mode_z;
+      let previous_mode_z = this.data.mode_z;
+      this.data.mode_z = this.children["grid-group"].data.mode_z;
+
       this.data.from = this.children["grid-group"].data.from;
       this.data.to = this.children["grid-group"].data.to;
       this.data.cols = this.children["grid-group"].data.cols;
       this.data.rows = this.children["grid-group"].data.rows;
-      this.data.mode_z = this.children["grid-group"].data.mode_z;
 
       previous_key_count = current_key_count;
       current_key_count = this.data.cols * this.data.rows;
+
       this.data.msg = [];
       for (let _key = 0; _key < current_key_count; _key++) {
         let key_msg = {};
-        if (this.data.mode_z != previous_key_mode_z) {
-          switch (this.data.mode_z) {
-            case NOTE_ON:
-              key_msg.press = midi_msg_builder(NOTE_ON);
-              break;
-            case C_CHANGE:
-              key_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-            case AFTERTOUCH_POLY:
-              key_msg.press = midi_msg_builder(AFTERTOUCH_POLY);
-              break;
-          }
+        if (this.data.mode_z != previous_mode_z) {
+          touch_msg.press = midi_msg_builder(this.data.mode_z);
         }
         else {
           if (_key < previous_key_count) {
             key_msg.press = this.children["keys-group"].children[_key].msg.press;
           }
           else {
-            switch (this.data.mode_z) {
-              case NOTE_ON:
-                key_msg.press = midi_msg_builder(NOTE_ON);
-                break;
-              case C_CHANGE:
-                key_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-              case AFTERTOUCH_POLY:
-                //key_msg.note = midi_msg_builder(NOTE_ON);
-                //key_msg.press = midi_msg_builder(C_CHANGE);
-                key_msg.press = midi_msg_builder(AFTERTOUCH_POLY);
-                break;
-            }
+            touch_msg.press = midi_msg_builder(this.data.mode_z);
           }
         }
         this.data.msg.push(key_msg);

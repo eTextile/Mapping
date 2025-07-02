@@ -11,14 +11,6 @@ var canvas_width = canvas_height;
 
 var conf_size = 0;
 
-var hitOptions = {
-  "segments": true,
-  "stroke": true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
-  "bounds": true, // hit-test the corners and side-centers of the bounding rectangle of items
-  "fill": true,
-  "tolerance": 10
-}
-
 var create_once = false;
 
 console.log("BOOTSTRAP: " + bootstrap.Tooltip.VERSION);
@@ -33,7 +25,7 @@ paper.view.setZoom(canvas_width / canvas_height);
 paper.view.center = new paper.Point(canvas_width / 2, canvas_height / 2);
 
 paper.settings.handleSize = 20;
-//paper.settings.selectionLineWidth = 20; // FIXME!
+//paper.settings.hitTolerance = 20;
 
 new paper.Layer({ project: paper.project, name: "blob", insert: true });
 
@@ -41,55 +33,70 @@ new paper.Layer({ project: paper.project, name: "switch", insert: true });
 new paper.Layer({ project: paper.project, name: "slider", insert: true });
 new paper.Layer({ project: paper.project, name: "knob", insert: true });
 new paper.Layer({ project: paper.project, name: "touchpad", insert: true });
-new paper.Layer({ project: paper.project, name: "grid", insert: true }); // TO REMOVE
+new paper.Layer({ project: paper.project, name: "grid", insert: true }); // TO REMOVE!?
 new paper.Layer({ project: paper.project, name: "path", insert: true });
+new paper.Layer({ project: paper.project, name: "polygon", insert: true});
 
-var paperTool = new paper.Tool();
+var paper_tool = new paper.Tool();
 
-paperTool.onMouseDown = function (mouseEvent) {
+let hit_options_A = {
+  "segments": false,
+  "stroke": true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
+  "bounds": true, // hit-test the corners and side-centers of the bounding rectangle of items
+  "fill": true,
+  "tolerance": 10
+};
 
-  let hitResult = paper.project.hitTest(mouseEvent.point, hitOptions);
-  current_part = hitResult;
+let hit_options_B = {
+  "segments": true,
+  "stroke": true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
+  "bounds": false, // hit-test the corners and side-centers of the bounding rectangle of items
+  "fill": true,
+  "tolerance": 10
+};
 
-  switch (e256_current_mode) {
-    case EDIT_MODE:
-      if (!hitResult) { // Create_ctl if cliking any umty screen space
-        if (e256_draw_mode) {
-          if (!create_once) { // Check if the controleur needs to be draw with more that one clic
-            if (e256_draw_mode === "path") {
-              create_once = true;
-            }
-            previous_controleur = current_controleur;
-            draw_controler_from_mouse(mouseEvent);
-            item_menu_params(previous_controleur, "hide"); // if (previous_controleur != null)
-            item_menu_params(previous_touch, "hide"); // if (previous_touch != null)
-            create_item_menu_params(current_controleur);
-            update_item_main_params(current_controleur);
-            update_item_touchs_menu_params(current_controleur);
-            item_menu_params(current_controleur, "show");
-          }
-          else {
-            current_controleur.graw(mouseEvent); // Used by mapping path()
-          }
+var hit_options = hit_options_A;
+
+paper_tool.onMouseDown = function (mouseEvent) {
+
+  //console.log("hit_options: " + JSON.stringify(hit_options));
+
+  current_part = paper.project.hitTest(mouseEvent.point, hit_options);
+
+  //console.log("draw_mode: " + e256_draw_mode);
+  //console.log("hit_test: " + current_part);
+
+  if (e256_current_mode === EDIT_MODE) {
+    if (e256_draw_mode) {
+      if (!current_part) { // Create_ctl if cliking any umpty screen space
+        if (!create_once) { // Check if the controleur needs to be draw with more that one clic
+          draw_controler_from_mouse(mouseEvent);
         }
         else {
-          alert_msg("select_mapping", "SELECT A MAPPING!", "danger");
+          current_controleur.graw(mouseEvent); // Used by mapping path()
         }
       }
       else { // If cliking on item
-        if (current_controleur) previous_controleur = current_controleur;
-        
+        previous_controleur = current_controleur;
         let current_item = current_part.item;
         while (current_item.parent) {
           current_controleur = current_item;
           current_item = current_item.parent;
         }
-        //console.log(current_controleur.name);
 
+        if (DEBUG) console.log("CTR_CUR: " + current_controleur.id + " PREV: " + previous_controleur.id);
+        e256_draw_mode = current_controleur.name;
+
+        if (e256_draw_mode === "polygon" || e256_draw_mode === "path") {
+          hit_options = hit_options_B;
+        }
+        else {
+          hit_options = hit_options_A;
+        }
+
+        paper.project.layers[current_controleur.name].activate();
         paper.project.layers[current_controleur.name].bringToFront();
         current_controleur.bringToFront();
-
-        e256_draw_mode = current_controleur.name;
 
         if (previous_controleur) {
           if (current_controleur.id != previous_controleur.id) {
@@ -100,6 +107,8 @@ paperTool.onMouseDown = function (mouseEvent) {
         item_menu_params(current_controleur, "show");
         $("#" + current_controleur.name).addClass("active");
 
+        if (DEBUG) console.log("CUR_TOUCH: " + current_touch.id + " PREV_TOUCH: " + previous_touch.id);
+
         if (previous_touch) {
           if (current_touch.id != previous_touch.id) {
             item_menu_params(previous_touch, "hide");
@@ -107,14 +116,14 @@ paperTool.onMouseDown = function (mouseEvent) {
         }
         item_menu_params(current_touch, "show");
       }
-      break;
-    case PLAY_MODE:
-      // N/A
-      break;
-  };
-};
+    }
+    else {
+      alert_msg("select_mapping", "SELECT A MAPPING!", "danger");
+    }
+  }
+}
 
-paperTool.onKeyDown = function (keyEvent) {
+paper_tool.onKeyDown = function (keyEvent) {
   if (e256_current_mode === EDIT_MODE) {
     if (keyEvent.modifiers.shift) {
       switch (keyEvent.key) {
@@ -122,7 +131,7 @@ paperTool.onKeyDown = function (keyEvent) {
           remove_item_menu_params(current_controleur);
           current_controleur.remove();
           current_controleur = previous_controleur;
-          previous_controleur = null; // TODO: add linked list controleur managment.
+          previous_controleur = null; // TODO: add linked list controleur managment
           break;
         case "enter":
           if (e256_draw_mode === "path") {
@@ -151,12 +160,21 @@ paper.onFrame = function () {
 };
 
 function draw_controler_from_mouse(mouseEvent) {
+
   paper.project.layers[e256_draw_mode].activate();
-  controleur_factory(e256_draw_mode);
+
+  previous_controleur = current_controleur;
+  current_controleur = controleur_factory(e256_draw_mode);
   current_controleur.setup_from_mouse_event(mouseEvent);
-  //console.log(e256_draw_mode); // PROB!
   current_controleur.create();
   current_controleur.bringToFront();
+
+  if (previous_controleur != null) item_menu_params(previous_controleur, "hide");
+  if (previous_touch != null) item_menu_params(previous_touch, "hide");
+  create_item_menu_params(current_controleur);
+  update_item_main_params(current_controleur);
+  update_item_touchs_menu_params(current_controleur);
+  item_menu_params(current_controleur, "show");
 };
 
 function draw_controlers_from_config(raw_configFile) {
@@ -165,7 +183,7 @@ function draw_controlers_from_config(raw_configFile) {
     configFile = JSON.parse(raw_configFile);
     //console.log("CONFIG: " + raw_configFile); // PROB!
   } catch (err) {
-    alert("NOT VALID JSON!");
+    alert_msg("json_error", "NOT VALID JSON!", "danger");
     return;
   }
   clear_all_meunu_params();
@@ -199,7 +217,7 @@ function create_controlers_from_config(configFile) {
     //console.log("CTL_TYPE: " + _ctl_type);
     paper.project.layers[_ctl_type].activate();
     for (const _ctl_index in configFile.mappings[_ctl_type]) {
-      controleur_factory(_ctl_type);
+      current_controleur = controleur_factory(_ctl_type);
       current_controleur.setup_from_config(configFile.mappings[_ctl_type][_ctl_index]);
       current_controleur.create();
       create_item_menu_params(current_controleur);
@@ -210,27 +228,43 @@ function create_controlers_from_config(configFile) {
   }
 };
 
+function re_create_item(item) {
+  item.save_params();
+  remove_item_menu_params(item);
+  item.removeChildren();
+  item.create();
+  create_item_menu_params(item);
+  update_item_main_params(item);
+  update_item_touchs_menu_params(item);
+  item_menu_params(item, "show");
+};
+
 function controleur_factory(item_type) {
   switch (item_type) {
     case "switch":
-      current_controleur = switch_factory();
+      current_controleur = new switch_factory();
       break;
     case "slider":
-      current_controleur = slider_factory();
+      current_controleur = new slider_factory();
       break;
     case "knob":
-      current_controleur = knob_factory();
+      current_controleur = new knob_factory();
       break;
     case "touchpad":
-      current_controleur = touchpad_factory();
+      current_controleur = new touchpad_factory();
       break;
     case "grid":
-      current_controleur = grid_factory();
+      current_controleur = new grid_factory();
       break;
     case "path":
-      current_controleur = path_factory();
+      current_controleur = new path_factory();
+      create_once = true;
       break;
-  }
+    case "polygon":
+      current_controleur = new polygon_factory();
+      break;
+    }
+    return current_controleur;
 };
 
 // FIXME: whenever the view is resized

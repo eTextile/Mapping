@@ -55,18 +55,21 @@ function knob_factory() {
         touch_msg = {};
         touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
         touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
+        touch_msg.press = midi_msg_builder(this.data.mode_z);
+        /*
         switch (this.data.mode_z) {
           case NOTE_ON:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
+            touch_msg.press = midi_msg_builder(NOTE_ON);
             break;
           case C_CHANGE:
             touch_msg.press = midi_msg_builder(C_CHANGE);
             break;
           case AFTERTOUCH_POLY:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
+            touch_msg.press = midi_msg_builder(NOTE_ON);
             touch_msg.press = midi_msg_builder(C_CHANGE);
             break;
         }
+        */
         this.data.msg.push(touch_msg);
       }
     },
@@ -93,31 +96,21 @@ function knob_factory() {
 
     save_params: function () {
       let previous_touch_count = this.data.touchs;
-      let previous_touch_mode_z = this.data.mode_z;
       this.data.touchs = this.children["knob-group"].data.touchs;
+      let previous_mode_z = this.data.mode_z;
+      this.data.mode_z = this.children["knob-group"].data.mode_z;
+
       this.data.from = this.children["knob-group"].data.from;
       this.data.to = this.children["knob-group"].data.to;
       this.data.offset = this.children["knob-group"].data.offset;
-      this.data.mode_z = this.children["knob-group"].data.mode_z;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.mode_z != previous_touch_mode_z) {
+        if (this.data.mode_z != previous_mode_z) {
           touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
           touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
-          switch (this.data.mode_z) {
-            case NOTE_ON:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              break;
-            case C_CHANGE:
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-            case AFTERTOUCH_POLY:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-          }
+          touch_msg.press = midi_msg_builder(this.data.mode_z);
         }
         else {
           if (_touch < previous_touch_count) {
@@ -126,18 +119,7 @@ function knob_factory() {
           else {
             touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
             touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
-            switch (this.data.mode_z) {
-              case NOTE_ON:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                break;
-              case C_CHANGE:
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-              case AFTERTOUCH_POLY:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-            }
+            touch_msg.press = midi_msg_builder(this.data.mode_z);
           }
         }
         this.data.msg.push(touch_msg);
@@ -201,18 +183,15 @@ function knob_factory() {
           case THROUGH_MODE:
             switch (_knob.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NOTE_ON);
+                _touch_group.msg.press.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -231,18 +210,15 @@ function knob_factory() {
           case THROUGH_MODE:
             switch (_knob.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
-                _touch_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NOTE_OFF);
+                _touch_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
-                _touch_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -295,9 +271,8 @@ function knob_factory() {
 
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
-        "point": new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y),
-        //"content": JSON.stringify(_touch_group.msg), // MAKE TI DESIGN ;-)
-        "content": null,
+        "point": new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y),        
+        "content": midi_msg_as_txt(_touch_group.msg.press),
         "locked": true
       });
 

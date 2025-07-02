@@ -13,9 +13,9 @@ function touchpad_factory() {
   const DEFAULT_PAD_MIN_HEIGHT = 100;
   const DEFAULT_PAD_MODE_X = C_CHANGE;
   const DEFAULT_PAD_MODE_Y = C_CHANGE;
-  const DEFAULT_PAD_MODE_Z = AFTERTOUCH_POLY;
-  const DEFAULT_PAD_TOUCHS = 2;
-
+  const DEFAULT_PAD_MODE_Z = C_CHANGE;
+  const DEFAULT_PAD_TOUCHS = 1;
+ 
   let current_frame_width = null;
   let previous_frame_width = null;
   let current_frame_height = null;
@@ -52,18 +52,7 @@ function touchpad_factory() {
         let touch_msg = {};
         touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
         touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-        switch (this.data.mode_z) {
-          case NOTE_ON:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
-            break;
-          case C_CHANGE:
-            touch_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-          case AFTERTOUCH_POLY:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
-            touch_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-        }
+        touch_msg.press = midi_msg_builder(this.data.mode_z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -85,11 +74,12 @@ function touchpad_factory() {
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["pad-group"].data.touchs;
-      this.data.from = this.children["pad-group"].data.from;
-      this.data.to = this.children["pad-group"].data.to;
-
+      
       let previous_mode_z = this.data.mode_z;
       this.data.mode_z = this.children["pad-group"].data.mode_z;
+
+      this.data.from = this.children["pad-group"].data.from;
+      this.data.to = this.children["pad-group"].data.to;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
@@ -97,18 +87,7 @@ function touchpad_factory() {
         if (this.data.mode_z != previous_mode_z) {
           touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
           touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-          switch (this.data.mode_z) {
-            case NOTE_ON:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              break;
-            case C_CHANGE:
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-            case AFTERTOUCH_POLY:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-          }
+          touch_msg.press = midi_msg_builder(this.data.mode_z);
         }
         else {
           if (_touch < previous_touch_count) {
@@ -117,18 +96,7 @@ function touchpad_factory() {
           else {
             touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
             touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-            switch (this.data.mode_z) {
-              case NOTE_ON:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                break;
-              case C_CHANGE:
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-              case AFTERTOUCH_POLY:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-            }
+            touch_msg.press = midi_msg_builder(this.data.mode_z);
           }
         }
         this.data.msg.push(touch_msg);
@@ -205,18 +173,15 @@ function touchpad_factory() {
           case THROUGH_MODE:
             switch (_touchpad.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NOTE_ON);
+                _touch_group.msg.press.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -236,18 +201,15 @@ function touchpad_factory() {
           case THROUGH_MODE:
             switch (_touchpad.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
-                _touch_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NOTE_OFF);
+                _touch_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
-                _touch_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -265,10 +227,7 @@ function touchpad_factory() {
             // N/A
             break;
           case THROUGH_MODE:
-            if (mouseEvent.point.x > _touchpad.children["pad-frame"].bounds.left &&
-              mouseEvent.point.x < _touchpad.children["pad-frame"].bounds.right &&
-              mouseEvent.point.y > _touchpad.children["pad-frame"].bounds.top &&
-              mouseEvent.point.y < _touchpad.children["pad-frame"].bounds.bottom) {
+            if (_touchpad.contains(mouseEvent.point)) {
               _touch_line_x.position.y = mouseEvent.point.y;
               _touch_line_y.position.x = mouseEvent.point.x
               _touch_circle.position = mouseEvent.point;

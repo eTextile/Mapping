@@ -8,18 +8,18 @@ var MIDI_input = null;
 var MIDI_output = null;
 
 var midi_device_connected = false;
-var loaded_file = null; // from user desktop
-var fetch_config_file = null; // from e256 flash memory
+var loaded_file = null; // From user desktop
+var fetch_config_file = null; // From e256 flash memory
 
-const DEFAULT_MIDI_CHANNEL = 1;     // [1:16]
-const DEFAULT_MIDI_NOTE = 64;
-const DEFAULT_MIDI_VELOCITY = 127;  // [0:127]
-const DEFAULT_MIDI_VALUE = 0;
-const DEFAULT_MIDI_CC = 23;
-const DEFAULT_MIDI_AFT = 24;
-const DEFAULT_MIDI_PGM = 10;
-const DEFAULT_MIDI_MIN = 0;
-const DEFAULT_MIDI_MAX = 127;
+const DEFAULT_MIDI_CHANNEL = 1;    // [1:16]
+const DEFAULT_MIDI_NOTE = 64;      // [0:127]
+const DEFAULT_MIDI_VELOCITY = 127; // [0:127]
+const DEFAULT_MIDI_VALUE = 0;      // [0:127]
+const DEFAULT_MIDI_CC = 23;        //
+const DEFAULT_MIDI_AFT = 24;       //
+const DEFAULT_MIDI_PGM = 10;       //
+const DEFAULT_MIDI_MIN = 0;        // [0:127]
+const DEFAULT_MIDI_MAX = 127;      // [0:127]
 
 const BLOB_FREE = 0;
 const BLOB_NEW = 1;
@@ -376,7 +376,7 @@ function onMIDIMessage(midiMsg) {
   
             case PENDING_MODE_DONE:
               //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, SYNC_MODE));
-              //console.log("REQUEST: SYNC_MODE");
+              //if (DEBUG) console.log("REQUEST: SYNC_MODE");
               break;
   
             case SYNC_MODE_DONE:
@@ -397,12 +397,9 @@ function onMIDIMessage(midiMsg) {
               break;
 
             case FETCH_MODE_DONE:
-              if (previous_controleur) {
-                $("#" + previous_controleur.name).removeClass("active");
-                previous_controleur = null;
-              }
               if (current_controleur) {
                 $("#" + current_controleur.name).removeClass("active");
+                previous_controleur = current_controleur;
                 current_controleur = null;
               }
               
@@ -413,14 +410,13 @@ function onMIDIMessage(midiMsg) {
                 alert_msg("no_config_file", "NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger");
               }
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
-              //alert_msg("request_edit", "REQUEST EDIT MODE", "warning");
-              //console.log("REQUEST: EDIT_MODE");
+              if (DEBUG) console.log("REQUEST: EDIT_MODE");
               break;
 
             case ALLOCATE_MODE_DONE:
               e256_export_params();
               sysex_alloc(conf_size);
-              console.log("ALLOCATE_CONFIG_SIZE: " + conf_size);
+              alert_msg("allocate_done", "ALLOCATE_CONFIG_SIZE: " + conf_size, "success");
               break;
 
             case ALLOCATE_DONE:
@@ -439,11 +435,10 @@ function onMIDIMessage(midiMsg) {
               break;
             
             case CONFIG_APPLY_DONE:
-              if (DEBUG) console.log("RECEIVED: CONFIG_APPLY_DONE");
-              alert_msg("config_apply", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
+              alert_msg("config_apply", "RECEIVED: CONFIG_APPLY_DONE", "success");
+              alert_msg("config_save", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
               send_midi_msg(new program_change(MIDI_MODES_CHANNEL, EDIT_MODE));
-              //alert_msg("request_edit", "REQUEST EDIT MODE", "warning");
-              //console.log("REQUEST: EDIT_MODE");
+              if (DEBUG) console.log("REQUEST: EDIT_MODE");
               break;
 
             case WRITE_MODE_DONE:
@@ -480,15 +475,17 @@ function onMIDIMessage(midiMsg) {
           // N/A
           break;
         case PLAY_MODE:
-          // TODO: update the mappings controleurs using the input MIDI values
+          // N/A
           break;
         default:
           alert_msg("wrong_sysex", "SYSEX_TYPE_NOT_HANDLED: " +  MODE_CODES[e256_current_mode], "warning");
           break;
       }
       break;
+
     default:
-      alert_msg("wrong_sysex", "MIDI_TYPE_NOT_HANDLED: " +  VERBOSITY_CODES[msg.data1], "danger");
+      // TODO: update the mappings controleurs using the input MIDI values
+      alert_msg("wrong_sysex", "MIDI_TYPE_NOT_HANDLED: " +  JSON.stringify(msg), "danger");
       break;
   }
 };
@@ -566,7 +563,6 @@ function string_to_bytes(str) {
   return bytes;
 };
 
-// FIXME!!!!!!!!!!!!!!!!!!!!!
 function midi_msg_as_txt(midi_msg) {
   let key_msg_txt = null;
   let status = midi_msg_status_unpack(midi_msg.midi.status);

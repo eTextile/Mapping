@@ -21,6 +21,7 @@ function slider_factory() {
   let current_frame_height = null;
   let previous_frame_height = null;
 
+
   var _slider = new paper.Group({
     "name": "slider",
     "dir": null,
@@ -53,18 +54,7 @@ function slider_factory() {
       for (let _touch = 0; _touch < DEFAULT_SLIDER_TOUCHS; _touch++) {
         let touch_msg = {};
         touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
-        switch (this.data.mode_z) {
-          case NOTE_ON:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
-            break;
-          case C_CHANGE:
-            touch_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-          case AFTERTOUCH_POLY:
-            touch_msg.note = midi_msg_builder(NOTE_ON);
-            touch_msg.press = midi_msg_builder(C_CHANGE);
-            break;
-        }
+        touch_msg.press = midi_msg_builder(this.data.mode_z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -92,32 +82,21 @@ function slider_factory() {
     },
 
     save_params: function () {
-      this.dir = this.children["slider-group"].dir;
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["slider-group"].data.touchs;
-      this.data.from = this.children["slider-group"].data.from;
-      this.data.to = this.children["slider-group"].data.to;
-
       let previous_mode_z = this.data.mode_z;
       this.data.mode_z = this.children["slider-group"].data.mode_z;
+
+      this.dir = this.children["slider-group"].dir;
+      this.data.from = this.children["slider-group"].data.from;
+      this.data.to = this.children["slider-group"].data.to;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.mode_z != previous_mode_z) {
           touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
-          switch (this.data.mode_z) {
-            case NOTE_ON:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              break;
-            case C_CHANGE:
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-            case AFTERTOUCH_POLY:
-              touch_msg.note = midi_msg_builder(NOTE_ON);
-              touch_msg.press = midi_msg_builder(C_CHANGE);
-              break;
-          }
+          touch_msg.press = midi_msg_builder(this.data.mode_z);
         }
         else {
           if (_touch < previous_touch_count) {
@@ -125,18 +104,7 @@ function slider_factory() {
           }
           else {
             touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
-            switch (this.data.mode_z) {
-              case NOTE_ON:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                break;
-              case C_CHANGE:
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-              case AFTERTOUCH_POLY:
-                touch_msg.note = midi_msg_builder(NOTE_ON);
-                touch_msg.press = midi_msg_builder(C_CHANGE);
-                break;
-            }
+            touch_msg.press = midi_msg_builder(this.data.mode_z);
           }
         }
         this.data.msg.push(touch_msg);
@@ -213,18 +181,15 @@ function slider_factory() {
           case THROUGH_MODE:
             switch (_slider.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NOTE_ON);
+                _touch_group.msg.press.midi.data2 = 127;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status | NOTE_ON);
-                _touch_group.msg.note.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -243,18 +208,15 @@ function slider_factory() {
           case THROUGH_MODE:
             switch (_slider.data.mode_z) {
               case NOTE_ON:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
-                _touch_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.note.midi);
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NOTE_OFF);
+                _touch_group.msg.press.midi.data2 = 0;
+                send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case C_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               case AFTERTOUCH_POLY:
-                _touch_group.msg.note.midi.status = (_touch_group.msg.note.midi.status & NOTE_OFF);
-                _touch_group.msg.note.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.note.midi);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -267,53 +229,41 @@ function slider_factory() {
       }
 
       _touch_circle.onMouseDrag = function (mouseEvent) {
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            // N/A
-            break;
-          case THROUGH_MODE:
+        if (e256_current_mode === THROUGH_MODE) {
+          if (_slider.contains(mouseEvent.point)) {
             switch (_slider.dir) {
               case "V_SLIDER":
-                if (mouseEvent.point.y > _slider.children["slider-frame"].bounds.top &&
-                  mouseEvent.point.y < _slider.children["slider-frame"].bounds.bottom) {
-                  _touch_line.position.y = mouseEvent.point.y;
-                  _touch_circle.position.y = mouseEvent.point.y;
-                  _touch_txt.position.y = mouseEvent.point.y;
-                  _touch_group.msg.pos.midi.data2 = Math.round(
-                    mapp(mouseEvent.point.y,
-                      _slider.children["slider-frame"].bounds.top,
-                      _slider.children["slider-frame"].bounds.bottom,
-                      _touch_group.msg.pos.limit.min,
-                      _touch_group.msg.pos.limit.max
-                    )
-                  );
-                }
+                _touch_line.position.y = mouseEvent.point.y;
+                _touch_circle.position.y = mouseEvent.point.y;
+                _touch_txt.position.y = mouseEvent.point.y;
+                _touch_group.msg.pos.midi.data2 = Math.round (
+                  mapp(mouseEvent.point.y,
+                    _slider.children["slider-frame"].bounds.top,
+                    _slider.children["slider-frame"].bounds.bottom,
+                    _touch_group.msg.pos.limit.min,
+                    _touch_group.msg.pos.limit.max
+                  )
+                );
                 break;
               case "H_SLIDER":
-                if (mouseEvent.point.x > _slider.children["slider-frame"].bounds.left &&
-                  mouseEvent.point.x < _slider.children["slider-frame"].bounds.right) {
-                  _touch_line.position.x = mouseEvent.point.x;
-                  _touch_circle.position.x = mouseEvent.point.x;
-                  _touch_txt.position.x = mouseEvent.point.x;
-                  _touch_group.msg.pos.midi.data2 = Math.round(
-                    mapp(mouseEvent.point.x,
-                      _slider.children["slider-frame"].bounds.left,
-                      _slider.children["slider-frame"].bounds.right,
-                      _touch_group.msg.pos.limit.min,
-                      _touch_group.msg.pos.limit.max
-                    )
-                  );
-                }
-                break;
+                _touch_line.position.x = mouseEvent.point.x;
+                _touch_circle.position.x = mouseEvent.point.x;
+                _touch_txt.position.x = mouseEvent.point.x;
+                _touch_group.msg.pos.midi.data2 = Math.round (
+                  mapp(mouseEvent.point.x,
+                    _slider.children["slider-frame"].bounds.left,
+                    _slider.children["slider-frame"].bounds.right,
+                    _touch_group.msg.pos.limit.min,
+                    _touch_group.msg.pos.limit.max
+                  )
+                );
+              break;
             }
-            if (_touch_group.msg.pos.midi.data2 != _touch_group.prev_pos) {
-              _touch_group.prev_pos = _touch_group.msg.pos.midi.data2;
-              send_midi_msg(_touch_group.msg.pos.midi);
-            }
-            break;
-          case PLAY_MODE:
-            // TODO
-            break;
+          }
+          if (_touch_group.msg.pos.midi.data2 != _touch_group.prev_pos) {
+            _touch_group.prev_pos = _touch_group.msg.pos.midi.data2;
+            send_midi_msg(_touch_group.msg.pos.midi);
+          }
         }
       }
       _touch_group.addChild(_touch_circle);
@@ -321,7 +271,7 @@ function slider_factory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_circle.position,
-        "content": _touch_group.msg.pos.midi.data1,
+        "content": "T: " + _touch_id,
         "locked": true
       });
 
@@ -372,172 +322,155 @@ function slider_factory() {
       };
 
       _slider_frame.onMouseEnter = function () {
-        switch (e256_current_mode) {
-          case EDIT_MODE:
+        if (e256_current_mode === EDIT_MODE) {
             this.selected = true;
-            break;
-          case THROUGH_MODE:
-            break;
-          case PLAY_MODE:
-            break;
         }
       }
 
       _slider_frame.onMouseLeave = function () {
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            this.selected = false;
-            break;
-          case THROUGH_MODE:
-            break;
-          case PLAY_MODE:
-            break;
+        if (e256_current_mode === EDIT_MODE) {
+          this.selected = false;
         }
       }
 
       _slider_frame.onMouseDrag = function (mouseEvent) {
-        switch (e256_current_mode) {
-          case EDIT_MODE:
-            if (current_part.type === "bounds") {
-              let new_size = new paper.Point();
-              let new_pos = new paper.Point();
-              switch (current_part.name) {
-                case "top-left":
-                  previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
-                  previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
-                  if (current_frame_width >= DEFAULT_SLIDER_MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER_MIN_HEIGHT) {
-                    this.segments[0].point.x = mouseEvent.point.x;
-                    this.segments[1].point = mouseEvent.point;
-                    this.segments[2].point.y = mouseEvent.point.y;
-                    for (const _touch of _touchs_group.children) {
-                      new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
-                      new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
-                      if (current_frame_height > current_frame_width) {
-                        _slider_group.dir = "V_SLIDER";
-                        new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
-                        new_pos.y = this.bounds.bottom - new_size.y;
-                        _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
-                        _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
-                      } else {
-                        _slider_group.dir = "H_SLIDER";
-                        new_pos.x = this.bounds.right - new_size.x;
-                        new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
-                        _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
-                        _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
-                      }
-                      _touch.children["touch-circle"].position = new_pos;
-                      _touch.children["touch-txt"].position = new_pos;
+        if (e256_current_mode === EDIT_MODE) {
+          if (current_part.type === "bounds") {
+            let new_size = new paper.Point();
+            let new_pos = new paper.Point();
+            switch (current_part.name) {
+              case "top-left":
+                previous_frame_width = current_frame_width;
+                current_frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
+                previous_frame_height = current_frame_height;
+                current_frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
+                if (current_frame_width >= DEFAULT_SLIDER_MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER_MIN_HEIGHT) {
+                  this.segments[0].point.x = mouseEvent.point.x;
+                  this.segments[1].point = mouseEvent.point;
+                  this.segments[2].point.y = mouseEvent.point.y;
+                  for (const _touch of _touchs_group.children) {
+                    new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
+                    new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
+                    if (current_frame_height > current_frame_width) {
+                      _slider_group.dir = "V_SLIDER";
+                      new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
+                      new_pos.y = this.bounds.bottom - new_size.y;
+                      _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
+                      _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
+                    } else {
+                      _slider_group.dir = "H_SLIDER";
+                      new_pos.x = this.bounds.right - new_size.x;
+                      new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
+                      _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
+                      _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
                     }
-                    _slider_group.data.from = mouseEvent.point;
+                    _touch.children["touch-circle"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
                   }
-                  break;
-                case "top-right":
-                  previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
-                  previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
-                  if (current_frame_width >= DEFAULT_SLIDER_MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER_MIN_HEIGHT) {
-                    this.segments[1].point.y = mouseEvent.point.y;
-                    this.segments[2].point = mouseEvent.point;
-                    this.segments[3].point.x = mouseEvent.point.x;
-                    for (const _touch of _touchs_group.children) {
-                      new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
-                      new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
-                      if (current_frame_height > current_frame_width) {
-                        _slider_group.dir = "V_SLIDER";
-                        new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
-                        new_pos.y = this.bounds.bottom - new_size.y;
-                        _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
-                        _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
-                      } else {
-                        _slider_group.dir = "H_SLIDER";
-                        new_pos.x = this.bounds.left + new_size.x;
-                        new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
-                        _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
-                        _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
-                      }
-                      _touch.children["touch-circle"].position = new_pos;
-                      _touch.children["touch-txt"].position = new_pos;
+                  _slider_group.data.from = mouseEvent.point;
+                }
+                break;
+              case "top-right":
+                previous_frame_width = current_frame_width;
+                current_frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
+                previous_frame_height = current_frame_height;
+                current_frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
+                if (current_frame_width >= DEFAULT_SLIDER_MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER_MIN_HEIGHT) {
+                  this.segments[1].point.y = mouseEvent.point.y;
+                  this.segments[2].point = mouseEvent.point;
+                  this.segments[3].point.x = mouseEvent.point.x;
+                  for (const _touch of _touchs_group.children) {
+                    new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
+                    new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
+                    if (current_frame_height > current_frame_width) {
+                      _slider_group.dir = "V_SLIDER";
+                      new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
+                      new_pos.y = this.bounds.bottom - new_size.y;
+                      _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
+                      _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
+                    } else {
+                      _slider_group.dir = "H_SLIDER";
+                      new_pos.x = this.bounds.left + new_size.x;
+                      new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
+                      _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
+                      _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
                     }
-                    _slider_group.data.from.y = mouseEvent.point.y;
-                    _slider_group.data.to.x = mouseEvent.point.x;
+                    _touch.children["touch-circle"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
                   }
-                  break;
-                case "bottom-right":
-                  previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
-                  previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
-                  if (current_frame_width >= DEFAULT_SLIDER_MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER_MIN_HEIGHT) {
-                    this.segments[2].point.x = mouseEvent.point.x;
-                    this.segments[3].point = mouseEvent.point;
-                    this.segments[0].point.y = mouseEvent.point.y;
-                    for (const _touch of _touchs_group.children) {
-                      new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
-                      new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
-                      if (current_frame_height > current_frame_width) {
-                        _slider_group.dir = "V_SLIDER";
-                        new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
-                        new_pos.y = this.bounds.top + new_size.y;
-                        _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
-                        _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
-                      } else {
-                        _slider_group.dir = "H_SLIDER";
-                        new_pos.x = this.bounds.left + new_size.x;
-                        new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
-                        _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
-                        _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
-                      }
-                      _touch.children["touch-circle"].position = new_pos;
-                      _touch.children["touch-txt"].position = new_pos;
+                  _slider_group.data.from.y = mouseEvent.point.y;
+                  _slider_group.data.to.x = mouseEvent.point.x;
+                }
+                break;
+              case "bottom-right":
+                previous_frame_width = current_frame_width;
+                current_frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
+                previous_frame_height = current_frame_height;
+                current_frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
+                if (current_frame_width >= DEFAULT_SLIDER_MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER_MIN_HEIGHT) {
+                  this.segments[2].point.x = mouseEvent.point.x;
+                  this.segments[3].point = mouseEvent.point;
+                  this.segments[0].point.y = mouseEvent.point.y;
+                  for (const _touch of _touchs_group.children) {
+                    new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
+                    new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
+                    if (current_frame_height > current_frame_width) {
+                      _slider_group.dir = "V_SLIDER";
+                      new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
+                      new_pos.y = this.bounds.top + new_size.y;
+                      _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
+                      _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
+                    } else {
+                      _slider_group.dir = "H_SLIDER";
+                      new_pos.x = this.bounds.left + new_size.x;
+                      new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
+                      _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
+                      _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
                     }
-                    _slider_group.data.to = mouseEvent.point;
+                    _touch.children["touch-circle"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
                   }
-                  break;
-                case "bottom-left":
-                  previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
-                  previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
-                  if (current_frame_width >= DEFAULT_SLIDER_MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER_MIN_HEIGHT) {
-                    this.segments[3].point.y = mouseEvent.point.y;
-                    this.segments[0].point = mouseEvent.point;
-                    this.segments[1].point.x = mouseEvent.point.x;
-                    for (const _touch of _touchs_group.children) {
-                      new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
-                      new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
-                      if (current_frame_height > current_frame_width) {
-                        _slider_group.dir = "V_SLIDER";
-                        new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
-                        new_pos.y = this.bounds.top + new_size.y;
-                        _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
-                        _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
-                      } else {
-                        _slider_group.dir = "H_SLIDER";
-                        new_pos.x = this.bounds.right - new_size.x;
-                        new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
-                        _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
-                        _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
-                      }
-                      _touch.children["touch-circle"].position = new_pos;
-                      _touch.children["touch-txt"].position = new_pos;
+                  _slider_group.data.to = mouseEvent.point;
+                }
+                break;
+              case "bottom-left":
+                previous_frame_width = current_frame_width;
+                current_frame_width = Math.max(DEFAULT_SLIDER_MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
+                previous_frame_height = current_frame_height;
+                current_frame_height = Math.max(DEFAULT_SLIDER_MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
+                if (current_frame_width >= DEFAULT_SLIDER_MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER_MIN_HEIGHT) {
+                  this.segments[3].point.y = mouseEvent.point.y;
+                  this.segments[0].point = mouseEvent.point;
+                  this.segments[1].point.x = mouseEvent.point.x;
+                  for (const _touch of _touchs_group.children) {
+                    new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
+                    new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
+                    if (current_frame_height > current_frame_width) {
+                      _slider_group.dir = "V_SLIDER";
+                      new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
+                      new_pos.y = this.bounds.top + new_size.y;
+                      _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
+                      _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
+                    } else {
+                      _slider_group.dir = "H_SLIDER";
+                      new_pos.x = this.bounds.right - new_size.x;
+                      new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
+                      _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
+                      _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
                     }
-                    _slider_group.data.from.x = mouseEvent.point.x;
-                    _slider_group.data.to.y = mouseEvent.point.y;
+                    _touch.children["touch-circle"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
                   }
-                  break;
-                default:
-                  //console.log("PART_NOT_USE: " + current_part.name);
-                  break;
-              }
-              update_item_main_params(_slider_group.parent);
+                  _slider_group.data.from.x = mouseEvent.point.x;
+                  _slider_group.data.to.y = mouseEvent.point.y;
+                }
+                break;
+              default:
+                //console.log("PART_NOT_USE: " + current_part.name);
+                break;
             }
-            break;
-          case PLAY_MODE:
-            // N/A
-            break;
+            update_item_main_params(_slider_group.parent);
+          }
         }
       }
 
@@ -548,21 +481,14 @@ function slider_factory() {
     },
 
     onMouseDrag: function (mouseEvent) {
-      switch (e256_current_mode) {
-        case EDIT_MODE:
-          if (current_part.type === "fill") {
-            move_item(this, mouseEvent);
-            update_item_main_params(this);
-          }
-          break;
-        case THROUGH_MODE:
-          // N/A
-          break;
-        case PLAY_MODE:
-          // N/A
-          break;
+      if (e256_current_mode === EDIT_MODE) {
+        if (current_part.type === "fill") {
+          move_item(this, mouseEvent);
+          update_item_main_params(this);
+        }
       }
     }
+
   });
 
   return _slider;
