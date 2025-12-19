@@ -8,7 +8,7 @@ const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
 const VERSION = "1.0.24";
 
-const DEBUG = true;
+const DEBUG = true; ///////////////////////////////
 
 var current_controleur = { "id": null };
 var previous_controleur = { "id": null };

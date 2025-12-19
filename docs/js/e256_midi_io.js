@@ -179,10 +179,11 @@ function midi_msg_builder(midi_msg_type) {
 
 async function MIDIsetup() {
   navigator.permissions.query({name: "midi"}).then((permissionStatus) => {
-    if (permissionStatus.state === "granted") {
+    //console.log(permissionStatus.state);
+    if (permissionStatus.state === "prompt") {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
     }
-    if (permissionStatus.state === "prompt") {
+    if (permissionStatus.state === "denied") {
       alert_msg("no_midi_support", "This browser does not support MIDI!", "danger");
     }
   });
@@ -287,7 +288,7 @@ function onMIDIMessage(midiMsg) {
     case P_CHANGE:
       switch (status.channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          //console.log("RECEIVED: " + VERBOSITY_CODES[msg.data1]);
+          console.log("RECEIVED: " + VERBOSITY_CODES[msg.data1]);
           switch (msg.data1) {
   
             case MATRIX_RAW_MODE_DONE:
