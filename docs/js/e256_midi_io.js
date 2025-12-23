@@ -180,7 +180,7 @@ function midi_msg_builder(midi_msg_type) {
 async function MIDIsetup() {
   navigator.permissions.query({name: "midi"}).then((permissionStatus) => {
     //console.log(permissionStatus.state);
-    if (permissionStatus.state === "prompt") {
+    if (permissionStatus.state === "prompt" ||  permissionStatus.state === "granted") {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
     }
     if (permissionStatus.state === "denied") {
