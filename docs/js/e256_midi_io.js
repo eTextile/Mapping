@@ -462,15 +462,15 @@ function onMIDIMessage(midiMsg) {
       switch (e256_current_mode) {
         case FETCH_MODE:
           const decoder = new TextDecoder();
-          let conf_str = decoder.decode(midiMsg.data);
+          let conf_str = decoder.decode(midiMsg.data); // Change with msg!?
           fetch_config_file = conf_str.slice(1, -1);
           alert_msg("fetch_config", "FETCH CONFIG DONE", "success");
           break;
         case MATRIX_RAW_MODE:
-          e256_matrix.update(midiMsg.data);
+          e256_matrix.update(midiMsg.data); // Change with msg!?
           break;
         case EDIT_MODE:
-          e256_blobs.update(midiMsg.data);
+          e256_blobs.update(midiMsg.data); // Change with msg!?
           break;
         case THROUGH_MODE:
           // N/A
@@ -486,7 +486,8 @@ function onMIDIMessage(midiMsg) {
 
     default:
       // TODO: update the mappings controleurs using the input MIDI values
-      alert_msg("wrong_sysex", "MIDI_TYPE_NOT_HANDLED: " +  JSON.stringify(msg), "danger");
+      //alert_msg("input_midi_msg", "INPUT_MIDI_MSG: " +  JSON.stringify(msg), "danger");
+      midi_term.push(msg);
       break;
   }
 };
