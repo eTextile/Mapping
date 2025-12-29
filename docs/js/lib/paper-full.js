@@ -1,5 +1,5 @@
 /*!
- * Paper.js v0.12.17 - The Swiss Army Knife of Vector Graphics Scripting.
+ * Paper.js v0.12.18 - The Swiss Army Knife of Vector Graphics Scripting.
  * http://paperjs.org/
  *
  * Copyright (c) 2011 - 2020, Jürg Lehni & Jonathan Puckey
@@ -9,7 +9,7 @@
  *
  * All rights reserved.
  *
- * Date: Thu Nov 3 21:15:36 2022 +0100
+ * Date: Wed Jul 17 14:57:24 2024 +0200
  *
  ***
  *
@@ -821,7 +821,7 @@ var PaperScope = Base.extend({
 		}
 	},
 
-	version: "0.12.17",
+	version: "0.12.18",
 
 	getView: function() {
 		var project = this.project;
@@ -3819,6 +3819,15 @@ new function() {
 		return this._index;
 	},
 
+	setIndex: function(index) {
+		var parent = this._parent,
+			children = parent && parent._children;
+		if (children) {
+			parent.insertChildren(index in children ? index : undefined,
+								  [this]);
+		}
+	},
+
 	equals: function(item) {
 		return item === this || item && this._class === item._class
 				&& this._style.equals(item._style)
@@ -3979,13 +3988,13 @@ new function() {
 		var args = arguments;
 		return this._hitTest(
 				Point.read(args),
-				hit_result.getOptions(args));
+				HitResult.getOptions(args));
 	}
 
 	function hitTestAll() {
 		var args = arguments,
 			point = Point.read(args),
-			options = hit_result.getOptions(args),
+			options = HitResult.getOptions(args),
 			all = [];
 		this._hitTest(point, new Base({ all: all }, options));
 		return all;
@@ -4059,7 +4068,7 @@ new function() {
 		function checkPoint(type, part) {
 			var pt = part ? bounds['get' + part]() : that.getPosition();
 			if (point.subtract(pt).divide(tolerancePadding).length <= 1) {
-				return new hit_result(type, that, {
+				return new HitResult(type, that, {
 					name: part ? Base.hyphenate(part) : type,
 					point: pt
 				});
@@ -4104,7 +4113,7 @@ new function() {
 
 	_hitTestSelf: function(point, options) {
 		if (options.fill && this.hasFill() && this._contains(point))
-			return new hit_result('fill', this);
+			return new HitResult('fill', this);
 	},
 
 	matches: function(name, compare) {
@@ -5297,7 +5306,7 @@ new function() {
 					hit = isOnEllipseStroke(point, radius, strokePadding);
 				}
 			}
-			return hit ? new hit_result(hitStroke ? 'stroke' : 'fill', this)
+			return hit ? new HitResult(hitStroke ? 'stroke' : 'fill', this)
 					: _hitTestSelf.base.apply(this, arguments);
 		}
 	};
@@ -5751,7 +5760,7 @@ var Raster = Item.extend({
 	_hitTestSelf: function(point) {
 		if (this._contains(point)) {
 			var that = this;
-			return new hit_result('pixel', that, {
+			return new HitResult('pixel', that, {
 				offset: point.add(that._size.divide(2)).round(),
 				color: {
 					get: function() {
@@ -5906,10 +5915,10 @@ var SymbolDefinition = Base.extend({
 	}
 });
 
-var hit_result = Base.extend({
-	_class: 'hit_result',
+var HitResult = Base.extend({
+	_class: 'HitResult',
 
-	initialize: function hit_result(type, item, values) {
+	initialize: function HitResult(type, item, values) {
 		this.type = type;
 		this.item = item;
 		if (values)
@@ -9203,7 +9212,7 @@ var Path = PathItem.extend({
 				if (pt !== anchor)
 					pt = pt.add(anchor);
 				if (isCloseEnough(pt, strokePadding)) {
-					return new hit_result(name, that, {
+					return new HitResult(name, that, {
 						segment: seg,
 						point: pt
 					});
@@ -9282,9 +9291,9 @@ var Path = PathItem.extend({
 		}
 		return !loc && hitFill && this._contains(point)
 				|| loc && !hitStroke && !hitCurves
-					? new hit_result('fill', this)
+					? new HitResult('fill', this)
 					: loc
-						? new hit_result(hitStroke ? 'stroke' : 'curve', this, {
+						? new HitResult(hitStroke ? 'stroke' : 'curve', this, {
 							location: loc,
 							point: loc.getPoint()
 						})
@@ -14013,8 +14022,6 @@ var Tool = PaperScopeItem.extend({
 			type = 'mousemove';
 		var move = mouse.move || mouse.drag,
 			responds = this.responds(type),
-			minDistance = this.minDistance,
-			maxDistance = this.maxDistance,
 			called = false,
 			tool = this;
 		function update(minDistance, maxDistance) {
@@ -14057,10 +14064,10 @@ var Tool = PaperScopeItem.extend({
 			update();
 			emit();
 		} else if (mouse.up) {
-			update(null, maxDistance);
+			update(null, this._maxDistance);
 			emit();
 		} else if (responds) {
-			while (update(minDistance, maxDistance))
+			while (update(this._minDistance, this._maxDistance))
 				emit();
 		}
 		return called;
@@ -14975,7 +14982,7 @@ new function() {
 		PointText: exportText
 	};
 
-	function applyStyle(item, node, isRoot) {
+	function applyStyle(item, node, options, isRoot) {
 		var attrs = {},
 			parent = !isRoot && item.getParent(),
 			style = [];
@@ -14989,7 +14996,8 @@ new function() {
 				value = item[get]();
 			if (entry.exportFilter
 					? entry.exportFilter(item, value)
-					: !parent || !Base.equals(parent[get](), value)) {
+					: options.reduceAttributes == false
+						|| !parent || !Base.equals(parent[get](), value)) {
 				if (type === 'color' && value != null) {
 					var alpha = value.getAlpha();
 					if (alpha < 1)
@@ -15071,7 +15079,7 @@ new function() {
 			if (data && data !== '{}' && data !== 'null')
 				node.setAttribute('data-paper-data', data);
 		}
-		return node && applyStyle(item, node, isRoot);
+		return node && applyStyle(item, node, options, isRoot);
 	}
 
 	function setOptions(options) {
@@ -15361,7 +15369,7 @@ new function() {
 				if (!transform)
 					break;
 				var parts = transform.split(/\(\s*/),
-					command = parts[0],
+					command = parts[0].trim(),
 					v = parts[1].split(/[\s,]+/g);
 				for (var j = 0, m = v.length; j < m; j++)
 					v[j] = parseFloat(v[j]);
