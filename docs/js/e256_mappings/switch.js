@@ -10,7 +10,7 @@ function switch_factory() {
   const DEFAULT_SWITCH_HEIGHT = canvas_height / SCALE_X;
   //const DEFAULT_SWITCH_MIN_SIZE = 50;
   const DEFAULT_SWITCH_TOUCHS = 1;
-  const DEFAULT_SWITCH_MODE_Z = NOTE_ON;
+  const DEFAULT_SWITCH_MODE_Z = NoteOn;
   const DEFAULT_SWITCH_CHORD = 1;
   const DEFAULT_SWITCH_BUTTON_PADDING = 8;
 
@@ -23,9 +23,9 @@ function switch_factory() {
   var _switch = new paper.Group({
     "name": "switch",
     "modes": {
-      0: "NOTE_ON",        // TRIGGER NOTE WITH VELOCITY
-      1: "C_CHANGE",       // PRESSURE ONLY
-      2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
+      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
+      1: "ControlChange", // PRESSURE ONLY
+      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
     },
     "data": {
       "from": null,
@@ -140,16 +140,16 @@ function switch_factory() {
           case THROUGH_MODE:
             this.style.fillColor = "orange";
             switch (_switch.data.mode_z) {
-              case NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NOTE_ON);
+              case NoteOn:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NoteOn);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case C_CHANGE:
+              case ControlChange:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AFTERTOUCH_POLY:
+              case AfterTouchPoly:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -169,16 +169,16 @@ function switch_factory() {
           case THROUGH_MODE:
             this.style.fillColor = "pink";
             switch (_switch.data.mode_z) {
-              case NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NOTE_OFF);
+              case NoteOn:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NoteOff);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case C_CHANGE:
+              case ControlChange:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AFTERTOUCH_POLY:
+              case AfterTouchPoly:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;

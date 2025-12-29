@@ -52,7 +52,7 @@ function midi_msg_status_unpack(status) {
 };
 
 function note_on(chan, note, velo) {
-  let status = midi_msg_status_pack(chan, NOTE_ON);
+  let status = midi_msg_status_pack(chan, NoteOn);
   return {
     "status": status,
     "data1": note,
@@ -61,7 +61,7 @@ function note_on(chan, note, velo) {
 };
 
 function note_off(chan, note, velo) {
-  let status = midi_msg_status_pack(chan, NOTE_OFF);
+  let status = midi_msg_status_pack(chan, NoteOff);
   return {
     "status": status,
     "data1": note,
@@ -70,7 +70,7 @@ function note_off(chan, note, velo) {
 };
 
 function control_change(chan, ctr, val) {
-  let status = midi_msg_status_pack(chan, C_CHANGE);
+  let status = midi_msg_status_pack(chan, ControlChange);
   return {
     "status": status,
     "data1": ctr,
@@ -79,7 +79,7 @@ function control_change(chan, ctr, val) {
 };
 
 function polyphonic_aftertouch(chan, note, press) {
-  let status = midi_msg_status_pack(chan, AFTERTOUCH_POLY);
+  let status = midi_msg_status_pack(chan, AfterTouchPoly);
   return {
     "status": status,
     "data1": note,
@@ -88,7 +88,7 @@ function polyphonic_aftertouch(chan, note, press) {
 };
 
 function program_change(chan, pgm) {
-  let status = midi_msg_status_pack(chan, P_CHANGE);
+  let status = midi_msg_status_pack(chan, ProgramChange);
   return {
     "status": status,
     "data1": pgm,
@@ -97,7 +97,7 @@ function program_change(chan, pgm) {
 };
 
 function pitch_bend(chan, pitch) {
-  let status = midi_msg_status_pack(chan, PITCH_BEND);
+  let status = midi_msg_status_pack(chan, PitchBend);
   let data1 = pitch & 0x7F // Lsb
   let data2 = pitch >> 7 // Msb
   return {
@@ -115,21 +115,21 @@ function limit(min, max) {
 };
 
 // MIDI MESSAGE BUILDER
-// NOTE_OFF
-// -> NOTE_ON
-// AFTERTOUCH_POLY
-// -> C_CHANGE
-// P_CHANGE
+// NoteOff -> NA
+// -> NoteOn
+// -> AfterTouchPoly
+// -> ControlChange
+// ProgramChange
 // C_AFTERTOUCH
-// -> P_BEND
-// SYS_EX
+// PitchBend
+// SystemExclusive
 
 function midi_msg_builder(midi_msg_type) {
   let msg = {};
 
   switch (midi_msg_type) {
 
-    case NOTE_ON:
+    case NoteOn:
       msg.midi = new note_on(
         DEFAULT_MIDI_CHANNEL,
         default_midi_index.next().value,
@@ -137,7 +137,7 @@ function midi_msg_builder(midi_msg_type) {
       )
       break;
 
-    case C_CHANGE:
+    case ControlChange:
       msg.midi = new control_change(
         DEFAULT_MIDI_CHANNEL,
         default_midi_index.next().value,
@@ -149,11 +149,11 @@ function midi_msg_builder(midi_msg_type) {
       )
       break;
 
-    case AFTERTOUCH_POLY:
+    case AfterTouchPoly:
       msg.midi = new polyphonic_aftertouch(
         DEFAULT_MIDI_CHANNEL,
         default_midi_index.next().value,
-        DEFAULT_MIDI_VELOCITY
+        default_midi_index.next().value
       );
       msg.limit = new limit(
         DEFAULT_MIDI_MIN,
@@ -161,7 +161,7 @@ function midi_msg_builder(midi_msg_type) {
       );
       break;
 
-    case PITCH_BEND:
+    case PitchBend:
       msg.midi = new pitch_bend(
         DEFAULT_MIDI_CHANNEL,
         DEFAULT_MIDI_VELOCITY
@@ -180,7 +180,7 @@ function midi_msg_builder(midi_msg_type) {
 async function MIDIsetup() {
   navigator.permissions.query({name: "midi"}).then((permissionStatus) => {
     //console.log(permissionStatus.state);
-    if (permissionStatus.state === "prompt" ||  permissionStatus.state === "granted") {
+    if (permissionStatus.state === "prompt" || permissionStatus.state === "granted") {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
     }
     if (permissionStatus.state === "denied") {
@@ -285,7 +285,7 @@ function onMIDIMessage(midiMsg) {
 
   let status = midi_msg_status_unpack(midiMsg.data[0]);
   switch (status.type) {
-    case P_CHANGE:
+    case ProgramChange:
       switch (status.channel) {
         case MIDI_VERBOSITY_CHANNEL:
           console.log("RECEIVED: " + VERBOSITY_CODES[msg.data1]);
@@ -458,7 +458,7 @@ function onMIDIMessage(midiMsg) {
       }
       break;
 
-    case SYS_EX:
+    case SystemExclusive:
       switch (e256_current_mode) {
         case FETCH_MODE:
           const decoder = new TextDecoder();
@@ -485,9 +485,8 @@ function onMIDIMessage(midiMsg) {
       break;
 
     default:
-      // TODO: update the mappings controleurs using the input MIDI values
-      //alert_msg("input_midi_msg", "INPUT_MIDI_MSG: " +  JSON.stringify(msg), "danger");
       midi_term.push(msg);
+      // TODO: update the mappings controleurs using the input MIDI values
       break;
   }
 };
@@ -570,26 +569,26 @@ function midi_msg_as_txt(midi_msg) {
   let status = midi_msg_status_unpack(midi_msg.midi.status);
 
   switch (status.type) {
-    case NOTE_ON:
+    case NoteOn:
       key_msg_txt =
       "type: " + MIDI_TYPES[status.type] + "\n" +
       "chan: " + status.channel + "\n" +
       "note: " + midi_msg.midi.data1 + "\n" +
       "velo: " + midi_msg.midi.data2 + "\n";
       break;
-    case C_CHANGE:
+    case ControlChange:
       key_msg_txt =
       "type: " + MIDI_TYPES[status.type] + "\n" +
       "chan: " + status.channel + "\n" +
-      "cc: " + midi_msg.midi.data1 + "\n" +
+      "ctr: " + midi_msg.midi.data1 + "\n" +
       "val: " + midi_msg.midi.data2 + "\n";
       break;
-    case AFTERTOUCH_POLY:
+    case AfterTouchPoly:
       key_msg_txt =
       "type: " + MIDI_TYPES[status.type] + "\n" +
       "chan: " + status.channel + "\n" +
       "note: " + midi_msg.midi.data1 + "\n" +
-      "press: " + midi_msg.midi.data2 + "\n";
+      "ctr: " + midi_msg.midi.data2 + "\n";
       break;
   }
   return key_msg_txt;

@@ -11,9 +11,9 @@ function knob_factory() {
   const DEFAULT_KNOB_RADIUS = 250;
   const DEFAULT_KNOB_OFFSET = -45;
   const DEFAULT_KNOB_MIN_SIZE = 30;
-  const DEFAULT_KNOB_MODE_R = C_CHANGE;
-  const DEFAULT_KNOB_MODE_T = C_CHANGE;
-  const DEFAULT_KNOB_MODE_Z = NOTE_ON;
+  const DEFAULT_KNOB_MODE_R = ControlChange;
+  const DEFAULT_KNOB_MODE_T = ControlChange;
+  const DEFAULT_KNOB_MODE_Z = NoteOn;
 
   var _knob = new paper.Group({
     "name": "knob",
@@ -21,9 +21,9 @@ function knob_factory() {
     "radius": null,
     "theta": null,
     "modes": {
-      0: "NOTE_ON",        // TRIGGER NOTE WITH VELOCITY
-      1: "C_CHANGE",       // PRESSURE ONLY
-      2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
+      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
+      1: "ControlChange", // PRESSURE ONLY
+      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
     },
     "data": {
       "touchs": null,
@@ -58,15 +58,15 @@ function knob_factory() {
         touch_msg.press = midi_msg_builder(this.data.mode_z);
         /*
         switch (this.data.mode_z) {
-          case NOTE_ON:
-            touch_msg.press = midi_msg_builder(NOTE_ON);
+          case NoteOn:
+            touch_msg.press = midi_msg_builder(NoteOn);
             break;
-          case C_CHANGE:
-            touch_msg.press = midi_msg_builder(C_CHANGE);
+          case ControlChange:
+            touch_msg.press = midi_msg_builder(ControlChange);
             break;
-          case AFTERTOUCH_POLY:
-            touch_msg.press = midi_msg_builder(NOTE_ON);
-            touch_msg.press = midi_msg_builder(C_CHANGE);
+          case AfterTouchPoly:
+            touch_msg.press = midi_msg_builder(NoteOn);
+            touch_msg.press = midi_msg_builder(ControlChange);
             break;
         }
         */
@@ -182,16 +182,16 @@ function knob_factory() {
             break;
           case THROUGH_MODE:
             switch (_knob.data.mode_z) {
-              case NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NOTE_ON);
+              case NoteOn:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NoteOn);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case C_CHANGE:
+              case ControlChange:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AFTERTOUCH_POLY:
+              case AfterTouchPoly:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -209,16 +209,16 @@ function knob_factory() {
             break;
           case THROUGH_MODE:
             switch (_knob.data.mode_z) {
-              case NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NOTE_OFF);
+              case NoteOn:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NoteOff);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case C_CHANGE:
+              case ControlChange:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AFTERTOUCH_POLY:
+              case AfterTouchPoly:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;

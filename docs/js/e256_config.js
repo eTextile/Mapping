@@ -6,7 +6,7 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.24";
+const VERSION = "1.0.25";
 
 const DEBUG = true; ///////////////////////////////
 
@@ -52,14 +52,14 @@ const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
 const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
 
 // E256 MIDI TYPES CONSTANTS
-const NOTE_OFF = 0x80;           // NOTE_OFF // 1 0 0 0  // OFF to ON = OFF | ON
-const NOTE_ON = 0x90;            // NOTE_ON // 1 0 0 1  // ON to OFF = ON & OFF
-const AFTERTOUCH_POLY = 0xA0;    // POLYPHONIC_AFTERTOUCH
-const C_CHANGE = 0xB0;           // CONTROL_CHANGE
-const P_CHANGE = 0xC0;           // PROGRAM_CHANGE
-const AFTERTOUCH_CHANNEL = 0xD0; // CHANNEL_AFTERTOUCH
-const PITCH_BEND = 0xE0;         // PITCH_BEND
-const SYS_EX = 0xF0;             // SYSTEM_EXCLUSIVE
+const NoteOff = 0x80;
+const NoteOn = 0x90;
+const AfterTouchPoly = 0xA0;
+const ControlChange = 0xB0;
+const ProgramChange = 0xC0;
+const AfterTouchChannel = 0xD0;
+const PitchBend = 0xE0;
+const SystemExclusive = 0xF0;
 
 // const TIMECODEQUARTERFRAME = 0xF1;
 // const SONGPOSITION = 0xF2;
@@ -83,14 +83,14 @@ const SYSEX_CONF = 0x7C;       // DEC: 124
 //const SYSEX_VOLUMES = ;      //
 
 const MIDI_TYPES = {
-  0x80: "NOTE_OFF",           // NOTE_OFF
-  0x90: "NOTE_ON",            // NOTE_ON
-  0xA0: "AFTERTOUCH_POLY",    // POLYPHONIC_AFTERTOUCH
-  0xB0: "C_CHANGE",           // CONTROL_CHANGE
-  0xC0: "P_CHANGE",           // PROGRAM_CHANGE
-  0xD0: "AFTERTOUCH_CHANNEL", // CHANNEL_AFTERTOUCH
-  0xE0: "P_BEND",             // PITCH_BEND
-  0xF0: "SYS_EX"              // SYSTEM_EXCLUSIVE
+  0x80: "NoteOff",
+  0x90: "NoteOn",
+  0xA0: "AfterTouchPoly",
+  0xB0: "ControlChange",
+  0xC0: "ProgramChange",
+  0xD0: "AfterTouchChannel",
+  0xE0: "PitchBend",
+  0xF0: "SystemExclusive"
 };
 
 const DATA1 = {

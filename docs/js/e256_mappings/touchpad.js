@@ -11,9 +11,9 @@ function touchpad_factory() {
   const DEFAULT_PAD_TOUCH_MARGIN = 35;
   const DEFAULT_PAD_MIN_WIDTH = 100;
   const DEFAULT_PAD_MIN_HEIGHT = 100;
-  const DEFAULT_PAD_MODE_X = C_CHANGE;
-  const DEFAULT_PAD_MODE_Y = C_CHANGE;
-  const DEFAULT_PAD_MODE_Z = C_CHANGE;
+  const DEFAULT_PAD_MODE_X = ControlChange;
+  const DEFAULT_PAD_MODE_Y = ControlChange;
+  const DEFAULT_PAD_MODE_Z = ControlChange;
   const DEFAULT_PAD_TOUCHS = 1;
  
   let current_frame_width = null;
@@ -24,9 +24,9 @@ function touchpad_factory() {
   var _touchpad = new paper.Group({
     "name": "touchpad",
     "modes": {
-      0: "NOTE_ON",        // TRIGGER NOTE WITH VELOCITY
-      1: "C_CHANGE",       // PRESSURE ONLY
-      2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
+      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
+      1: "ControlChange", // PRESSURE ONLY
+      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
     },
     "data": {
       "touchs": null,
@@ -172,16 +172,16 @@ function touchpad_factory() {
             break;
           case THROUGH_MODE:
             switch (_touchpad.data.mode_z) {
-              case NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NOTE_ON);
+              case NoteOn:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NoteOn);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case C_CHANGE:
+              case ControlChange:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AFTERTOUCH_POLY:
+              case AfterTouchPoly:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -200,16 +200,16 @@ function touchpad_factory() {
             break;
           case THROUGH_MODE:
             switch (_touchpad.data.mode_z) {
-              case NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NOTE_OFF);
+              case NoteOn:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NoteOff);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case C_CHANGE:
+              case ControlChange:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AFTERTOUCH_POLY:
+              case AfterTouchPoly:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;

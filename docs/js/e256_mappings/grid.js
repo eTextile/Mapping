@@ -11,7 +11,7 @@ function grid_factory() {
   const DEFAULT_GRID_HEIGHT = 400;
   const DEFAULT_GRID_COLS = 4;
   const DEFAULT_GRID_ROWS = 4;
-  const DEFAULT_GRID_MODE_Z = NOTE_ON;
+  const DEFAULT_GRID_MODE_Z = NoteOn;
   const GRID_MIN_SIZE = 30;
   
   let frame_width = null;
@@ -27,9 +27,9 @@ function grid_factory() {
   var _grid = new paper.Group({
     "name": "grid",
     "modes": {
-      0: "NOTE_ON",        // TRIGGER NOTE WITH VELOCITY
-      1: "C_CHANGE",       // PRESSURE ONLY
-      2: "AFTERTOUCH_POLY" // TRIGGER NOTE AND MODULATE
+      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
+      1: "ControlChange", // PRESSURE ONLY
+      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
     },
     "data": {
       "from": null,
@@ -145,16 +145,16 @@ function grid_factory() {
             break;
           case THROUGH_MODE:
             switch (_grid.data.mode_z) {
-              case NOTE_ON:
-                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status | NOTE_ON);
+              case NoteOn:
+                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status | NoteOn);
                 _key_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case C_CHANGE:
+              case ControlChange:
                 _key_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case AFTERTOUCH_POLY:
+              case AfterTouchPoly:
                 _key_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
@@ -174,16 +174,16 @@ function grid_factory() {
             break;
           case THROUGH_MODE:
             switch (_grid.data.mode_z) {
-              case NOTE_ON:
-                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status & NOTE_OFF);
+              case NoteOn:
+                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status & NoteOff);
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case C_CHANGE:
+              case ControlChange:
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case AFTERTOUCH_POLY:
+              case AfterTouchPoly:
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
