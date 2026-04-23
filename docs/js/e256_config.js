@@ -6,9 +6,9 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.25";
+const VERSION = "1.0.26";
 
-const DEBUG = true; ///////////////////////////////
+const DEBUG = false;
 
 var current_controleur = { "id": null };
 var previous_controleur = { "id": null };
@@ -27,14 +27,6 @@ const NEW_COLS = (RAW_COLS * SCALE_X);
 const NEW_ROWS = (RAW_ROWS * SCALE_Y);
 const NEW_FRAME = (NEW_COLS * NEW_ROWS);
 
-//const X_PADDING_LEFT = 1;
-//const X_PADDING_REIGHT = 1;
-//const Y_PADDING_TOP = 1;
-//const Y_PADDING_BOTTOM = 1;
-
-//const MATRIX_RESOLUTION_X = NEW_FRAME - X_PADDING_LEFT - X_PADDING_REIGHT;
-//const MATRIX_RESOLUTION_Y = NEW_FRAME - Y_PADDING_TOP - Y_PADDING_BOTTOM;
-
 // E256 SOFTWARE CONSTANTS
 const TOUCH_RADIUS = 25;
 const FONT_SIZE = 20;
@@ -52,45 +44,25 @@ const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
 const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
 
 // E256 MIDI TYPES CONSTANTS
-const NoteOff = 0x80;
-const NoteOn = 0x90;
-const AfterTouchPoly = 0xA0;
-const ControlChange = 0xB0;
-const ProgramChange = 0xC0;
-const AfterTouchChannel = 0xD0;
-const PitchBend = 0xE0;
-const SystemExclusive = 0xF0;
+const MIDI = {
+  NOTE_OFF: 0x80,
+  NOTE_ON: 0x90,
+  AFTERTOUCH_POLY: 0xA0,
+  CONTROL_CHANGE: 0xB0,
+  PROGRAM_CHANGE: 0xC0,
+  AFTERTOUCH_CHANNEL: 0xD0,
+  PITCH_BEND: 0xE0,
+};
 
-// const TIMECODEQUARTERFRAME = 0xF1;
-// const SONGPOSITION = 0xF2;
-// const SONGSELECT = 0xF3;
-// const TUNEREQUEST = 0xF6;
-// const CLOCK = 0xF8;
-// const START = 0xFA;
-// const CONTINUE = 0xFB;
-// const STOP = 0xFC;
-// const ACTIVESENSING = 0xFE;
-// const SYSTEMRESET = 0xFF;
+const MIDI_BY_NAME = Object.fromEntries(
+  Object.entries(MIDI).map(([k, v]) => [v, k])
+);
 
-// const 0xF8-0xFF - if more specific handler not configured
-
-const SYSEX_BEGIN = 0xF0;      // DEC: 240
-const SYSEX_END = 0xF7;        // DEC: 247
-const SYSEX_DEVICE_ID = 0x7D;  // DEC: 253 http://midi.teragonaudio.com/tech/midispec/id.html
-
-const SYSEX_CONF = 0x7C;       // DEC: 124
-//const SYSEX_SOUND = 0x6C;    // DEC: 108
-//const SYSEX_VOLUMES = ;      //
-
-const MIDI_TYPES = {
-  0x80: "NoteOff",
-  0x90: "NoteOn",
-  0xA0: "AfterTouchPoly",
-  0xB0: "ControlChange",
-  0xC0: "ProgramChange",
-  0xD0: "AfterTouchChannel",
-  0xE0: "PitchBend",
-  0xF0: "SystemExclusive"
+const MIDI_SYSEX = {
+  START: 0xF0,
+  END: 0xF7,
+  DEVICE_ID: 0x7D,
+  CONFIG: 0x7C
 };
 
 const DATA1 = {
@@ -115,110 +87,104 @@ const DATA2 = {
   0xF0: null
 };
 
-// E256 MODES CONSTANTS (MIDI_MODES_CHANNEL)
-const PENDING_MODE = 0;     // Waiting mode
-const SYNC_MODE = 1;        // Hand chake mode
-const CALIBRATE_MODE = 2;   //
-const MATRIX_RAW_MODE = 3;  // Get matrix analog sensor values (16x16) over USB using MIDI format
-const MAPPING_MODE = 4;     // 
-const EDIT_MODE = 5;        // Get all blobs values over USB using MIDI format
-const THROUGH_MODE = 6;     // 
-const PLAY_MODE = 7;        // Get mappings values over USB using MIDI format
-const ALLOCATE_MODE = 8;    //
-const UPLOAD_MODE = 9;      //
-const APPLY_MODE = 10;      //
-const WRITE_MODE = 11;      //
-const LOAD_MODE = 12;       //
-const FETCH_MODE = 13;      // Request mapping config file
-const STANDALONE_MODE = 14; // e256 synth is sending mappings values over MIDI hardware (DEFAULT MODE)
-const ERROR_MODE = 15;      // Unexpected behaviour
+const PRESSURE = {
+  0x90: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
+  0xB0: "ControlChange", // PRESSURE ONLY
+  0xA0: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
+}
 
-// VERBOSITY MODES CONSTANTS
-const MODE_CODES = {
-  0: "PENDING_MODE",
-  1: "SYNC_MODE",
-  2: "CALIBRATE_MODE",
-  3: "MATRIX_RAW_MODE",
-  4: "MAPPING_MODE",
-  5: "EDIT_MODE",
-  6: "THROUGH_MODE",
-  7: "PLAY_MODE",
-  8: "ALLOCATE_MODE",
-  9: "UPLOAD_MODE",
-  10: "APPLY_MODE",
-  11: "WRITE_MODE",
-  12: "LOAD_MODE",
-  13: "FETCH_MODE",
-  14: "STANDALONE_MODE",
-  15: "ERROR_MODE"
+const PRESSURE_CODES = Object.fromEntries(
+  Object.entries(PRESSURE).map(([k, v]) => [v, Number(k)])
+);
+
+const MOVE = {
+  0: "LIN",
+  1: "LOG",
+  2: "ROL"
 };
 
-// E256 VERBOSITY MODES CONSTANTS ACKNOWLEDGMENT
-const PENDING_MODE_DONE = 0;
-const SYNC_MODE_DONE = 1;
-const CALIBRATE_MODE_DONE = 2;
-const MATRIX_RAW_MODE_DONE = 3;
-const MAPPING_MODE_DONE = 4
-const EDIT_MODE_DONE = 5;
-const THROUGH_MODE_DONE = 6;
-const PLAY_MODE_DONE = 7;
-const ALLOCATE_MODE_DONE = 8;
-const ALLOCATE_DONE = 9;
-const UPLOAD_MODE_DONE = 10;
-const UPLOAD_DONE = 11;
-const CONFIG_APPLY_DONE = 12;
-const WRITE_MODE_DONE = 13;
-const LOAD_MODE_DONE = 14;
-const FETCH_MODE_DONE = 15;
-const STANDALONE_MODE_DONE = 16;
-const DONE_ACTION = 17;
+const MOVE_CODES = Object.fromEntries(
+  Object.entries(MOVE).map(([k, v]) => [v, Number(k)])
+);
 
-const VERBOSITY_CODES = {
-  0: "PENDING_MODE_DONE",
-  1: "SYNC_MODE_DONE",
-  2: "CALIBRATE_MODE_DONE",
-  3: "MATRIX_RAW_MODE_DONE",
-  4: "MAPPING_MODE_DONE",
-  5: "EDIT_MODE_DONE",
-  6: "THROUGH_MODE_DONE",
-  7: "PLAY_MODE_DONE",
-  8: "ALLOCATE_MODE_DONE",
-  9: "ALLOCATE_DONE",
-  10: "UPLOAD_MODE_DONE",
-  11: "UPLOAD_DONE",
-  12: "CONFIG_APPLY_DONE",
-  13: "WRITE_MODE_DONE",
-  14: "LOAD_MODE_DONE",
-  15: "FETCH_MODE_DONE",
-  16: "STANDALONE_MODE_DONE",
-  17: "DONE_ACTION"
+const POPULATE = {
+  0: "OFF",
+  1: "UP",
+  2: "DOWN",
+  3: "AS_PLAYED",
+  4: "OCTAVE",
+  5: "PING_PONG"
 };
+
+const POPULATE_CODES = Object.fromEntries(
+  Object.entries(POPULATE).map(([k, v]) => [v, Number(k)])
+);
+
+const MODE = {
+  PENDING: 0,
+  SYNC: 1,
+  CALIBRATE: 2,
+  MATRIX_RAW: 3,
+  MAPPING: 4,
+  EDIT: 5,
+  THROUGH: 6,
+  PLAY: 7,
+  ALLOCATE_CONFIG: 8,
+  UPLOAD_CONFIG: 9,
+  APPLY_CONFIG: 10,
+  WRITE_CONFIG: 11,
+  LOAD_CONFIG: 12,
+  FETCH_CONFIG: 13,
+  STANDALONE: 14,
+  ERROR: 15
+};
+
+const MODE_CODES = Object.fromEntries(
+  Object.entries(MODE).map(([k, v]) => [v, k])
+);
+
+// E256 MODE_ACKNOWLEDGMENT CONSTANTS MODES
+const MODE_ACK = {
+  PENDING: 0,
+  SYNC: 1,
+  CALIBRATE: 2,
+  MATRIX_RAW: 3,
+  MAPPING: 4,
+  EDIT: 5,
+  THROUGH: 6,
+  PLAY: 7,
+  ALLOCATE_CONFIG: 8,
+  ALLOCATE_DONE: 9,
+  UPLOAD_CONFIG: 10,
+  UPLOAD_DONE: 11,
+  APPLY_CONFIG: 12,
+  WRITE_CONFIG: 13,
+  LOAD_CONFIG: 14,
+  FETCH_CONFIG: 15,
+  STANDALONE: 16,
+  DONE_ACTION: 17
+};
+
+const MODE_ACK_CODES = Object.fromEntries(
+  Object.entries(MODE_ACK).map(([k, v]) => [v, k])
+);
 
 // E256 ERROR CODES CONSTANTS
-const WAITING_FOR_CONFIG = 0;
-const CONNECTING_FLASH = 1;
-const FLASH_FULL = 2;
-const FILE_TO_BIG = 3;
-const NO_CONFIG_FILE = 4;
-const WHILE_OPEN_FLASH_FILE = 5;
-const USBMIDI_CONFIG_LOAD_FAILED = 6;
-const FLASH_CONFIG_LOAD_FAILED = 7;
-const FLASH_CONFIG_WRITE_FAILED = 8;
-const CONFIG_APPLY_FAILED = 9;
-const UNKNOWN_SYSEX = 10;
-const TOO_MANY_BLOBS = 11;
-
-const ERROR_CODES = {
-  0: "WAITING_FOR_CONFIG",
-  1: "CONNECTING_FLASH",
-  2: "FLASH_FULL",
-  3: "FILE_TO_BIG",
-  4: "NO_CONFIG_FILE",
-  5: "WHILE_OPEN_FLASH_FILE",
-  6: "USBMIDI_CONFIG_LOAD_FAILED",
-  7: "FLASH_CONFIG_LOAD_FAILED",
-  8: "FLASH_CONFIG_WRITE_FAILED",
-  9: "CONFIG_APPLY_FAILED",
-  10: "UNKNOWN_SYSEX",
-  11: "TOO_MANY_BLOBS"
+const ERROR = {
+  WAITING_FOR_CONFIG: 0,
+  CONNECTING_FLASH: 1,
+  FLASH_FULL: 2,
+  FILE_TOO_BIG: 3,
+  NO_CONFIG_FILE: 4,
+  WHILE_OPEN_FLASH_FILE: 5,
+  USBMIDI_CONFIG_LOAD_FAILED: 6,
+  FLASH_CONFIG_LOAD_FAILED: 7,
+  FLASH_CONFIG_WRITE_FAILED: 8,
+  CONFIG_APPLY_FAILED: 9,
+  UNKNOWN_SYSEX: 10,
+  TOO_MANY_BLOBS: 11
 };
+
+const ERROR_CODES = Object.fromEntries(
+  Object.entries(ERROR).map(([k, v]) => [v, k])
+);

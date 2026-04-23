@@ -10,26 +10,21 @@
 function path_factory() {
   const DEFAULT_PATH_STROKE_WIDTH = 50;
   const DEFAULT_PATH_TOUCHS = 1;
-  const DEFAULT_PATH_MODE_POS = ControlChange;
-  const DEFAULT_PATH_MODE_Z = NoteOn;
+  const DEFAULT_PATH_MODE_POS = MIDI.CONTROL_CHANGE;
+  const DEFAULT_PATH_MODE_Z = MIDI.NOTE_ON;
 
   var _path = new paper.Group({
     "name": "path",
-    "modes": {
-      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
-      1: "ControlChange", // PRESSURE ONLY
-      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
-    },
     "data": {
       "touchs": null,
       "segments": null,
-      "mode_z": null,
+      "press": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.touchs = DEFAULT_PATH_TOUCHS;
-      this.data.mode_z = DEFAULT_PATH_MODE_Z;
+      this.data.press = DEFAULT_PATH_MODE_Z;
 
       this.data.segments = [];
       this.data.segments.push(mouseEvent.point);
@@ -40,7 +35,7 @@ function path_factory() {
       for (let _touch = 0; _touch < DEFAULT_PATH_TOUCHS; _touch++) {
         let touch_msg = {};
         touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
-        touch_msg.press = midi_msg_builder(this.data.mode_z);
+        touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
       }
     },
@@ -50,24 +45,24 @@ function path_factory() {
       this.data.segments = params.segments;
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.mode_z = status.type;
+      this.data.press = status.type;
     },
 
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["path-group"].data.touchs;
 
-      let previous_mode_z = this.data.mode_z;
-      this.data.mode_z = this.children["path-group"].data.mode_z;
+      let previous_mode_z = this.data.press;
+      this.data.press = this.children["path-group"].data.press;
 
       this.data.segments = this.children["path-group"].data.segments;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.mode_z != previous_mode_z) {
+        if (this.data.press != previous_mode_z) {
           touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
-          touch_msg.press = midi_msg_builder(this.data.mode_z);
+          touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
           if (_touch < previous_touch_count) {
@@ -75,7 +70,7 @@ function path_factory() {
           }
           else {
             touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
-            touch_msg.press = midi_msg_builder(this.data.mode_z);
+            touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
         this.data.msg.push(touch_msg);
@@ -111,28 +106,28 @@ function path_factory() {
 
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             previous_touch = current_touch;
             current_touch = _touch_group;
             break;
-          case THROUGH_MODE:
-            switch (_path.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NoteOn);
+          case MODE.THROUGH:
+            switch (_path.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -140,10 +135,10 @@ function path_factory() {
 
       _touch_circle.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             // N/A
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             // TODO: move the _touch_circle along the path
             // http://paperjs.org/reference/path/#getnearestpoint-point
             this.position = mouseEvent; // FIXME!
@@ -152,7 +147,7 @@ function path_factory() {
               send_midi_msg(_touch_group.msg.pos.midi);
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -166,11 +161,11 @@ function path_factory() {
     create: function () {
       let _path_group = new paper.Group({
         "name": "path-group",
-        "modes": this.modes,
+        "modes_z": this.modes_z,
         "data": {
           "touchs": this.data.touchs,
           "segments": this.data.segments,
-          "mode_z": this.data.mode_z
+          "press": this.data.press
         }
       });
 
@@ -196,19 +191,19 @@ function path_factory() {
       }
 
       _path_curve.onMouseEnter = function () {
-        if (e256_current_mode === EDIT_MODE) {
+        if (e256_current_mode === EDIT) {
           this.selected = true;
         }
       }
 
       _path_curve.onMouseLeave = function () {
-        if (e256_current_mode === EDIT_MODE) {
+        if (e256_current_mode === EDIT) {
             this.selected = false;
         }
       }
 
       _path_curve.onMouseDrag = function (mouseEvent) {
-        if (e256_current_mode === EDIT_MODE) {
+        if (e256_current_mode === EDIT) {
           if (current_part.type === "segment") {
             current_part.segment.point = mouseEvent.point;
             this.segments[current_part.segment.index].point = mouseEvent.point;
@@ -259,16 +254,16 @@ function path_factory() {
 
     onMouseDrag: function (mouseEvent) {
       switch (e256_current_mode) {
-        case EDIT_MODE:
+        case MODE.EDIT:
           if (current_part.type === "fill" || current_part.type === "stroke") {
             move_item(this, mouseEvent);
             update_item_main_params(this);
           }
           break;
-        case THROUGH_MODE:
+        case MODE.THROUGH:
           // N/A
           break;
-        case PLAY_MODE:
+        case MODE.PLAY:
           // N/A
           break;
       }

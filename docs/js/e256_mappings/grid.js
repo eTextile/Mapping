@@ -7,11 +7,11 @@
 /////////// GRID Factory
 // Multitouch MIDI grid GUI
 function grid_factory() {
-  const DEFAULT_GRID_WIDTH = 400;
-  const DEFAULT_GRID_HEIGHT = 400;
+  const DEFAULT_GRID_WIDTH = 450;
+  const DEFAULT_GRID_HEIGHT = 450;
   const DEFAULT_GRID_COLS = 4;
   const DEFAULT_GRID_ROWS = 4;
-  const DEFAULT_GRID_MODE_Z = NoteOn;
+  const DEFAULT_GRID_MODE_PRESS = MIDI.NOTE_ON;
   const GRID_MIN_SIZE = 30;
   
   let frame_width = null;
@@ -26,22 +26,18 @@ function grid_factory() {
 
   var _grid = new paper.Group({
     "name": "grid",
-    "modes": {
-      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
-      1: "ControlChange", // PRESSURE ONLY
-      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
-    },
     "data": {
       "from": null,
       "to": null,
       "cols": null,
       "rows": null,
-      "mode_z": null,
+      "press": null,
+      //"play_mode": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.mode_z = DEFAULT_GRID_MODE_Z;
+      this.data.press = DEFAULT_GRID_MODE_PRESS;
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_GRID_WIDTH / 2),
         mouseEvent.point.y - (DEFAULT_GRID_HEIGHT / 2)
@@ -57,7 +53,7 @@ function grid_factory() {
       current_key_count = this.data.cols * this.data.rows;
       for (let _key = 0; _key < current_key_count; _key++) {
         let key_msg = {};
-        touch_msg.press = midi_msg_builder(this.data.mode_z);
+        key_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(key_msg);
       }
     },
@@ -74,12 +70,12 @@ function grid_factory() {
       this.data.cols = params.cols;
       this.data.rows = params.rows;
       this.data.msg = params.msg;
-      this.data.mode_z = params.mode_z;
+      this.data.press = params.press;
     },
 
     save_params: function () {
-      let previous_mode_z = this.data.mode_z;
-      this.data.mode_z = this.children["grid-group"].data.mode_z;
+      let previous_press = this.data.press;
+      this.data.press = this.children["grid-group"].data.press;
 
       this.data.from = this.children["grid-group"].data.from;
       this.data.to = this.children["grid-group"].data.to;
@@ -92,15 +88,15 @@ function grid_factory() {
       this.data.msg = [];
       for (let _key = 0; _key < current_key_count; _key++) {
         let key_msg = {};
-        if (this.data.mode_z != previous_mode_z) {
-          touch_msg.press = midi_msg_builder(this.data.mode_z);
+        if (this.data.press != previous_press) {
+          key_msg.press = midi_msg_builder(this.data.press);
         }
         else {
           if (_key < previous_key_count) {
             key_msg.press = this.children["keys-group"].children[_key].msg.press;
           }
           else {
-            touch_msg.press = midi_msg_builder(this.data.mode_z);
+            touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
         this.data.msg.push(key_msg);
@@ -122,7 +118,7 @@ function grid_factory() {
           this.data.from.y + index_y * key_height + key_height
         ),
         "msg": this.data.msg[_key_id],
-        "prev_pos_z": null
+        "prev_press": null
       });
 
       let _key_frame = new paper.Path.Rectangle({
@@ -140,27 +136,27 @@ function grid_factory() {
       _key_frame.onMouseEnter = function () {
         this.style.fillColor = "orange";
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             // N/A
             break;
-          case THROUGH_MODE:
-            switch (_grid.data.mode_z) {
-              case NoteOn:
-                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status | NoteOn);
+          case MODE.THROUGH:
+            switch (_grid.data.press) {
+              case MIDI.NOTE_ON:
+                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status | MIDI.NOTE_ON);
                 _key_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _key_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _key_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -169,27 +165,27 @@ function grid_factory() {
       _key_frame.onMouseLeave = function () {
         this.style.fillColor = "pink";
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             // N/A
             break;
-          case THROUGH_MODE:
-            switch (_grid.data.mode_z) {
-              case NoteOn:
-                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status & NoteOff);
+          case MODE.THROUGH:
+            switch (_grid.data.press) {
+              case MIDI.NOTE_ON:
+                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status & MIDI.NOTE_OFF);
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -206,16 +202,21 @@ function grid_factory() {
       };
 
       /*
-      _key_frame.onMidiMsg = function (midiMsg) {
+      _key_frame.onMidiMsg = function (midi_msg) {
         // TODO
       };
       */
 
       _key_group.addChild(_key_frame);
 
+      //paper.project.layers.text.activate();
+
       let _key_txt = new paper.PointText({
         "name": "key-text",
-        "point": _key_frame.position,
+        "point": new paper.Point(
+          _key_frame.position.x - (key_width / 4),
+          _key_frame.position.y - (key_height / 4)
+        ),
         "content": midi_msg_as_txt(_key_group.msg.press),
         "locked": true
       });
@@ -225,6 +226,10 @@ function grid_factory() {
       };
 
       _key_group.addChild(_key_txt);
+
+      //paper.project.layers.grid.activate();
+      //paper.project.layers.text.bringToFront();
+
       return _key_group;
     },
 
@@ -236,13 +241,13 @@ function grid_factory() {
 
       let _grid_group = new paper.Group({
         "name": "grid-group",
-        "modes": this.modes,
+        "press": this.press,
         "data": {
           "from": this.data.from,
           "to": this.data.to,
           "cols": this.data.cols,
           "rows": this.data.rows,
-          "mode_z": this.data.mode_z
+          "press": this.data.press
         }
       });
 
@@ -266,22 +271,23 @@ function grid_factory() {
         "strokeColor": "lightGray",
         "strokeWidth": 15
       };
+      
       _grid_frame.onMouseEnter = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             this.selected = true;
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;
         }
       }
 
       _grid_frame.onMouseLeave = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             this.selected = false;
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;
         }
       }
@@ -293,7 +299,7 @@ function grid_factory() {
 
       _grid_frame.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             if (current_part.type === "bounds") {
               let newPos = new paper.Point();
               switch (current_part.name) {
@@ -386,7 +392,7 @@ function grid_factory() {
               update_item_main_params(_grid_group.parent);
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -398,13 +404,13 @@ function grid_factory() {
 
     onMouseDrag: function (mouseEvent) {
       switch (e256_current_mode) {
-        case EDIT_MODE:
+        case MODE.EDIT:
           if (current_part.type === "fill") {
             move_item(this, mouseEvent);
             update_item_main_params(this);
           }
           break;
-        case PLAY_MODE:
+        case MODE.PLAY:
           // N/A
           break;
       }

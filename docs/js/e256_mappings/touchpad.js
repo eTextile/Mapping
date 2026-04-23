@@ -11,9 +11,9 @@ function touchpad_factory() {
   const DEFAULT_PAD_TOUCH_MARGIN = 35;
   const DEFAULT_PAD_MIN_WIDTH = 100;
   const DEFAULT_PAD_MIN_HEIGHT = 100;
-  const DEFAULT_PAD_MODE_X = ControlChange;
-  const DEFAULT_PAD_MODE_Y = ControlChange;
-  const DEFAULT_PAD_MODE_Z = ControlChange;
+  const DEFAULT_PAD_MODE_X = MIDI.CONTROL_CHANGE;
+  const DEFAULT_PAD_MODE_Y = MIDI.CONTROL_CHANGE;
+  const DEFAULT_PAD_MODE_Z = MIDI.CONTROL_CHANGE;
   const DEFAULT_PAD_TOUCHS = 1;
  
   let current_frame_width = null;
@@ -23,22 +23,17 @@ function touchpad_factory() {
 
   var _touchpad = new paper.Group({
     "name": "touchpad",
-    "modes": {
-      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
-      1: "ControlChange", // PRESSURE ONLY
-      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
-    },
     "data": {
       "touchs": null,
       "from": null,
       "to": null,
-      "mode_z": null,
+      "press": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.touchs = DEFAULT_PAD_TOUCHS;
-      this.data.mode_z = DEFAULT_PAD_MODE_Z;
+      this.data.press = DEFAULT_PAD_MODE_Z;
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT_PAD_WIDTH / 2),
         mouseEvent.point.y - (DEFAULT_PAD_HEIGHT / 2)
@@ -52,7 +47,7 @@ function touchpad_factory() {
         let touch_msg = {};
         touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
         touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-        touch_msg.press = midi_msg_builder(this.data.mode_z);
+        touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
       }
     },
@@ -67,7 +62,7 @@ function touchpad_factory() {
         mapp(params.to[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
-      this.data.mode_z = params.mode_z;
+      this.data.press = params.press;
       this.data.msg = params.msg;
     },
 
@@ -75,8 +70,8 @@ function touchpad_factory() {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["pad-group"].data.touchs;
       
-      let previous_mode_z = this.data.mode_z;
-      this.data.mode_z = this.children["pad-group"].data.mode_z;
+      let previous_mode_z = this.data.press;
+      this.data.press = this.children["pad-group"].data.press;
 
       this.data.from = this.children["pad-group"].data.from;
       this.data.to = this.children["pad-group"].data.to;
@@ -84,10 +79,10 @@ function touchpad_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.mode_z != previous_mode_z) {
+        if (this.data.press != previous_mode_z) {
           touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
           touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-          touch_msg.press = midi_msg_builder(this.data.mode_z);
+          touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
           if (_touch < previous_touch_count) {
@@ -96,7 +91,7 @@ function touchpad_factory() {
           else {
             touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
             touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
-            touch_msg.press = midi_msg_builder(this.data.mode_z);
+            touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
         this.data.msg.push(touch_msg);
@@ -166,28 +161,28 @@ function touchpad_factory() {
 
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             previous_touch = current_touch;
             current_touch = _touch_group;
             break;
-          case THROUGH_MODE:
-            switch (_touchpad.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NoteOn);
+          case MODE.THROUGH:
+            switch (_touchpad.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -195,27 +190,27 @@ function touchpad_factory() {
       
       _touch_circle.onMouseUp = function () {        
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             // N/A
             break;
-          case THROUGH_MODE:
-            switch (_touchpad.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NoteOff);
+          case MODE.THROUGH:
+            switch (_touchpad.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -223,10 +218,10 @@ function touchpad_factory() {
 
       _touch_circle.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             // N/A
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             if (_touchpad.contains(mouseEvent.point)) {
               _touch_line_x.position.y = mouseEvent.point.y;
               _touch_line_y.position.x = mouseEvent.point.x
@@ -260,7 +255,7 @@ function touchpad_factory() {
               }
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -291,12 +286,12 @@ function touchpad_factory() {
 
       let _pad_group = new paper.Group({
         "name": "pad-group",
-        "modes": this.modes,
+        "modes_z": this.modes_z,
         "data": {
           "touchs": this.data.touchs,
           "from": this.data.from,
           "to": this.data.to,
-          "mode_z": this.data.mode_z
+          "press": this.data.press
         }
       });
 
@@ -320,24 +315,24 @@ function touchpad_factory() {
 
       _pad_frame.onMouseEnter = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             this.selected = true;
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;
         }
       }
 
       _pad_frame.onMouseLeave = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             this.selected = false;
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;
         }
       }
@@ -349,7 +344,7 @@ function touchpad_factory() {
 
       _pad_frame.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             if (current_part.type === "bounds") {
               let new_size = new paper.Point();
               let new_pos = new paper.Point();
@@ -459,7 +454,7 @@ function touchpad_factory() {
             }
             update_item_main_params(_pad_group.parent);
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -472,16 +467,16 @@ function touchpad_factory() {
 
     onMouseDrag: function (mouseEvent) {
       switch (e256_current_mode) {
-        case EDIT_MODE:
+        case MODE.EDIT:
           if (current_part.type === "fill") {
             move_item(this, mouseEvent);
             update_item_main_params(this);
           }
           break;
-        case THROUGH_MODE:
+        case MODE.THROUGH:
           // N/A
           break;
-        case PLAY_MODE:
+        case MODE.PLAY:
           // N/A
           break;
       }

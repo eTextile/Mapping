@@ -10,7 +10,7 @@ function switch_factory() {
   const DEFAULT_SWITCH_HEIGHT = canvas_height / SCALE_X;
   //const DEFAULT_SWITCH_MIN_SIZE = 50;
   const DEFAULT_SWITCH_TOUCHS = 1;
-  const DEFAULT_SWITCH_MODE_Z = NoteOn;
+  const DEFAULT_SWITCH_MODE_Z = MIDI.NOTE_ON;
   const DEFAULT_SWITCH_CHORD = 1;
   const DEFAULT_SWITCH_BUTTON_PADDING = 8;
 
@@ -22,17 +22,12 @@ function switch_factory() {
 
   var _switch = new paper.Group({
     "name": "switch",
-    "modes": {
-      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
-      1: "ControlChange", // PRESSURE ONLY
-      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
-    },
     "data": {
       "from": null,
       "to": null,
       "touchs": null,
       "chord": null,
-      "mode_z": null,
+      "press": null,
       "msg": null
     },
 
@@ -49,12 +44,12 @@ function switch_factory() {
       
       this.data.touchs = DEFAULT_SWITCH_TOUCHS;
       this.data.chord = DEFAULT_SWITCH_CHORD;
-      this.data.mode_z = DEFAULT_SWITCH_MODE_Z;
+      this.data.press = DEFAULT_SWITCH_MODE_Z;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.press = midi_msg_builder(this.data.mode_z);
+        touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
       }
     },
@@ -70,7 +65,7 @@ function switch_factory() {
       );
       this.data.touchs = params.touchs;
       this.data.chord = params.chord;
-      this.data.mode_z = params.mode_z;
+      this.data.press = params.press;
       this.data.msg = params.msg;
     },
 
@@ -84,21 +79,21 @@ function switch_factory() {
 
       this.data.chord = this.children["switch-group"].data.chord; // TESTING!
 
-      let previous_mode_z = this.data.mode_z;
-      this.data.mode_z = this.children["switch-group"].data.mode_z;
+      let previous_press = this.data.press;
+      this.data.press = this.children["switch-group"].data.press;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.mode_z != previous_mode_z) {
-          touch_msg.press = midi_msg_builder(this.data.mode_z);
+        if (this.data.press != previous_press) {
+          touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
           if (_touch < previous_touch_count) {
             touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            touch_msg.press = midi_msg_builder(this.data.mode_z);
+            touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
         this.data.msg.push(touch_msg);
@@ -133,29 +128,29 @@ function switch_factory() {
 
       _touch_ellipse.onMouseDown = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             previous_touch = current_touch;
             current_touch = _touch_group;
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             this.style.fillColor = "orange";
-            switch (_switch.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NoteOn);
+            switch (_switch.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -163,28 +158,28 @@ function switch_factory() {
 
       _touch_ellipse.onMouseUp = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             // N/A
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             this.style.fillColor = "pink";
-            switch (_switch.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NoteOff);
+            switch (_switch.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
               }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -193,7 +188,11 @@ function switch_factory() {
 
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
-        "point": _touch_group.pos,
+        //"point": _touch_group.pos,
+        "point": new paper.Point(
+          _touch_group.pos.x - (half_frame_width / 2),
+          _touch_group.pos.y - (half_frame_height / 3)
+        ),
         "content": midi_msg_as_txt(_touch_group.msg.press),
         "locked": true
       });
@@ -212,13 +211,12 @@ function switch_factory() {
 
       let _switch_group = new paper.Group({
         "name": "switch-group",
-        "modes": this.modes,
         "data": {
           "from": this.data.from,
           "to": this.data.to,
           "touchs": this.data.touchs,
           "chord": this.data.chord,
-          "mode_z": this.data.mode_z
+          "press": this.data.press
         }
       });
 
@@ -248,24 +246,24 @@ function switch_factory() {
 
       _switch_frame.onMouseEnter = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             this.selected = true;
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;
         }
       }
 
       _switch_frame.onMouseLeave = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             this.selected = false;
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;
         }
       }
@@ -277,7 +275,7 @@ function switch_factory() {
 
       _switch_frame.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             let new_pos = new paper.Point();
             if (current_part.type === "bounds") {
               switch (current_part.name) {
@@ -370,7 +368,7 @@ function switch_factory() {
             }
             update_item_main_params(_switch_group.parent);
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -383,13 +381,13 @@ function switch_factory() {
 
     onMouseDrag: function (mouseEvent) {
       switch (e256_current_mode) {
-        case EDIT_MODE:
+        case MODE.EDIT:
           if (current_part.type === "fill") {
             move_item(this, mouseEvent);
             update_item_main_params(this);
           }
           break;
-        case PLAY_MODE:
+        case MODE.PLAY:
           // N/A
           break;
       }

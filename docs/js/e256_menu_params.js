@@ -49,7 +49,9 @@ function create_item_main_params(item) {
     let part_param = document.createElement("div");
     part_param.className = "input-group";
     
-    if (item.data[param].constructor.name === "Point") {
+    /////////// POINT
+    //if (item.data[param].constructor.name === "Point") {
+    if (item.data[param] && item.data[param].constructor?.name === "Point") {
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
       span_param.textContent = param;
@@ -96,36 +98,45 @@ function create_item_main_params(item) {
       part_param.appendChild(midi_param_val_y);
     }
 
-    else if (param === "mode_z") { ///////////// MODE
-      // For details on the html form-select structure refer to
-      // https://getbootstrap.com/docs/5.0/forms/select/
-      // https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptionElement
-      let span_param = document.createElement("span");
-      span_param.className = "input-group-text";
-      span_param.textContent = param;
-      part_param.appendChild(span_param);
-
-      let params_list = document.createElement("select");
-      params_list.className = "form-select form-select-sm";
-      params_list.setAttribute("aria-label", ".form-select-sm select");
-      params_list.setAttribute("id", item.name + "_value_" + item.id);
-
-      for (const mode in item.modes) {
-        let _option = document.createElement("option");
-        _option.textContent = item.modes[mode];
-        if (MIDI_TYPES[item.data.mode_z] === item.modes[mode]) {
-          _option.defaultSelected = true;
-        }
-        params_list.appendChild(_option);
-      }
-
-      params_list.addEventListener("change", function (event) {
-        item.data.mode_z = eval(event.target.value);
-        //re_create_item(current_controleur); // Rebuild the MIDI message like #btnSet
+    else if (param === "move") {
+      const { span, select } = create_select_field({
+        param: "move",
+        source: MOVE,
+        item
       });
-
-      part_param.appendChild(params_list);
+      part_param.appendChild(span);
+      part_param.appendChild(select);
     }
+    else if (param === "press") {
+      const { span, select } = create_select_field({
+        param: "press",
+        source: PRESSURE,
+        item
+      });
+      part_param.appendChild(span);
+      part_param.appendChild(select);
+    }
+    else if (param === "populate") {
+      const { span, select } = create_select_field({
+        param: "populate",
+        source: POPULATE,
+        item
+      });
+      part_param.appendChild(span);
+      part_param.appendChild(select);
+    }
+    /*
+    else if (param === "chord") {
+      const { span, select } = create_select_field({
+        param: "chord",
+        source: CHORD_TYPES,
+        item
+      });
+      part_param.appendChild(span);
+      part_param.appendChild(select);
+    }
+    */
+   
     /*
     else if (param === "midilearn") {
       // For details on the buttons refer to
@@ -152,6 +163,7 @@ function create_item_main_params(item) {
       part_param.appendChild(button);
     }
     */
+
     else {
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
@@ -165,28 +177,59 @@ function create_item_main_params(item) {
       midi_param_val.setAttribute("aria-label", "Small");
       midi_param_val.setAttribute("aria-describedby", item.parent.id + "_" + param + "_atr");
 
-      midi_param_val.addEventListener("input", function (event) {
-        if (Number(event.target.value)) {
-          item.data[param] = event.target.value;
-        }
+      midi_param_val.addEventListener("input", (e) => {
+        item.data[param] = Number(e.target.value);
       });
-
       part_param.appendChild(midi_param_val);
     }
+
     part_params.appendChild(part_param);
   }
   return part_params;
 };
 
+function create_select_field({ param, source, item }) {
+  const span = document.createElement("span");
+  span.className = "input-group-text";
+  span.textContent = param;
+
+  const select = document.createElement("select");
+  select.className = "form-select form-select-sm";
+
+  const entries = Object.entries(source);
+
+  entries.forEach(([key, label]) => {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = label;
+
+    if (String(item.data[param]) === key) {
+      opt.selected = true;
+    }
+
+    select.appendChild(opt);
+  });
+
+  select.addEventListener("change", (e) => {
+    item.data[param] = Number(e.target.value);
+  });
+
+  return { span, select };
+}
+
+
 function update_item_main_params(item) {
   for (const part of item.children) {
     for (const param in part.data) {
-      if (part.data[param].constructor.name === "Point") {
-        $("#" + part.parent.id + "_" + param + "_val_x").val(round2(part.data[param].x));
+      //if (part.data[param].constructor.name === "Point") {
+      if (part.data?.[param]?.constructor?.name === "Point") {
+          $("#" + part.parent.id + "_" + param + "_val_x").val(round2(part.data[param].x));
         $("#" + part.parent.id + "_" + param + "_val_y").val(round2(part.data[param].y));
       }
       else {
-        $("#" + part.parent.id + "_" + param + "_val").val(round2(part.data[param]));
+        //$("#" + part.parent.id + "_" + param + "_val").val(round2(part.data[param]));
+        $("#" + part.parent.id + "_" + param + "_val").val(part.data[param]);
+        //console.log("VALUES: " + part.data[param])
       }
     }
   }
@@ -226,7 +269,7 @@ function create_item_touchs_menu_params(item) {
     let first_param_val = document.createElement("th");
     first_param_val.className = "align-middle text-center";
 
-    //first_param_val.textContent = MIDI_TYPES[status.type]; // Set MIDI message type
+    //first_param_val.textContent = MIDI[status.type]; // Set MIDI message type
     first_param_val.textContent = msg_type; // Set MIDI message name
     row_params_val_tr.appendChild(first_param_val);
 
@@ -292,7 +335,7 @@ function create_item_touchs_menu_params(item) {
         case "limit":
           for (const limit in item.msg[msg_type][param]) {
             let param_atr = document.createElement("th");
-            param_atr.setAttribute("id", item.id + "_" + MIDI_TYPES[status.type] + "_" + limit + "_atr");
+            param_atr.setAttribute("id", item.id + "_" + MIDI_BY_NAME[status.type] + "_" + limit + "_atr");
             param_atr.className = "align-middle text-center";
             param_atr.textContent = limit;
 
@@ -401,13 +444,13 @@ circular_buffer.prototype.push = function (midi_msg) {
 
   let status = midi_msg_status_unpack(midi_msg.status);
 
-  div_midi_msg.textContent = MIDI_TYPES[status.type] + " :\t[ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
+  div_midi_msg.textContent = MIDI_BY_NAME[status.type] + " :\t[ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
 
   switch (e256_current_mode) {
-    case THROUGH_MODE:
+    case MODE.THROUGH:
       div_midi_msg.style.color = 'white';
       break;
-    case PLAY_MODE:
+    case MODE.PLAY:
       div_midi_msg.style.color = 'lightGreen';
       break;
   }
@@ -452,9 +495,9 @@ function alert_msg(identifier, message, type) {
 
     setTimeout(
       function () {
-        const alert_timeout =bootstrap.Alert.getOrCreateInstance("#" + identifier);
+        const alert_timeout = bootstrap.Alert.getOrCreateInstance("#" + identifier);
         alert_timeout.close();
-    }, 4000);
+    }, 3500);
   }
 
 };

@@ -11,32 +11,27 @@ function knob_factory() {
   const DEFAULT_KNOB_RADIUS = 250;
   const DEFAULT_KNOB_OFFSET = -45;
   const DEFAULT_KNOB_MIN_SIZE = 30;
-  const DEFAULT_KNOB_MODE_R = ControlChange;
-  const DEFAULT_KNOB_MODE_T = ControlChange;
-  const DEFAULT_KNOB_MODE_Z = NoteOn;
+  const DEFAULT_KNOB_MODE_R = MIDI.CONTROL_CHANGE;
+  const DEFAULT_KNOB_MODE_T = MIDI.CONTROL_CHANGE;
+  const DEFAULT_KNOB_MODE_Z = MIDI.NOTE_ON;
 
   var _knob = new paper.Group({
     "name": "knob",
     "center": null,
     "radius": null,
     "theta": null,
-    "modes": {
-      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
-      1: "ControlChange", // PRESSURE ONLY
-      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
-    },
     "data": {
       "touchs": null,
       "from": null,
       "to": null,
       "offset": null,
-      "mode_z": null,
+      "press": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.touchs = DEFAULT_KNOB_TOUCHS;
-      this.data.mode_z = DEFAULT_KNOB_MODE_Z;
+      this.data.press = DEFAULT_KNOB_MODE_Z;
       this.radius = DEFAULT_KNOB_RADIUS;
       this.data.from = new paper.Point(
         mouseEvent.point.x - this.radius,
@@ -55,18 +50,18 @@ function knob_factory() {
         touch_msg = {};
         touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
         touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
-        touch_msg.press = midi_msg_builder(this.data.mode_z);
+        touch_msg.press = midi_msg_builder(this.data.press);
         /*
-        switch (this.data.mode_z) {
-          case NoteOn:
-            touch_msg.press = midi_msg_builder(NoteOn);
+        switch (this.data.press) {
+          case MIDI.NOTE_ON:
+            touch_msg.press = midi_msg_builder(MIDI.NOTE_ON);
             break;
-          case ControlChange:
-            touch_msg.press = midi_msg_builder(ControlChange);
+          case MIDI.CONTROL_CHANGE:
+            touch_msg.press = midi_msg_builder(MIDI.CONTROL_CHANGE);
             break;
-          case AfterTouchPoly:
-            touch_msg.press = midi_msg_builder(NoteOn);
-            touch_msg.press = midi_msg_builder(ControlChange);
+          case MIDI.AFTERTOUCH_POLY:
+            touch_msg.press = midi_msg_builder(MIDI.NOTE_ON);
+            touch_msg.press = midi_msg_builder(MIDI.CONTROL_CHANGE);
             break;
         }
         */
@@ -87,7 +82,7 @@ function knob_factory() {
       this.data.offset = params.offset;
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.mode_z = status.type;
+      this.data.press = status.type;
 
       this.radius = (this.data.to.x - this.data.from.x) / 2;
       this.center = new paper.Point(this.data.from.x + this.radius, this.data.from.y + this.radius);
@@ -97,8 +92,8 @@ function knob_factory() {
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["knob-group"].data.touchs;
-      let previous_mode_z = this.data.mode_z;
-      this.data.mode_z = this.children["knob-group"].data.mode_z;
+      let previous_mode_z = this.data.press;
+      this.data.press = this.children["knob-group"].data.press;
 
       this.data.from = this.children["knob-group"].data.from;
       this.data.to = this.children["knob-group"].data.to;
@@ -107,10 +102,10 @@ function knob_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.mode_z != previous_mode_z) {
+        if (this.data.press != previous_mode_z) {
           touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
           touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
-          touch_msg.press = midi_msg_builder(this.data.mode_z);
+          touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
           if (_touch < previous_touch_count) {
@@ -119,7 +114,7 @@ function knob_factory() {
           else {
             touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
             touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
-            touch_msg.press = midi_msg_builder(this.data.mode_z);
+            touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
         this.data.msg.push(touch_msg);
@@ -176,28 +171,28 @@ function knob_factory() {
 
       _knob_touch.onMouseDown = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             previous_touch = current_touch;
             current_touch = _touch_group;
             break;
-          case THROUGH_MODE:
-            switch (_knob.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NoteOn);
+          case MODE.THROUGH:
+            switch (_knob.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -205,26 +200,26 @@ function knob_factory() {
 
       _knob_touch.onMouseUp = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             break;
-          case THROUGH_MODE:
-            switch (_knob.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NoteOff);
+          case MODE.THROUGH:
+            switch (_knob.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -232,10 +227,10 @@ function knob_factory() {
 
       _knob_touch.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             // N/A
             break;
-          case THROUGH_MODE:
+          case MODE.THROUGH:
             let x = mouseEvent.point.x - _knob.center.x; // Place the x origin to the circle center
             let y = mouseEvent.point.y - _knob.center.y; // Place the y origin to the circle center
             let polar = cart_to_pol(x, y);
@@ -264,7 +259,7 @@ function knob_factory() {
               send_midi_msg(_touch_group.msg.theta.midi);
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;            
         }
       }
@@ -292,7 +287,7 @@ function knob_factory() {
 
       let _knob_group = new paper.Group({
         "name": "knob-group",
-        "modes": this.modes,
+        "modes_z": this.modes_z,
         "center": this.center,
         "radius": this.radius,
         "theta": this.theta,
@@ -301,7 +296,7 @@ function knob_factory() {
           "from": this.data.from,
           "to": this.data.to,
           "offset": this.data.offset,
-          "mode_z": this.data.mode_z
+          "press": this.data.press
         }
       });
 
@@ -327,14 +322,14 @@ function knob_factory() {
 
       _knob_circle.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             if (current_part.type === "fill") {
               move_item(_knob_group.parent, mouseEvent);
               _knob_group.center = this.position;
               update_item_main_params(_knob_group.parent);
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -354,7 +349,7 @@ function knob_factory() {
       _knob_offset.onMouseDrag = function (mouseEvent) {
 
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             _knob_group.theta = cart_to_pol(
               mouseEvent.point.x - _knob_group.center.x,
               mouseEvent.point.y - _knob_group.center.y
@@ -369,7 +364,7 @@ function knob_factory() {
             _knob_group.data.offset = rad_to_deg(_knob_group.theta);
             update_item_main_params(_knob_group.parent);
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -389,20 +384,20 @@ function knob_factory() {
 
       _knob_frame.onMouseEnter = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             this.selected = true;
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;
         }
       }
 
       _knob_frame.onMouseLeave = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             this.selected = false;
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             break;
         }
       }
@@ -412,7 +407,7 @@ function knob_factory() {
         let _knob_frame_whdth = null;
 
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             if (current_part.type === "bounds") {
               switch (current_part.name) {
                 case "top-left":
@@ -567,7 +562,7 @@ function knob_factory() {
               update_item_main_params(_knob_group.parent);
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             //TODO
             break;
         }

@@ -4,9 +4,11 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var e256_current_mode = PENDING_MODE;
+var e256_current_mode = MODE.PENDING;
+var e256_previous_mode = null;
 
 var e256_draw_mode = null;
+var e256_previous_draw_mode = null;
 
 console.log("PROJECT: " + PROJECT);
 console.log("NAME: " + NAME + ": " + VERSION);
@@ -32,15 +34,14 @@ $("#connect_switch").on ("change",
   }
 );
 
-$(".e256_setMode").click (
+$(".e256_set_mode").click (
   function (event) {
     e256_previous_mode = e256_current_mode;
-    e256_current_mode = eval(event.target.id);
+    e256_current_mode = MODE[event.target.id];
     if (midi_device_connected) {
       if(e256_current_mode != e256_previous_mode) {
         send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
         if (DEBUG) console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
-        //alert_msg("request_" + MODE_CODES[e256_current_mode], "REQUEST_" + MODE_CODES[e256_current_mode], "warning");
       }
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
@@ -50,8 +51,9 @@ $(".e256_setMode").click (
 
 $(".mapingTool").click (
   function (event) {
-    //e256_last_draw_mode = e256_draw_mode; ///////////////////////////////// FIXME!
+    e256_previous_draw_mode = e256_draw_mode; ///////////////////////////////// FIXME!
     e256_draw_mode = event.target.id;
+    
     switch (e256_draw_mode) {
       case "path":
         hit_options = hit_options_B;
@@ -70,8 +72,8 @@ $(".mapingTool").click (
 $("#uploadConfig").click (
   function () {
     if (midi_device_connected) {
-      send_midi_msg(new program_change(MIDI_MODES_CHANNEL, ALLOCATE_MODE));
-      if (DEBUG) console.log("REQUEST: ALLOCATE_MODE");
+      send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.ALLOCATE_CONFIG));
+      if (DEBUG) console.log("REQUEST: ALLOCATE CONFIG");
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
@@ -83,16 +85,15 @@ $("#saveConfig").click (
     e256_export_params();
     console.log(JSON.stringify(e256_config));
     var file = new File([JSON.stringify(e256_config)], { type: "text/plain;charset=utf-8" });
-    // TODO: add file name!
-    saveAs(file, "e256_mapping.json");
+    saveAs(file, "e256_mapping.json");  // TODO: add file name!
   }
 );
 
 $("#fetchConfig").click (
   function () {
     if (midi_device_connected) {
-      send_midi_msg(new program_change(MIDI_MODES_CHANNEL, LOAD_MODE));
-      if (DEBUG) console.log("REQUEST: LOAD_MODE");
+      send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.LOAD_CONFIG));
+      if (DEBUG) console.log("REQUEST: LOAD CONFIG");
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
@@ -100,7 +101,7 @@ $("#fetchConfig").click (
 );
 
 // Update graphic item using form params
-$("#btnSet").click (
+$("#btn_set").click (
   function () {
     re_create_item(current_controleur);
   }

@@ -12,27 +12,22 @@ function polygon_factory() {
   const DEFAULT_POLYGON_SIZE = 300;
   const DEFAULT_POLYGON_STROKE_WIDTH = 10;
   const DEFAULT_POLYGON_TOUCHS = 1;
-  const DEFAULT_POLYGON_MODE_DIST = ControlChange;
-  const DEFAULT_POLYGON_MODE_Z = NoteOn;
+  const DEFAULT_POLYGON_MODE_DIST = MIDI.CONTROL_CHANGE;
+  const DEFAULT_POLYGON_MODE_Z = MIDI.NOTE_ON;
 
   var _polygon = new paper.Group({
     "name": "polygon",
-    "modes": {
-      0: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
-      1: "ControlChange", // PRESSURE ONLY
-      2: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
-    },
     "data": {
       "touchs": null,
       "segments": null,
-      "mode_z": null,
+      "press": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
 
       this.data.touchs = DEFAULT_POLYGON_TOUCHS;
-      this.data.mode_z = DEFAULT_POLYGON_MODE_Z;
+      this.data.press = DEFAULT_POLYGON_MODE_Z;
 
       let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT_POLYGON_SIDES, DEFAULT_POLYGON_SIZE).segments;
       this.data.segments = polygon.map(s => [s.point]);
@@ -44,7 +39,7 @@ function polygon_factory() {
           const key = "source_"+ vertex_index;
           touch_msg[key] = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
         }
-        touch_msg.press = midi_msg_builder(this.data.mode_z);
+        touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
         console.log("touch_msg_" + touch_index + ": " + JSON.stringify(touch_msg));
       }
@@ -55,26 +50,26 @@ function polygon_factory() {
       this.data.segments = params.segments;
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.mode_z = status.type;
+      this.data.press = status.type;
     },
 
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["polygon-group"].data.touchs;
 
-      let previous_mode_z = this.data.mode_z;
-      this.data.mode_z = this.children["polygon-group"].data.mode_z;
+      let previous_mode_z = this.data.press;
+      this.data.press = this.children["polygon-group"].data.press;
 
       this.data.segments = this.children["polygon-group"].data.segments;
       this.data.msg = [];
 
       for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
         let touch_msg = {};
-        if (this.data.mode_z != previous_mode_z) {
+        if (this.data.press != previous_mode_z) {
           for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
-            touch_msg["source_" + vertex_index] = midi_msg_builder(this.data.mode_z);
+            touch_msg["source_" + vertex_index] = midi_msg_builder(this.data.press);
           }
-          touch_msg.press = midi_msg_builder(this.data.mode_z);
+          touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
           if (touch_index < previous_touch_count) {
@@ -82,9 +77,9 @@ function polygon_factory() {
           }
           else {
             for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
-              touch_msg["source_" + vertex_index] = midi_msg_builder(this.data.mode_z);
+              touch_msg["source_" + vertex_index] = midi_msg_builder(this.data.press);
             }
-            touch_msg.press = midi_msg_builder(this.data.mode_z);
+            touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
         this.data.msg.push(touch_msg);
@@ -110,7 +105,7 @@ function polygon_factory() {
       let _touch_circle = new paper.Path.Circle({
         "name": "touch-circle",
         "center": _touch_group.pos,
-        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure! (PLAY_MODE)
+        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure! (PLAY)
       });
 
       _touch_circle.style = {
@@ -127,28 +122,28 @@ function polygon_factory() {
 
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             previous_touch = current_touch;
             current_touch = _touch_group;
             break;
-          case THROUGH_MODE:
-            switch (_polygon.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | NoteOn);
+          case MODE.THROUGH:
+            switch (_polygon.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -156,27 +151,27 @@ function polygon_factory() {
       
       _touch_circle.onMouseUp = function () {        
         switch (e256_current_mode) {
-          case EDIT_MODE:
+          case MODE.EDIT:
             // N/A
             break;
-          case THROUGH_MODE:
-            switch (_polygon.data.mode_z) {
-              case NoteOn:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & NoteOff);
+          case MODE.THROUGH:
+            switch (_polygon.data.press) {
+              case MIDI.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case ControlChange:
+              case MIDI.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case AfterTouchPoly:
+              case MIDI.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
             }
             break;
-          case PLAY_MODE:
+          case MODE.PLAY:
             // N/A
             break;
         }
@@ -184,7 +179,7 @@ function polygon_factory() {
 
       _touch_circle.onMouseDrag = function (mouseEvent) {
 
-        if (e256_current_mode === THROUGH_MODE) {
+        if (e256_current_mode === MODE.THROUGH) {
           // Check if new center is inside polygon
           if (_polygon.contains(mouseEvent.point)) {
             _touch_circle.position = mouseEvent.point;
@@ -255,11 +250,11 @@ function polygon_factory() {
     create: function () {
       let _polygon_group = new paper.Group({
         "name": "polygon-group",
-        "modes": this.modes,
+        "modes_z": this.modes_z,
         "data": {
           "touchs": this.data.touchs,
           "segments": this.data.segments,
-          "mode_z": this.data.mode_z
+          "press": this.data.press
         }
       });
       
@@ -285,20 +280,20 @@ function polygon_factory() {
       }
 
       _polygon_curve.onMouseEnter = function () {
-        if (e256_current_mode === EDIT_MODE) {
+        if (e256_current_mode === EDIT) {
           this.selected = true;
         }
       }
 
       _polygon_curve.onMouseLeave = function () {
-        if (e256_current_mode === EDIT_MODE) {
+        if (e256_current_mode === EDIT) {
           this.selected = false;
         }
       }
 
       _polygon_curve.onMouseDown = function (mouseEvent) {
 
-        if (e256_current_mode === EDIT_MODE) {
+        if (e256_current_mode === EDIT) {
           console.log("polygon_2: " + _polygon.data.segments);
           current_part = this;
           console.log("current_part: " + JSON.stringify(current_part));
@@ -310,7 +305,7 @@ function polygon_factory() {
       }
 
       _polygon_curve.onMouseDrag = function (mouseEvent) {
-        if (e256_current_mode === EDIT_MODE) {          
+        if (e256_current_mode === EDIT) {          
           if (current_part.type === "segment") {
             current_part.segment.point = mouseEvent.point;
             this.segments[current_part.segment.index].point = mouseEvent.point;
@@ -336,7 +331,7 @@ function polygon_factory() {
     },
 
     onMouseDrag: function (mouseEvent) {
-      if (e256_current_mode === EDIT_MODE) {
+      if (e256_current_mode === EDIT) {
         if (current_part.type === "fill") {
           move_item(this, mouseEvent);
           update_item_main_params(this);

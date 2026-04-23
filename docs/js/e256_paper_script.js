@@ -37,6 +37,8 @@ new paper.Layer({ project: paper.project, name: "grid", insert: true }); // TO R
 new paper.Layer({ project: paper.project, name: "path", insert: true });
 new paper.Layer({ project: paper.project, name: "polygon", insert: true});
 
+//new paper.Layer({ project: paper.project, name: "text", insert: true});
+
 var paper_tool = new paper.Tool();
 
 let hit_options_A = {
@@ -66,7 +68,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
   //console.log("draw_mode: " + e256_draw_mode);
   //console.log("hit_test: " + current_part);
 
-  if (e256_current_mode === EDIT_MODE) {
+  if (e256_current_mode === MODE.EDIT) {
     if (e256_draw_mode) {
       if (!current_part) { // Create_ctl if cliking any umpty screen space
         if (!create_once) { // Check if the controleur needs to be draw with more that one clic
@@ -84,7 +86,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
           current_item = current_item.parent;
         }
 
-        if (DEBUG) console.log("CTR_CUR: " + current_controleur.id + " PREV: " + previous_controleur.id);
+        if (DEBUG) console.log("CUR_CTR_ID: " + current_controleur.id + " PREV_CTR_ID: " + previous_controleur.id);
         e256_draw_mode = current_controleur.name;
 
         if (e256_draw_mode === "polygon" || e256_draw_mode === "path") {
@@ -124,7 +126,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
 }
 
 paper_tool.onKeyDown = function (keyEvent) {
-  if (e256_current_mode === EDIT_MODE) {
+  if (e256_current_mode === MODE.EDIT) {
     if (keyEvent.modifiers.shift) {
       switch (keyEvent.key) {
         case "backspace":

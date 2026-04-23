@@ -38,12 +38,12 @@ function blob_factory() {
       let _blob_centroid = new paper.Shape.Ellipse({
         "name": "blob-centroid",
         "center": null,
-        "radius": null
+        "radius": null,
+        "locked": true
       });
 
       _blob_centroid.style = {
         "fillColor": null,
-        "locked": true
       }
       _blob_group.addChild(_blob_centroid);
 
@@ -51,12 +51,12 @@ function blob_factory() {
         "name": "blob-txt",
         "point": null,
         "content": sysExMsg[BLOB_UID_INDEX],
+        "locked": true
       });
 
       _blob_txt.style = {
         "fillColor": "black",
-        "fontSize": FONT_SIZE / 1.5,
-        "locked": true
+        "fontSize": FONT_SIZE / 1.5
       };
       _blob_group.addChild(_blob_txt);
 
@@ -77,7 +77,7 @@ function blob_factory() {
       _blob_group.addChild(_blob_path);
       */
 
-
+      /*
       let _blob_rect = new paper.Path.Rectangle({
         "name": "blob-box",
         "point": null,
@@ -90,6 +90,7 @@ function blob_factory() {
         //"locked": true
       }
       _blob_group.addChild(_blob_rect);
+      */
 
       this.addChild(_blob_group);
     },
@@ -103,10 +104,12 @@ function blob_factory() {
     },
     
     relesed: function () {
-      this.removeChildren();
+      //this.removeChildren();
+      this.remove();
     },
 
     update: function (sysExMsg) {
+      this.children["blob-group"].children["blob-centroid"].style.fillColor = 'green';
 
       let centroid = new paper.Point(
         mapp((sysExMsg[BLOB_X_CENTROID_WHOLE_PART_INDEX] + (sysExMsg[BLOB_X_CENTROID_FRACTIONAL_PART_INDEX] / 100)), 0, NEW_COLS, 0, canvas_width),
@@ -120,9 +123,11 @@ function blob_factory() {
       let blob_height = Math.round(mapp(sysExMsg[BLOB_HEIGHT_INDEX], 0, NEW_ROWS, 0, canvas_height));
       
       // FIXME: boxe is not visible
+      /*
       let size = new paper.Size(blob_width, blob_height);
       this.children["blob-group"].children["blob-box"].point = centroid;
       this.children["blob-group"].children["blob-box"].size = size;
+      */
 
       this.children["blob-group"].children["blob-txt"].position = centroid;
       this.children["blob-group"].children["blob-txt"].content = 
@@ -169,12 +174,12 @@ function blobs_factory() {
         }
         else if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_PRESENT && sysExMsg[BLOB_LAST_STATUS_INDEX] === BLOB_MISSING) {
           this.blobs_array[index].present();
-          //console.log("BLOB_IS_BACK: " + sysExMsg[BLOB_UID_INDEX]);
+          //console.log("BLOB_IS_BMODE_ACK: " + sysExMsg[BLOB_UID_INDEX]);
         }
         else if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_FREE) {
           this.blobs_array[index].relesed();
           this.blobs_array.splice(index, 1);
-          //console.log("BLOB_SI_FREE: " + sysExMsg[BLOB_UID_INDEX]);
+          //console.log("BLOB_IS_FREE: " + sysExMsg[BLOB_UID_INDEX]);
         }
         else {
           this.blobs_array[index].update(sysExMsg);
