@@ -1,32 +1,86 @@
-# Mapping Toolkit web app
-### This web app is made for combining graphic & audio modules built inside the eTextile-Synthesizer.
+# eTextile-Synthesizer — Mapping Toolkit
 
-This **Mapping Toolkit** is made to create the mapping between the textile graphic patterns and the builtin audio-synthesizer or any external MIDI device. It offers a library of geometric shapes which are tactile input controls like sliders, switches, etc.
+A browser-based application to configure tactile mapping on the **e256** matrix sensor. It lets you draw control zones directly over the sensor's pressure field, assign MIDI messages to each zone, and upload the configuration to the device — all over USB MIDI.
 
-Starting from the textile design paterns placed on top of the matrix sensor, this application is using the sensor values to define and adjust the tactile input controls in relation with the textile graphic patterns.
+**Live app:** https://mapping.etextile.org/ *(requires Chrome)*  
+**Version:** 1.0.26  
+**License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
-## Web Application
+---
 
-    https://mapping.etextile.org/ (load using chrome!)
+## Overview
 
-## Functionalities
+The e256 is a 16×16 resistive textile matrix. This app connects to it via the Web MIDI API and provides three main views:
 
-- Create custom graphic user interface for the eTextile-Synthesizer
-  - Add graphics components with interactive bihavious.
-  - Define the MIDI commands (notes, channels, etc.) for each graphic components according to the built in or external MIDI synthesizer.
-- Upload your created GUI and MIDI parameters to the eTextile-Synthesizer.
-- If you are satisfied, save it to the eTextile-Synthesizer permanent memory.
+| Mode | Description |
+|------|-------------|
+| **MATRIX** | Live 3D visualisation of raw sensor pressure values |
+| **CALIBRATE** | Adjust sensor baseline |
+| **MAPPING** | Draw and configure tactile controls over the sensor surface |
+
+Within **MAPPING** mode, three sub-modes are available:
+
+- **EDIT** — place and adjust control zones, set their MIDI parameters
+- **THROUGH** — pass raw blob data through as MIDI without any mapping
+- **PLAY** — run the current mapping live
+
+---
+
+## Control types
+
+| Control | Description |
+|---------|-------------|
+| **Touchpad** | Free XY pressure surface |
+| **Slider** | Linear fader (horizontal or vertical) |
+| **Knob** | Circular rotary control |
+| **Switch** | Binary on/off toggle |
+| **Grid** | Note grid (polyphonic pad layout) |
+| **Path** | Freeform path control |
+| **Polygon** | Custom polygon zone |
+
+Each control can be assigned any standard MIDI message type: Note On/Off, Control Change, Program Change, Poly Aftertouch, Channel Aftertouch, or Pitch Bend.
+
+---
+
+## MIDI features
+
+- **Pressure modes:** NoteOn (velocity), ControlChange (pressure only), AfterTouchPoly (note + modulation)
+- **Movement curves:** Linear, Logarithmic, Roller
+- **Grid populate modes:** Off, Up, Down, As Played, Octave, Ping-Pong
+- **SysEx:** used for fetching and uploading the full configuration blob
+- **Config channels:** levels (ch 3), modes (ch 4), verbosity (ch 5), errors (ch 6)
+
+---
+
+## Workflow
+
+1. Connect the e256 to your computer via USB.
+2. Open the app in Chrome and click **CONNECT**.
+3. Select **MATRIX** to verify the sensor is reading correctly.
+4. Switch to **MAPPING → EDIT** to design your control layout.
+5. Add controls from the toolbar (Touchpad, Slider, Knob, Switch, Grid, Path, Polygon).
+6. For each control, set the MIDI message type, channel, note/CC, min/max values, and pressure mode in the right panel, then click **SET PARAMS**.
+7. Click **UPLOAD CONFIG** to send the mapping to the device.
+8. Click **SAVE CONFIG** to write it to the e256's flash memory permanently.
+9. Use **FETCH CONFIG** to retrieve the current configuration stored on the device.
+
+---
+
+## Technical stack
+
+| Role | Library |
+|------|---------|
+| UI framework | [Bootstrap 5](https://getbootstrap.com/) |
+| 2D mapping canvas | [Paper.js](http://paperjs.org/) |
+| 3D sensor visualisation | [Three.js](https://threejs.org/) |
+| MIDI I/O | [Web MIDI API](https://www.w3.org/TR/webmidi/) |
+
+---
 
 ## Repository
 
-    https://github.com/eTextile/Mapping
+https://github.com/eTextile/Mapping
 
-## Technicals specifications
+## Hardware
 
-The eTextile-Synthesizer web-app is using following frameworks:
-- CSS Framework: https://getbootstrap.com/
-- 2D graphic interface: http://paperjs.org/
-- 3D visualisation: https://threejs.org/
-- MIDI communication: https://www.w3.org/TR/webmidi/
-
-## TODO
+https://github.com/eTextile/Synth — e256 Teensy 4.0 firmware and hardware files
