@@ -13,10 +13,10 @@ function slider_factory() {
   const DEFAULT_SLIDER_MIN_HEIGHT = 100;
   const DEFAULT_SLIDER_TOUCHS = 1;
   const DEFAULT_SLIDER_MODE_POS = MIDI.CONTROL_CHANGE;
-  const DEFAULT_SLIDER_MODE_MOVE = MOVE.LIN;
+  const DEFAULT_SLIDER_MODE_MOVE = MOVE_CODES.LIN;
   const DEFAULT_SLIDER_MODE_PRESS = MIDI.NOTE_ON;
-  const DEFAULT_SLIDER_POPULATE = POPULATE.OFF;
-  const DEFAULT_SLIDER_STEPS = 0;
+  const DEFAULT_SLIDER_POPULATE = POPULATE_CODES.OFF;
+  const DEFAULT_SLIDER_STEPS = 20;
 
   const DEFAULT_SLIDER_DIR = "V_SLIDER";
 
@@ -65,8 +65,10 @@ function slider_factory() {
     },
 
     setup_from_config: function (params) {
-      this.data.touchs = params.touchs;
-      // TODO: add steps & populate
+      this.data.touchs = params.touchs || 0;
+      this.data.steps = params.steps || 0;
+      this.data.move = params.move ?? MOVE_CODES.LIN;
+      this.data.populate = params.populate || 0;
       this.data.from = new paper.Point(
         mapp(params.from[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.from[1], 0, NEW_ROWS, 0, canvas_height)
@@ -130,8 +132,18 @@ function slider_factory() {
         "name": "touch-" + _touch_id,
         "msg": this.data.msg[_touch_id],
         "pos": null,
-        "prev_pos": null
+        "prev_pos": null,
+        "current_step": -1
       });
+
+      function get_step_idx(point) {
+        let frame = _slider.children["slider-frame"];
+        let steps = _slider.data.steps;
+        let idx = (_slider.dir === "V_SLIDER")
+          ? Math.floor(mapp(point.y, frame.bounds.top, frame.bounds.bottom, 0, steps))
+          : Math.floor(mapp(point.x, frame.bounds.left, frame.bounds.right, 0, steps));
+        return Math.max(0, Math.min(steps - 1, idx));
+      }
 
       let _touch_line = new paper.Path.Line({
         "name": "touch-line",
@@ -140,23 +152,21 @@ function slider_factory() {
         "locked": true
       });
 
-      switch (this.dir) {
-        case "V_SLIDER":
-          _touch_group.pos = new paper.Point(
-            this.data.from.x + ((this.data.to.x - this.data.from.x) / 2),
-            get_random_int(this.data.from.y + 10, this.data.to.y - 10)
-          );
-          _touch_line.segments[0].point = new paper.Point(this.data.from.x, _touch_group.pos.y);
-          _touch_line.segments[1].point = new paper.Point(this.data.to.x, _touch_group.pos.y);
-          break;
-        case "H_SLIDER":
-          _touch_group.pos = new paper.Point(
-            get_random_int(this.data.from.x + 10, this.data.to.x - 10),
-            this.data.from.y + ((this.data.to.y - this.data.from.y) / 2)
-          );
-          _touch_line.segments[0].point = new paper.Point(_touch_group.pos.x, this.data.from.y);
-          _touch_line.segments[1].point = new paper.Point(_touch_group.pos.x, this.data.to.y);
-          break;
+      if (this.dir === "V_SLIDER") {
+        _touch_group.pos = new paper.Point(
+          this.data.from.x + ((this.data.to.x - this.data.from.x) / 2),
+          get_random_int(this.data.from.y + 10, this.data.to.y - 10)
+        );
+        _touch_line.segments[0].point = new paper.Point(this.data.from.x, _touch_group.pos.y);
+        _touch_line.segments[1].point = new paper.Point(this.data.to.x, _touch_group.pos.y);
+      }
+      else { // H_SLIDER
+        _touch_group.pos = new paper.Point(
+          get_random_int(this.data.from.x + 10, this.data.to.x - 10),
+          this.data.from.y + ((this.data.to.y - this.data.from.y) / 2)
+        );
+        _touch_line.segments[0].point = new paper.Point(_touch_group.pos.x, this.data.from.y);
+        _touch_line.segments[1].point = new paper.Point(_touch_group.pos.x, this.data.to.y);
       }
 
       _touch_line.style = {
@@ -192,20 +202,31 @@ function slider_factory() {
             current_touch = _touch_group;
             break;
           case MODE.THROUGH:
-            switch (_slider.data.press) {
-              case MIDI.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
-                _touch_group.msg.press.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI.CONTROL_CHANGE:
+            if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
+              let step_idx = get_step_idx(_touch_circle.position);
+              _touch_group.current_step = step_idx;
+              let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
+              send_midi_msg(note_on(chan, 60 + step_idx, 127));
+              if (_slider.data.press === MIDI.CONTROL_CHANGE || _slider.data.press === MIDI.AFTERTOUCH_POLY) {
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
+              }
+            } else {
+              switch (_slider.data.press) {
+                case MIDI.NOTE_ON:
+                  _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
+                  _touch_group.msg.press.midi.data2 = 127;
+                  send_midi_msg(_touch_group.msg.press.midi);
+                  break;
+                case MIDI.CONTROL_CHANGE:
+                  _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
+                  send_midi_msg(_touch_group.msg.press.midi);
+                  break;
+                case MIDI.AFTERTOUCH_POLY:
+                  _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
+                  send_midi_msg(_touch_group.msg.press.midi);
+                  break;
+              }
             }
             break;
           case MODE.PLAY:
@@ -219,20 +240,32 @@ function slider_factory() {
           case MODE.EDIT:
             break;
           case MODE.THROUGH:
-            switch (_slider.data.press) {
-              case MIDI.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
+            if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
+              if (_touch_group.current_step >= 0) {
+                let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
+                send_midi_msg(note_off(chan, 60 + _touch_group.current_step, 0));
+                _touch_group.current_step = -1;
+              }
+              if (_slider.data.press === MIDI.CONTROL_CHANGE || _slider.data.press === MIDI.AFTERTOUCH_POLY) {
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI.CONTROL_CHANGE:
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
+              }
+            } else {
+              switch (_slider.data.press) {
+                case MIDI.NOTE_ON:
+                  _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
+                  _touch_group.msg.press.midi.data2 = 0;
+                  send_midi_msg(_touch_group.msg.press.midi);
+                  break;
+                case MIDI.CONTROL_CHANGE:
+                  _touch_group.msg.press.midi.data2 = 0;
+                  send_midi_msg(_touch_group.msg.press.midi);
+                  break;
+                case MIDI.AFTERTOUCH_POLY:
+                  _touch_group.msg.press.midi.data2 = 0;
+                  send_midi_msg(_touch_group.msg.press.midi);
+                  break;
+              }
             }
             break;
           case MODE.PLAY:
@@ -244,38 +277,48 @@ function slider_factory() {
       _touch_circle.onMouseDrag = function (mouseEvent) {
         if (e256_current_mode === MODE.THROUGH) {
           if (_slider.contains(mouseEvent.point)) {
-            switch (_slider.dir) {
-              case "V_SLIDER":
-                _touch_line.position.y = mouseEvent.point.y;
-                _touch_circle.position.y = mouseEvent.point.y;
-                _touch_txt.position.y = mouseEvent.point.y;
-                _touch_group.msg.pos.midi.data2 = Math.round (
-                  mapp(mouseEvent.point.y,
-                    _slider.children["slider-frame"].bounds.top,
-                    _slider.children["slider-frame"].bounds.bottom,
-                    _touch_group.msg.pos.limit.min,
-                    _touch_group.msg.pos.limit.max
-                  )
-                );
-                break;
-              case "H_SLIDER":
-                _touch_line.position.x = mouseEvent.point.x;
-                _touch_circle.position.x = mouseEvent.point.x;
-                _touch_txt.position.x = mouseEvent.point.x;
-                _touch_group.msg.pos.midi.data2 = Math.round (
-                  mapp(mouseEvent.point.x,
-                    _slider.children["slider-frame"].bounds.left,
-                    _slider.children["slider-frame"].bounds.right,
-                    _touch_group.msg.pos.limit.min,
-                    _touch_group.msg.pos.limit.max
-                  )
-                );
-              break;
+            if (_slider.dir === "V_SLIDER") {
+              _touch_line.position.y = mouseEvent.point.y;
+              _touch_circle.position.y = mouseEvent.point.y;
+              _touch_txt.position.y = mouseEvent.point.y;
+              _touch_group.msg.pos.midi.data2 = Math.round(
+                mapp(mouseEvent.point.y,
+                  _slider.children["slider-frame"].bounds.top,
+                  _slider.children["slider-frame"].bounds.bottom,
+                  _touch_group.msg.pos.limit.min,
+                  _touch_group.msg.pos.limit.max
+                )
+              );
             }
-          }
-          if (_touch_group.msg.pos.midi.data2 != _touch_group.prev_pos) {
-            _touch_group.prev_pos = _touch_group.msg.pos.midi.data2;
-            send_midi_msg(_touch_group.msg.pos.midi);
+            else { // "H_SLIDER":
+              _touch_line.position.x = mouseEvent.point.x;
+              _touch_circle.position.x = mouseEvent.point.x;
+              _touch_txt.position.x = mouseEvent.point.x;
+              _touch_group.msg.pos.midi.data2 = Math.round(
+                mapp(mouseEvent.point.x,
+                  _slider.children["slider-frame"].bounds.left,
+                  _slider.children["slider-frame"].bounds.right,
+                  _touch_group.msg.pos.limit.min,
+                  _touch_group.msg.pos.limit.max
+                )
+              );
+            }
+            if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
+              let new_step = get_step_idx(mouseEvent.point);
+              if (new_step !== _touch_group.current_step) {
+                let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
+                if (_touch_group.current_step >= 0) {
+                  send_midi_msg(note_off(chan, 60 + _touch_group.current_step, 0));
+                }
+                _touch_group.current_step = new_step;
+                send_midi_msg(note_on(chan, 60 + new_step, 127));
+              }
+            } else {
+              if (_touch_group.msg.pos.midi.data2 != _touch_group.prev_pos) {
+                _touch_group.prev_pos = _touch_group.msg.pos.midi.data2;
+                send_midi_msg(_touch_group.msg.pos.midi);
+              }
+            }
           }
         }
       }
@@ -485,12 +528,40 @@ function slider_factory() {
                 break;
             }
             update_item_main_params(_slider_group.parent);
+            redraw_steps();
           }
         }
       }
 
       _slider_group.addChild(_slider_frame);
-      
+
+      function redraw_steps() {
+        let existing = _slider_group.children["steps-group"];
+        if (existing) existing.remove();
+        let steps = _slider_group.data.steps;
+        if (_slider_group.data.move !== MOVE_CODES.ROL || !steps || steps < 2) return;
+        let b = _slider_frame.bounds;
+        let _steps_group = new paper.Group({ "name": "steps-group" });
+        for (let i = 0; i < steps; i++) {
+          let t = i / steps;
+          let line = (_slider_group.dir === "V_SLIDER")
+            ? new paper.Path.Line(
+                new paper.Point(b.left,  b.top + t * b.height),
+                new paper.Point(b.right, b.top + t * b.height))
+            : new paper.Path.Line(
+                new paper.Point(b.left + t * b.width, b.top),
+                new paper.Point(b.left + t * b.width, b.bottom));
+          line.strokeColor = "#606060";
+          line.strokeWidth = 1;
+          _steps_group.addChild(line);
+        }
+        _steps_group.locked = true;
+        _slider_group.insertChild(1, _steps_group);
+        paper.view.update();
+      }
+      _slider_group.redraw_steps = redraw_steps;
+      redraw_steps();
+
       this.addChild(_slider_group);
       this.addChild(_touchs_group);
     },
