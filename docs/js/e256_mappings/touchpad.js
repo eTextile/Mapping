@@ -13,7 +13,7 @@ function touchpad_factory() {
   const DEFAULT_PAD_MIN_HEIGHT = 100;
   const DEFAULT_PAD_MODE_X = MIDI.CONTROL_CHANGE;
   const DEFAULT_PAD_MODE_Y = MIDI.CONTROL_CHANGE;
-  const DEFAULT_PAD_MODE_Z = MIDI.CONTROL_CHANGE;
+  const DEFAULT_PAD_MODE_Z = MIDI.NOTE_ON;
   const DEFAULT_PAD_TOUCHS = 1;
  
   let current_frame_width = null;
