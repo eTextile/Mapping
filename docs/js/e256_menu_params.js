@@ -48,7 +48,11 @@ function create_item_main_params(item) {
   for (const param in item.data) {
     let part_param = document.createElement("div");
     part_param.className = "input-group";
-    
+    part_param.setAttribute("id", item.parent.id + "_" + param + "_param");
+    if (param === "populate" || param === "steps") {
+      part_param.style.display = (item.data.move === MOVE_CODES.ROL) ? "" : "none";
+    }
+
     /////////// POINT
     //if (item.data[param].constructor.name === "Point") {
     if (item.data[param] && item.data[param].constructor?.name === "Point") {
@@ -104,6 +108,9 @@ function create_item_main_params(item) {
         source: MOVE,
         item
       });
+      select.addEventListener("change", () => {
+        re_create_item(item.parent);
+      });
       part_param.appendChild(span);
       part_param.appendChild(select);
     }
@@ -112,6 +119,9 @@ function create_item_main_params(item) {
         param: "press",
         source: PRESSURE,
         item
+      });
+      select.addEventListener("change", () => {
+        re_create_item(item.parent);
       });
       part_param.appendChild(span);
       part_param.appendChild(select);
@@ -179,7 +189,13 @@ function create_item_main_params(item) {
 
       midi_param_val.addEventListener("input", (e) => {
         item.data[param] = Number(e.target.value);
+        if (param === "steps" && item.redraw_steps) item.redraw_steps();
       });
+      if (param === "touchs") {
+        midi_param_val.addEventListener("change", () => {
+          re_create_item(item.parent);
+        });
+      }
       part_param.appendChild(midi_param_val);
     }
 
