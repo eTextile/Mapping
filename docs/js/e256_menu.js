@@ -79,8 +79,9 @@ $("#uploadConfig").click (
     }
   }
 );
-
+/*
 $("#saveConfig").click (
+  // TODO: popUp a typing fieald to specify the name of the file to save
   function () {
     e256_export_params();
     console.log(JSON.stringify(e256_config));
@@ -88,6 +89,35 @@ $("#saveConfig").click (
     saveAs(file, "e256_mapping.json");  // TODO: add file name!
   }
 );
+*/
+
+$("#saveConfig").click(function () {
+  e256_export_params();
+  console.log(JSON.stringify(e256_config));
+
+  // Popup input
+  let filename = prompt("Enter file name:", "e256_mapping.json");
+  if (filename === null) return;
+
+  // Clean up empty input
+  filename = filename.trim();
+  if (filename === "") {
+    filename = "e256_mapping.json";
+  }
+
+  // Ensure .json extension
+  if (!filename.toLowerCase().endsWith(".json")) {
+    filename += ".json";
+  }
+
+  var file = new File(
+    [JSON.stringify(e256_config, null, 2)],
+    filename,
+    { type: "application/json;charset=utf-8" }
+  );
+
+  saveAs(file, filename);
+});
 
 $("#fetchConfig").click (
   function () {
@@ -97,12 +127,5 @@ $("#fetchConfig").click (
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
-  }
-);
-
-// Update graphic item using form params
-$("#btn_set").click (
-  function () {
-    re_create_item(current_controleur);
   }
 );

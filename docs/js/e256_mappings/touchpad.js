@@ -119,8 +119,8 @@ function touchpad_factory() {
       });
 
       _touch_line_x.style = {
-        "strokeWidth": .5,
-        "dashArray": [15, 4],
+        "strokeWidth": 1,
+        "dashArray": [2, 4],
         "strokeColor": "black"
       }
 
@@ -134,8 +134,8 @@ function touchpad_factory() {
       });
 
       _touch_line_y.style = {
-        "strokeWidth": .5,
-        "dashArray": [15, 4],
+        "strokeWidth": 1,
+        "dashArray": [2, 4],
         "strokeColor": "black"
       }
 

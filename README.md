@@ -59,7 +59,7 @@ Each control can be assigned any standard MIDI message type: Note On/Off, Contro
 3. Select **MATRIX** to verify the sensor is reading correctly.
 4. Switch to **MAPPING → EDIT** to design your control layout.
 5. Add controls from the toolbar (Touchpad, Slider, Knob, Switch, Grid, Path, Polygon).
-6. For each control, set the MIDI message type, channel, note/CC, min/max values, and pressure mode in the right panel, then click **SET PARAMS**.
+6. For each control, set the MIDI message type, channel, note/CC, min/max values, and pressure mode in the right panel.
 7. Click **UPLOAD CONFIG** to send the mapping to the device.
 8. Click **SAVE CONFIG** to write it to the e256's flash memory permanently.
 9. Use **FETCH CONFIG** to retrieve the current configuration stored on the device.

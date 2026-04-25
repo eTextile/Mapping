@@ -60,7 +60,6 @@ function list_layer_params(layer) {
       case "slider":
         let slider_params = {};
         for (const param in item.data) {
-          //if (item.data[param].constructor.name === "Point") {
           if (item.data[param] && item.data[param].constructor?.name === "Point") {
             slider_params[param] = [
               round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
@@ -77,7 +76,6 @@ function list_layer_params(layer) {
       case "switch":
         let switch_params = {};
         for (const param in item.data) {
-          //if (item.data[param].constructor.name === "Point") {
           if (item.data[param] && item.data[param].constructor?.name === "Point") {
             switch_params[param] = [
               round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
@@ -94,7 +92,6 @@ function list_layer_params(layer) {
       case "knob":
         let knob_params = {};
         for (const param in item.data) {
-          //if (item.data[param].constructor.name === "Point") {
           if (item.data[param] && item.data[param].constructor?.name === "Point") {
             knob_params[param] = [
               round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
