@@ -33,7 +33,8 @@
   <script type="importmap">
     {
       "imports": {
-        "three": "./js/lib/three.module.min.js"
+        "three": "./js/lib/three.module.min.js",
+        "three/addons/environments/RoomEnvironment.js": "./js/lib/RoomEnvironment.js"
       }
     }
   </script>
@@ -83,7 +84,15 @@
         </div>
 
         <div id="matrix_menu" class="collapse">
-          <div class="input-group"></div>
+          <div class="btn-group input-group" role="group">
+            <button id="matrix_raw_btn" class="btn btn-outline-primary active" type="button" onclick="set_matrix_resolution(RAW_COLS, RAW_ROWS)">RAW 16×16</button>
+            <button id="matrix_interp_btn" class="btn btn-outline-primary" type="button" onclick="set_matrix_resolution(NEW_COLS, NEW_ROWS)">INTERP 64×64</button>
+          </div>
+          <div class="input-group">
+            <span class="input-group-text">THRESHOLD</span>
+            <input id="threshold_slider" type="range" class="form-control" min="2" max="50" value="5" step="1">
+            <span id="threshold_display" class="input-group-text">5</span>
+          </div>
         </div>
 
         <div id="calibrate_menu" class="collapse">
@@ -141,7 +150,7 @@
       </div>
 
       <div id="matrix_canvas" class="container collapse">
-        <div class="sensor d-flex justify-content-center">
+        <div class="sensor d-flex justify-content-center align-items-center">
           <div id="canvas-3D"></div>
         </div>
       </div>
@@ -155,10 +164,6 @@
         <div id="e256_params" class="p-2"></div>
 
         <div id="midi_term" class="collapse p-2"></div>
-
-        <div id="set_button_params" class="collapse mt-auto">
-          <button id="btn_set" class="btn w-100 btn-warning" type="button">SET PARAMS</button>
-        </div>
 
       </div>
 
