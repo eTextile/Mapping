@@ -96,7 +96,7 @@ function grid_factory() {
             key_msg.press = this.children["keys-group"].children[_key].msg.press;
           }
           else {
-            touch_msg.press = midi_msg_builder(this.data.press);
+            key_msg.press = midi_msg_builder(this.data.press);
           }
         }
         this.data.msg.push(key_msg);

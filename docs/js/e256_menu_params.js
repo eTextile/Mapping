@@ -30,7 +30,6 @@ function create_item_menu_params(item) {
     }
   }
   div_menu_params.appendChild(div_item_menu_params);
-  //$("#set_button_params").collapse("show");
 };
 
 function remove_item_menu_params(item) {
@@ -73,10 +72,10 @@ function create_item_main_params(item) {
       midi_param_val_x.setAttribute("aria-label", "Small");
       midi_param_val_x.setAttribute("aria-describedby", item.parent.id + "_" + param + "_atr_x");
 
-      midi_param_val_x.addEventListener("input", function (event) {
-        if (Number(event.target.value)) {
-          //item.data[param].x = parseInt(event.target.value);
+      midi_param_val_x.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && Number(event.target.value)) {
           item.data[param].x = parseFloat(event.target.value);
+          re_create_item(item.parent);
         }
       });
       part_param.appendChild(midi_param_val_x);
@@ -93,10 +92,10 @@ function create_item_main_params(item) {
       midi_param_val_y.setAttribute("aria-label", "Small");
       midi_param_val_y.setAttribute("aria-describedby", item.parent.id + "_" + param + "_atr_y");
 
-      midi_param_val_y.addEventListener("input", function (event) {
-        if (Number(event.target.value)) {
-          //item.data[param].y = parseInt(event.target.value);
+      midi_param_val_y.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && Number(event.target.value)) {
           item.data[param].y = parseFloat(event.target.value);
+          re_create_item(item.parent);
         }
       });
       part_param.appendChild(midi_param_val_y);
@@ -131,6 +130,9 @@ function create_item_main_params(item) {
         param: "populate",
         source: POPULATE,
         item
+      });
+     select.addEventListener("change", () => {
+        re_create_item(item.parent);
       });
       part_param.appendChild(span);
       part_param.appendChild(select);
@@ -187,15 +189,13 @@ function create_item_main_params(item) {
       midi_param_val.setAttribute("aria-label", "Small");
       midi_param_val.setAttribute("aria-describedby", item.parent.id + "_" + param + "_atr");
 
-      midi_param_val.addEventListener("input", (e) => {
+      midi_param_val.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
         item.data[param] = Number(e.target.value);
         if (param === "steps" && item.redraw_steps) item.redraw_steps();
+        else re_create_item(item.parent);
       });
-      if (param === "touchs") {
-        midi_param_val.addEventListener("change", () => {
-          re_create_item(item.parent);
-        });
-      }
+
       part_param.appendChild(midi_param_val);
     }
 
@@ -321,23 +321,23 @@ function create_item_touchs_menu_params(item) {
               param_val.setAttribute("aria-describedby", item.id + "_" + msg_type + "_" + param_arg + "_atr");
 
               param_val.addEventListener("input", function (event) {
-                if (event.target.type === "number") {
-                  if (midi_byte === "status") {
-                    if (event.target.value > 0 && event.target.value <= 16) {
-                      item.msg[msg_type][param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
-                      $("#" + event.target.id).css("background-color", "lightGreen");
-                    }
-                    else {
-                      $("#" + event.target.id).css("background-color", "pink");
-                    }
+                if (event.target.type !== "number") return;
+                if (midi_byte === "status") {
+                  $("#" + event.target.id).css("background-color",
+                    (event.target.value > 0 && event.target.value <= 16) ? "lightGreen" : "pink");
+                } else {
+                  $("#" + event.target.id).css("background-color",
+                    (event.target.value > -1 && event.target.value < 128) ? "lightGreen" : "pink");
+                }
+              });
+              param_val.addEventListener("keydown", function (event) {
+                if (event.key !== "Enter" || event.target.type !== "number") return;
+                if (midi_byte === "status") {
+                  if (event.target.value > 0 && event.target.value <= 16) {
+                    item.msg[msg_type][param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
                   }
-                  else if (event.target.value > -1 && event.target.value < 128) {
-                    item.msg[msg_type][param][midi_byte] = event.target.value;
-                    $("#" + event.target.id).css("background-color", "lightGreen");
-                  }
-                  else {
-                    $("#" + event.target.id).css("background-color", "pink");
-                  }
+                } else if (event.target.value > -1 && event.target.value < 128) {
+                  item.msg[msg_type][param][midi_byte] = event.target.value;
                 }
               });
               let param_td = document.createElement("td");
@@ -362,14 +362,14 @@ function create_item_touchs_menu_params(item) {
             param_val.setAttribute("aria-describedby", item.id + "_" + msg_type + "_" + limit + "_atr");
 
             param_val.addEventListener("input", function (event) {
-              if (event.target.type === "number") {
-                if (event.target.value > -1 && event.target.value < 128) {
-                  item.msg[msg_type][param][limit] = event.target.value;
-                  $("#" + event.target.id).css("background-color", "lightGreen");
-                }
-                else {
-                  $("#" + event.target.id).css("background-color", "pink");
-                }
+              if (event.target.type !== "number") return;
+              $("#" + event.target.id).css("background-color",
+                (event.target.value > -1 && event.target.value < 128) ? "lightGreen" : "pink");
+            });
+            param_val.addEventListener("keydown", function (event) {
+              if (event.key !== "Enter" || event.target.type !== "number") return;
+              if (event.target.value > -1 && event.target.value < 128) {
+                item.msg[msg_type][param][limit] = event.target.value;
               }
             });
             let param_td = document.createElement("td");
@@ -442,6 +442,22 @@ function scroll() {
   let div_height = $("#midi_term").get(0).scrollHeight;
   //$("#midi_term").animate({ scrollTop: div_height }, 10); // FIXME
 };
+
+function update_midi_term_capacity() {
+  const el = document.getElementById("midi_term");
+  const style = getComputedStyle(el);
+  const line_height = parseFloat(style.lineHeight);
+  const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+  midi_term._max_length = Math.max(1, Math.floor((el.clientHeight - padding) / line_height));
+};
+
+document.getElementById("midi_term").addEventListener("shown.bs.collapse", update_midi_term_capacity);
+
+window.addEventListener("resize", function () {
+  if (document.getElementById("midi_term").classList.contains("show")) {
+    update_midi_term_capacity();
+  }
+});
 
 function circular_buffer(max_length) {
   this._max_length = max_length;
