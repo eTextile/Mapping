@@ -65,10 +65,10 @@ function slider_factory() {
     },
 
     setup_from_config: function (params) {
-      this.data.touchs = params.touchs || 0;
-      this.data.steps = params.steps || 0;
-      this.data.move = params.move ?? MOVE_CODES.LIN;
-      this.data.populate = params.populate || 0;
+      this.data.touchs = params.touchs || 1;
+      this.data.steps = params.steps || DEFAULT_SLIDER_STEPS;
+      this.data.move = params.move || DEFAULT_SLIDER_MODE_MOVE;
+      this.data.populate = params.populate || DEFAULT_SLIDER_POPULATE;
       this.data.from = new paper.Point(
         mapp(params.from[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.from[1], 0, NEW_ROWS, 0, canvas_height)
@@ -126,7 +126,7 @@ function slider_factory() {
       }
     },
 
-    new_touch: function (_slider, _touch_id) {
+    new_touch: function (_slider, _touch_id, _total) {
 
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
@@ -155,14 +155,14 @@ function slider_factory() {
       if (this.dir === "V_SLIDER") {
         _touch_group.pos = new paper.Point(
           this.data.from.x + ((this.data.to.x - this.data.from.x) / 2),
-          get_random_int(this.data.from.y + 10, this.data.to.y - 10)
+          this.data.from.y + ((_touch_id + 1) / (_total + 1)) * (this.data.to.y - this.data.from.y)
         );
         _touch_line.segments[0].point = new paper.Point(this.data.from.x, _touch_group.pos.y);
         _touch_line.segments[1].point = new paper.Point(this.data.to.x, _touch_group.pos.y);
       }
       else { // H_SLIDER
         _touch_group.pos = new paper.Point(
-          get_random_int(this.data.from.x + 10, this.data.to.x - 10),
+          this.data.from.x + ((_touch_id + 1) / (_total + 1)) * (this.data.to.x - this.data.from.x),
           this.data.from.y + ((this.data.to.y - this.data.from.y) / 2)
         );
         _touch_line.segments[0].point = new paper.Point(_touch_group.pos.x, this.data.from.y);
@@ -205,7 +205,7 @@ function slider_factory() {
             if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
               let step_idx = get_step_idx(_touch_circle.position);
               _touch_group.current_step = step_idx;
-              let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
+              let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1; // _touch_group.msg.press.midi.channel;
               send_midi_msg(note_on(chan, 60 + step_idx, 127));
               if (_slider.data.press === MIDI.CONTROL_CHANGE || _slider.data.press === MIDI.AFTERTOUCH_POLY) {
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
@@ -242,8 +242,7 @@ function slider_factory() {
           case MODE.THROUGH:
             if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
               if (_touch_group.current_step >= 0) {
-                let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
-                send_midi_msg(note_off(chan, 60 + _touch_group.current_step, 0));
+                send_midi_msg(note_off(_touch_group.msg.press.midi.status.channel, 60 + _touch_group.current_step, 0));
                 _touch_group.current_step = -1;
               }
               if (_slider.data.press === MIDI.CONTROL_CHANGE || _slider.data.press === MIDI.AFTERTOUCH_POLY) {
@@ -253,7 +252,7 @@ function slider_factory() {
             } else {
               switch (_slider.data.press) {
                 case MIDI.NOTE_ON:
-                  _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
+                  _touch_group.msg.press.midi.status = midi_msg_status_pack(_touch_group.msg.press.midi.channel, MIDI.NOTE_OFF);
                   _touch_group.msg.press.midi.data2 = 0;
                   send_midi_msg(_touch_group.msg.press.midi);
                   break;
@@ -306,7 +305,7 @@ function slider_factory() {
             if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
               let new_step = get_step_idx(mouseEvent.point);
               if (new_step !== _touch_group.current_step) {
-                let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
+                let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1; // FIXME
                 if (_touch_group.current_step >= 0) {
                   send_midi_msg(note_off(chan, 60 + _touch_group.current_step, 0));
                 }
@@ -364,7 +363,7 @@ function slider_factory() {
       });
 
       for (let _touch = 0; _touch < _slider_group.data.touchs; _touch++) {
-        _touchs_group.addChild(this.new_touch(_slider_group, _touch));
+        _touchs_group.addChild(this.new_touch(_slider_group, _touch, _slider_group.data.touchs));
       }
 
       var _slider_frame = new paper.Path.Rectangle({
@@ -394,8 +393,52 @@ function slider_factory() {
       _slider_frame.onMouseDrag = function (mouseEvent) {
         if (e256_current_mode === MODE.EDIT) {
           if (current_part.type === "bounds") {
-            let new_size = new paper.Point();
-            let new_pos = new paper.Point();
+
+            // Reposition all touches after a frame resize.
+            // scale_x_from_right: true when the right edge is the fixed anchor (top-left, bottom-left corners).
+            // scale_y_from_bottom: true when the bottom edge is the fixed anchor (top-left, top-right corners).
+            // On direction change (V↔H), touches are distributed evenly along the new axis instead of
+            // collapsing to a single point (all touches shared the same perpendicular-axis coordinate).
+            const reposition_touches = (bounds, scale_x_from_right, scale_y_from_bottom) => {
+              const prev_dir = _slider_group.dir;
+              const num = _touchs_group.children.length;
+              const cx = bounds.left + (bounds.right - bounds.left) / 2;
+              const cy = bounds.top + (bounds.bottom - bounds.top) / 2;
+              for (let _i = 0; _i < num; _i++) {
+                const _touch = _touchs_group.children[_i];
+                const cp = _touch.children["touch-circle"].position;
+                let new_x, new_y;
+                if (current_frame_height > current_frame_width) {
+                  _slider_group.dir = "V_SLIDER";
+                  new_x = cx;
+                  if (prev_dir === "H_SLIDER") {
+                    new_y = bounds.top + ((_i + 1) / (num + 1)) * current_frame_height;
+                  } else if (scale_y_from_bottom) {
+                    new_y = bounds.bottom - ((bounds.bottom - cp.y) * current_frame_height) / previous_frame_height;
+                  } else {
+                    new_y = bounds.top + ((cp.y - bounds.top) * current_frame_height) / previous_frame_height;
+                  }
+                  _touch.children["touch-line"].segments[0].point = new paper.Point(bounds.left, new_y);
+                  _touch.children["touch-line"].segments[1].point = new paper.Point(bounds.right, new_y);
+                } else {
+                  _slider_group.dir = "H_SLIDER";
+                  new_y = cy;
+                  if (prev_dir === "V_SLIDER") {
+                    new_x = bounds.left + ((_i + 1) / (num + 1)) * current_frame_width;
+                  } else if (scale_x_from_right) {
+                    new_x = bounds.right - ((bounds.right - cp.x) * current_frame_width) / previous_frame_width;
+                  } else {
+                    new_x = bounds.left + ((cp.x - bounds.left) * current_frame_width) / previous_frame_width;
+                  }
+                  _touch.children["touch-line"].segments[0].point = new paper.Point(new_x, bounds.top);
+                  _touch.children["touch-line"].segments[1].point = new paper.Point(new_x, bounds.bottom);
+                }
+                const new_pos = new paper.Point(new_x, new_y);
+                _touch.children["touch-circle"].position = new_pos;
+                _touch.children["touch-txt"].position = new_pos;
+              }
+            };
+
             switch (current_part.name) {
               case "top-left":
                 previous_frame_width = current_frame_width;
@@ -406,25 +449,7 @@ function slider_factory() {
                   this.segments[0].point.x = mouseEvent.point.x;
                   this.segments[1].point = mouseEvent.point;
                   this.segments[2].point.y = mouseEvent.point.y;
-                  for (const _touch of _touchs_group.children) {
-                    new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
-                    new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
-                    if (current_frame_height > current_frame_width) {
-                      _slider_group.dir = "V_SLIDER";
-                      new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
-                      new_pos.y = this.bounds.bottom - new_size.y;
-                      _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
-                      _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
-                    } else {
-                      _slider_group.dir = "H_SLIDER";
-                      new_pos.x = this.bounds.right - new_size.x;
-                      new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
-                      _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
-                      _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
-                    }
-                    _touch.children["touch-circle"].position = new_pos;
-                    _touch.children["touch-txt"].position = new_pos;
-                  }
+                  reposition_touches(this.bounds, true, true);
                   _slider_group.data.from = mouseEvent.point;
                 }
                 break;
@@ -437,25 +462,7 @@ function slider_factory() {
                   this.segments[1].point.y = mouseEvent.point.y;
                   this.segments[2].point = mouseEvent.point;
                   this.segments[3].point.x = mouseEvent.point.x;
-                  for (const _touch of _touchs_group.children) {
-                    new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
-                    new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
-                    if (current_frame_height > current_frame_width) {
-                      _slider_group.dir = "V_SLIDER";
-                      new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
-                      new_pos.y = this.bounds.bottom - new_size.y;
-                      _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
-                      _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
-                    } else {
-                      _slider_group.dir = "H_SLIDER";
-                      new_pos.x = this.bounds.left + new_size.x;
-                      new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
-                      _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
-                      _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
-                    }
-                    _touch.children["touch-circle"].position = new_pos;
-                    _touch.children["touch-txt"].position = new_pos;
-                  }
+                  reposition_touches(this.bounds, false, true);
                   _slider_group.data.from.y = mouseEvent.point.y;
                   _slider_group.data.to.x = mouseEvent.point.x;
                 }
@@ -469,25 +476,7 @@ function slider_factory() {
                   this.segments[2].point.x = mouseEvent.point.x;
                   this.segments[3].point = mouseEvent.point;
                   this.segments[0].point.y = mouseEvent.point.y;
-                  for (const _touch of _touchs_group.children) {
-                    new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
-                    new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
-                    if (current_frame_height > current_frame_width) {
-                      _slider_group.dir = "V_SLIDER";
-                      new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
-                      new_pos.y = this.bounds.top + new_size.y;
-                      _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
-                      _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
-                    } else {
-                      _slider_group.dir = "H_SLIDER";
-                      new_pos.x = this.bounds.left + new_size.x;
-                      new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
-                      _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
-                      _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
-                    }
-                    _touch.children["touch-circle"].position = new_pos;
-                    _touch.children["touch-txt"].position = new_pos;
-                  }
+                  reposition_touches(this.bounds, false, false);
                   _slider_group.data.to = mouseEvent.point;
                 }
                 break;
@@ -500,31 +489,12 @@ function slider_factory() {
                   this.segments[3].point.y = mouseEvent.point.y;
                   this.segments[0].point = mouseEvent.point;
                   this.segments[1].point.x = mouseEvent.point.x;
-                  for (const _touch of _touchs_group.children) {
-                    new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
-                    new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
-                    if (current_frame_height > current_frame_width) {
-                      _slider_group.dir = "V_SLIDER";
-                      new_pos.x = this.bounds.right - ((this.bounds.right - this.bounds.left) / 2);
-                      new_pos.y = this.bounds.top + new_size.y;
-                      _touch.children["touch-line"].segments[0].point = new paper.Point(this.bounds.left, new_pos.y);
-                      _touch.children["touch-line"].segments[1].point = new paper.Point(this.bounds.right, new_pos.y);
-                    } else {
-                      _slider_group.dir = "H_SLIDER";
-                      new_pos.x = this.bounds.right - new_size.x;
-                      new_pos.y = this.bounds.bottom - ((this.bounds.bottom - this.bounds.top) / 2);
-                      _touch.children["touch-line"].segments[0].point = new paper.Point(new_pos.x, this.bounds.top);
-                      _touch.children["touch-line"].segments[1].point = new paper.Point(new_pos.x, this.bounds.bottom);
-                    }
-                    _touch.children["touch-circle"].position = new_pos;
-                    _touch.children["touch-txt"].position = new_pos;
-                  }
+                  reposition_touches(this.bounds, true, false);
                   _slider_group.data.from.x = mouseEvent.point.x;
                   _slider_group.data.to.y = mouseEvent.point.y;
                 }
                 break;
               default:
-                //console.log("PART_NOT_USE: " + current_part.name);
                 break;
             }
             update_item_main_params(_slider_group.parent);
@@ -553,6 +523,7 @@ function slider_factory() {
                 new paper.Point(b.left + t * b.width, b.bottom));
           line.strokeColor = "#606060";
           line.strokeWidth = 1;
+          line.dashArray = [2, 4];
           _steps_group.addChild(line);
         }
         _steps_group.locked = true;
