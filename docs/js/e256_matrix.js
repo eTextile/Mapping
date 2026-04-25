@@ -8,11 +8,22 @@ function matrix_factory() {
 
   var _e256_matrix = new paper.Group({
     "matrix": [],
+    "dirty": false,
 
     update: function (sysExMsg) {
       for (let i = 0; i < RAW_FRAME; i++) {
         this.matrix[i] = sysExMsg[i + 1] / 10;
       }
+      this.dirty = true;
+    },
+
+    updateChunk: function (sysExMsg) {
+      const chunk_index = sysExMsg[1];
+      const offset = chunk_index * INTERP_CHUNK_SIZE;
+      for (let i = 0; i < INTERP_CHUNK_SIZE; i++) {
+        this.matrix[offset + i] = sysExMsg[i + 2] / 10;
+      }
+      this.dirty = true;
     },
 
     getZ: function (index) {

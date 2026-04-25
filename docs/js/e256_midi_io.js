@@ -268,7 +268,6 @@ function updateMenu() {
     $("#midi_term").collapse("hide");
     $("#connect_switch").removeClass("btn-success").addClass("btn-danger");
     $("#e256_params").collapse("hide");
-    $("#set_button_params").collapse("hide");
     $("#MAPPING").removeClass("active");
     $("#MATRIX_RAW").removeClass("active");
   }
@@ -286,13 +285,16 @@ function on_midi_message(midi_msg) {
     case MIDI.PROGRAM_CHANGE:
       switch (status.channel) {
         case MIDI_VERBOSITY_CHANNEL:
-          console.log("RECEIVED: " + MODE_ACK_CODES[msg.data1]);
+          console.log("MODE: " + MODE_ACK_CODES[msg.data1]);
           switch (msg.data1) {
   
             case MODE_ACK.MATRIX_RAW:
-              $("#set_button_params").collapse("hide");
               updateMenu();
               e256_current_mode = MODE.MATRIX_RAW;
+              break;
+            case MODE_ACK.MATRIX_INTERP:
+              updateMenu();
+              e256_current_mode = MODE.MATRIX_INTERP;
               $("#connection_status").html("CONNECTED / MATRIX_MODE");
               alert_msg("matrix_mode", "MATRIX MODE DONE", "success");
               break;
@@ -304,7 +306,6 @@ function on_midi_message(midi_msg) {
               $("#loading_canvas").collapse("hide");
               $("#matrix_canvas").collapse("hide");
               $("#mapping_canvas").collapse("show");
-              $("#set_button_params").collapse("hide");
               $("#connection_status").html("CONNECTED / MAPPING");
               $("#mode_explanation").html("Define your custom MIDI interface onto the eTextile device");
               $("#MATRIX_RAW").removeClass("active");
@@ -316,10 +317,10 @@ function on_midi_message(midi_msg) {
             case MODE_ACK.EDIT:
               $("#edit_menu").collapse("show");
               $("#load_menu").collapse("show");
-              $("#set_button_params").collapse("show");
               $("#connection_status").html("CONNECTED / EDIT");
               $("#mode_explanation").html("Add tactile commands to the eTextile device");
               $("#midi_term").collapse("hide");
+              $("#e256_params").show();
               item_menu_params(current_controleur, "show");
               item_menu_params(current_touch, "show");
               $("#PLAY").removeClass("active");
@@ -338,9 +339,9 @@ function on_midi_message(midi_msg) {
               $("#mapping_canvas").collapse("show");
               $("#edit_menu").collapse("hide");
               $("#load_menu").collapse("hide");
-              $("#set_button_params").collapse("hide");
               $("#connection_status").html("CONNECTED / THROUGH");
               $("#mode_explanation").html("Send Midi msg to the external synth");
+              $("#e256_params").hide();
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
@@ -360,9 +361,9 @@ function on_midi_message(midi_msg) {
               $("#mapping_canvas").collapse("show");
               $("#edit_menu").collapse("hide");
               $("#load_menu").collapse("hide");
-              $("#set_button_params").collapse("hide");
               $("#connection_status").html("CONNECTED / PLAY");
               $("#mode_explanation").html("Evaluate what you have made");
+              $("#e256_params").hide();
               $("#midi_term").collapse("show");
               item_menu_params(current_controleur, "hide");
               item_menu_params(current_touch, "hide");
@@ -465,7 +466,10 @@ function on_midi_message(midi_msg) {
           alert_msg("fetch_config", "FETCH CONFIG DONE", "success");
           break;
         case MODE.MATRIX_RAW:
-          e256_matrix.update(midi_msg.data); // Change with msg!?
+          e256_matrix.update(midi_msg.data);
+          break;
+        case MODE.MATRIX_INTERP:
+          e256_matrix.updateChunk(midi_msg.data);
           break;
         case MODE.EDIT:
           e256_blobs.update(midi_msg.data); // Change with msg!?
