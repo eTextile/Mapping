@@ -14,7 +14,7 @@ function e256_export_params() {
       e256_config["mappings"][layer.name] = list_layer_params(layer);
     }
   }
-  conf_size = Object.keys(JSON.stringify(e256_config)).length;
+  conf_size = JSON.stringify(e256_config).length;
 };
 
 function list_layer_params(layer) {
@@ -108,7 +108,14 @@ function list_layer_params(layer) {
       case "path":
         let path_params = {};
         for (const param in item.data) {
-          path_params.data[param] = parseFloat(item.data[param]);
+          if (item.data[param] && item.data[param].constructor?.name === "Point") {
+            path_params[param] = [
+              round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
+              round2(mapp(item.data[param].y, 0, canvas_height, 0, NEW_ROWS))
+            ];
+          } else {
+            path_params[param] = item.data[param];
+          }
         }
         e256_params.push(path_params);
         break;
@@ -116,7 +123,14 @@ function list_layer_params(layer) {
       case "polygon":
         let polygon_params = {};
         for (const param in item.data) {
-          polygon_params.data[param] = parseFloat(item.data[param]);
+          if (item.data[param] && item.data[param].constructor?.name === "Point") {
+            polygon_params[param] = [
+              round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
+              round2(mapp(item.data[param].y, 0, canvas_height, 0, NEW_ROWS))
+            ];
+          } else {
+            polygon_params[param] = item.data[param];
+          }
         }
         e256_params.push(polygon_params);
         break;

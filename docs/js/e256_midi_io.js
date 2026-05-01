@@ -6,37 +6,27 @@
 
 var midi_input = null;
 var midi_output = null;
-
 var midi_device_connected = false;
 var loaded_file = null; // From user desktop
 var fetch_config_file = null; // From e256 flash memory
 
-const DEFAULT_MIDI_CHANNEL = 1;    // [1:16]
-const DEFAULT_MIDI_NOTE = 64;      // [0:127]
-const DEFAULT_MIDI_VELOCITY = 127; // [0:127]
-const DEFAULT_MIDI_VALUE = 0;      // [0:127]
-const DEFAULT_MIDI_CC = 23;        //
-const DEFAULT_MIDI_AFT = 24;       //
-const DEFAULT_MIDI_PGM = 10;       //
-const DEFAULT_MIDI_MIN = 0;        // [0:127]
-const DEFAULT_MIDI_MAX = 127;      // [0:127]
-
-const BLOB_FREE = 0;
-const BLOB_NEW = 1;
-const BLOB_PRESENT = 2;
-const BLOB_MISSING = 3;
-const BLOB_RELEASED = 4;
-
-function* midi_index() {
-  let index = 1;
-  while (true) {
-    index = index++;
-    index = index % 128;
-    yield index++;
-  }
+const MIDI_DEFAULT = {
+  INPUT_CHANNEL: 1,
+  NOTE_ON: 64,
+  VELOCITY: 127,
+  CONTROL_CHANGE: 23,
+  AFTERTOUCH_POLY: 24,
+  MIN_VAL: 0,
+  MAX_VAL: 127
 };
 
-const default_midi_index = midi_index();
+function* default_midi_index() {
+  let index = 0;
+  while (true) {
+    index = (index + 1) % 128;
+    yield index;
+  }
+};
 
 // MIDI struct
 // https://www.midi.org/specifications-old/item/table-2-expanded-messages-list-status-bytes
@@ -119,9 +109,9 @@ function limit(min, max) {
 //    -> MIDI.NOTE_ON
 //    -> MIDI.AFTERTOUCH_POLY
 //    -> MIDI.CONTROL_CHANGE
-//    PROGRAM_CHANGE
-//    C_AFTERTOUCH
-//    PITCH_BEND
+//    MIDI.PROGRAM_CHANGE
+//    MIDI.C_AFTERTOUCH
+//    MIDI.PITCH_BEND
 
 function midi_msg_builder(midi_msg_type) {
   let msg = {};
@@ -130,44 +120,48 @@ function midi_msg_builder(midi_msg_type) {
 
     case MIDI.NOTE_ON:
       msg.midi = new note_on(
-        DEFAULT_MIDI_CHANNEL,
+        MIDI_DEFAULT.INPUT_CHANNEL,
         default_midi_index.next().value,
-        DEFAULT_MIDI_VELOCITY
+        MIDI_DEFAULT.VELOCITY
+      )
+      msg.limit = new limit(
+        MIDI_DEFAULT.MIN_VAL,
+        MIDI_DEFAULT.MAX_VAL
       )
       break;
 
     case MIDI.CONTROL_CHANGE:
       msg.midi = new control_change(
-        DEFAULT_MIDI_CHANNEL,
+        MIDI_DEFAULT.INPUT_CHANNEL,
         default_midi_index.next().value,
-        DEFAULT_MIDI_VELOCITY
+        MIDI_DEFAULT.VELOCITY
       )
       msg.limit = new limit(
-        DEFAULT_MIDI_MIN,
-        DEFAULT_MIDI_MAX
+        MIDI_DEFAULT.MIN_VAL,
+        MIDI_DEFAULT.MAX_VAL
       )
       break;
 
     case MIDI.AFTERTOUCH_POLY:
       msg.midi = new polyphonic_aftertouch(
-        DEFAULT_MIDI_CHANNEL,
+        MIDI_DEFAULT.INPUT_CHANNEL,
         default_midi_index.next().value,
         default_midi_index.next().value
       );
       msg.limit = new limit(
-        DEFAULT_MIDI_MIN,
-        DEFAULT_MIDI_MAX
+        MIDI_DEFAULT.MIN_VAL,
+        MIDI_DEFAULT.MAX_VAL
       );
       break;
 
     case MIDI.PITCH_BEND:
       msg.midi = new pitch_bend(
-        DEFAULT_MIDI_CHANNEL,
-        DEFAULT_MIDI_VELOCITY
+        MIDI_DEFAULT.INPUT_CHANNEL,
+        MIDI_DEFAULT.VELOCITY
       )
       msg.limit = new limit(
-        DEFAULT_MIDI_MIN,
-        DEFAULT_MIDI_MAX
+        MIDI_DEFAULT.MIN_VAL,
+        MIDI_DEFAULT.MAX_VAL
       );
       break;
     default:
@@ -286,17 +280,21 @@ function on_midi_message(midi_msg) {
       switch (status.channel) {
         case MIDI_VERBOSITY_CHANNEL:
           console.log("MODE: " + MODE_ACK_CODES[msg.data1]);
+
           switch (msg.data1) {
   
             case MODE_ACK.MATRIX_RAW:
               updateMenu();
               e256_current_mode = MODE.MATRIX_RAW;
+              $("#connection_status").html("CONNECTED / MATRIX_RAW");
+              alert_msg("matrix_raw", "MODE: MATRIX_RAW", "success");
               break;
+
             case MODE_ACK.MATRIX_INTERP:
               updateMenu();
               e256_current_mode = MODE.MATRIX_INTERP;
-              $("#connection_status").html("CONNECTED / MATRIX_MODE");
-              alert_msg("matrix_mode", "MATRIX MODE DONE", "success");
+              $("#connection_status").html("CONNECTED / MATRIX_INTERP");
+              alert_msg("matrix_interp", "MODE: MATRIX_INTERP", "success");
               break;
 
             case MODE_ACK.MAPPING:
@@ -311,7 +309,8 @@ function on_midi_message(midi_msg) {
               $("#MATRIX_RAW").removeClass("active");
               $("#MAPPING").addClass("active");
               e256_current_mode = MODE.MAPPING;
-              alert_msg("mapping_mode", "MAPPING MODE DONE", "success");
+              alert_msg("mapping", "MODE: MAPPING", "success");
+              $("#EDIT").trigger("click");
               break;
 
             case MODE_ACK.EDIT:
@@ -327,7 +326,7 @@ function on_midi_message(midi_msg) {
               $("#THROUGH").removeClass("active");
               $("#EDIT").addClass("active");
               e256_current_mode = MODE.EDIT;
-              alert_msg("edit_mode", "EDIT MODE DONE", "success");
+              alert_msg("mapping_edit", "MODE: EDIT", "success");
               break;
 
             case MODE_ACK.THROUGH:
@@ -349,7 +348,7 @@ function on_midi_message(midi_msg) {
               $("#THROUGH").addClass("active");
               $("#PLAY").removeClass("active");
               e256_current_mode = MODE.THROUGH;
-              alert_msg("through_mode", "THROUGH MODE DONE", "success");
+              alert_msg("mapping_through", "MODE: THROUGH", "success");
               break;
 
             case MODE_ACK.PLAY:
@@ -371,7 +370,7 @@ function on_midi_message(midi_msg) {
               $("#THROUGH").removeClass("active");
               $("#PLAY").addClass("active");
               e256_current_mode = MODE.PLAY;
-              alert_msg("play_mode", "PLAY MODE DONE", "success");
+              alert_msg("mapping_play", "MODE: PLAY", "success");
               break;
   
             case MODE_ACK.PENDING:
@@ -387,7 +386,7 @@ function on_midi_message(midi_msg) {
 
             case MODE_ACK.CALIBRATE:
               e256_current_mode = e256_previous_mode;
-              alert_msg("calibrate_mode", "CALIBRATE MODE DONE", "success");
+              alert_msg("calibrate", "MODE: CALIBRATE", "success");
               break;
 
             case MODE_ACK.LOAD_CONFIG:
@@ -403,7 +402,7 @@ function on_midi_message(midi_msg) {
                 current_controleur = null;
               }
               
-              if (fetch_config_file.length != 15) {
+              if (fetch_config_file !== null && fetch_config_file.length !== 15) {
                 draw_controlers_from_config(fetch_config_file);
               }
               else {
@@ -416,7 +415,7 @@ function on_midi_message(midi_msg) {
             case MODE_ACK.ALLOCATE_CONFIG:
               e256_export_params();
               sysex_alloc(conf_size);
-              alert_msg("allocate_done", "ALLOCATE_CONFIG_SIZE: " + conf_size, "success");
+              alert_msg("allocate", "ALLOCATE_CONFIG_SIZE: " + conf_size, "success");
               break;
 
             case MODE_ACK.ALLOCATE_DONE:
@@ -472,7 +471,7 @@ function on_midi_message(midi_msg) {
           e256_matrix.updateChunk(midi_msg.data);
           break;
         case MODE.EDIT:
-          e256_blobs.update(midi_msg.data); // Change with msg!?
+          e256_blobs.update(midi_msg.data.subarray(1, -1)); // strip 0xF0 header and 0xF7 footer
           break;
         case MODE.THROUGH:
           // N/A

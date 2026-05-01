@@ -282,7 +282,7 @@ paper.view.onResize = function () {
 };
 
 function onReaderLoad(event) {
-  conf_size = Object.keys(event.target.result).length;
+  conf_size = event.target.result.length;
   if (DEBUG) console.log("INPUT_CONF_SIZE: " + conf_size);
   draw_controlers_from_config(event.target.result);
 };

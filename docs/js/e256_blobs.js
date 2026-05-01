@@ -4,32 +4,42 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-const BLOB_UID_INDEX = 1;
-const BLOB_X_CENTROID_WHOLE_PART_INDEX = 2;
-const BLOB_X_CENTROID_FRACTIONAL_PART_INDEX = 3;
-const BLOB_Y_CENTROID_WHOLE_PART_INDEX = 4;
-const BLOB_Y_CENTROID_FRACTIONAL_PART_INDEX = 5;
-const BLOB_WIDTH_INDEX = 6;
-const BLOB_HEIGHT_INDEX = 7;
-const BLOB_DEPTH_INDEX = 8;
-const BLOB_STATUS_INDEX = 9;
-const BLOB_LAST_STATUS_INDEX = 10;
+const BLOB_STATUS = {
+  FREE: 0,
+  NEW: 1,
+  PRESENT: 2,
+  MISSING: 3,
+  RELEASED: 4
+};
+
+const BLOB_PARAMS_INDEX = {
+  STATUS: 0,
+  LAST_STATUS: 1,
+  UID: 2,
+  CENTROID_X_WHOLE_PART: 3,
+  CENTROID_X_FRACTIONAL_PART: 4,
+  CENTROID_Y_WHOLE_PART: 5,
+  CENTROID_Y_FRACTIONAL_PART: 6,
+  WIDTH: 7,
+  HEIGHT: 8,
+  DEPTH: 9,
+  VELOCITY_XY: 10,
+  VELOCITY_Z: 11,
+  ATTACK_Z: 12,
+  ATTACK_DONE: 13
+};
 
 function blob_factory() {
 
   var _blob = new paper.Group({
     "UID": null,
-    //"status": null,
-    //"last_status": null,
-    //"active_time_stamp": null,
-    //"life_time_stamp": null,
 
     create: function (sysExMsg) {
 
       paper.project.layers['blob'].activate();
       paper.project.layers['blob'].bringToFront();
 
-      this.UID = sysExMsg[BLOB_UID_INDEX];
+      this.UID = sysExMsg[BLOB_PARAMS_INDEX.UID];
 
       let _blob_group = new paper.Group({
         "name": "blob-group"
@@ -50,7 +60,7 @@ function blob_factory() {
       let _blob_txt = new paper.PointText({
         "name": "blob-txt",
         "point": null,
-        "content": sysExMsg[BLOB_UID_INDEX],
+        "content": sysExMsg[BLOB_PARAMS_INDEX.UID],
         "locked": true
       });
 
@@ -60,51 +70,48 @@ function blob_factory() {
       };
       _blob_group.addChild(_blob_txt);
 
-      /*
       let _blob_path = new paper.Path({
         "name": "blob-path",
-        "segments": [],
         "closed": false
       });
 
       _blob_path.style = {
         "strokeWidth": 1,
-        "strokeColor": "black",
+        "strokeColor": null,
         "strokeCap": "round",
-        "strokeJoin": "round",
-        "locked": true
-      }
+        "strokeJoin": "round"
+      };
       _blob_group.addChild(_blob_path);
-      */
 
-      /*
-      let _blob_rect = new paper.Path.Rectangle({
+      let _blob_rect = new paper.Shape.Rectangle({
         "name": "blob-box",
-        "point": null,
-        "size": null
+        "center": new paper.Point(0, 0),
+        "size": new paper.Size(1, 1)
       });
 
       _blob_rect.style = {
-        "strokeWidth": 10,
-        "strokeColor": "black"
-        //"locked": true
-      }
+        "strokeWidth": 1,
+        "strokeColor": null,
+        "fillColor": null
+      };
       _blob_group.addChild(_blob_rect);
-      */
 
       this.addChild(_blob_group);
     },
 
     present: function () {
       this.children["blob-group"].children["blob-centroid"].style.fillColor = 'green';
+      this.children["blob-group"].children["blob-box"].style.strokeColor = 'green';
+      this.children["blob-group"].children["blob-path"].style.strokeColor = 'green';
     },
 
     missing: function () {
       this.children["blob-group"].children["blob-centroid"].style.fillColor = 'orange';
+      this.children["blob-group"].children["blob-box"].style.strokeColor = 'orange';
+      this.children["blob-group"].children["blob-path"].style.strokeColor = 'orange';
     },
     
     relesed: function () {
-      //this.removeChildren();
       this.remove();
     },
 
@@ -112,37 +119,31 @@ function blob_factory() {
       this.children["blob-group"].children["blob-centroid"].style.fillColor = 'green';
 
       let centroid = new paper.Point(
-        mapp((sysExMsg[BLOB_X_CENTROID_WHOLE_PART_INDEX] + (sysExMsg[BLOB_X_CENTROID_FRACTIONAL_PART_INDEX] / 100)), 0, NEW_COLS, 0, canvas_width),
-        mapp((sysExMsg[BLOB_Y_CENTROID_WHOLE_PART_INDEX] + (sysExMsg[BLOB_Y_CENTROID_FRACTIONAL_PART_INDEX] / 100)), 0, NEW_ROWS, 0, canvas_height)
+        mapp((sysExMsg[BLOB_PARAMS_INDEX.CENTROID_X_WHOLE_PART] + (sysExMsg[BLOB_PARAMS_INDEX.CENTROID_X_FRACTIONAL_PART] / 100)), 0, NEW_COLS, 0, canvas_width),
+        mapp((sysExMsg[BLOB_PARAMS_INDEX.CENTROID_Y_WHOLE_PART] + (sysExMsg[BLOB_PARAMS_INDEX.CENTROID_Y_FRACTIONAL_PART] / 100)), 0, NEW_ROWS, 0, canvas_height)
       );
-      
-      this.children["blob-group"].children["blob-centroid"].position = centroid;
-      this.children["blob-group"].children["blob-centroid"].radius = sysExMsg[BLOB_DEPTH_INDEX];
 
-      let blob_width = Math.round(mapp(sysExMsg[BLOB_WIDTH_INDEX], 0, NEW_COLS, 0, canvas_width));
-      let blob_height = Math.round(mapp(sysExMsg[BLOB_HEIGHT_INDEX], 0, NEW_ROWS, 0, canvas_height));
-      
-      // FIXME: boxe is not visible
-      /*
-      let size = new paper.Size(blob_width, blob_height);
-      this.children["blob-group"].children["blob-box"].point = centroid;
-      this.children["blob-group"].children["blob-box"].size = size;
-      */
+      this.children["blob-group"].children["blob-centroid"].position = centroid;
+      this.children["blob-group"].children["blob-centroid"].radius = sysExMsg[BLOB_PARAMS_INDEX.DEPTH];
+
+      let blob_width = Math.round(mapp(sysExMsg[BLOB_PARAMS_INDEX.WIDTH], 0, NEW_COLS, 0, canvas_width));
+      let blob_height = Math.round(mapp(sysExMsg[BLOB_PARAMS_INDEX.HEIGHT], 0, NEW_ROWS, 0, canvas_height));
+
+      this.children["blob-group"].children["blob-box"].position = centroid;
+      this.children["blob-group"].children["blob-box"].size = new paper.Size(blob_width, blob_height);
 
       this.children["blob-group"].children["blob-txt"].position = centroid;
-      this.children["blob-group"].children["blob-txt"].content = 
-        "UID: " + sysExMsg[BLOB_UID_INDEX] +
+      this.children["blob-group"].children["blob-txt"].content =
+        "UID: " + sysExMsg[BLOB_PARAMS_INDEX.UID] +
         "\nX: " + centroid.x.toFixed(2) +
         "\nY: " + centroid.y.toFixed(2) +
-        "\nZ: " + sysExMsg[BLOB_DEPTH_INDEX] +
+        "\nZ: " + sysExMsg[BLOB_PARAMS_INDEX.DEPTH] +
         "\nW: " + blob_width +
         "\nH: " + blob_height;
       
-      //this.children["blob-group"].children["blob-path"].segments.push(centroid); // FIXME!      
-      //this.path.smoothCatmullRom(0.5, 10, 15); // Smooths with tension = 0.5, from segment 10 - 15
-      //this.path.smooth({ type: 'continuous' }); // http://paperjs.org/reference/path/#smooth
-
-      this.children["blob-group"].bringToFront();
+      let _path = this.children["blob-group"].children["blob-path"];
+      _path.add(centroid);
+      if (_path.segments.length > 64) _path.removeSegment(0);
     }
 
   });
@@ -156,34 +157,33 @@ function blobs_factory() {
     
     update(sysExMsg) {
 
-      let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_UID_INDEX]);
+      let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_PARAMS_INDEX.UID]);
 
       if (index === -1) {
-        if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_NEW) {
+        if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] !== BLOB_STATUS.FREE) {
           let new_blob = blob_factory();
           new_blob.create(sysExMsg);
-          new_blob.present();
+          if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.MISSING) {
+            new_blob.missing();
+          } else {
+            new_blob.present();
+          }
           this.blobs_array.push(new_blob);
-          //console.log("BLOB_NEW: " + sysExMsg[BLOB_UID_INDEX]);
         }
       }
       else {
-        if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_MISSING && sysExMsg[BLOB_LAST_STATUS_INDEX] === BLOB_PRESENT) {
+        if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.MISSING && sysExMsg[BLOB_PARAMS_INDEX.LAST_STATUS] === BLOB_STATUS.PRESENT) {
           this.blobs_array[index].missing();
-          //console.log("BLOB_IS_MISSING: " + sysExMsg[BLOB_UID_INDEX]);
         }
-        else if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_PRESENT && sysExMsg[BLOB_LAST_STATUS_INDEX] === BLOB_MISSING) {
+        else if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.PRESENT && sysExMsg[BLOB_PARAMS_INDEX.LAST_STATUS] === BLOB_STATUS.MISSING) {
           this.blobs_array[index].present();
-          //console.log("BLOB_IS_BMODE_ACK: " + sysExMsg[BLOB_UID_INDEX]);
         }
-        else if (sysExMsg[BLOB_STATUS_INDEX] === BLOB_FREE) {
+        else if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.FREE) {
           this.blobs_array[index].relesed();
           this.blobs_array.splice(index, 1);
-          //console.log("BLOB_IS_FREE: " + sysExMsg[BLOB_UID_INDEX]);
         }
         else {
           this.blobs_array[index].update(sysExMsg);
-          //console.log("BLOB_UPDATE: " + sysExMsg[BLOB_UID_INDEX]);
         }
       }
     }
