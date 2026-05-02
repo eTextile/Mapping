@@ -10,6 +10,12 @@ var midi_device_connected = false;
 var loaded_file = null; // From user desktop
 var fetch_config_file = null; // From e256 flash memory
 
+var current_controleur = { "id": null };
+var previous_controleur = { "id": null };
+var current_touch = { "id": null };
+var previous_touch = { "id": null };
+var current_part = { "id": null };
+
 const MIDI_DEFAULT = {
   INPUT_CHANNEL: 1,
   NOTE_ON: 64,
@@ -42,7 +48,7 @@ function midi_msg_status_unpack(status) {
 };
 
 function note_on(chan, note, velo) {
-  let status = midi_msg_status_pack(chan, MIDI.NOTE_ON);
+  let status = midi_msg_status_pack(chan, MIDI_TYPE.NOTE_ON);
   return {
     "status": status,
     "data1": note,
@@ -51,7 +57,7 @@ function note_on(chan, note, velo) {
 };
 
 function note_off(chan, note, velo) {
-  let status = midi_msg_status_pack(chan, MIDI.NOTE_OFF);
+  let status = midi_msg_status_pack(chan, MIDI_TYPE.NOTE_OFF);
   return {
     "status": status,
     "data1": note,
@@ -60,7 +66,7 @@ function note_off(chan, note, velo) {
 };
 
 function control_change(chan, ctr, val) {
-  let status = midi_msg_status_pack(chan, MIDI.CONTROL_CHANGE);
+  let status = midi_msg_status_pack(chan, MIDI_TYPE.CONTROL_CHANGE);
   return {
     "status": status,
     "data1": ctr,
@@ -69,7 +75,7 @@ function control_change(chan, ctr, val) {
 };
 
 function polyphonic_aftertouch(chan, note, press) {
-  let status = midi_msg_status_pack(chan, MIDI.AFTERTOUCH_POLY);
+  let status = midi_msg_status_pack(chan, MIDI_TYPE.AFTERTOUCH_POLY);
   return {
     "status": status,
     "data1": note,
@@ -78,7 +84,7 @@ function polyphonic_aftertouch(chan, note, press) {
 };
 
 function program_change(chan, pgm) {
-  let status = midi_msg_status_pack(chan, MIDI.PROGRAM_CHANGE);
+  let status = midi_msg_status_pack(chan, MIDI_TYPE.PROGRAM_CHANGE);
   return {
     "status": status,
     "data1": pgm,
@@ -87,7 +93,7 @@ function program_change(chan, pgm) {
 };
 
 function pitch_bend(chan, pitch) {
-  let status = midi_msg_status_pack(chan, MIDI.PITCH_BEND);
+  let status = midi_msg_status_pack(chan, MIDI_TYPE.PITCH_BEND);
   let data1 = pitch & 0x7F // Lsb
   let data2 = pitch >> 7 // Msb
   return {
@@ -105,20 +111,20 @@ function limit(min, max) {
 };
 
 // MIDI MESSAGE BUILDER
-//    -> MIDI.NOTE_OFF - N/A
-//    -> MIDI.NOTE_ON
-//    -> MIDI.AFTERTOUCH_POLY
-//    -> MIDI.CONTROL_CHANGE
-//    MIDI.PROGRAM_CHANGE
-//    MIDI.C_AFTERTOUCH
-//    MIDI.PITCH_BEND
+//    -> MIDI_TYPE.NOTE_OFF - N/A
+//    -> MIDI_TYPE.NOTE_ON
+//    -> MIDI_TYPE.AFTERTOUCH_POLY
+//    -> MIDI_TYPE.CONTROL_CHANGE
+//    MIDI_TYPE.PROGRAM_CHANGE
+//    MIDI_TYPE.C_AFTERTOUCH
+//    MIDI_TYPE.PITCH_BEND
 
 function midi_msg_builder(midi_msg_type) {
   let msg = {};
 
   switch (midi_msg_type) {
 
-    case MIDI.NOTE_ON:
+    case MIDI_TYPE.NOTE_ON:
       msg.midi = new note_on(
         MIDI_DEFAULT.INPUT_CHANNEL,
         default_midi_index.next().value,
@@ -130,7 +136,7 @@ function midi_msg_builder(midi_msg_type) {
       )
       break;
 
-    case MIDI.CONTROL_CHANGE:
+    case MIDI_TYPE.CONTROL_CHANGE:
       msg.midi = new control_change(
         MIDI_DEFAULT.INPUT_CHANNEL,
         default_midi_index.next().value,
@@ -142,7 +148,7 @@ function midi_msg_builder(midi_msg_type) {
       )
       break;
 
-    case MIDI.AFTERTOUCH_POLY:
+    case MIDI_TYPE.AFTERTOUCH_POLY:
       msg.midi = new polyphonic_aftertouch(
         MIDI_DEFAULT.INPUT_CHANNEL,
         default_midi_index.next().value,
@@ -154,7 +160,7 @@ function midi_msg_builder(midi_msg_type) {
       );
       break;
 
-    case MIDI.PITCH_BEND:
+    case MIDI_TYPE.PITCH_BEND:
       msg.midi = new pitch_bend(
         MIDI_DEFAULT.INPUT_CHANNEL,
         MIDI_DEFAULT.VELOCITY
@@ -206,7 +212,7 @@ function onMIDISuccess(midiAccess) {
           if (DEBUG) console.log("MIDI_IN: " + midi_input.name);
           if (DEBUG) console.log("MIDI_OUT: " + midi_output.name);
           setTimeout(function () {
-            send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.SYNC));
+            send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.SYNC));
             if (DEBUG) console.log("REQUEST: SYNC");
           }, 1000);
         }
@@ -276,9 +282,9 @@ function on_midi_message(midi_msg) {
 
   let status = midi_msg_status_unpack(midi_msg.data[0]);
   switch (status.type) {
-    case MIDI.PROGRAM_CHANGE:
+    case MIDI_TYPE.PROGRAM_CHANGE:
       switch (status.channel) {
-        case MIDI_VERBOSITY_CHANNEL:
+        case MIDI_CHANNEL.VERBOSITY:
           console.log("MODE: " + MODE_ACK_CODES[msg.data1]);
 
           switch (msg.data1) {
@@ -380,7 +386,7 @@ function on_midi_message(midi_msg) {
   
             case MODE_ACK.SYNC:
               updateMenu();
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.MATRIX_RAW));
+              send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.MATRIX_RAW));
               if (DEBUG) console.log("REQUEST: MATRIX_RAW");
               break;
 
@@ -391,7 +397,7 @@ function on_midi_message(midi_msg) {
 
             case MODE_ACK.LOAD_CONFIG:
               e256_current_mode = MODE.FETCH_CONFIG;
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.FETCH_CONFIG));
+              send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.FETCH_CONFIG));
               if (DEBUG) console.log("REQUEST: FETCH_CONFIG");
               break;
 
@@ -408,7 +414,7 @@ function on_midi_message(midi_msg) {
               else {
                 alert_msg("no_config_file", "NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger");
               }
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.EDIT));
+              send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.EDIT));
               if (DEBUG) console.log("REQUEST: EDIT MODE");
               break;
 
@@ -419,7 +425,7 @@ function on_midi_message(midi_msg) {
               break;
 
             case MODE_ACK.ALLOCATE_DONE:
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.UPLOAD_CONFIG));
+              send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.UPLOAD_CONFIG));
               if (DEBUG) console.log("REQUEST: UPLOAD CONFIG");
               break;
 
@@ -429,14 +435,14 @@ function on_midi_message(midi_msg) {
               break;
 
             case MODE_ACK.UPLOAD_DONE:
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.APPLY_CONFIG));
+              send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.APPLY_CONFIG));
               if (DEBUG) console.log("REQUEST: APPLY CONFIG");
               break;
             
             case MODE_ACK.APPLY_CONFIG:
               alert_msg("config_apply", "RECEIVED: CONFIG_APPLY", "success");
               alert_msg("config_save", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
-              send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.EDIT));
+              send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.EDIT));
               if (DEBUG) console.log("REQUEST: EDIT MODE");
               break;
 
@@ -450,7 +456,7 @@ function on_midi_message(midi_msg) {
           }
           break;
 
-        case MIDI_ERROR_CHANNEL:
+        case MIDI_CHANNEL.ERROR:
           alert_msg("config_saved", "ERROR: " + ERROR_CODES[msg.data1], "danger");
           break;
       }
@@ -485,15 +491,25 @@ function on_midi_message(midi_msg) {
       }
       break;
 
+    case MIDI_TYPE.CONTROL_CHANGE:
+      if (status.channel === MIDI_CHANNEL.LEVELS) {
+        const slider = document.getElementById("threshold_slider");
+        const display = document.getElementById("threshold_display");
+        if (slider) slider.value = msg.data1 === MIDI_CC.THRESHOLD ? msg.data2 : slider.value;
+        if (display && msg.data1 === MIDI_CC.THRESHOLD) display.textContent = msg.data2;
+        if (typeof set_threshold_plane === "function" && msg.data1 === MIDI_CC.THRESHOLD) set_threshold_plane(msg.data2);
+      } else {
+        midi_term.push(msg);
+      }
+      break;
+
     default:
       midi_term.push(msg);
-      // TODO: update the mappings controleurs using the input MIDI values
       break;
   }
 };
 
 function send_midi_msg(midi_msg) {
-  
   if (midi_device_connected) {
     if (midi_msg.data2 === null) {
       midi_output.send([midi_msg.status, midi_msg.data1]);
@@ -570,21 +586,21 @@ function midi_msg_as_txt(midi_msg) {
   let status = midi_msg_status_unpack(midi_msg.midi.status);
 
   switch (status.type) {
-    case MIDI.NOTE_ON:
+    case MIDI_TYPE.NOTE_ON:
       key_msg_txt =
       MIDI_BY_NAME[status.type] + "\n" +
       "chan: " + status.channel + "\n" +
       "note: " + midi_msg.midi.data1 + "\n" +
       "velo: " + midi_msg.midi.data2 + "\n";
       break;
-    case MIDI.CONTROL_CHANGE:
+    case MIDI_TYPE.CONTROL_CHANGE:
       key_msg_txt =
       MIDI_BY_NAME[status.type] + "\n" +
       "chan: " + status.channel + "\n" +
       "ctr: " + midi_msg.midi.data1 + "\n" +
       "val: " + midi_msg.midi.data2 + "\n";
       break;
-    case MIDI.AFTERTOUCH_POLY:
+    case MIDI_TYPE.AFTERTOUCH_POLY:
       key_msg_txt =
       MIDI_BY_NAME[status.type] + "\n" +
       "chan: " + status.channel + "\n" +

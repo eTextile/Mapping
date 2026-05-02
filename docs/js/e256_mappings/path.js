@@ -10,8 +10,8 @@
 function path_factory() {
   const DEFAULT_PATH_STROKE_WIDTH = 50;
   const DEFAULT_PATH_TOUCHS = 1;
-  const DEFAULT_PATH_MODE_POS = MIDI.CONTROL_CHANGE;
-  const DEFAULT_PATH_MODE_Z = MIDI.NOTE_ON;
+  const DEFAULT_PATH_MODE_POS = MIDI_TYPE.CONTROL_CHANGE;
+  const DEFAULT_PATH_MODE_Z = MIDI_TYPE.NOTE_ON;
 
   var _path = new paper.Group({
     "name": "path",
@@ -112,16 +112,16 @@ function path_factory() {
             break;
           case MODE.THROUGH:
             switch (_path.data.press) {
-              case MIDI.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
+              case MIDI_TYPE.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.CONTROL_CHANGE:
+              case MIDI_TYPE.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.AFTERTOUCH_POLY:
+              case MIDI_TYPE.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;

@@ -11,9 +11,9 @@ function touchpad_factory() {
   const DEFAULT_PAD_TOUCH_MARGIN = 35;
   const DEFAULT_PAD_MIN_WIDTH = 100;
   const DEFAULT_PAD_MIN_HEIGHT = 100;
-  const DEFAULT_PAD_MODE_X = MIDI.CONTROL_CHANGE;
-  const DEFAULT_PAD_MODE_Y = MIDI.CONTROL_CHANGE;
-  const DEFAULT_PAD_MODE_Z = MIDI.NOTE_ON;
+  const DEFAULT_PAD_MODE_X = MIDI_TYPE.CONTROL_CHANGE;
+  const DEFAULT_PAD_MODE_Y = MIDI_TYPE.CONTROL_CHANGE;
+  const DEFAULT_PAD_MODE_Z = MIDI_TYPE.NOTE_ON;
   const DEFAULT_PAD_TOUCHS = 1;
  
   let current_frame_width = null;
@@ -167,16 +167,16 @@ function touchpad_factory() {
             break;
           case MODE.THROUGH:
             switch (_touchpad.data.press) {
-              case MIDI.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
+              case MIDI_TYPE.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.CONTROL_CHANGE:
+              case MIDI_TYPE.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.AFTERTOUCH_POLY:
+              case MIDI_TYPE.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -195,16 +195,16 @@ function touchpad_factory() {
             break;
           case MODE.THROUGH:
             switch (_touchpad.data.press) {
-              case MIDI.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
+              case MIDI_TYPE.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI_TYPE.NOTE_OFF);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.CONTROL_CHANGE:
+              case MIDI_TYPE.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.AFTERTOUCH_POLY:
+              case MIDI_TYPE.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;

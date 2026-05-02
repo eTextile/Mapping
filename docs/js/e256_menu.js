@@ -6,7 +6,6 @@
 
 var e256_current_mode = MODE.PENDING;
 var e256_previous_mode = null;
-
 var e256_draw_mode = null;
 var e256_previous_draw_mode = null;
 
@@ -40,7 +39,7 @@ $(".e256_set_mode").click (
     e256_current_mode = MODE[event.target.id];
     if (midi_device_connected) {
       if(e256_current_mode != e256_previous_mode) {
-        send_midi_msg(new program_change(MIDI_MODES_CHANNEL, e256_current_mode));
+        send_midi_msg(new program_change(MIDI_CHANNEL.MODES, e256_current_mode));
         if (DEBUG) console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
       }
     } else {
@@ -72,24 +71,13 @@ $(".mapingTool").click (
 $("#uploadConfig").click (
   function () {
     if (midi_device_connected) {
-      send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.ALLOCATE_CONFIG));
+      send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.ALLOCATE_CONFIG));
       if (DEBUG) console.log("REQUEST: ALLOCATE CONFIG");
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
   }
 );
-/*
-$("#saveConfig").click (
-  // TODO: popUp a typing fieald to specify the name of the file to save
-  function () {
-    e256_export_params();
-    console.log(JSON.stringify(e256_config));
-    var file = new File([JSON.stringify(e256_config)], { type: "text/plain;charset=utf-8" });
-    saveAs(file, "e256_mapping.json");  // TODO: add file name!
-  }
-);
-*/
 
 $("#saveConfig").click(function () {
   e256_export_params();
@@ -122,7 +110,7 @@ $("#saveConfig").click(function () {
 $("#fetchConfig").click (
   function () {
     if (midi_device_connected) {
-      send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.LOAD_CONFIG));
+      send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.LOAD_CONFIG));
       if (DEBUG) console.log("REQUEST: LOAD CONFIG");
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");

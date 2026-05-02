@@ -1,6 +1,6 @@
 # eTextile-Synthesizer — Mapping Toolkit
 
-A browser-based application to configure tactile mapping on the **e256** matrix sensor. It lets you draw control zones directly over the sensor's pressure field, assign MIDI messages to each zone, and upload the configuration to the device — all over USB MIDI.
+A browser-based application to configure tactile mapping on the **e256** matrix sensor. It lets you draw control zones directly over the sensor's pressure field, assign MIDI messages to each zone, and upload the configuration to the device — all over USB MIDI_TYPE.
 
 **Live app:** https://mapping.etextile.org/ *(requires Chrome)*  
 **Version:** 1.0.26  

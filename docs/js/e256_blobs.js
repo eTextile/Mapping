@@ -160,14 +160,10 @@ function blobs_factory() {
       let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_PARAMS_INDEX.UID]);
 
       if (index === -1) {
-        if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] !== BLOB_STATUS.FREE) {
+        if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.NEW) {
           let new_blob = blob_factory();
           new_blob.create(sysExMsg);
-          if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.MISSING) {
-            new_blob.missing();
-          } else {
-            new_blob.present();
-          }
+          new_blob.present();
           this.blobs_array.push(new_blob);
         }
       }

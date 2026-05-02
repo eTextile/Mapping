@@ -39,6 +39,7 @@ new paper.Layer({ project: paper.project, name: "polygon", insert: true});
 
 //new paper.Layer({ project: paper.project, name: "text", insert: true});
 
+
 var paper_tool = new paper.Tool();
 
 let hit_options_A = {

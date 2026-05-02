@@ -12,11 +12,12 @@ function slider_factory() {
   const DEFAULT_SLIDER_MIN_WIDTH = 50;
   const DEFAULT_SLIDER_MIN_HEIGHT = 100;
   const DEFAULT_SLIDER_TOUCHS = 1;
-  const DEFAULT_SLIDER_MODE_POS = MIDI.CONTROL_CHANGE;
+  const DEFAULT_SLIDER_MODE_POS = MIDI_TYPE.CONTROL_CHANGE;
   const DEFAULT_SLIDER_MODE_MOVE = MOVE_CODES.LIN;
-  const DEFAULT_SLIDER_MODE_PRESS = MIDI.NOTE_ON;
+  const DEFAULT_SLIDER_MODE_PRESS = MIDI_TYPE.NOTE_ON;
   const DEFAULT_SLIDER_POPULATE = POPULATE_CODES.OFF;
   const DEFAULT_SLIDER_STEPS = 20;
+  const DEFAULT_SLIDER_INPUT_CHAN = 1;
 
   const DEFAULT_SLIDER_DIR = "V_SLIDER";
 
@@ -30,6 +31,7 @@ function slider_factory() {
     "dir": null,
     "data": {
       "touchs": null,
+      "input_chan": null,
       "from": null,
       "to": null,
       "move": null,
@@ -42,6 +44,7 @@ function slider_factory() {
     setup_from_mouse_event: function (mouseEvent) {
       this.dir = DEFAULT_SLIDER_DIR;
       this.data.touchs = DEFAULT_SLIDER_TOUCHS;
+      this.data.input_chan = DEFAULT_SLIDER_INPUT_CHAN;
       this.data.press = DEFAULT_SLIDER_MODE_PRESS;
       this.data.move = DEFAULT_SLIDER_MODE_MOVE;
       this.data.populate = DEFAULT_SLIDER_POPULATE;
@@ -66,6 +69,7 @@ function slider_factory() {
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs || 1;
+      this.data.input_chan = params.input_chan || DEFAULT_SLIDER_INPUT_CHAN;
       this.data.steps = params.steps || DEFAULT_SLIDER_STEPS;
       this.data.move = params.move || DEFAULT_SLIDER_MODE_MOVE;
       this.data.populate = params.populate || DEFAULT_SLIDER_POPULATE;
@@ -93,6 +97,7 @@ function slider_factory() {
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["slider-group"].data.touchs;
+      this.data.input_chan = this.children["slider-group"].data.input_chan;
 
       this.data.move = this.children["slider-group"].data.move;
       this.data.populate = this.children["slider-group"].data.populate;
@@ -207,22 +212,22 @@ function slider_factory() {
               _touch_group.current_step = step_idx;
               let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1; // _touch_group.msg.press.midi.channel;
               send_midi_msg(note_on(chan, 60 + step_idx, 127));
-              if (_slider.data.press === MIDI.CONTROL_CHANGE || _slider.data.press === MIDI.AFTERTOUCH_POLY) {
+              if (_slider.data.press === MIDI_TYPE.CONTROL_CHANGE || _slider.data.press === MIDI_TYPE.AFTERTOUCH_POLY) {
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
               }
             } else {
               switch (_slider.data.press) {
-                case MIDI.NOTE_ON:
-                  _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
+                case MIDI_TYPE.NOTE_ON:
+                  _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
                   _touch_group.msg.press.midi.data2 = 127;
                   send_midi_msg(_touch_group.msg.press.midi);
                   break;
-                case MIDI.CONTROL_CHANGE:
+                case MIDI_TYPE.CONTROL_CHANGE:
                   _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                   send_midi_msg(_touch_group.msg.press.midi);
                   break;
-                case MIDI.AFTERTOUCH_POLY:
+                case MIDI_TYPE.AFTERTOUCH_POLY:
                   _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                   send_midi_msg(_touch_group.msg.press.midi);
                   break;
@@ -245,22 +250,22 @@ function slider_factory() {
                 send_midi_msg(note_off(_touch_group.msg.press.midi.status.channel, 60 + _touch_group.current_step, 0));
                 _touch_group.current_step = -1;
               }
-              if (_slider.data.press === MIDI.CONTROL_CHANGE || _slider.data.press === MIDI.AFTERTOUCH_POLY) {
+              if (_slider.data.press === MIDI_TYPE.CONTROL_CHANGE || _slider.data.press === MIDI_TYPE.AFTERTOUCH_POLY) {
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
               }
             } else {
               switch (_slider.data.press) {
-                case MIDI.NOTE_ON:
-                  _touch_group.msg.press.midi.status = midi_msg_status_pack(_touch_group.msg.press.midi.channel, MIDI.NOTE_OFF);
+                case MIDI_TYPE.NOTE_ON:
+                  _touch_group.msg.press.midi.status = midi_msg_status_pack(_touch_group.msg.press.midi.channel, MIDI_TYPE.NOTE_OFF);
                   _touch_group.msg.press.midi.data2 = 0;
                   send_midi_msg(_touch_group.msg.press.midi);
                   break;
-                case MIDI.CONTROL_CHANGE:
+                case MIDI_TYPE.CONTROL_CHANGE:
                   _touch_group.msg.press.midi.data2 = 0;
                   send_midi_msg(_touch_group.msg.press.midi);
                   break;
-                case MIDI.AFTERTOUCH_POLY:
+                case MIDI_TYPE.AFTERTOUCH_POLY:
                   _touch_group.msg.press.midi.data2 = 0;
                   send_midi_msg(_touch_group.msg.press.midi);
                   break;
@@ -349,6 +354,7 @@ function slider_factory() {
         "dir": this.dir,
         "data": {
           "touchs": this.data.touchs,
+          "input_chan": this.data.input_chan,
           "from": this.data.from,
           "to": this.data.to,
           "move": this.data.move,

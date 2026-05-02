@@ -101,6 +101,15 @@ function create_item_main_params(item) {
       part_param.appendChild(midi_param_val_y);
     }
 
+    else if (param === "input_chan") {
+      const { span, select } = create_select_field({
+        param: "input_chan",
+        source: MIDI_INPUT_CHAN,
+        item
+      });
+      part_param.appendChild(span);
+      part_param.appendChild(select);
+    }
     else if (param === "move") {
       const { span, select } = create_select_field({
         param: "move",

@@ -6,15 +6,9 @@
 
 const PROJECT = "ETEXTILE-SYNTH";
 const NAME = "MAPPING-APP";
-const VERSION = "1.0.26";
+const VERSION = "1.0.27";
 
 const DEBUG = false;
-
-var current_controleur = { "id": null };
-var previous_controleur = { "id": null };
-var current_touch = { "id": null };
-var previous_touch = { "id": null };
-var current_part = { "id": null };
 
 // E256 HARDWARE CONSTANTS
 const FLASH_SIZE = 16777216; // 128 Mb
@@ -33,20 +27,8 @@ const INTERP_NUM_CHUNKS = NEW_FRAME / INTERP_CHUNK_SIZE;
 const TOUCH_RADIUS = 25;
 const FONT_SIZE = 20;
 
-// E256 MIDI I/O CHANNELS CONSTANTS [1:15]
-const MIDI_LEVELS_CHANNEL = 3;
-const MIDI_MODES_CHANNEL = 4;
-const MIDI_VERBOSITY_CHANNEL = 5;
-const MIDI_ERROR_CHANNEL = 6;
-
-// E256 LEVELS CONSTANTS (MIDI_LEVELS_CHANNEL)
-const THRESHOLD = 0; // E256-LEDs: | 1 | 1 |
-const SIG_IN = 1;    // E256-LEDs: | 1 | 0 |
-const SIG_OUT = 2;   // E256-LEDs: | 0 | 1 |
-const LINE_OUT = 3;  // E256-LEDs: | 0 | 0 |
-
 // E256 MIDI TYPES CONSTANTS
-const MIDI = {
+const MIDI_TYPE = {
   NOTE_OFF: 0x80,
   NOTE_ON: 0x90,
   AFTERTOUCH_POLY: 0xA0,
@@ -57,14 +39,38 @@ const MIDI = {
 };
 
 const MIDI_BY_NAME = Object.fromEntries(
-  Object.entries(MIDI).map(([k, v]) => [v, k])
+  Object.entries(MIDI_TYPE).map(([k, v]) => [v, k])
 );
 
+// E256 MIDI INPUT CHANNELS [1:15]
+const MIDI_INPUT_CHAN = Object.fromEntries(
+  Array.from({ length: 15 }, (_, i) => [i + 1, String(i + 1)])
+);
+
+// E256 MIDI I/O CHANNELS CONSTANTS [1:15]
+const MIDI_CHANNEL = {
+  LEVELS: 3,
+  MODES: 4,
+  VERBOSITY: 5,
+  ERROR: 6
+};
+
+// E256 MIDI I/O CC LEVELS CONSTANTS
+const MIDI_CC = {
+  THRESHOLD: 0, //  THRESHOLD - LEDs | 1 1 |
+  SIG_IN: 1,    //  SIG_IN    - LEDs | 1 0 |
+  SIG_OUT: 2,   //  SIG_OUT   - LEDs | 0 1 |
+  LINE_OUT: 3   //  LINE_OUT  - LEDs | 0 0 |
+};
+
+// E256 MIDI SYSEX CONSTANTS
 const MIDI_SYSEX = {
   START: 0xF0,
   END: 0xF7,
   DEVICE_ID: 0x7D,
-  CONFIG: 0x7C
+  CONFIG: 0x7C,
+  SOUND: 0x6C,
+  LEVELS: 0x6C
 };
 
 const DATA1 = {

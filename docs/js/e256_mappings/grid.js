@@ -11,7 +11,7 @@ function grid_factory() {
   const DEFAULT_GRID_HEIGHT = 450;
   const DEFAULT_GRID_COLS = 4;
   const DEFAULT_GRID_ROWS = 4;
-  const DEFAULT_GRID_MODE_PRESS = MIDI.NOTE_ON;
+  const DEFAULT_GRID_MODE_PRESS = MIDI_TYPE.NOTE_ON;
   const GRID_MIN_SIZE = 30;
   
   let frame_width = null;
@@ -141,16 +141,16 @@ function grid_factory() {
             break;
           case MODE.THROUGH:
             switch (_grid.data.press) {
-              case MIDI.NOTE_ON:
-                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status | MIDI.NOTE_ON);
+              case MIDI_TYPE.NOTE_ON:
+                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
                 _key_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case MIDI.CONTROL_CHANGE:
+              case MIDI_TYPE.CONTROL_CHANGE:
                 _key_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case MIDI.AFTERTOUCH_POLY:
+              case MIDI_TYPE.AFTERTOUCH_POLY:
                 _key_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
@@ -170,16 +170,16 @@ function grid_factory() {
             break;
           case MODE.THROUGH:
             switch (_grid.data.press) {
-              case MIDI.NOTE_ON:
-                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status & MIDI.NOTE_OFF);
+              case MIDI_TYPE.NOTE_ON:
+                _key_group.msg.press.midi.status = (_key_group.msg.press.midi.status & MIDI_TYPE.NOTE_OFF);
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case MIDI.CONTROL_CHANGE:
+              case MIDI_TYPE.CONTROL_CHANGE:
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;
-              case MIDI.AFTERTOUCH_POLY:
+              case MIDI_TYPE.AFTERTOUCH_POLY:
                 _key_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_key_group.msg.press.midi);
                 break;

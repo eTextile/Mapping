@@ -80,12 +80,12 @@ window.set_matrix_resolution = function (cols, rows) {
 
   if (typeof send_midi_msg === "function") {
     const mode = is_raw ? MODE.MATRIX_RAW : MODE.MATRIX_INTERP;
-    send_midi_msg(new program_change(MIDI_MODES_CHANNEL, mode));
+    send_midi_msg(new program_change(MIDI_CHANNEL.MODES, mode));
   }
 };
 
 // --- SET THRESHOLD PLANE ---
-// raw_val: firmware threshold value (0–255 raw scale, same as matrix data)
+// raw_val: firmware threshold value (same scale as matrix data, clamped to [2, 50])
 window.set_threshold_plane = function (raw_val) {
   threshold_plane.position.z = -(raw_val / 10);
 };
@@ -214,7 +214,7 @@ $(document).ready(function () {
     threshold_display.textContent = val;
     set_threshold_plane(val);
     if (typeof send_midi_msg === "function") {
-      send_midi_msg(new control_change(MIDI_LEVELS_CHANNEL, THRESHOLD, val));
+      send_midi_msg(new control_change(MIDI_CHANNEL.LEVELS, MIDI_CC.THRESHOLD, val));
     }
   });
 

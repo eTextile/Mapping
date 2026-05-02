@@ -12,8 +12,8 @@ function polygon_factory() {
   const DEFAULT_POLYGON_SIZE = 300;
   const DEFAULT_POLYGON_STROKE_WIDTH = 10;
   const DEFAULT_POLYGON_TOUCHS = 1;
-  const DEFAULT_POLYGON_MODE_DIST = MIDI.CONTROL_CHANGE;
-  const DEFAULT_POLYGON_MODE_Z = MIDI.NOTE_ON;
+  const DEFAULT_POLYGON_MODE_DIST = MIDI_TYPE.CONTROL_CHANGE;
+  const DEFAULT_POLYGON_MODE_Z = MIDI_TYPE.NOTE_ON;
 
   var _polygon = new paper.Group({
     "name": "polygon",
@@ -128,16 +128,16 @@ function polygon_factory() {
             break;
           case MODE.THROUGH:
             switch (_polygon.data.press) {
-              case MIDI.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI.NOTE_ON);
+              case MIDI_TYPE.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
                 _touch_group.msg.press.midi.data2 = 127;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.CONTROL_CHANGE:
+              case MIDI_TYPE.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.AFTERTOUCH_POLY:
+              case MIDI_TYPE.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
@@ -156,16 +156,16 @@ function polygon_factory() {
             break;
           case MODE.THROUGH:
             switch (_polygon.data.press) {
-              case MIDI.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI.NOTE_OFF);
+              case MIDI_TYPE.NOTE_ON:
+                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI_TYPE.NOTE_OFF);
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.CONTROL_CHANGE:
+              case MIDI_TYPE.CONTROL_CHANGE:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
-              case MIDI.AFTERTOUCH_POLY:
+              case MIDI_TYPE.AFTERTOUCH_POLY:
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
