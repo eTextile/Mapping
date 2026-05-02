@@ -41,7 +41,6 @@ function polygon_factory() {
         }
         touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
-        console.log("touch_msg_" + touch_index + ": " + JSON.stringify(touch_msg));
       }
     },
 
@@ -243,7 +242,7 @@ function polygon_factory() {
 
       _source_circle.style = {
         "strokeWidth": 1,
-        "strokeColor": "yelow",
+        "strokeColor": "yellow",
       }
     },
 
@@ -294,9 +293,7 @@ function polygon_factory() {
       _polygon_curve.onMouseDown = function (mouseEvent) {
 
         if (e256_current_mode === EDIT) {
-          console.log("polygon_2: " + _polygon.data.segments);
           current_part = this;
-          console.log("current_part: " + JSON.stringify(current_part));
           if (current_part.type === "stroke") {
             let location = current_part.location;
             _polygon_curve.insert(location.index + 1, mouseEvent.point);

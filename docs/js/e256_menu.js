@@ -81,7 +81,7 @@ $("#uploadConfig").click (
 
 $("#saveConfig").click(function () {
   e256_export_params();
-  console.log(JSON.stringify(e256_config));
+  if (DEBUG) console.log(JSON.stringify(e256_config));
 
   // Popup input
   let filename = prompt("Enter file name:", "e256_mapping.json");

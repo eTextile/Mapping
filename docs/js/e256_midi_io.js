@@ -285,7 +285,7 @@ function on_midi_message(midi_msg) {
     case MIDI_TYPE.PROGRAM_CHANGE:
       switch (status.channel) {
         case MIDI_CHANNEL.VERBOSITY:
-          console.log("MODE: " + MODE_ACK_CODES[msg.data1]);
+          if (DEBUG) console.log("MODE: " + MODE_ACK_CODES[msg.data1]);
 
           switch (msg.data1) {
   
@@ -380,8 +380,6 @@ function on_midi_message(midi_msg) {
               break;
   
             case MODE_ACK.PENDING:
-              //send_midi_msg(new program_change(MIDI_MODES_CHANNEL, MODE.SYNC));
-              //if (DEBUG) console.log("REQUEST: SYNC");
               break;
   
             case MODE_ACK.SYNC:

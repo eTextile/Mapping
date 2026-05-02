@@ -111,7 +111,7 @@ function blob_factory() {
       this.children["blob-group"].children["blob-path"].style.strokeColor = 'orange';
     },
     
-    relesed: function () {
+    released: function () {
       this.remove();
     },
 
@@ -175,7 +175,7 @@ function blobs_factory() {
           this.blobs_array[index].present();
         }
         else if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.FREE) {
-          this.blobs_array[index].relesed();
+          this.blobs_array[index].released();
           this.blobs_array.splice(index, 1);
         }
         else {
