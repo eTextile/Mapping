@@ -12,7 +12,7 @@ const BLOB_STATUS = {
   RELEASED: 4
 };
 
-const BLOB_PARAMS_INDEX = {
+const BLOB_PARAM_CODE = {
   STATUS: 0,
   LAST_STATUS: 1,
   UID: 2,
@@ -39,7 +39,7 @@ function blob_factory() {
       paper.project.layers['blob'].activate();
       paper.project.layers['blob'].bringToFront();
 
-      this.UID = sysExMsg[BLOB_PARAMS_INDEX.UID];
+      this.UID = sysExMsg[BLOB_PARAM_CODE.UID];
 
       let _blob_group = new paper.Group({
         "name": "blob-group"
@@ -60,7 +60,7 @@ function blob_factory() {
       let _blob_txt = new paper.PointText({
         "name": "blob-txt",
         "point": null,
-        "content": sysExMsg[BLOB_PARAMS_INDEX.UID],
+        "content": null,
         "locked": true
       });
 
@@ -77,7 +77,7 @@ function blob_factory() {
 
       _blob_path.style = {
         "strokeWidth": 1,
-        "strokeColor": null,
+        "strokeColor": "green",
         "strokeCap": "round",
         "strokeJoin": "round"
       };
@@ -102,13 +102,13 @@ function blob_factory() {
     present: function () {
       this.children["blob-group"].children["blob-centroid"].style.fillColor = 'green';
       this.children["blob-group"].children["blob-box"].style.strokeColor = 'green';
-      this.children["blob-group"].children["blob-path"].style.strokeColor = 'green';
+      //this.children["blob-group"].children["blob-path"].style.strokeColor = 'green';
     },
 
     missing: function () {
       this.children["blob-group"].children["blob-centroid"].style.fillColor = 'orange';
       this.children["blob-group"].children["blob-box"].style.strokeColor = 'orange';
-      this.children["blob-group"].children["blob-path"].style.strokeColor = 'orange';
+      //this.children["blob-group"].children["blob-path"].style.strokeColor = 'orange';
     },
     
     released: function () {
@@ -116,31 +116,33 @@ function blob_factory() {
     },
 
     update: function (sysExMsg) {
-      this.children["blob-group"].children["blob-centroid"].style.fillColor = 'green';
 
       let centroid = new paper.Point(
-        mapp((sysExMsg[BLOB_PARAMS_INDEX.CENTROID_X_WHOLE_PART] + (sysExMsg[BLOB_PARAMS_INDEX.CENTROID_X_FRACTIONAL_PART] / 100)), 0, NEW_COLS, 0, canvas_width),
-        mapp((sysExMsg[BLOB_PARAMS_INDEX.CENTROID_Y_WHOLE_PART] + (sysExMsg[BLOB_PARAMS_INDEX.CENTROID_Y_FRACTIONAL_PART] / 100)), 0, NEW_ROWS, 0, canvas_height)
+        mapp((sysExMsg[BLOB_PARAM_CODE.CENTROID_X_WHOLE_PART] + (sysExMsg[BLOB_PARAM_CODE.CENTROID_X_FRACTIONAL_PART] / 100)), 0, NEW_COLS, 0, canvas_width),
+        mapp((sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_WHOLE_PART] + (sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_FRACTIONAL_PART] / 100)), 0, NEW_ROWS, 0, canvas_height)
       );
 
       this.children["blob-group"].children["blob-centroid"].position = centroid;
-      this.children["blob-group"].children["blob-centroid"].radius = sysExMsg[BLOB_PARAMS_INDEX.DEPTH];
+      this.children["blob-group"].children["blob-centroid"].radius = sysExMsg[BLOB_PARAM_CODE.DEPTH];
 
-      let blob_width = Math.round(mapp(sysExMsg[BLOB_PARAMS_INDEX.WIDTH], 0, NEW_COLS, 0, canvas_width));
-      let blob_height = Math.round(mapp(sysExMsg[BLOB_PARAMS_INDEX.HEIGHT], 0, NEW_ROWS, 0, canvas_height));
+      let blob_width = Math.round(mapp(sysExMsg[BLOB_PARAM_CODE.WIDTH], 0, NEW_COLS, 0, canvas_width));
+      let blob_height = Math.round(mapp(sysExMsg[BLOB_PARAM_CODE.HEIGHT], 0, NEW_ROWS, 0, canvas_height));
 
       this.children["blob-group"].children["blob-box"].position = centroid;
       this.children["blob-group"].children["blob-box"].size = new paper.Size(blob_width, blob_height);
 
       this.children["blob-group"].children["blob-txt"].position = centroid;
       this.children["blob-group"].children["blob-txt"].content =
-        "UID: " + sysExMsg[BLOB_PARAMS_INDEX.UID] +
+        "UID: " + sysExMsg[BLOB_PARAM_CODE.UID] +
         "\nX: " + centroid.x.toFixed(2) +
         "\nY: " + centroid.y.toFixed(2) +
-        "\nZ: " + sysExMsg[BLOB_PARAMS_INDEX.DEPTH] +
+        "\nZ: " + sysExMsg[BLOB_PARAM_CODE.DEPTH] +
         "\nW: " + blob_width +
-        "\nH: " + blob_height;
-      
+        "\nH: " + blob_height +
+        "\nVxy: " + sysExMsg[BLOB_PARAM_CODE.VELOCITY_XY] +
+        "\nVz: " + sysExMsg[BLOB_PARAM_CODE.VELOCITY_Z] +
+        "\nAz: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_Z] +
+        "\nAd: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_DONE];
       let _path = this.children["blob-group"].children["blob-path"];
       _path.add(centroid);
       if (_path.segments.length > 64) _path.removeSegment(0);
@@ -157,10 +159,10 @@ function blobs_factory() {
     
     update(sysExMsg) {
 
-      let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_PARAMS_INDEX.UID]);
+      let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_PARAM_CODE.UID]);
 
       if (index === -1) {
-        if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.NEW) {
+        if (sysExMsg[BLOB_PARAM_CODE.STATUS] === BLOB_STATUS.NEW) {
           let new_blob = blob_factory();
           new_blob.create(sysExMsg);
           new_blob.present();
@@ -168,13 +170,13 @@ function blobs_factory() {
         }
       }
       else {
-        if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.MISSING && sysExMsg[BLOB_PARAMS_INDEX.LAST_STATUS] === BLOB_STATUS.PRESENT) {
+        if (sysExMsg[BLOB_PARAM_CODE.STATUS] === BLOB_STATUS.MISSING && sysExMsg[BLOB_PARAM_CODE.LAST_STATUS] === BLOB_STATUS.PRESENT) {
           this.blobs_array[index].missing();
         }
-        else if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.PRESENT && sysExMsg[BLOB_PARAMS_INDEX.LAST_STATUS] === BLOB_STATUS.MISSING) {
+        else if (sysExMsg[BLOB_PARAM_CODE.STATUS] === BLOB_STATUS.PRESENT && sysExMsg[BLOB_PARAM_CODE.LAST_STATUS] === BLOB_STATUS.MISSING) {
           this.blobs_array[index].present();
         }
-        else if (sysExMsg[BLOB_PARAMS_INDEX.STATUS] === BLOB_STATUS.FREE) {
+        else if (sysExMsg[BLOB_PARAM_CODE.STATUS] === BLOB_STATUS.FREE) {
           this.blobs_array[index].released();
           this.blobs_array.splice(index, 1);
         }
@@ -189,3 +191,61 @@ function blobs_factory() {
 };
 
 var e256_blobs = blobs_factory();
+
+var blob_recorder = (function () {
+  const HEADERS = [
+    "elapsed_ms", "uid", "status",
+    "x_float", "y_float", "z",
+    "vxy_raw", "vz_raw", "attack_z_raw", "attack_done"
+  ];
+  let recording = false;
+  let start_time = 0;
+  let rows = [];
+
+  return {
+    is_recording: function () { return recording; },
+    start: function () {
+      rows = [];
+      start_time = Date.now();
+      recording = true;
+    },
+    stop: function () { recording = false; },
+    record: function (msg) {
+      if (!recording) return;
+      let x = msg[BLOB_PARAM_CODE.CENTROID_X_WHOLE_PART] + msg[BLOB_PARAM_CODE.CENTROID_X_FRACTIONAL_PART] / 100;
+      let y = msg[BLOB_PARAM_CODE.CENTROID_Y_WHOLE_PART] + msg[BLOB_PARAM_CODE.CENTROID_Y_FRACTIONAL_PART] / 100;
+      rows.push([
+        Date.now() - start_time,
+        msg[BLOB_PARAM_CODE.UID],
+        msg[BLOB_PARAM_CODE.STATUS],
+        x.toFixed(2),
+        y.toFixed(2),
+        msg[BLOB_PARAM_CODE.DEPTH],
+        msg[BLOB_PARAM_CODE.VELOCITY_XY],
+        msg[BLOB_PARAM_CODE.VELOCITY_Z],
+        msg[BLOB_PARAM_CODE.ATTACK_Z],
+        msg[BLOB_PARAM_CODE.ATTACK_DONE]
+      ].join(","));
+    },
+    export_csv: function () {
+      if (rows.length === 0) return;
+      let csv = HEADERS.join(",") + "\n" + rows.join("\n");
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+      a.download = "blob_velocity_" + Date.now() + ".csv";
+      a.click();
+    }
+  };
+})();
+
+function toggle_blob_record(btn) {
+  if (blob_recorder.is_recording()) {
+    blob_recorder.stop();
+    btn.classList.remove("active");
+    btn.textContent = "REC ●";
+  } else {
+    blob_recorder.start();
+    btn.classList.add("active");
+    btn.textContent = "STOP ■";
+  }
+}

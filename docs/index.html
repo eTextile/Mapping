@@ -79,14 +79,13 @@
         <div id="start_menu" class="collapse">
           <div class="btn-group input-group" role="group">
             <button id="MATRIX_RAW" class="e256_set_mode btn btn-outline-primary" type="button">MATRIX</button>
-            <button id="MAPPING" class="e256_set_mode btn btn-outline-primary" type="button">MAPPING</button>
           </div>
         </div>
 
         <div id="matrix_menu" class="collapse">
           <div class="btn-group input-group" role="group">
-            <button id="matrix_raw_btn" class="btn btn-outline-primary active" type="button" onclick="set_matrix_resolution(RAW_COLS, RAW_ROWS)">RAW 16×16</button>
-            <button id="matrix_interp_btn" class="btn btn-outline-primary" type="button" onclick="set_matrix_resolution(NEW_COLS, NEW_ROWS)">INTERP 64×64</button>
+            <button id="matrix_raw_btn" class="btn btn-outline-primary active" type="button" onclick="set_matrix_resolution(RAW_COLS, RAW_ROWS)">RAW</button>
+            <button id="matrix_interp_btn" class="btn btn-outline-primary" type="button" onclick="set_matrix_resolution(NEW_COLS, NEW_ROWS)">INTERP</button>
           </div>
           <div class="input-group">
             <span class="input-group-text">THRESHOLD</span>
@@ -97,6 +96,7 @@
 
         <div id="calibrate_menu" class="collapse">
           <button id="CALIBRATE" class="e256_set_mode btn btn-outline-primary input-group" type="button">CALIBRATE</button>
+          <button id="MAPPING" class="e256_set_mode btn btn-outline-primary input-group" type="button">MAPPING</button>
         </div>
 
         <div id="mapping_menu" class="collapse">
@@ -105,6 +105,29 @@
             <button id="EDIT" class="e256_set_mode btn btn-outline-primary" type="button">EDIT</button>
             <button id="THROUGH" class="e256_set_mode btn btn-outline-primary" type="button">THROUGH</button>
             <button id="PLAY" class="e256_set_mode btn btn-outline-primary" type="button">PLAY</button>
+          </div>
+
+          <div class="input-group">
+            <label class="input-group-text" for="hw_midi_input_chan">HW MIDI IN CH</label>
+            <select id="hw_midi_input_chan" class="form-select">
+              <option value="0">ALL</option>
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="16">16</option>
+            </select>
           </div>
 
           <div id="edit_menu" class="collapse">
@@ -125,6 +148,10 @@
               <button id="saveConfig" class="btn btn-outline-primary input-group" type="button">SAVE CONFIG</button>
               <div id="load_menu" class="collapse">
                 <input id="loadConfig" class="form-control form-control-sm" type="file" accept=".json, .wav">
+              </div>
+              <div class="btn-group input-group" role="group">
+                <button id="blob_record_btn" class="btn btn-outline-danger" type="button" onclick="toggle_blob_record(this)">REC ●</button>
+                <button id="blob_export_btn" class="btn btn-outline-secondary" type="button" onclick="blob_recorder.export_csv()">EXPORT CSV</button>
               </div>
             </div>
           </div>

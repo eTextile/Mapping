@@ -7,6 +7,8 @@
 var e256_config = ({}); // empty JSON declaration
 
 function e256_export_params() {
+  const hw_chan = parseInt(document.getElementById("hw_midi_input_chan").value) || 1;
+  e256_config["global"] = { hardware_midi_input_channel: hw_chan };
   e256_config["mappings"] = {};
   for (const layer of paper.project.layers) {
     //console.log("LAYER: " + layer.name);

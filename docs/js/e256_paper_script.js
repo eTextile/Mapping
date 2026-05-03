@@ -191,6 +191,9 @@ function draw_controlers_from_config(raw_configFile) {
   }
   clear_all_meunu_params();
   clear_all_layers();
+  if (configFile.global && configFile.global.hardware_midi_input_channel != null) {
+    document.getElementById("hw_midi_input_chan").value = configFile.global.hardware_midi_input_channel;
+  }
   create_controlers_from_config(configFile);
 };
 

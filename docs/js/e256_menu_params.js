@@ -53,7 +53,6 @@ function create_item_main_params(item) {
     }
 
     /////////// POINT
-    //if (item.data[param].constructor.name === "Point") {
     if (item.data[param] && item.data[param].constructor?.name === "Point") {
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
@@ -246,7 +245,6 @@ function create_select_field({ param, source, item }) {
 function update_item_main_params(item) {
   for (const part of item.children) {
     for (const param in part.data) {
-      //if (part.data[param].constructor.name === "Point") {
       if (part.data?.[param]?.constructor?.name === "Point") {
           $("#" + part.parent.id + "_" + param + "_val_x").val(round2(part.data[param].x));
         $("#" + part.parent.id + "_" + param + "_val_y").val(round2(part.data[param].y));

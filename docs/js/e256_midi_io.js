@@ -16,16 +16,6 @@ var current_touch = { "id": null };
 var previous_touch = { "id": null };
 var current_part = { "id": null };
 
-const MIDI_DEFAULT = {
-  INPUT_CHANNEL: 1,
-  NOTE_ON: 64,
-  VELOCITY: 127,
-  CONTROL_CHANGE: 23,
-  AFTERTOUCH_POLY: 24,
-  MIN_VAL: 0,
-  MAX_VAL: 127
-};
-
 function* default_midi_index() {
   let index = 0;
   while (true) {
@@ -33,6 +23,8 @@ function* default_midi_index() {
     yield index;
   }
 };
+
+const midi_index = default_midi_index();
 
 // MIDI struct
 // https://www.midi.org/specifications-old/item/table-2-expanded-messages-list-status-bytes
@@ -126,8 +118,8 @@ function midi_msg_builder(midi_msg_type) {
 
     case MIDI_TYPE.NOTE_ON:
       msg.midi = new note_on(
-        MIDI_DEFAULT.INPUT_CHANNEL,
-        default_midi_index.next().value,
+        MIDI_DEFAULT.OUTPUT_CHANNEL,
+        midi_index.next().value,
         MIDI_DEFAULT.VELOCITY
       )
       msg.limit = new limit(
@@ -138,8 +130,8 @@ function midi_msg_builder(midi_msg_type) {
 
     case MIDI_TYPE.CONTROL_CHANGE:
       msg.midi = new control_change(
-        MIDI_DEFAULT.INPUT_CHANNEL,
-        default_midi_index.next().value,
+        MIDI_DEFAULT.OUTPUT_CHANNEL,
+        midi_index.next().value,
         MIDI_DEFAULT.VELOCITY
       )
       msg.limit = new limit(
@@ -150,9 +142,9 @@ function midi_msg_builder(midi_msg_type) {
 
     case MIDI_TYPE.AFTERTOUCH_POLY:
       msg.midi = new polyphonic_aftertouch(
-        MIDI_DEFAULT.INPUT_CHANNEL,
-        default_midi_index.next().value,
-        default_midi_index.next().value
+        MIDI_DEFAULT.OUTPUT_CHANNEL,
+        midi_index.next().value,
+        midi_index.next().value
       );
       msg.limit = new limit(
         MIDI_DEFAULT.MIN_VAL,
@@ -162,7 +154,7 @@ function midi_msg_builder(midi_msg_type) {
 
     case MIDI_TYPE.PITCH_BEND:
       msg.midi = new pitch_bend(
-        MIDI_DEFAULT.INPUT_CHANNEL,
+        MIDI_DEFAULT.OUTPUT_CHANNEL,
         MIDI_DEFAULT.VELOCITY
       )
       msg.limit = new limit(
@@ -223,7 +215,7 @@ function onMIDISuccess(midiAccess) {
         inputSetup = false;
         output_setup = false;
         midi_device_connected = false;
-        //e256_current_mode = MODE.PENDING;
+        e256_current_mode = MODE.PENDING;
         updateMenu();
         break;
     }
@@ -474,9 +466,12 @@ function on_midi_message(midi_msg) {
         case MODE.MATRIX_INTERP:
           e256_matrix.updateChunk(midi_msg.data);
           break;
-        case MODE.EDIT:
-          e256_blobs.update(midi_msg.data.subarray(1, -1)); // strip 0xF0 header and 0xF7 footer
+        case MODE.EDIT: {
+          let blob_data = midi_msg.data.subarray(1, -1); // strip 0xF0 header and 0xF7 footer
+          blob_recorder.record(blob_data);
+          e256_blobs.update(blob_data);
           break;
+        }
         case MODE.THROUGH:
           // N/A
           break;
