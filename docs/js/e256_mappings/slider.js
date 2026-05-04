@@ -519,18 +519,19 @@ function slider_factory() {
         let b = _slider_frame.bounds;
         let _steps_group = new paper.Group({ "name": "steps-group" });
         for (let i = 0; i < steps; i++) {
-          let t = i / steps;
-          let line = (_slider_group.dir === "V_SLIDER")
-            ? new paper.Path.Line(
-                new paper.Point(b.left,  b.top + t * b.height),
-                new paper.Point(b.right, b.top + t * b.height))
-            : new paper.Path.Line(
-                new paper.Point(b.left + t * b.width, b.top),
-                new paper.Point(b.left + t * b.width, b.bottom));
-          line.strokeColor = "#606060";
-          line.strokeWidth = 1;
-          line.dashArray = [2, 4];
-          _steps_group.addChild(line);
+          let t0 = i / steps;
+          let t1 = (i + 1) / steps;
+          let cell = (_slider_group.dir === "V_SLIDER")
+            ? new paper.Path.Rectangle(
+                new paper.Point(b.left,              b.top + t0 * b.height),
+                new paper.Point(b.right,             b.top + t1 * b.height))
+            : new paper.Path.Rectangle(
+                new paper.Point(b.left + t0 * b.width, b.top),
+                new paper.Point(b.left + t1 * b.width, b.bottom));
+          cell.fillColor   = null;
+          cell.strokeColor = "#606060";
+          cell.strokeWidth = 0.5;
+          _steps_group.addChild(cell);
         }
         _steps_group.locked = true;
         _slider_group.insertChild(1, _steps_group);
@@ -548,6 +549,53 @@ function slider_factory() {
         if (current_part.type === "fill") {
           move_item(this, mouseEvent);
           update_item_main_params(this);
+        }
+      }
+    },
+
+    // Called by midi_play_update_all() in PLAY mode for each incoming MIDI message.
+    // CC  → moves every touch whose pos.midi matches (status + data1) along the slider axis.
+    // NoteOn/Off (ROL) → colors the matching step cell red (active) or clears it (released).
+    //   Firmware pre-fills step_note[i] = 60 + i (mapp_slider.cpp:316), so step_idx = note - 60.
+    midi_play_update: function(msg) {
+      let status = midi_msg_status_unpack(msg.status);
+      let frame = this.children["slider-group"].children["slider-frame"];
+      let touchs_group = this.children["touchs-group"];
+
+      if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
+        for (let touch_group of touchs_group.children) {
+          let pos_midi = touch_group.msg.pos.midi;
+          if (pos_midi.status === msg.status && pos_midi.data1 === msg.data1) {
+            let limit = touch_group.msg.pos.limit;
+            if (this.dir === "V_SLIDER") {
+              let y = mapp(msg.data2, limit.min, limit.max, frame.bounds.top, frame.bounds.bottom);
+              touch_group.children["touch-line"].position.y   = y;
+              touch_group.children["touch-circle"].position.y = y;
+              touch_group.children["touch-txt"].position.y    = y;
+            } else {
+              let x = mapp(msg.data2, limit.min, limit.max, frame.bounds.left, frame.bounds.right);
+              touch_group.children["touch-line"].position.x   = x;
+              touch_group.children["touch-circle"].position.x = x;
+              touch_group.children["touch-txt"].position.x    = x;
+            }
+            paper.view.update();
+            return;
+          }
+        }
+
+      } else if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
+        let steps_group = this.children["slider-group"].children["steps-group"];
+        if (!steps_group) return;
+
+        for (let touch_group of touchs_group.children) {
+          if ((touch_group.msg.press.midi.status & 0x0F) === (msg.status & 0x0F)) {
+            let step_idx = msg.data1 - 60; // firmware default: step_note[i] = 60 + i
+            if (step_idx < 0 || step_idx >= steps_group.children.length) return;
+            let active = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0);
+            steps_group.children[step_idx].fillColor = active ? "red" : null;
+            paper.view.update();
+            return;
+          }
         }
       }
     }

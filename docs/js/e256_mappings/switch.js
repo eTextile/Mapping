@@ -28,6 +28,7 @@ function switch_factory() {
       "touchs": null,
       "chord": null,
       "press": null,
+      "tap_tempo": false,
       "msg": null
     },
 
@@ -45,6 +46,7 @@ function switch_factory() {
       this.data.touchs = DEFAULT_SWITCH_TOUCHS;
       this.data.chord = DEFAULT_SWITCH_CHORD;
       this.data.press = DEFAULT_SWITCH_MODE_Z;
+      this.data.tap_tempo = false;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
@@ -65,7 +67,8 @@ function switch_factory() {
       );
       this.data.touchs = params.touchs;
       this.data.chord = params.chord;
-      this.data.press = params.press;
+      this.data.tap_tempo = params.tap_tempo || false;
+      this.data.press = this.data.tap_tempo ? 0 : params.press;
       this.data.msg = params.msg;
     },
 
@@ -81,6 +84,7 @@ function switch_factory() {
 
       let previous_press = this.data.press;
       this.data.press = this.children["switch-group"].data.press;
+      this.data.tap_tempo = (this.data.press === 0);
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
@@ -148,6 +152,8 @@ function switch_factory() {
                 _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
+              case 0: // tap_tempo — firmware handles it on blob detection
+                break;
             }
             break;
           case MODE.PLAY:
@@ -177,6 +183,8 @@ function switch_factory() {
                 _touch_group.msg.press.midi.data2 = 0;
                 send_midi_msg(_touch_group.msg.press.midi);
                 break;
+              case 0: // tap_tempo — firmware handles it on blob detection
+                break;
               }
             break;
           case MODE.PLAY:
@@ -193,7 +201,7 @@ function switch_factory() {
           _touch_group.pos.x - (half_frame_width / 2),
           _touch_group.pos.y - (half_frame_height / 3)
         ),
-        "content": midi_msg_as_txt(_touch_group.msg.press),
+        "content": _switch.data.press === 0 ? "TapTempo" : midi_msg_as_txt(_touch_group.msg.press),
         "locked": true
       });
 

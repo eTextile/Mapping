@@ -162,6 +162,10 @@ function midi_msg_builder(midi_msg_type) {
         MIDI_DEFAULT.MAX_VAL
       );
       break;
+    case 0: // tap_tempo sentinel — dummy NoteOn so JSON stays valid; firmware ignores it when tap_tempo: true
+      msg.midi = new note_on(MIDI_DEFAULT.OUTPUT_CHANNEL, 0, 0);
+      msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
+      break;
     default:
       break;
   };
@@ -180,7 +184,7 @@ async function MIDIsetup() {
 };
 
 function onMIDISuccess(midiAccess) {
-  let inputSetup = false;
+  let input_setup = false;
   let output_setup = false;
   
   midiAccess.onstatechange = function (msg) {
@@ -189,7 +193,7 @@ function onMIDISuccess(midiAccess) {
         for (let input of midiAccess.inputs.values()) {
           if (input.name === "ETEXTILE_SYNTH MIDI 1") {
             midi_input = input;
-            inputSetup = true;
+            input_setup = true;
           }
         }
         for (let output of midiAccess.outputs.values()) {
@@ -198,7 +202,7 @@ function onMIDISuccess(midiAccess) {
             output_setup = true;
           }
         }
-        if (inputSetup && output_setup && !midi_device_connected) {
+        if (input_setup && output_setup && !midi_device_connected) {
           midi_device_connected = true;
           midi_input.onmidimessage = on_midi_message;
           if (DEBUG) console.log("MIDI_IN: " + midi_input.name);
@@ -212,7 +216,7 @@ function onMIDISuccess(midiAccess) {
       case "disconnected":
         midi_input = null;
         midi_output = null;
-        inputSetup = false;
+        input_setup = false;
         output_setup = false;
         midi_device_connected = false;
         e256_current_mode = MODE.PENDING;
@@ -272,7 +276,7 @@ function on_midi_message(midi_msg) {
   msg.data1 = midi_msg.data[1];
   msg.data2 = midi_msg.data[2];
 
-  let status = midi_msg_status_unpack(midi_msg.data[0]);
+  let status = midi_msg_status_unpack(msg.status);
   switch (status.type) {
     case MIDI_TYPE.PROGRAM_CHANGE:
       switch (status.channel) {
@@ -456,7 +460,7 @@ function on_midi_message(midi_msg) {
       switch (e256_current_mode) {
         case MODE.FETCH_CONFIG:
           const decoder = new TextDecoder();
-          let conf_str = decoder.decode(midi_msg.data); // Change with msg!?
+          let conf_str = decoder.decode(midi_msg.data);
           fetch_config_file = conf_str.slice(1, -1);
           alert_msg("fetch_config", "FETCH CONFIG DONE", "success");
           break;
@@ -468,7 +472,6 @@ function on_midi_message(midi_msg) {
           break;
         case MODE.EDIT: {
           let blob_data = midi_msg.data.subarray(1, -1); // strip 0xF0 header and 0xF7 footer
-          blob_recorder.record(blob_data);
           e256_blobs.update(blob_data);
           break;
         }
@@ -485,32 +488,46 @@ function on_midi_message(midi_msg) {
       break;
 
     case MIDI_TYPE.CONTROL_CHANGE:
+      // TODO: move all CC level params to MIDI_SYSEX 
       if (status.channel === MIDI_CHANNEL.LEVELS) {
         const slider = document.getElementById("threshold_slider");
         const display = document.getElementById("threshold_display");
         if (slider) slider.value = msg.data1 === MIDI_CC.THRESHOLD ? msg.data2 : slider.value;
         if (display && msg.data1 === MIDI_CC.THRESHOLD) display.textContent = msg.data2;
         if (typeof set_threshold_plane === "function" && msg.data1 === MIDI_CC.THRESHOLD) set_threshold_plane(msg.data2);
-      } else {
+      }
+      else {
+        if (e256_current_mode === MODE.PLAY) midi_play_update_all(msg);
         midi_term.push(msg);
       }
       break;
 
     default:
+      if (e256_current_mode === MODE.PLAY) midi_play_update_all(msg);
       midi_term.push(msg);
       break;
   }
 };
 
-function send_midi_msg(midi_msg) {
+// Dispatch an incoming MIDI message to all canvas items that expose midi_play_update().
+// Called in PLAY mode so each mapping can move its touch(es) from firmware data.
+function midi_play_update_all(msg) {
+  for (const layer of paper.project.layers) {
+    for (const item of layer.children) {
+      if (typeof item.midi_play_update === "function") item.midi_play_update(msg);
+    }
+  }
+}
+
+function send_midi_msg(msg) {
   if (midi_device_connected) {
-    if (midi_msg.data2 === null) {
-      midi_output.send([midi_msg.status, midi_msg.data1]);
+    if (msg.data2 === null) {
+      midi_output.send([msg.status, msg.data1]);
     }
     else {
-      midi_output.send([midi_msg.status, midi_msg.data1, midi_msg.data2]);
+      midi_output.send([msg.status, msg.data1, msg.data2]);
     }
-    midi_term.push(midi_msg);
+    midi_term.push(msg);
   }
   else {
     alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
@@ -529,8 +546,8 @@ function sysex_alloc(conf_size) {
     let size_lsb = conf_size & 0x7F; // 0x7F Mask -> 0111 1111
     let size_msb = (conf_size >> 7) & 0x7F; // 0x7F Mask -> 0111 1111
     let header = [MIDI_SYSEX.START, MIDI_SYSEX.DEVICE_ID];
-    let midi_msg = header.concat(size_msb).concat(size_lsb).concat(MIDI_SYSEX.END);
-    midi_output.send(midi_msg);
+    let msg = header.concat(size_msb).concat(size_lsb).concat(MIDI_SYSEX.END);
+    midi_output.send(msg);
   } else {
     alert("FILE TO BIG!");
   }
@@ -538,8 +555,8 @@ function sysex_alloc(conf_size) {
 
 function sysex_upload(data) {
   let header = [MIDI_SYSEX.START, MIDI_SYSEX.DEVICE_ID];
-  let midi_msg = header.concat(data).concat(MIDI_SYSEX.END);
-  midi_output.send(midi_msg);
+  let msg = header.concat(data).concat(MIDI_SYSEX.END);
+  midi_output.send(msg);
 };
 
 /*
@@ -574,31 +591,31 @@ function string_to_bytes(str) {
   return bytes;
 };
 
-function midi_msg_as_txt(midi_msg) {
+function midi_msg_as_txt(msg) {
   let key_msg_txt = null;
-  let status = midi_msg_status_unpack(midi_msg.midi.status);
+  let status = midi_msg_status_unpack(msg.midi.status);
 
   switch (status.type) {
     case MIDI_TYPE.NOTE_ON:
       key_msg_txt =
       MIDI_BY_NAME[status.type] + "\n" +
       "chan: " + status.channel + "\n" +
-      "note: " + midi_msg.midi.data1 + "\n" +
-      "velo: " + midi_msg.midi.data2 + "\n";
+      "note: " + msg.midi.data1 + "\n" +
+      "velo: " + msg.midi.data2 + "\n";
       break;
     case MIDI_TYPE.CONTROL_CHANGE:
       key_msg_txt =
       MIDI_BY_NAME[status.type] + "\n" +
       "chan: " + status.channel + "\n" +
-      "ctr: " + midi_msg.midi.data1 + "\n" +
-      "val: " + midi_msg.midi.data2 + "\n";
+      "ctr: " + msg.midi.data1 + "\n" +
+      "val: " + msg.midi.data2 + "\n";
       break;
     case MIDI_TYPE.AFTERTOUCH_POLY:
       key_msg_txt =
       MIDI_BY_NAME[status.type] + "\n" +
       "chan: " + status.channel + "\n" +
-      "note: " + midi_msg.midi.data1 + "\n" +
-      "ctr: " + midi_msg.midi.data2 + "\n";
+      "note: " + msg.midi.data1 + "\n" +
+      "ctr: " + msg.midi.data2 + "\n";
       break;
   }
   return key_msg_txt;

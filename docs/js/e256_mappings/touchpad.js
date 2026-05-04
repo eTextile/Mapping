@@ -480,6 +480,46 @@ function touchpad_factory() {
           // N/A
           break;
       }
+    },
+
+    // Called by midi_play_update_all() in PLAY mode for CC messages only.
+    // Each touch has its own pos_x and pos_y CC numbers (unique from midi_index),
+    // so status+data1 unambiguously identifies one touch/axis pair.
+    // pos_x CC → moves the touch horizontally; pos_y CC → moves it vertically.
+    midi_play_update: function(msg) {
+      let status = midi_msg_status_unpack(msg.status);
+      if (status.type !== MIDI_TYPE.CONTROL_CHANGE) return;
+
+      let frame = this.children["pad-group"].children["pad-frame"];
+      let touchs_group = this.children["touchs-group"];
+      let updated = false;
+
+      for (let touch_group of touchs_group.children) {
+        let pos_x_midi = touch_group.msg.pos_x.midi;
+        let pos_y_midi = touch_group.msg.pos_y.midi;
+
+        if (pos_x_midi.status === msg.status && pos_x_midi.data1 === msg.data1) {
+          let x = mapp(msg.data2, touch_group.msg.pos_x.limit.min, touch_group.msg.pos_x.limit.max,
+                       frame.bounds.left, frame.bounds.right);
+          touch_group.children["touch-line-y"].position.x = x;
+          touch_group.children["touch-circle"].position.x = x;
+          touch_group.children["touch-txt"].position.x    = x;
+          updated = true;
+          break;
+        }
+
+        if (pos_y_midi.status === msg.status && pos_y_midi.data1 === msg.data1) {
+          let y = mapp(msg.data2, touch_group.msg.pos_y.limit.min, touch_group.msg.pos_y.limit.max,
+                       frame.bounds.top, frame.bounds.bottom);
+          touch_group.children["touch-line-x"].position.y = y;
+          touch_group.children["touch-circle"].position.y = y;
+          touch_group.children["touch-txt"].position.y    = y;
+          updated = true;
+          break;
+        }
+      }
+
+      if (updated) paper.view.update();
     }
   });
 

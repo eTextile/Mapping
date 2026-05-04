@@ -108,7 +108,8 @@ const DATA2 = {
 const PRESSURE = {
   0x90: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
   0xB0: "ControlChange", // PRESSURE ONLY
-  0xA0: "AfterTouchPoly" // TRIGGER NOTE AND MODULATE
+  0xA0: "AfterTouchPoly", // TRIGGER NOTE AND MODULATE
+  0: "TapTempo"          // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
 }
 
 const PRESSURE_CODES = Object.fromEntries(

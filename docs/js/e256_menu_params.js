@@ -483,7 +483,8 @@ circular_buffer.prototype.push = function (midi_msg) {
 
   let status = midi_msg_status_unpack(midi_msg.status);
 
-  div_midi_msg.textContent = MIDI_BY_NAME[status.type] + " :\t[ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
+  let type_name = (status.type === MIDI_TYPE.NOTE_ON && midi_msg.data2 === 0) ? "NOTE_OFF" : MIDI_BY_NAME[status.type];
+  div_midi_msg.textContent = type_name + " :\t[ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
 
   switch (e256_current_mode) {
     case MODE.THROUGH:
