@@ -250,8 +250,7 @@ function update_item_main_params(item) {
         $("#" + part.parent.id + "_" + param + "_val_y").val(round2(part.data[param].y));
       }
       else {
-        //$("#" + part.parent.id + "_" + param + "_val").val(round2(part.data[param]));
-        $("#" + part.parent.id + "_" + param + "_val").val(part.data[param]);
+        $("#" + part.parent.id + "_" + param + "_val").val(param === "offset" ? round2(part.data[param]) : part.data[param]);
         //console.log("VALUES: " + part.data[param])
       }
     }
