@@ -47,6 +47,9 @@ Each control can be assigned any standard MIDI message type: Note On/Off, Contro
 - **Pressure modes:** NoteOn (velocity), ControlChange (pressure only), AfterTouchPoly (note + modulation)
 - **Movement curves:** Linear, Logarithmic, Roller
 - **Grid populate modes:** Off, Up, Down, As Played, Octave, Ping-Pong
+- **Tap Tempo:** any Switch control can be set to `TapTempo` mode — each touch sends MIDI TimingClock (0xF8) at the tapped BPM instead of a note or CC
+- **PLAY mode feedback:** incoming MIDI from the device animates the canvas in real time — slider steps colour red/grey on NoteOn/NoteOff; touch cursors move on CC
+- **MIDI terminal:** displays incoming messages; NoteOn with velocity 0 is shown as NOTE_OFF per standard MIDI convention
 - **SysEx:** used for fetching and uploading the full configuration blob
 - **Config channels:** levels (ch 3), modes (ch 4), verbosity (ch 5), errors (ch 6)
 
