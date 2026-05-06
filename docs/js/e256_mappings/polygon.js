@@ -14,6 +14,8 @@ function polygon_factory() {
   const DEFAULT_POLYGON_TOUCHS = 1;
   const DEFAULT_POLYGON_MODE_DIST = MIDI_TYPE.CONTROL_CHANGE;
   const DEFAULT_POLYGON_MODE_Z = MIDI_TYPE.NOTE_ON;
+  const DEFAULT_SOURCE_RADIUS = Math.round(DEFAULT_POLYGON_SIZE / 3);
+  const SOURCE_EDGE_TOLERANCE = 14;
 
   var _polygon = new paper.Group({
     "name": "polygon",
@@ -31,6 +33,7 @@ function polygon_factory() {
 
       let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT_POLYGON_SIDES, DEFAULT_POLYGON_SIZE).segments;
       this.data.segments = polygon.map(s => [s.point]);
+      this.data.source_radii = new Array(DEFAULT_POLYGON_SIDES).fill(DEFAULT_SOURCE_RADIUS);
 
       this.data.msg = [];
       for (let touch_index = 0; touch_index < DEFAULT_POLYGON_TOUCHS; touch_index++) {
@@ -47,6 +50,7 @@ function polygon_factory() {
     setup_from_config: function (params) {
       this.data.touchs = params.touchs;
       this.data.segments = params.segments;
+      this.data.source_radii = params.source_radii || new Array(params.segments.length).fill(DEFAULT_SOURCE_RADIUS);
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.press = status.type;
@@ -60,6 +64,10 @@ function polygon_factory() {
       this.data.press = this.children["polygon-group"].data.press;
 
       this.data.segments = this.children["polygon-group"].data.segments;
+      const _srcs = this.children["sources-group"];
+      if (_srcs) {
+        this.data.source_radii = Array.from(_srcs.children).map(s => s.bounds.width / 2);
+      }
       this.data.msg = [];
 
       for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
@@ -229,21 +237,58 @@ function polygon_factory() {
       return _touch_group;
     },
 
-    ////// IN PROGRESS ////////////////////////////////////////////
-    new_source: function (_segment) {
+    new_source: function (_polygon_group, _vertex_index, _segment, _radius) {
+      // _segment[0] is a paper.Point (from mouse event) or {x,y} (from config) or a number (after drag update where segment=[x,y])
+      const center = (typeof _segment[0] === "number")
+        ? new paper.Point(_segment[0], _segment[1])
+        : new paper.Point(_segment[0]);
+
       let _source_circle = new paper.Path.Circle({
         "name": "source-circle",
-        "center": new paper.Point( // This is not exact: contains the pos to the polygon limits
-          _segment[0],
-          _segment[1]
-        ),
-        "radius": 100
+        "center": center,
+        "radius": _radius
       });
 
       _source_circle.style = {
-        "strokeWidth": 1,
+        "strokeWidth": 4,
         "strokeColor": "yellow",
-      }
+        "fillColor": new paper.Color(1, 1, 0, 0.08)
+      };
+
+      let _drag_mode = null;
+
+      _source_circle.onMouseEnter = function () {
+        if (e256_current_mode === MODE.EDIT) this.style.strokeColor = "white";
+      };
+
+      _source_circle.onMouseLeave = function () {
+        if (e256_current_mode === MODE.EDIT) this.style.strokeColor = "yellow";
+      };
+
+      _source_circle.onMouseDown = function (mouseEvent) {
+        if (e256_current_mode !== MODE.EDIT) return;
+        const dist = this.position.getDistance(mouseEvent.point);
+        const r = this.bounds.width / 2;
+        _drag_mode = (dist > r - SOURCE_EDGE_TOLERANCE) ? "resize" : "move";
+      };
+
+      _source_circle.onMouseDrag = function (mouseEvent) {
+        if (e256_current_mode !== MODE.EDIT) return;
+        if (_drag_mode === "move") {
+          this.position = mouseEvent.point;
+          _polygon_group.data.segments[_vertex_index] = [mouseEvent.point.x, mouseEvent.point.y];
+          _polygon_group.children["polygon"].segments[_vertex_index].point = mouseEvent.point;
+          update_item_main_params(_polygon_group.parent);
+        } else if (_drag_mode === "resize") {
+          const new_r = this.position.getDistance(mouseEvent.point);
+          if (new_r > 10) {
+            const old_r = this.bounds.width / 2;
+            this.scale(new_r / old_r);
+          }
+        }
+      };
+
+      return _source_circle;
     },
 
     create: function () {
@@ -318,8 +363,10 @@ function polygon_factory() {
         "name": "sources-group"
       });
 
-      for (const _segment of this.data.segments) {
-        _source_group.addChild(this.new_source(_segment));
+      for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
+        _source_group.addChild(
+          this.new_source(_polygon_group, vertex_index, this.data.segments[vertex_index], this.data.source_radii[vertex_index])
+        );
       }
 
       this.addChild(_source_group);
