@@ -424,13 +424,17 @@ function update_item_touchs_menu_params(item) {
                     midi_value = sub_part.msg[msg_type][param].data2;
                     break;
                 }
-                $("#" + sub_part.id + "_" + msg_type + "_" + midi_arg + "_val").val(midi_value);
+                const el = document.getElementById(sub_part.id + "_" + msg_type + "_" + midi_arg + "_val");
+                if (el) el.value = midi_value;
               }
               break;
-            case "limit":
-              $("#" + sub_part.id + "_" + msg_type + "_min_val").val(sub_part.msg[msg_type][param].min);
-              $("#" + sub_part.id + "_" + msg_type + "_max_val").val(sub_part.msg[msg_type][param].max);
+            case "limit": {
+              const el_min = document.getElementById(sub_part.id + "_" + msg_type + "_min_val");
+              const el_max = document.getElementById(sub_part.id + "_" + msg_type + "_max_val");
+              if (el_min) el_min.value = sub_part.msg[msg_type][param].min;
+              if (el_max) el_max.value = sub_part.msg[msg_type][param].max;
               break;
+            }
           }
         }
       }
@@ -445,18 +449,17 @@ function item_menu_params(item, state) {
   }
 };
 
-//////////////// Tail effect
-function scroll() {
-  let div_height = $("#midi_term").get(0).scrollHeight;
-  //$("#midi_term").animate({ scrollTop: div_height }, 10); // FIXME
-};
-
 function update_midi_term_capacity() {
   const el = document.getElementById("midi_term");
   const style = getComputedStyle(el);
   const line_height = parseFloat(style.lineHeight);
   const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-  midi_term._max_length = Math.max(1, Math.floor((el.clientHeight - padding) / line_height));
+  const new_max = Math.max(1, Math.floor((el.clientHeight - padding) / line_height));
+  while (midi_term._nodes.length > new_max) {
+    midi_term._nodes.pop().remove();
+  }
+  midi_term._max_length = new_max;
+  if (midi_term._write_idx >= new_max) midi_term._write_idx = 0;
 };
 
 document.getElementById("midi_term").addEventListener("shown.bs.collapse", update_midi_term_capacity);
@@ -469,41 +472,31 @@ window.addEventListener("resize", function () {
 
 function circular_buffer(max_length) {
   this._max_length = max_length;
-  this._msg_count = 0;
+  this._nodes = [];   // pre-allocated DOM node pool
+  this._write_idx = 0;
 };
 
-circular_buffer.prototype = Object.create(Array.prototype);
-
 circular_buffer.prototype.push = function (midi_msg) {
-  
-  Array.prototype.push.call(this, midi_msg);
-
-  let div_midi_msg = document.createElement("div");
-
-  div_midi_msg.setAttribute("id", "midi_msg_" + this._msg_count);
-
+  const term = document.getElementById("midi_term");
   let status = midi_msg_status_unpack(midi_msg.status);
+  const type_name = (status.type === MIDI_TYPE.NOTE_ON && midi_msg.data2 === 0)
+    ? "NOTE_OFF" : MIDI_BY_NAME[status.type];
 
-  let type_name = (status.type === MIDI_TYPE.NOTE_ON && midi_msg.data2 === 0) ? "NOTE_OFF" : MIDI_BY_NAME[status.type];
-  div_midi_msg.textContent = type_name + " :\t[ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
-
-  switch (e256_current_mode) {
-    case MODE.THROUGH:
-      div_midi_msg.style.color = 'white';
-      break;
-    case MODE.PLAY:
-      div_midi_msg.style.color = 'lightGreen';
-      break;
+  let node;
+  if (this._nodes.length < this._max_length) {
+    node = document.createElement("div");
+    this._nodes.push(node);
+  } else {
+    node = this._nodes[this._write_idx];  // reuse oldest node
   }
 
-  $("#midi_term").append(div_midi_msg);
+  node.textContent = type_name + " :\t[ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
+  node.style.color = e256_current_mode === MODE.THROUGH ? "white"
+                   : e256_current_mode === MODE.PLAY    ? "lightGreen"
+                   : "";
 
-  while (this.length > this._max_length) {
-    this.shift();
-    scroll();
-    $("#midi_msg_" + (this._msg_count - this._max_length)).remove();
-  }
-  this._msg_count++;
+  term.appendChild(node); // move to end (no-op on first insert, O(1) move when reusing)
+  this._write_idx = (this._write_idx + 1) % this._max_length;
 };
 
 var midi_term = new circular_buffer(25);

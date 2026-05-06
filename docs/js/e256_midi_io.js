@@ -597,12 +597,7 @@ $(document).ready(
 );
 
 function string_to_bytes(str) {
-  let bytes = [];
-  for (let i = 0; i < str.length; i++) {
-    let char = str.charCodeAt(i);
-    bytes.push(char);
-  }
-  return bytes;
+  return Array.from(new TextEncoder().encode(str));
 };
 
 function midi_msg_as_txt(msg) {
