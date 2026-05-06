@@ -559,10 +559,12 @@ function slider_factory() {
     //   Firmware pre-fills step_note[i] = 60 + i (mapp_slider.cpp:316), so step_idx = note - 60.
     midi_play_update: function(msg) {
       let status = midi_msg_status_unpack(msg.status);
-      let frame = this.children["slider-group"].children["slider-frame"];
+      let slider_group = this.children["slider-group"];
       let touchs_group = this.children["touchs-group"];
+      let updated = false;
 
       if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
+        let frame = slider_group.children["slider-frame"];
         for (let touch_group of touchs_group.children) {
           let pos_midi = touch_group.msg.pos.midi;
           if (pos_midi.status === msg.status && pos_midi.data1 === msg.data1) {
@@ -578,26 +580,27 @@ function slider_factory() {
               touch_group.children["touch-circle"].position.x = x;
               touch_group.children["touch-txt"].position.x    = x;
             }
-            paper.view.update();
-            return;
+            updated = true;
+            break;
           }
         }
 
       } else if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
-        let steps_group = this.children["slider-group"].children["steps-group"];
+        let steps_group = slider_group.children["steps-group"];
         if (!steps_group) return;
-
         for (let touch_group of touchs_group.children) {
           if ((touch_group.msg.press.midi.status & 0x0F) === (msg.status & 0x0F)) {
             let step_idx = msg.data1 - 60; // firmware default: step_note[i] = 60 + i
             if (step_idx < 0 || step_idx >= steps_group.children.length) return;
             let active = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0);
             steps_group.children[step_idx].fillColor = active ? "red" : null;
-            paper.view.update();
-            return;
+            updated = true;
+            break;
           }
         }
       }
+
+      if (updated) paper.view.update();
     }
 
   });

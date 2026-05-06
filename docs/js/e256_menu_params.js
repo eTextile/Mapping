@@ -243,15 +243,17 @@ function create_select_field({ param, source, item }) {
 
 
 function update_item_main_params(item) {
+  const pid = item.id;
   for (const part of item.children) {
     for (const param in part.data) {
       if (part.data?.[param]?.constructor?.name === "Point") {
-          $("#" + part.parent.id + "_" + param + "_val_x").val(round2(part.data[param].x));
-        $("#" + part.parent.id + "_" + param + "_val_y").val(round2(part.data[param].y));
-      }
-      else {
-        $("#" + part.parent.id + "_" + param + "_val").val(param === "offset" ? round2(part.data[param]) : part.data[param]);
-        //console.log("VALUES: " + part.data[param])
+        const ex = document.getElementById(pid + "_" + param + "_val_x");
+        const ey = document.getElementById(pid + "_" + param + "_val_y");
+        if (ex) ex.value = round2(part.data[param].x);
+        if (ey) ey.value = round2(part.data[param].y);
+      } else {
+        const el = document.getElementById(pid + "_" + param + "_val");
+        if (el) el.value = param === "offset" ? round2(part.data[param]) : part.data[param];
       }
     }
   }
