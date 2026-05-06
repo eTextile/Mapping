@@ -133,6 +133,7 @@ paper_tool.onKeyDown = function (keyEvent) {
         case "backspace":
           remove_item_menu_params(current_controleur);
           current_controleur.remove();
+          invalidate_midi_play_cache();
           current_controleur = previous_controleur;
           previous_controleur = null; // TODO: add linked list controleur managment
           break;
@@ -170,6 +171,7 @@ function draw_controler_from_mouse(mouseEvent) {
   current_controleur = controleur_factory(e256_draw_mode);
   current_controleur.setup_from_mouse_event(mouseEvent);
   current_controleur.create();
+  invalidate_midi_play_cache();
   current_controleur.bringToFront();
 
   if (previous_controleur != null) item_menu_params(previous_controleur, "hide");
@@ -215,6 +217,7 @@ function clear_all_layers() {
       layer.removeChildren();
     }
   }
+  invalidate_midi_play_cache();
 };
 
 // Create all controlers from config
@@ -232,6 +235,7 @@ function create_controlers_from_config(configFile) {
       item_menu_params(current_controleur, "hide");
     }
   }
+  invalidate_midi_play_cache();
 };
 
 function re_create_item(item) {
@@ -239,6 +243,7 @@ function re_create_item(item) {
   remove_item_menu_params(item);
   item.removeChildren();
   item.create();
+  invalidate_midi_play_cache();
   create_item_menu_params(item);
   update_item_main_params(item);
   update_item_touchs_menu_params(item);

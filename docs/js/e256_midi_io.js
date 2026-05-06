@@ -509,13 +509,27 @@ function on_midi_message(midi_msg) {
   }
 };
 
+// Cache of items that expose midi_play_update(). Built lazily on first PLAY message,
+// invalidated (set to null) whenever items are added or removed from the canvas.
+let _midi_play_items = null;
+
+function invalidate_midi_play_cache() {
+  _midi_play_items = null;
+}
+
 // Dispatch an incoming MIDI message to all canvas items that expose midi_play_update().
 // Called in PLAY mode so each mapping can move its touch(es) from firmware data.
 function midi_play_update_all(msg) {
-  for (const layer of paper.project.layers) {
-    for (const item of layer.children) {
-      if (typeof item.midi_play_update === "function") item.midi_play_update(msg);
+  if (_midi_play_items === null) {
+    _midi_play_items = [];
+    for (const layer of paper.project.layers) {
+      for (const item of layer.children) {
+        if (typeof item.midi_play_update === "function") _midi_play_items.push(item);
+      }
     }
+  }
+  for (const item of _midi_play_items) {
+    item.midi_play_update(msg);
   }
 }
 
