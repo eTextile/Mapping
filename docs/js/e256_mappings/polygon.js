@@ -250,19 +250,25 @@ function polygon_factory() {
       });
 
       _source_circle.style = {
-        "strokeWidth": 4,
-        "strokeColor": "yellow",
-        "fillColor": new paper.Color(1, 1, 0, 0.08)
+        "strokeWidth": 3,
+        "strokeColor": "black",
+        "fillColor": new paper.Color(0, 0, 0, 0.05)
       };
 
       let _drag_mode = null;
 
       _source_circle.onMouseEnter = function () {
-        if (e256_current_mode === MODE.EDIT) this.style.strokeColor = "white";
+        if (e256_current_mode === MODE.EDIT) {
+          this.style.strokeWidth = 6;
+          this.style.strokeColor = "red";
+        }
       };
 
       _source_circle.onMouseLeave = function () {
-        if (e256_current_mode === MODE.EDIT) this.style.strokeColor = "yellow";
+        if (e256_current_mode === MODE.EDIT) {
+          this.style.strokeWidth = 3;
+          this.style.strokeColor = "black";
+        }
       };
 
       _source_circle.onMouseDown = function (mouseEvent) {
