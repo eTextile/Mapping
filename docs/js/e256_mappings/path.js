@@ -133,6 +133,24 @@ function path_factory() {
         }
       }
 
+      _touch_circle.onMouseUp = function () {
+        if (e256_current_mode !== MODE.THROUGH) return;
+        switch (_path.data.press) {
+          case MIDI_TYPE.NOTE_ON:
+            _touch_group.msg.press.midi.data2 = 0;
+            send_midi_msg(_touch_group.msg.press.midi);
+            break;
+          case MIDI_TYPE.CONTROL_CHANGE:
+            _touch_group.msg.press.midi.data2 = 0;
+            send_midi_msg(_touch_group.msg.press.midi);
+            break;
+          case MIDI_TYPE.AFTERTOUCH_POLY:
+            _touch_group.msg.press.midi.data2 = 0;
+            send_midi_msg(_touch_group.msg.press.midi);
+            break;
+        }
+      }
+
       _touch_circle.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
           case MODE.EDIT:
