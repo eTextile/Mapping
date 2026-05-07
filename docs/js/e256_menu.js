@@ -39,6 +39,7 @@ $(".e256_set_mode").click (
     e256_current_mode = MODE[event.target.id];
     if (midi_device_connected) {
       if(e256_current_mode != e256_previous_mode) {
+        if (event.target.id === "CALIBRATE") $("#CALIBRATE").addClass("active");
         send_midi_msg(new program_change(MIDI_CHANNEL.MODES, e256_current_mode));
         if (DEBUG) console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
       }
@@ -71,6 +72,7 @@ $(".mapingTool").click (
 $("#uploadConfig").click (
   function () {
     if (midi_device_connected) {
+      $("#uploadConfig").addClass("active");
       send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.ALLOCATE_CONFIG));
       if (DEBUG) console.log("REQUEST: ALLOCATE CONFIG");
     } else {
@@ -83,20 +85,14 @@ $("#saveConfig").click(function () {
   e256_export_params();
   if (DEBUG) console.log(JSON.stringify(e256_config));
 
-  // Popup input
   let filename = prompt("Enter file name:", "e256_mapping.json");
   if (filename === null) return;
 
-  // Clean up empty input
   filename = filename.trim();
-  if (filename === "") {
-    filename = "e256_mapping.json";
-  }
+  if (filename === "") filename = "e256_mapping.json";
+  if (!filename.toLowerCase().endsWith(".json")) filename += ".json";
 
-  // Ensure .json extension
-  if (!filename.toLowerCase().endsWith(".json")) {
-    filename += ".json";
-  }
+  $("#saveConfig").addClass("active");
 
   var file = new File(
     [JSON.stringify(e256_config, null, 2)],
@@ -105,11 +101,13 @@ $("#saveConfig").click(function () {
   );
 
   saveAs(file, filename);
+  $("#saveConfig").removeClass("active");
 });
 
 $("#fetchConfig").click (
   function () {
     if (midi_device_connected) {
+      $("#fetchConfig").addClass("active");
       send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.LOAD_CONFIG));
       if (DEBUG) console.log("REQUEST: LOAD CONFIG");
     } else {

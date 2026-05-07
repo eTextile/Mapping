@@ -62,95 +62,99 @@
         <h2 id="PROJECT" class="card-title"></h2>
         <h5 id="NAME" class="card-subtitle"></h5>
 
-        </br>
-        <div class="form-check form-switch">
-          <input id="connect_switch" class="form-check-input btn btn-danger" type="checkbox" role="button">
-          <label class="form-check-label connection_status" for="connect_switch">
-            <div id="connection_status">DISCONNECTED</div>
-          </br>
-            <p id="mode_explanation" class="text">
-              Configure the Midi tactile commands of your eTextile-Synthesizer
-            </p>
-          </label>
-        </div>
+        <div class="d-grid gap-2 mt-2">
 
-        </br>
+          <div class="form-check form-switch">
+            <input id="connect_switch" class="form-check-input btn btn-danger" type="checkbox" role="button">
+            <label class="form-check-label connection_status" for="connect_switch">
+              <div id="connection_status">DISCONNECTED</div>
+              <p id="mode_explanation" class="text">
+                Configure the Midi tactile commands of your eTextile-Synthesizer
+              </p>
+            </label>
+          </div>
 
-        <div id="start_menu" class="collapse">
-          <div class="btn-group input-group" role="group">
+          <div class="btn-group" role="group">
             <button id="MATRIX_RAW" class="e256_set_mode btn btn-outline-primary" type="button">MATRIX</button>
-          </div>
-        </div>
-
-        <div id="matrix_menu" class="collapse">
-          <div class="btn-group input-group" role="group">
-            <button id="matrix_raw_btn" class="btn btn-outline-primary active" type="button" onclick="set_matrix_resolution(RAW_COLS, RAW_ROWS)">RAW</button>
-            <button id="matrix_interp_btn" class="btn btn-outline-primary" type="button" onclick="set_matrix_resolution(NEW_COLS, NEW_ROWS)">INTERP</button>
-          </div>
-          <div class="input-group">
-            <span class="input-group-text">THRESHOLD</span>
-            <input id="threshold_slider" type="range" class="form-control" min="2" max="50" value="5" step="1">
-            <span id="threshold_display" class="input-group-text">5</span>
-          </div>
-        </div>
-
-        <div id="calibrate_menu" class="collapse">
-          <button id="CALIBRATE" class="e256_set_mode btn btn-outline-primary input-group" type="button">CALIBRATE</button>
-          <button id="MAPPING" class="e256_set_mode btn btn-outline-primary input-group" type="button">MAPPING</button>
-        </div>
-
-        <div id="mapping_menu" class="collapse">
-
-          <div class="btn-group input-group" role="group">
-            <button id="EDIT" class="e256_set_mode btn btn-outline-primary" type="button">EDIT</button>
-            <button id="THROUGH" class="e256_set_mode btn btn-outline-primary" type="button">THROUGH</button>
-            <button id="PLAY" class="e256_set_mode btn btn-outline-primary" type="button">PLAY</button>
+            <button id="MAPPING" class="e256_set_mode btn btn-outline-primary" type="button">MAPPING</button>
           </div>
 
-          <div class="input-group">
-            <label class="input-group-text" for="hw_midi_input_chan">HW MIDI IN CH</label>
-            <select id="hw_midi_input_chan" class="form-select">
-              <option value="0">ALL</option>
-              <option value="1" selected>1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="9">9</option>
-              <option value="10">10</option>
-              <option value="11">11</option>
-              <option value="12">12</option>
-              <option value="13">13</option>
-              <option value="14">14</option>
-              <option value="15">15</option>
-              <option value="16">16</option>
-            </select>
+          <div class="btn-group w-100" role="group">
+            <button id="CALIBRATE" class="e256_set_mode btn btn-outline-primary" type="button">CALIBRATE</button>
           </div>
 
-          <div id="edit_menu" class="collapse">
-            <div id="mappingToolsMenu">
-              <div class="btn-group input-group" role="group">
-                <button id="touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
-                <button id="switch" class="mapingTool btn btn-outline-primary" type="button">Switch</button>
-                <button id="slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
-                <button id="knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
-                <button id="grid" class="mapingTool btn btn-outline-primary" type="button">Grid</button>
-                <button id="path" class="mapingTool btn btn-outline-primary" type="button">Path</button>
-                <button id="polygon" class="mapingTool btn btn-outline-primary" type="button">polygon</button>
+          <div id="matrix_menu" class="collapse">
+            <div class="d-grid gap-2">
+              <div class="btn-group" role="group">
+                <button id="matrix_raw_btn" class="btn btn-outline-primary active" type="button" onclick="set_matrix_resolution(RAW_COLS, RAW_ROWS)">RAW</button>
+                <button id="matrix_interp_btn" class="btn btn-outline-primary" type="button" onclick="set_matrix_resolution(NEW_COLS, NEW_ROWS)">INTERP</button>
               </div>
-              <div class="btn-group input-group" role="group">
-                <button id="fetchConfig" class="btn btn-outline-primary" type="button">FETCH CONFIG</button>
-                <button id="uploadConfig" class="btn btn-outline-primary" type="button">UPLOAD CONFIG</button>
-              </div>
-              <button id="saveConfig" class="btn btn-outline-primary input-group" type="button">SAVE CONFIG</button>
-              <div id="load_menu" class="collapse">
-                <input id="loadConfig" class="form-control form-control-sm" type="file" accept=".json, .wav">
+              <div class="input-group">
+                <span class="input-group-text">THRESHOLD</span>
+                <input id="threshold_slider" type="range" class="form-control" min="2" max="50" value="5" step="1">
+                <span id="threshold_display" class="input-group-text">5</span>
               </div>
             </div>
           </div>
+
+
+          <div id="mapping_menu" class="collapse">
+            <div class="d-grid gap-2">
+              <div class="btn-group" role="group">
+                <button id="EDIT" class="e256_set_mode btn btn-outline-primary" type="button">EDIT</button>
+                <button id="THROUGH" class="e256_set_mode btn btn-outline-primary" type="button">THROUGH</button>
+                <button id="PLAY" class="e256_set_mode btn btn-outline-primary" type="button">PLAY</button>
+              </div>
+              <div class="input-group">
+                <label class="input-group-text" for="hw_midi_input_chan">HW MIDI IN CH</label>
+                <select id="hw_midi_input_chan" class="form-select">
+                  <option value="0">ALL</option>
+                  <option value="1" selected>1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="12">12</option>
+                  <option value="13">13</option>
+                  <option value="14">14</option>
+                  <option value="15">15</option>
+                  <option value="16">16</option>
+                </select>
+              </div>
+              <div id="edit_menu" class="collapse">
+                <div id="mappingToolsMenu">
+                  <div class="d-grid gap-2">
+                    <div class="btn-group" role="group">
+                      <button id="touchpad" class="mapingTool btn btn-outline-primary" type="button">Touchpad</button>
+                      <button id="switch" class="mapingTool btn btn-outline-primary" type="button">Switch</button>
+                      <button id="slider" class="mapingTool btn btn-outline-primary" type="button">Slider</button>
+                      <button id="knob" class="mapingTool btn btn-outline-primary" type="button">Knob</button>
+                    </div>
+                    <div class="btn-group" role="group">
+                      <button id="grid" class="mapingTool btn btn-outline-primary" type="button">Grid</button>
+                      <button id="path" class="mapingTool btn btn-outline-primary" type="button">Path</button>
+                      <button id="polygon" class="mapingTool btn btn-outline-primary" type="button">Polygon</button>
+                    </div>
+                    <div class="btn-group" role="group">
+                      <button id="fetchConfig" class="btn btn-outline-primary" type="button">FETCH</button>
+                      <button id="uploadConfig" class="btn btn-outline-primary" type="button">UPLOAD</button>
+                      <button id="saveConfig" class="btn btn-outline-primary" type="button">SAVE</button>
+                    </div>
+                    <div id="load_menu" class="collapse">
+                      <input id="loadConfig" class="form-control form-control-sm" type="file" accept=".json, .wav">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
       

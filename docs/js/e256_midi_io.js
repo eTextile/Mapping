@@ -386,6 +386,7 @@ function on_midi_message(midi_msg) {
 
             case MODE_ACK.CALIBRATE:
               e256_current_mode = e256_previous_mode;
+              $("#CALIBRATE").removeClass("active");
               alert_msg("calibrate", "MODE: CALIBRATE", "success");
               break;
 
@@ -396,6 +397,7 @@ function on_midi_message(midi_msg) {
               break;
 
             case MODE_ACK.FETCH_CONFIG:
+              $("#fetchConfig").removeClass("active");
               if (current_controleur) {
                 $("#" + current_controleur.name).removeClass("active");
                 previous_controleur = current_controleur;
@@ -434,6 +436,7 @@ function on_midi_message(midi_msg) {
               break;
             
             case MODE_ACK.APPLY_CONFIG:
+              $("#uploadConfig").removeClass("active");
               alert_msg("config_apply", "RECEIVED: CONFIG_APPLY", "success");
               alert_msg("config_save", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
               send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.EDIT));

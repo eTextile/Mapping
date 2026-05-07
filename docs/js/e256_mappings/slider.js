@@ -284,20 +284,20 @@ function slider_factory() {
             if (_slider.dir === "V_SLIDER") {
               _touch_line.position.y = mouseEvent.point.y;
               _touch_circle.position.y = mouseEvent.point.y;
-              _touch_txt.position = new paper.Point(_touch_circle.position.x + _txt_offset, mouseEvent.point.y);
-              _touch_group.msg.pos.midi.data2 = Math.round(
-                mapp(mouseEvent.point.y,
+              _touch_txt.position.y = mouseEvent.point.y;
+              _touch_group.msg.pos.midi.data2 =
+                _touch_group.msg.pos.limit.min + _touch_group.msg.pos.limit.max -
+                Math.round(mapp(mouseEvent.point.y,
                   _slider.children["slider-frame"].bounds.top,
                   _slider.children["slider-frame"].bounds.bottom,
                   _touch_group.msg.pos.limit.min,
                   _touch_group.msg.pos.limit.max
-                )
-              );
+                ));
             }
             else { // "H_SLIDER":
               _touch_line.position.x = mouseEvent.point.x;
               _touch_circle.position.x = mouseEvent.point.x;
-              _touch_txt.position = new paper.Point(mouseEvent.point.x + _txt_offset, _touch_circle.position.y);
+              _touch_txt.position.x = mouseEvent.point.x;
               _touch_group.msg.pos.midi.data2 = Math.round(
                 mapp(mouseEvent.point.x,
                   _slider.children["slider-frame"].bounds.left,
@@ -329,9 +329,11 @@ function slider_factory() {
       _touch_group.addChild(_touch_circle);
 
       const _txt_offset = TOUCH_RADIUS + 8;
+      const _txt_x = (this.dir === "V_SLIDER") ? this.data.to.x + _txt_offset : _touch_group.pos.x;
+      const _txt_y = (this.dir === "V_SLIDER") ? _touch_group.pos.y : this.data.from.y - _txt_offset;
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
-        "point": new paper.Point(_touch_group.pos.x + _txt_offset, _touch_group.pos.y),
+        "point": new paper.Point(_txt_x, _txt_y),
         "content": "T:" + _touch_id + "\npos:" + _touch_group.msg.pos.midi.data1 + "\nz:" + _touch_group.msg.press.midi.data1,
         "locked": true
       });
@@ -442,7 +444,13 @@ function slider_factory() {
                 }
                 const new_pos = new paper.Point(new_x, new_y);
                 _touch.children["touch-circle"].position = new_pos;
-                _touch.children["touch-txt"].position = new paper.Point(new_x + TOUCH_RADIUS + 8, new_y);
+                const txt_x = (current_frame_height > current_frame_width)
+                  ? bounds.right + TOUCH_RADIUS + 8
+                  : new_x;
+                const txt_y = (current_frame_height > current_frame_width)
+                  ? new_y
+                  : bounds.top - TOUCH_RADIUS - 8;
+                _touch.children["touch-txt"].position = new paper.Point(txt_x, txt_y);
               }
             };
 
@@ -571,7 +579,8 @@ function slider_factory() {
           if (pos_midi.status === msg.status && pos_midi.data1 === msg.data1) {
             let limit = touch_group.msg.pos.limit;
             if (this.dir === "V_SLIDER") {
-              let y = mapp(msg.data2, limit.min, limit.max, frame.bounds.top, frame.bounds.bottom);
+              let y = frame.bounds.top + frame.bounds.bottom -
+                mapp(msg.data2, limit.min, limit.max, frame.bounds.top, frame.bounds.bottom);
               touch_group.children["touch-line"].position.y   = y;
               touch_group.children["touch-circle"].position.y = y;
               touch_group.children["touch-txt"].position.y    = y;
@@ -580,7 +589,7 @@ function slider_factory() {
               let x = mapp(msg.data2, limit.min, limit.max, frame.bounds.left, frame.bounds.right);
               touch_group.children["touch-line"].position.x   = x;
               touch_group.children["touch-circle"].position.x = x;
-              touch_group.children["touch-txt"].position.x    = x + TOUCH_RADIUS + 8;
+              touch_group.children["touch-txt"].position.x    = x;
             }
             updated = true;
             break;
