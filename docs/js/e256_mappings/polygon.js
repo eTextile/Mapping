@@ -28,15 +28,15 @@ function polygon_factory() {
 
     setup_from_mouse_event: function (mouseEvent) {
 
-      this.data.touchs = DEFAULT_POLYGON_TOUCHS;
       this.data.press = DEFAULT_POLYGON_MODE_Z;
 
       let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT_POLYGON_SIDES, DEFAULT_POLYGON_SIZE).segments;
       this.data.segments = polygon.map(s => [s.point]);
       this.data.source_radii = new Array(DEFAULT_POLYGON_SIDES).fill(DEFAULT_SOURCE_RADIUS);
+      this.data.touchs = this.data.segments.length; // one touch per vertex
 
       this.data.msg = [];
-      for (let touch_index = 0; touch_index < DEFAULT_POLYGON_TOUCHS; touch_index++) {
+      for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
         let touch_msg = {};
         for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
           const key = "source_"+ vertex_index;
@@ -95,15 +95,15 @@ function polygon_factory() {
 
     new_touch: function (_polygon, _touch_id) {
 
-      let bounding_box = get_bounding_box(_polygon.data.segments);
+      const seg = _polygon.data.segments[_touch_id];
+      const vertex_pt = (typeof seg[0] === "number")
+        ? new paper.Point(seg[0], seg[1])
+        : new paper.Point(seg[0]);
 
-      let _touch_group = new paper.Group({  
+      let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
         "msg": this.data.msg[_touch_id],
-        "pos": new paper.Point( // This is not exact: contains the pos to the polygon limits
-          get_random_int(bounding_box.left, bounding_box.right),
-          get_random_int(bounding_box.top, bounding_box.bottom)
-        ),
+        "pos": vertex_pt,
         "prev_dists": [this.data.segments.length]
       });
 
@@ -324,8 +324,8 @@ function polygon_factory() {
 
       _polygon_curve.style = {
         "strokeWidth": DEFAULT_POLYGON_STROKE_WIDTH,
-        "fillColor": "orange",
-        "strokeColor": "purple",
+        "fillColor": null,
+        "strokeColor": "black",
         "strokeJoin": "round"
       }
 
