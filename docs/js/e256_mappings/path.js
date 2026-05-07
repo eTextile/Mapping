@@ -138,15 +138,24 @@ function path_factory() {
           case MODE.EDIT:
             // N/A
             break;
-          case MODE.THROUGH:
-            // TODO: move the _touch_circle along the path
-            // http://paperjs.org/reference/path/#getnearestpoint-point
-            this.position = mouseEvent; // FIXME!
-            if (_touch_group.msg.pos.midi.data2 != _touch_group.prev_pos) {
-              _touch_group.prev_pos = _touch_group.msg.pos.midi.data2;
+          case MODE.THROUGH: {
+            const _path_curve = _path.children["path-curve"];
+            const nearest = _path_curve.getNearestPoint(mouseEvent.point);
+            this.position = nearest;
+            const offset = _path_curve.getOffsetOf(nearest);
+            const pos_val = Math.round(mapp(
+              offset,
+              0, _path_curve.length,
+              _touch_group.msg.pos.limit.min,
+              _touch_group.msg.pos.limit.max
+            ));
+            if (pos_val !== _touch_group.prev_pos) {
+              _touch_group.prev_pos = pos_val;
+              _touch_group.msg.pos.midi.data2 = pos_val;
               send_midi_msg(_touch_group.msg.pos.midi);
             }
             break;
+          }
           case MODE.PLAY:
             // N/A
             break;
