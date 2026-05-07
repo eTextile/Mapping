@@ -284,7 +284,7 @@ function slider_factory() {
             if (_slider.dir === "V_SLIDER") {
               _touch_line.position.y = mouseEvent.point.y;
               _touch_circle.position.y = mouseEvent.point.y;
-              _touch_txt.position.y = mouseEvent.point.y;
+              _touch_txt.position = new paper.Point(_touch_circle.position.x + _txt_offset, mouseEvent.point.y);
               _touch_group.msg.pos.midi.data2 = Math.round(
                 mapp(mouseEvent.point.y,
                   _slider.children["slider-frame"].bounds.top,
@@ -297,7 +297,7 @@ function slider_factory() {
             else { // "H_SLIDER":
               _touch_line.position.x = mouseEvent.point.x;
               _touch_circle.position.x = mouseEvent.point.x;
-              _touch_txt.position.x = mouseEvent.point.x;
+              _touch_txt.position = new paper.Point(mouseEvent.point.x + _txt_offset, _touch_circle.position.y);
               _touch_group.msg.pos.midi.data2 = Math.round(
                 mapp(mouseEvent.point.x,
                   _slider.children["slider-frame"].bounds.left,
@@ -328,10 +328,11 @@ function slider_factory() {
       }
       _touch_group.addChild(_touch_circle);
 
+      const _txt_offset = TOUCH_RADIUS + 8;
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
-        "point": _touch_circle.position,
-        "content": "T: " + _touch_id,
+        "point": new paper.Point(_touch_group.pos.x + _txt_offset, _touch_group.pos.y),
+        "content": "T:" + _touch_id + "\npos:" + _touch_group.msg.pos.midi.data1 + "\nz:" + _touch_group.msg.press.midi.data1,
         "locked": true
       });
 
@@ -441,7 +442,7 @@ function slider_factory() {
                 }
                 const new_pos = new paper.Point(new_x, new_y);
                 _touch.children["touch-circle"].position = new_pos;
-                _touch.children["touch-txt"].position = new_pos;
+                _touch.children["touch-txt"].position = new paper.Point(new_x + TOUCH_RADIUS + 8, new_y);
               }
             };
 
@@ -574,11 +575,12 @@ function slider_factory() {
               touch_group.children["touch-line"].position.y   = y;
               touch_group.children["touch-circle"].position.y = y;
               touch_group.children["touch-txt"].position.y    = y;
+              // x stays fixed at circle.x + offset (set at creation)
             } else {
               let x = mapp(msg.data2, limit.min, limit.max, frame.bounds.left, frame.bounds.right);
               touch_group.children["touch-line"].position.x   = x;
               touch_group.children["touch-circle"].position.x = x;
-              touch_group.children["touch-txt"].position.x    = x;
+              touch_group.children["touch-txt"].position.x    = x + TOUCH_RADIUS + 8;
             }
             updated = true;
             break;
