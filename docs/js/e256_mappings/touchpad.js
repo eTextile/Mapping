@@ -266,7 +266,8 @@ function touchpad_factory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
-        "content": "T: " + _touch_id,
+        "content": "T: " + _touch_id, // TODO: add all blob values
+        //"content": midi_msg_as_txt(_touch_id.msg.press),
         "locked": true
       });
 

@@ -70,18 +70,10 @@ function blob_factory() {
       };
       _blob_group.addChild(_blob_txt);
 
-      let _blob_path = new paper.Path({
-        "name": "blob-path",
-        "closed": false
+      let _blob_trail = new paper.Group({
+        "name": "blob-trail"
       });
-
-      _blob_path.style = {
-        "strokeWidth": 1,
-        "strokeColor": "green",
-        "strokeCap": "round",
-        "strokeJoin": "round"
-      };
-      _blob_group.addChild(_blob_path);
+      _blob_group.addChild(_blob_trail);
 
       let _blob_rect = new paper.Shape.Rectangle({
         "name": "blob-box",
@@ -141,9 +133,24 @@ function blob_factory() {
         "\nVz: " + sysExMsg[BLOB_PARAM_CODE.VELOCITY_Z] +
         "\nAz: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_Z] +
         "\nAd: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_DONE];
-      let _path = this.children["blob-group"].children["blob-path"];
-      _path.add(centroid);
-      if (_path.segments.length > 64) _path.removeSegment(0);
+      const VXY_ALPHA = 0.2;
+      this.smooth_vxy = this.smooth_vxy !== undefined
+        ? this.smooth_vxy + VXY_ALPHA * (sysExMsg[BLOB_PARAM_CODE.VELOCITY_XY] - this.smooth_vxy)
+        : sysExMsg[BLOB_PARAM_CODE.VELOCITY_XY];
+
+      let _trail = this.children["blob-group"].children["blob-trail"];
+      if (this.last_centroid) {
+        let seg = new paper.Path({
+          segments: [this.last_centroid, centroid],
+          strokeWidth: mapp(this.smooth_vxy, 0, 127, 1, 20),
+          strokeColor: "green",
+          strokeCap: "round",
+          strokeJoin: "round"
+        });
+        _trail.addChild(seg);
+        if (_trail.children.length > 64) _trail.firstChild.remove();
+      }
+      this.last_centroid = centroid;
     }
 
   });

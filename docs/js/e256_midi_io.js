@@ -475,6 +475,10 @@ function on_midi_message(midi_msg) {
           break;
         case MODE.EDIT: {
           let blob_data = midi_msg.data.subarray(1, -1); // strip 0xF0 header and 0xF7 footer
+          if (blob_data.length < 14) {
+            console.warn("BLOB_SYSEX_TRUNCATED: length=" + blob_data.length + " (expected 14) — UID byte may have exceeded 127, reflash firmware");
+            break;
+          }
           e256_blobs.update(blob_data);
           break;
         }
