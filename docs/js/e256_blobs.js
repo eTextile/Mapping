@@ -102,13 +102,11 @@ function blob_factory() {
     present: function () {
       this.children["blob-group"].children["blob-centroid"].style.fillColor = 'green';
       this.children["blob-group"].children["blob-box"].style.strokeColor = 'green';
-      //this.children["blob-group"].children["blob-path"].style.strokeColor = 'green';
     },
 
     missing: function () {
       this.children["blob-group"].children["blob-centroid"].style.fillColor = 'orange';
       this.children["blob-group"].children["blob-box"].style.strokeColor = 'orange';
-      //this.children["blob-group"].children["blob-path"].style.strokeColor = 'orange';
     },
     
     released: function () {
@@ -176,7 +174,7 @@ function blobs_factory() {
         else if (sysExMsg[BLOB_PARAM_CODE.STATUS] === BLOB_STATUS.PRESENT && sysExMsg[BLOB_PARAM_CODE.LAST_STATUS] === BLOB_STATUS.MISSING) {
           this.blobs_array[index].present();
         }
-        else if (sysExMsg[BLOB_PARAM_CODE.STATUS] === BLOB_STATUS.FREE) {
+        else if (sysExMsg[BLOB_PARAM_CODE.STATUS] === BLOB_STATUS.RELEASED) {
           this.blobs_array[index].released();
           this.blobs_array.splice(index, 1);
         }
