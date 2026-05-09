@@ -66,6 +66,14 @@ a, a:hover, a:focus, a:active {
   color: rgb(255, 0, 212);
 }
 
+.btn-outline-primary.active,
+.btn-outline-primary:active,
+.btn-check:checked + .btn-outline-primary {
+  background-color: rgb(255, 0, 212);
+  border-color: rgb(255, 0, 212);
+  color: white;
+}
+
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
