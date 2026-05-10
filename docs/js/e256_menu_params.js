@@ -122,9 +122,13 @@ function create_item_main_params(item) {
       part_param.appendChild(select);
     }
     else if (param === "press") {
+      const is_switch = item.parent && item.parent.name === "switch";
+      const pressure_source = is_switch
+        ? PRESSURE
+        : Object.fromEntries(Object.entries(PRESSURE).filter(([k]) => k !== "0"));
       const { span, select } = create_select_field({
         param: "press",
-        source: PRESSURE,
+        source: pressure_source,
         item
       });
       select.addEventListener("change", () => {
@@ -281,28 +285,39 @@ function create_item_touchs_menu_params(item) {
 
   for (const msg_type in item.msg) {
 
+    const msg_obj = item.msg[msg_type];
+    const row_inputs = []; // collect all inputs for this msg_type to toggle them
+
     let row_params_atr_tr = document.createElement("tr");
     let row_params_val_tr = document.createElement("tr");
 
+    // Toggle switch in the header cell
     let first_param_atr = document.createElement("th");
-    first_param_atr.textContent = "";
+    first_param_atr.className = "align-middle text-center";
+    let toggle_wrap = document.createElement("div");
+    toggle_wrap.className = "form-check form-switch d-flex justify-content-center mb-0";
+    let toggle = document.createElement("input");
+    toggle.type = "checkbox";
+    toggle.className = "form-check-input";
+    toggle.setAttribute("role", "switch");
+    toggle.checked = msg_obj.enabled !== false; // default true when undefined
+    toggle_wrap.appendChild(toggle);
+    first_param_atr.appendChild(toggle_wrap);
     row_params_atr_tr.appendChild(first_param_atr);
 
-    let status = midi_msg_status_unpack(item.msg[msg_type]["midi"]["status"]);
+    let status = midi_msg_status_unpack(msg_obj["midi"]["status"]);
 
     let first_param_val = document.createElement("th");
     first_param_val.className = "align-middle text-center";
-
-    //first_param_val.textContent = MIDI[status.type]; // Set MIDI message type
-    first_param_val.textContent = msg_type; // Set MIDI message name
+    first_param_val.textContent = msg_type;
     row_params_val_tr.appendChild(first_param_val);
 
     let param_arg = null;
-    for (const param in item.msg[msg_type]) {
+    for (const param in msg_obj) {
       switch (param) {
 
         case "midi":
-          for (const midi_byte in item.msg[msg_type][param]) {
+          for (const midi_byte in msg_obj[param]) {
 
             switch (midi_byte) {
               case "status":
@@ -325,8 +340,8 @@ function create_item_touchs_menu_params(item) {
               param_val.className = "form-control text-center";
               param_val.setAttribute("type", "number");
               param_val.setAttribute("id", item.id + "_" + msg_type + "_" + param_arg + "_val");
-              //console.log("MAKE_ID: " + item.id + "_" + msg_type + "_" + param_arg + "_val");
               param_val.setAttribute("aria-describedby", item.id + "_" + msg_type + "_" + param_arg + "_atr");
+              row_inputs.push(param_val);
 
               param_val.addEventListener("input", function (event) {
                 if (event.target.type !== "number") return;
@@ -342,10 +357,10 @@ function create_item_touchs_menu_params(item) {
                 if (event.key !== "Enter" || event.target.type !== "number") return;
                 if (midi_byte === "status") {
                   if (event.target.value > 0 && event.target.value <= 16) {
-                    item.msg[msg_type][param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
+                    msg_obj[param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
                   }
                 } else if (event.target.value > -1 && event.target.value < 128) {
-                  item.msg[msg_type][param][midi_byte] = event.target.value;
+                  msg_obj[param][midi_byte] = event.target.value;
                 }
               });
               let param_td = document.createElement("td");
@@ -357,7 +372,7 @@ function create_item_touchs_menu_params(item) {
           break;
 
         case "limit":
-          for (const limit in item.msg[msg_type][param]) {
+          for (const limit in msg_obj[param]) {
             let param_atr = document.createElement("th");
             param_atr.setAttribute("id", item.id + "_" + MIDI_BY_NAME[status.type] + "_" + limit + "_atr");
             param_atr.className = "align-middle text-center";
@@ -368,6 +383,7 @@ function create_item_touchs_menu_params(item) {
             param_val.setAttribute("type", "number");
             param_val.setAttribute("id", item.id + "_" + msg_type + "_" + limit + "_val");
             param_val.setAttribute("aria-describedby", item.id + "_" + msg_type + "_" + limit + "_atr");
+            row_inputs.push(param_val);
 
             param_val.addEventListener("input", function (event) {
               if (event.target.type !== "number") return;
@@ -377,7 +393,7 @@ function create_item_touchs_menu_params(item) {
             param_val.addEventListener("keydown", function (event) {
               if (event.key !== "Enter" || event.target.type !== "number") return;
               if (event.target.value > -1 && event.target.value < 128) {
-                item.msg[msg_type][param][limit] = event.target.value;
+                msg_obj[param][limit] = event.target.value;
               }
             });
             let param_td = document.createElement("td");
@@ -388,6 +404,16 @@ function create_item_touchs_menu_params(item) {
           break;
       }
     }
+
+    // Apply initial disabled state and wire up toggle
+    if (msg_obj.enabled === false) {
+      row_inputs.forEach(inp => { inp.disabled = true; });
+    }
+    toggle.addEventListener("change", function () {
+      msg_obj.enabled = this.checked;
+      row_inputs.forEach(inp => { inp.disabled = !this.checked; });
+    });
+
     row_params_body.appendChild(row_params_atr_tr);
     row_params_body.appendChild(row_params_val_tr);
   }
