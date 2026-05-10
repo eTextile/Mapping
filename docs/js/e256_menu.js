@@ -106,6 +106,7 @@ $("#saveConfig").click(function () {
   $("#saveConfig").removeClass("active");
 });
 
+
 $("#fetchConfig").click (
   function () {
     if (midi_device_connected) {

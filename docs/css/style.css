@@ -1,7 +1,17 @@
-body {
+html, body {
   height: inherit;
   width: inherit;
+  overflow: hidden;
   background-image: linear-gradient(90deg, #0517b7 0%, #480583 35%, #ff00ea 100%);
+}
+
+/* Hide scrollbars on all elements — all browsers */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge legacy */
+}
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .collapsing {
@@ -31,10 +41,15 @@ h1, h2, h3, h4, h5 {
     margin: auto;
     overflow: hidden;
   }
+  .col-sm-3.sidenav.d-flex > .card {
+    height: 90vh;
+    overflow-y: auto;
+  }
 }
 
 #canvas-2D {
   background: rgb(255, 255, 255);
+  border-radius: var(--bs-border-radius);
 }
 
 #canvas-3D {
@@ -43,6 +58,10 @@ h1, h2, h3, h4, h5 {
   align-items: center;
   width: 100%;
   height: 100%;
+}
+
+#canvas-3D > canvas {
+  border-radius: var(--bs-border-radius);
 }
 
 @media (orientation: portrait) {
@@ -94,7 +113,7 @@ input[type=number] {
 }
 
 .col-sm-3.sidenav.d-flex > .card {
-  flex: 1;
+  flex: none;
 }
 
 #midi_term {
