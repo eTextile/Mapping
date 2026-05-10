@@ -66,12 +66,19 @@ a, a:hover, a:focus, a:active {
   color: rgb(255, 0, 212);
 }
 
+.btn-outline-primary {
+  color: rgb(255, 0, 212);
+  border-color: rgb(255, 0, 212);
+}
+
+.btn-outline-primary:hover,
 .btn-outline-primary.active,
 .btn-outline-primary:active,
 .btn-check:checked + .btn-outline-primary {
   background-color: rgb(255, 0, 212);
   border-color: rgb(255, 0, 212);
-  color: white;
+  color: white !important;
+  font-weight: bold;
 }
 
 /* Chrome, Safari, Edge, Opera */

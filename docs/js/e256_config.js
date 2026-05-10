@@ -79,8 +79,7 @@ const MIDI_SYSEX = {
   END: 0xF7,
   DEVICE_ID: 0x7D,
   CONFIG: 0x7C,
-  SOUND: 0x6C,
-  LEVELS: 0x6C
+  LEVELS: 0x6C // TODO
 };
 
 const DATA1 = {
@@ -106,10 +105,10 @@ const DATA2 = {
 };
 
 const PRESSURE = {
-  0x90: "NoteOn",        // TRIGGER NOTE WITH VELOCITY
-  0xB0: "ControlChange", // PRESSURE ONLY
+  0x90: "NoteOn",         // TRIGGER NOTE WITH VELOCITY
+  0xB0: "ControlChange",  // PRESSURE ONLY
   0xA0: "AfterTouchPoly", // TRIGGER NOTE AND MODULATE
-  0: "TapTempo"          // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
+  0: "TapTempo"           // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
 }
 
 const PRESSURE_CODES = Object.fromEntries(
@@ -190,9 +189,11 @@ const MODE_ACK_CODES = Object.fromEntries(
   Object.entries(MODE_ACK).map(([k, v]) => [v, k])
 );
 
+// TODO adding :
+  // DESERIALIZATION_ERROR
 // E256 ERROR CODES CONSTANTS
 const ERROR = {
-  WAITING_FOR_CONFIG: 0,
+  CONFIG_FILE_MISSING: 0,
   CONNECTING_FLASH: 1,
   FLASH_FULL: 2,
   FILE_TOO_BIG: 3,

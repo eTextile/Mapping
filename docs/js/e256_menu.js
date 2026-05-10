@@ -51,6 +51,8 @@ $(".e256_set_mode").click (
 
 $(".mapingTool").click (
   function (event) {
+    $(".mapingTool").removeClass("active");
+    $(this).addClass("active");
     e256_previous_draw_mode = e256_draw_mode; ///////////////////////////////// FIXME!
     e256_draw_mode = event.target.id;
     
