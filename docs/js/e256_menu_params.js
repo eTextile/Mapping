@@ -149,45 +149,7 @@ function create_item_main_params(item) {
       part_param.appendChild(span);
       part_param.appendChild(select);
     }
-    /*
-    else if (param === "chord") {
-      const { span, select } = create_select_field({
-        param: "chord",
-        source: CHORD_TYPES,
-        item
-      });
-      part_param.appendChild(span);
-      part_param.appendChild(select);
-    }
-    */
-   
-    /*
-    else if (param === "midilearn") {
-      // For details on the buttons refer to
-      // https://getbootstrap.com/docs/5.0/components/buttons/
-      let span_param = document.createElement("span");
-      span_param.className = "input-group-text";
-      span_param.textContent = param;
-      part_param.appendChild(span_param);
-
-      let button = document.createElement("button");
-      button.setAttribute("id", item.id + "_" + param + "_val");
-      button.setAttribute("type", "button");
-      button.className = "btn btn-outline-primary flex-fill";
-      button.textContent = item.data[param];
-
-      button.addEventListener("click", function (event) {
-        if (event.target.textContent === "OFF") {
-          button.textContent = "ON";
-        } else {
-          button.textContent = "OFF";
-        }
-        item.data[param] = button.textContent;
-      });
-      part_param.appendChild(button);
-    }
-    */
-
+    
     else {
       let span_param = document.createElement("span");
       span_param.className = "input-group-text";
@@ -284,6 +246,7 @@ function create_item_touchs_menu_params(item) {
   let row_params_body = document.createElement("tbody");
 
   for (const msg_type in item.msg) {
+    if (msg_type === "pos" && item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL) continue;
 
     const msg_obj = item.msg[msg_type];
     const row_inputs = []; // collect all inputs for this msg_type to toggle them
@@ -360,7 +323,17 @@ function create_item_touchs_menu_params(item) {
                     msg_obj[param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
                   }
                 } else if (event.target.value > -1 && event.target.value < 128) {
-                  msg_obj[param][midi_byte] = event.target.value;
+                  msg_obj[param][midi_byte] = Number(event.target.value);
+                }
+              });
+              param_val.addEventListener("change", function (event) {
+                if (event.target.type !== "number") return;
+                if (midi_byte === "status") {
+                  if (event.target.value > 0 && event.target.value <= 16) {
+                    msg_obj[param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
+                  }
+                } else if (event.target.value > -1 && event.target.value < 128) {
+                  msg_obj[param][midi_byte] = Number(event.target.value);
                 }
               });
               let param_td = document.createElement("td");
@@ -393,7 +366,13 @@ function create_item_touchs_menu_params(item) {
             param_val.addEventListener("keydown", function (event) {
               if (event.key !== "Enter" || event.target.type !== "number") return;
               if (event.target.value > -1 && event.target.value < 128) {
-                msg_obj[param][limit] = event.target.value;
+                msg_obj[param][limit] = Number(event.target.value);
+              }
+            });
+            param_val.addEventListener("change", function (event) {
+              if (event.target.type !== "number") return;
+              if (event.target.value > -1 && event.target.value < 128) {
+                msg_obj[param][limit] = Number(event.target.value);
               }
             });
             let param_td = document.createElement("td");
@@ -478,14 +457,15 @@ function item_menu_params(item, state) {
 function update_midi_term_capacity() {
   const el = document.getElementById("midi_term");
   const style = getComputedStyle(el);
-  const line_height = parseFloat(style.lineHeight);
+  const label_h = 28; // OUT / IN label row height (approx)
+  const line_height = parseFloat(style.lineHeight) || 20;
   const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
-  const new_max = Math.max(1, Math.floor((el.clientHeight - padding) / line_height));
-  while (midi_term._nodes.length > new_max) {
-    midi_term._nodes.pop().remove();
-  }
-  midi_term._max_length = new_max;
-  if (midi_term._write_idx >= new_max) midi_term._write_idx = 0;
+  const new_max = Math.max(1, Math.floor((el.clientHeight - padding - label_h) / line_height));
+  [midi_term_out, midi_term_in].forEach(buf => {
+    while (buf._nodes.length > new_max) buf._nodes.pop().remove();
+    buf._max_length = new_max;
+    if (buf._write_idx >= new_max) buf._write_idx = 0;
+  });
 };
 
 document.getElementById("midi_term").addEventListener("shown.bs.collapse", update_midi_term_capacity);
@@ -496,14 +476,16 @@ window.addEventListener("resize", function () {
   }
 });
 
-function circular_buffer(max_length) {
+function circular_buffer(container_id, max_length) {
+  this._container_id = container_id;
   this._max_length = max_length;
   this._nodes = [];   // pre-allocated DOM node pool
   this._write_idx = 0;
 };
 
 circular_buffer.prototype.push = function (midi_msg) {
-  const term = document.getElementById("midi_term");
+  const term = document.getElementById(this._container_id);
+  if (!term) return;
   let status = midi_msg_status_unpack(midi_msg.status);
   const type_name = (status.type === MIDI_TYPE.NOTE_ON && midi_msg.data2 === 0)
     ? "NOTE_OFF" : MIDI_BY_NAME[status.type];
@@ -525,7 +507,8 @@ circular_buffer.prototype.push = function (midi_msg) {
   this._write_idx = (this._write_idx + 1) % this._max_length;
 };
 
-var midi_term = new circular_buffer(25);
+var midi_term_out = new circular_buffer("midi_term_out", 25);
+var midi_term_in  = new circular_buffer("midi_term_in",  25);
 
 //////////////// Alert
 function alert_msg(identifier, message, type) {

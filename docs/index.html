@@ -68,11 +68,12 @@
             <input id="connect_switch" class="form-check-input btn btn-danger" type="checkbox" role="button">
             <label class="form-check-label connection_status" for="connect_switch">
               <div id="connection_status">DISCONNECTED</div>
-              <p id="mode_explanation" class="text">
-                Configure the Midi tactile commands of your eTextile-Synthesizer
-              </p>
             </label>
           </div>
+
+          <p id="mode_explanation">
+            Configure the MIDI tactile commands of your eTextile-Synthesizer
+          </p>
 
           <div class="btn-group w-100" role="group">
             <button id="CALIBRATE" class="e256_set_mode btn btn-outline-primary" type="button">CALIBRATE</button>
@@ -105,28 +106,7 @@
                 <button id="THROUGH" class="e256_set_mode btn btn-outline-primary" type="button">THROUGH</button>
                 <button id="PLAY" class="e256_set_mode btn btn-outline-primary" type="button">PLAY</button>
               </div>
-              <div class="input-group">
-                <label class="input-group-text" for="hw_midi_input_chan">HW MIDI IN CH</label>
-                <select id="hw_midi_input_chan" class="form-select">
-                  <option value="0">ALL</option>
-                  <option value="1" selected>1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                  <option value="13">13</option>
-                  <option value="14">14</option>
-                  <option value="15">15</option>
-                  <option value="16">16</option>
-                </select>
-              </div>
+
               <div id="edit_menu" class="collapse">
                 <div id="mappingToolsMenu">
                   <div class="d-grid gap-2">
@@ -191,7 +171,18 @@
 
         <div id="e256_params" class="p-2"></div>
 
-        <div id="midi_term" class="collapse p-2"></div>
+        <div id="midi_term" class="collapse p-2">
+          <div class="row g-1">
+            <div class="col-6">
+              <div class="fw-bold text-center small text-white-50 mb-1">E256-IN</div>
+              <div id="midi_term_in"></div>
+            </div>
+            <div class="col-6 border-start border-secondary">
+              <div class="fw-bold text-center small text-white-50 mb-1">E256-OUT</div>
+              <div id="midi_term_out"></div>
+            </div>
+          </div>
+        </div>
 
       </div>
 

@@ -70,58 +70,58 @@ paper_tool.onMouseDown = function (mouseEvent) {
   //console.log("hit_test: " + current_part);
 
   if (e256_current_mode === MODE.EDIT) {
-    if (e256_draw_mode) {
-      if (!current_part) { // Create_ctl if cliking any umpty screen space
-        if (!create_once) { // Check if the controleur needs to be draw with more that one clic
+    if (current_part) { // Clicking on an existing item — always handled
+      previous_controleur = current_controleur;
+      let current_item = current_part.item;
+      while (current_item.parent) {
+        current_controleur = current_item;
+        current_item = current_item.parent;
+      }
+
+      if (DEBUG) console.log("CUR_CTR_ID: " + current_controleur.id + " PREV_CTR_ID: " + previous_controleur.id);
+      e256_draw_mode = current_controleur.name;
+
+      if (e256_draw_mode === "polygon" || e256_draw_mode === "path") {
+        hit_options = hit_options_B;
+      }
+      else {
+        hit_options = hit_options_A;
+      }
+
+      paper.project.layers[current_controleur.name].activate();
+      paper.project.layers[current_controleur.name].bringToFront();
+      current_controleur.bringToFront();
+
+      if (previous_controleur) {
+        if (current_controleur.id != previous_controleur.id) {
+          item_menu_params(previous_controleur, "hide");
+        }
+      }
+      $(".mapingTool").removeClass("active");
+      item_menu_params(current_controleur, "show");
+      $("#" + current_controleur.name).addClass("active");
+
+      if (DEBUG) console.log("CUR_TOUCH: " + current_touch.id + " PREV_TOUCH: " + previous_touch.id);
+
+      if (previous_touch) {
+        if (current_touch.id != previous_touch.id) {
+          item_menu_params(previous_touch, "hide");
+        }
+      }
+      item_menu_params(current_touch, "show");
+    }
+    else { // Clicking on empty space
+      if (e256_draw_mode) {
+        if (!create_once) {
           draw_controler_from_mouse(mouseEvent);
         }
         else {
           current_controleur.graw(mouseEvent); // Used by mapping path()
         }
       }
-      else { // If cliking on item
-        previous_controleur = current_controleur;
-        let current_item = current_part.item;
-        while (current_item.parent) {
-          current_controleur = current_item;
-          current_item = current_item.parent;
-        }
-
-        if (DEBUG) console.log("CUR_CTR_ID: " + current_controleur.id + " PREV_CTR_ID: " + previous_controleur.id);
-        e256_draw_mode = current_controleur.name;
-
-        if (e256_draw_mode === "polygon" || e256_draw_mode === "path") {
-          hit_options = hit_options_B;
-        }
-        else {
-          hit_options = hit_options_A;
-        }
-
-        paper.project.layers[current_controleur.name].activate();
-        paper.project.layers[current_controleur.name].bringToFront();
-        current_controleur.bringToFront();
-
-        if (previous_controleur) {
-          if (current_controleur.id != previous_controleur.id) {
-            item_menu_params(previous_controleur, "hide");
-            $("#" + previous_controleur.name).removeClass("active");
-          }
-        }
-        item_menu_params(current_controleur, "show");
-        $("#" + current_controleur.name).addClass("active");
-
-        if (DEBUG) console.log("CUR_TOUCH: " + current_touch.id + " PREV_TOUCH: " + previous_touch.id);
-
-        if (previous_touch) {
-          if (current_touch.id != previous_touch.id) {
-            item_menu_params(previous_touch, "hide");
-          }
-        }
-        item_menu_params(current_touch, "show");
+      else {
+        alert_msg("select_mapping", "SELECT A MAPPING!", "danger");
       }
-    }
-    else {
-      alert_msg("select_mapping", "SELECT A MAPPING!", "danger");
     }
   }
 }
@@ -193,9 +193,6 @@ function draw_controlers_from_config(raw_configFile) {
   }
   clear_all_meunu_params();
   clear_all_layers();
-  if (configFile.global && configFile.global.hardware_midi_input_channel != null) {
-    document.getElementById("hw_midi_input_chan").value = configFile.global.hardware_midi_input_channel;
-  }
   create_controlers_from_config(configFile);
 };
 

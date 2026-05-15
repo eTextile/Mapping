@@ -186,7 +186,17 @@ function polygon_factory() {
 
       _touch_circle.onMouseDrag = function (mouseEvent) {
 
-        if (e256_current_mode === MODE.THROUGH) {
+        if (e256_current_mode === MODE.EDIT) {
+          _touch_circle.position = mouseEvent.point;
+          _touch_txt.position = mouseEvent.point;
+          _polygon.data.segments[_touch_id] = [mouseEvent.point.x, mouseEvent.point.y];
+          _polygon.children["polygon"].segments[_touch_id].point = mouseEvent.point;
+          const _src = _polygon.parent.children["sources-group"].children[_touch_id];
+          if (_src) _src.position = mouseEvent.point;
+          update_item_main_params(_polygon.parent);
+        }
+
+        else if (e256_current_mode === MODE.THROUGH) {
           // Check if new center is inside polygon
           if (_polygon.contains(mouseEvent.point)) {
             _touch_circle.position = mouseEvent.point;
@@ -223,6 +233,7 @@ function polygon_factory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": _touch_group.pos,
+        "justification": "center",
         "content": "T: " + _touch_id,
         "locked": true
       });
@@ -250,9 +261,9 @@ function polygon_factory() {
       });
 
       _source_circle.style = {
-        "strokeWidth": 3,
+        "strokeWidth": 1,
         "strokeColor": "black",
-        "fillColor": new paper.Color(0, 0, 0, 0.05)
+        "fillColor": null
       };
 
       let _drag_mode = null;
@@ -275,17 +286,12 @@ function polygon_factory() {
         if (e256_current_mode !== MODE.EDIT) return;
         const dist = this.position.getDistance(mouseEvent.point);
         const r = this.bounds.width / 2;
-        _drag_mode = (dist > r - SOURCE_EDGE_TOLERANCE) ? "resize" : "move";
+        _drag_mode = (dist > r - SOURCE_EDGE_TOLERANCE) ? "resize" : null;
       };
 
       _source_circle.onMouseDrag = function (mouseEvent) {
         if (e256_current_mode !== MODE.EDIT) return;
-        if (_drag_mode === "move") {
-          this.position = mouseEvent.point;
-          _polygon_group.data.segments[_vertex_index] = [mouseEvent.point.x, mouseEvent.point.y];
-          _polygon_group.children["polygon"].segments[_vertex_index].point = mouseEvent.point;
-          update_item_main_params(_polygon_group.parent);
-        } else if (_drag_mode === "resize") {
+        if (_drag_mode === "resize") {
           const new_r = this.position.getDistance(mouseEvent.point);
           if (new_r > 10) {
             const old_r = this.bounds.width / 2;

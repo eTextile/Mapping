@@ -65,12 +65,18 @@ function slider_factory() {
         touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
       }
+      this.data.step_note = Array.from({ length: DEFAULT_SLIDER_STEPS }, (_, i) => 60 + i);
+      this._populate_notes = [];
+      this._populate_count = 0;
     },
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs || 1;
       this.data.input_chan = params.input_chan || DEFAULT_SLIDER_INPUT_CHAN;
       this.data.steps = params.steps || DEFAULT_SLIDER_STEPS;
+      this.data.msg = params.msg;
+      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
+      this.data.press = status.type;
       this.data.move = params.move || DEFAULT_SLIDER_MODE_MOVE;
       this.data.populate = params.populate || DEFAULT_SLIDER_POPULATE;
       this.data.from = new paper.Point(
@@ -81,9 +87,6 @@ function slider_factory() {
         mapp(params.to[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
-      this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.press = status.type;
 
       let frame_height = this.data.to.y - this.data.from.y;
       let frame_width = this.data.to.x - this.data.from.x;
@@ -92,6 +95,9 @@ function slider_factory() {
       } else {
         this.dir = "H_SLIDER";
       }
+      this.data.step_note = Array.from({ length: this.data.steps }, (_, i) => 60 + i);
+      this._populate_notes = [];
+      this._populate_count = 0;
     },
 
     save_params: function () {
@@ -111,19 +117,22 @@ function slider_factory() {
       this.data.from = this.children["slider-group"].data.from;
       this.data.to = this.children["slider-group"].data.to;
 
+      const is_rol = this.data.move === MOVE_CODES.ROL;
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.press != previous_press) {
-          touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
+          if (!is_rol) touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
           touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
           if (_touch < previous_touch_count) {
             touch_msg = this.children["touchs-group"].children[_touch].msg;
+            if (is_rol) delete touch_msg.pos;
+            else if (!touch_msg.pos) touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
           }
           else {
-            touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
+            if (!is_rol) touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER_MODE_POS);
             touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
@@ -334,7 +343,7 @@ function slider_factory() {
       let _touch_txt = new paper.PointText({
         "name": "touch-txt",
         "point": new paper.Point(_txt_x, _txt_y),
-        "content": "T:" + _touch_id + "\npos:" + _touch_group.msg.pos.midi.data1 + "\nz:" + _touch_group.msg.press.midi.data1,
+        "content": "T:" + _touch_id + (_touch_group.msg.pos ? "\npos:" + _touch_group.msg.pos.midi.data1 : "") + "\nz:" + _touch_group.msg.press.midi.data1,
         "locked": true
       });
 
@@ -358,12 +367,12 @@ function slider_factory() {
         "data": {
           "touchs": this.data.touchs,
           "input_chan": this.data.input_chan,
-          "from": this.data.from,
-          "to": this.data.to,
-          "move": this.data.move,
+          "steps": this.data.steps,
           "press": this.data.press,
+          "move": this.data.move,
           "populate": this.data.populate,
-          "steps": this.data.steps
+          "from": this.data.from,
+          "to": this.data.to
         }
       });
 
@@ -532,8 +541,8 @@ function slider_factory() {
           let t1 = (i + 1) / steps;
           let cell = (_slider_group.dir === "V_SLIDER")
             ? new paper.Path.Rectangle(
-                new paper.Point(b.left,              b.top + t0 * b.height),
-                new paper.Point(b.right,             b.top + t1 * b.height))
+                new paper.Point(b.left, b.top + t0 * b.height),
+                new paper.Point(b.right, b.top + t1 * b.height))
             : new paper.Path.Rectangle(
                 new paper.Point(b.left + t0 * b.width, b.top),
                 new paper.Point(b.left + t1 * b.width, b.bottom));
@@ -562,15 +571,77 @@ function slider_factory() {
       }
     },
 
+    // Mirrors mapping_slider_hardware_midi_update() in the firmware.
+    // Called in PLAY mode when a NoteOn arrives on input_chan to keep step_note[] in sync.
+    _apply_populate_note_on: function(note) {
+      let steps = this.data.steps;
+      if (!steps) return;
+      this._populate_count++;
+      this._populate_notes.push(note);
+      switch (this.data.populate) {
+        case POPULATE_CODES.AS_PLAYED: {
+          let zone = (this._populate_count - 1) % steps;
+          this.data.step_note[zone] = note;
+          break;
+        }
+        case POPULATE_CODES.UP: {
+          let sorted = this._populate_notes.slice(0, steps).sort((a, b) => a - b);
+          for (let i = 0; i < sorted.length; i++) this.data.step_note[i] = sorted[i];
+          break;
+        }
+        case POPULATE_CODES.DOWN: {
+          let sorted = this._populate_notes.slice(0, steps).sort((a, b) => b - a);
+          for (let i = 0; i < sorted.length; i++) this.data.step_note[i] = sorted[i];
+          break;
+        }
+        case POPULATE_CODES.OCTAVE: {
+          for (let i = 0; i < steps; i++) this.data.step_note[i] = note + i;
+          break;
+        }
+        case POPULATE_CODES.PING_PONG: {
+          if (steps > 1) {
+            let period = 2 * (steps - 1);
+            let pos = (this._populate_count - 1) % period;
+            let zone = (pos < steps) ? pos : period - pos;
+            this.data.step_note[zone] = note;
+          }
+          break;
+        }
+      }
+    },
+
+    // Mirrors mapping_slider_hardware_midi_dispose(): only resets the held-note list when
+    // all notes are released (step_note[] keeps its last values, as in the firmware).
+    _apply_populate_note_off: function(note) {
+      this._populate_count = Math.max(0, this._populate_count - 1);
+      if (this._populate_count === 0) {
+        this._populate_notes = [];
+      }
+    },
+
     // Called by midi_play_update_all() in PLAY mode for each incoming MIDI message.
+    // NoteOn on input_chan (populate != OFF) → updates step_note[] mirror via populate logic.
     // CC  → moves every touch whose pos.midi matches (status + data1) along the slider axis.
-    // NoteOn/Off (ROL) → colors the matching step cell red (active) or clears it (released).
-    //   Firmware pre-fills step_note[i] = 60 + i (mapp_slider.cpp:316), so step_idx = note - 60.
+    // NoteOn/Off (ROL) → looks up the active step via step_note[] and colors it red / clears it.
     midi_play_update: function(msg) {
       let status = midi_msg_status_unpack(msg.status);
       let slider_group = this.children["slider-group"];
       let touchs_group = this.children["touchs-group"];
+      if (!slider_group || !touchs_group) return;
       let updated = false;
+
+      // Populate path: keep step_note[] mirror in sync with the firmware
+      if (this.data.move === MOVE_CODES.ROL &&
+          this.data.populate !== POPULATE_CODES.OFF &&
+          status.channel === this.data.input_chan) {
+        if (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) {
+          this._apply_populate_note_on(msg.data1);
+          updated = true;
+        } else if (status.type === MIDI_TYPE.NOTE_OFF || (status.type === MIDI_TYPE.NOTE_ON && msg.data2 === 0)) {
+          this._apply_populate_note_off(msg.data1);
+          updated = true;
+        }
+      }
 
       if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
         let frame = slider_group.children["slider-frame"];
@@ -584,7 +655,6 @@ function slider_factory() {
               touch_group.children["touch-line"].position.y   = y;
               touch_group.children["touch-circle"].position.y = y;
               touch_group.children["touch-txt"].position.y    = y;
-              // x stays fixed at circle.x + offset (set at creation)
             } else {
               let x = mapp(msg.data2, limit.min, limit.max, frame.bounds.left, frame.bounds.right);
               touch_group.children["touch-line"].position.x   = x;
@@ -595,13 +665,14 @@ function slider_factory() {
             break;
           }
         }
-
-      } else if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
+      }
+      else if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
         let steps_group = slider_group.children["steps-group"];
         if (!steps_group) return;
         for (let touch_group of touchs_group.children) {
           if ((touch_group.msg.press.midi.status & 0x0F) === (msg.status & 0x0F)) {
-            let step_idx = msg.data1 - 60; // firmware default: step_note[i] = 60 + i
+            // Reverse-lookup: find which step currently holds this note
+            let step_idx = this.data.step_note.indexOf(msg.data1);
             if (step_idx < 0 || step_idx >= steps_group.children.length) return;
             let active = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0);
             steps_group.children[step_idx].fillColor = active ? "red" : null;

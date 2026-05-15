@@ -276,6 +276,8 @@ function on_midi_message(midi_msg) {
   msg.data1 = midi_msg.data[1];
   msg.data2 = midi_msg.data[2];
 
+  //console.log("MIDI IN:", msg.status.toString(16), msg.data1, msg.data2);
+
   let status = midi_msg_status_unpack(msg.status);
   switch (status.type) {
     case MIDI_TYPE.PROGRAM_CHANGE:
@@ -504,14 +506,14 @@ function on_midi_message(midi_msg) {
         if (typeof set_threshold_plane === "function" && msg.data1 === MIDI_CC.THRESHOLD) set_threshold_plane(msg.data2);
       }
       else {
-        if (e256_current_mode === MODE.PLAY) midi_play_update_all(msg);
-        midi_term.push(msg);
+        if (e256_current_mode === MODE.PLAY) try { midi_play_update_all(msg); } catch(e) { if (DEBUG) console.warn("midi_play_update:", e); }
+        midi_term_in.push(msg);
       }
       break;
 
     default:
-      if (e256_current_mode === MODE.PLAY) midi_play_update_all(msg);
-      midi_term.push(msg);
+      if (e256_current_mode === MODE.PLAY) try { midi_play_update_all(msg); } catch(e) { if (DEBUG) console.warn("midi_play_update:", e); }
+      midi_term_in.push(msg);
       break;
   }
 };
@@ -548,7 +550,7 @@ function send_midi_msg(msg) {
     else {
       midi_output.send([msg.status, msg.data1, msg.data2]);
     }
-    midi_term.push(msg);
+    midi_term_out.push(msg);
   }
   else {
     alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
