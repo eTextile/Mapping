@@ -340,6 +340,15 @@ function create_item_touchs_menu_params(item) {
               param_td.appendChild(param_val);
               row_params_atr_tr.appendChild(param_atr);
               row_params_val_tr.appendChild(param_td);
+            } else if (midi_byte === "data2") {
+              // data2 unused for this MIDI type (e.g. ControlChange): add invisible placeholder
+              // so shorter rows align with NoteOn rows that have a velo/data2 column.
+              let empty_th = document.createElement("th");
+              empty_th.style.cssText = "border: none; background: transparent;";
+              let empty_td = document.createElement("td");
+              empty_td.style.cssText = "border: none; background: transparent;";
+              row_params_atr_tr.appendChild(empty_th);
+              row_params_val_tr.appendChild(empty_td);
             }
           }
           break;
