@@ -45,6 +45,7 @@ function create_item_main_params(item) {
   part_params.setAttribute("id", item.name + "_" + item.id); // Menu UID
 
   for (const param in item.data) {
+    if (param === "segments") continue; // edited visually on canvas, not via params panel
     let part_param = document.createElement("div");
     part_param.className = "input-group";
     part_param.setAttribute("id", item.parent.id + "_" + param + "_param");
