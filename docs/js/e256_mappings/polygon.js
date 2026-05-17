@@ -39,8 +39,10 @@ function polygon_factory() {
       for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
         let touch_msg = {};
         for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
-          const key = "source_"+ vertex_index;
-          touch_msg[key] = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
+          const key = "source_" + vertex_index;
+          const src_msg = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
+          src_msg.enabled = true;
+          touch_msg[key] = src_msg;
         }
         touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
@@ -75,7 +77,9 @@ function polygon_factory() {
         if (this.data.press != previous_mode_z) {
           // Press mode changed: reset all axes to fresh defaults.
           for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
-            touch_msg["source_" + vertex_index] = midi_msg_builder(this.data.press);
+            const src = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
+            src.enabled = true;
+            touch_msg["source_" + vertex_index] = src;
           }
           touch_msg.press = midi_msg_builder(this.data.press);
         }
@@ -87,7 +91,9 @@ function polygon_factory() {
           else {
             // New touch slot added: initialize with defaults.
             for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
-              touch_msg["source_" + vertex_index] = midi_msg_builder(this.data.press);
+              const src = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
+              src.enabled = true;
+              touch_msg["source_" + vertex_index] = src;
             }
             touch_msg.press = midi_msg_builder(this.data.press);
           }
@@ -369,7 +375,9 @@ function polygon_factory() {
         spoke.locked = true;
         _spokes_group.addChild(spoke);
         touch.prev_dists.push(0);
-        touch.msg[key] = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
+        const new_msg = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
+        new_msg.enabled = true;
+        touch.msg[key] = new_msg;
       }
 
       // Add a draggable vertex handle for the new point.
@@ -405,6 +413,14 @@ function polygon_factory() {
       _handles_group.addChild(_handle);
 
       update_item_main_params(this);
+
+      // Rebuild the params panel so the new source_N row appears in the touch params table.
+      remove_item_menu_params(this);
+      create_item_menu_params(this);
+      update_item_main_params(this);
+      update_item_touchs_menu_params(this);
+      item_menu_params(this, "show");
+      if (current_touch && current_touch.id !== null) item_menu_params(current_touch, "show");
     },
 
     onMouseDrag: function (mouseEvent) {
