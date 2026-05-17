@@ -123,7 +123,22 @@ function list_layer_params(layer) {
       case "polygon":
         let polygon_params = {};
         for (const param in item.data) {
-          if (item.data[param] && item.data[param].constructor?.name === "Point") {
+          if (param === "segments") {
+            polygon_params["segments"] = item.data.segments.map(seg => {
+              let x, y;
+              if (Array.isArray(seg) && typeof seg[0] === "number") {
+                x = seg[0]; y = seg[1];
+              } else if (Array.isArray(seg) && seg[0] && typeof seg[0] === "object") {
+                x = seg[0].x; y = seg[0].y;
+              } else if (seg && typeof seg === "object" && seg.x !== undefined) {
+                x = seg.x; y = seg.y;
+              }
+              return [
+                round2(mapp(x, 0, canvas_width, 0, NEW_COLS)),
+                round2(mapp(y, 0, canvas_height, 0, NEW_ROWS))
+              ];
+            });
+          } else if (item.data[param] && item.data[param].constructor?.name === "Point") {
             polygon_params[param] = [
               round2(mapp(item.data[param].x, 0, canvas_width, 0, NEW_COLS)),
               round2(mapp(item.data[param].y, 0, canvas_height, 0, NEW_ROWS))

@@ -47,7 +47,10 @@ function polygon_factory() {
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs;
-      this.data.segments = params.segments;
+      this.data.segments = params.segments.map(seg => [
+        mapp(seg[0], 0, NEW_COLS, 0, canvas_width),
+        mapp(seg[1], 0, NEW_ROWS, 0, canvas_height)
+      ]);
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.press = status.type;
@@ -94,26 +97,53 @@ function polygon_factory() {
           : new paper.Point(seg[0]);
       }
 
-      // Compute centroid
+      // Compute centroid + bounding box
+      const n_seg = _polygon.data.segments.length;
       let cx = 0, cy = 0;
+      let min_x = Infinity, max_x = -Infinity, min_y = Infinity, max_y = -Infinity;
       for (let seg of _polygon.data.segments) {
-        let pt = seg_pt(seg);
+        const pt = seg_pt(seg);
         cx += pt.x; cy += pt.y;
+        if (pt.x < min_x) min_x = pt.x; if (pt.x > max_x) max_x = pt.x;
+        if (pt.y < min_y) min_y = pt.y; if (pt.y > max_y) max_y = pt.y;
       }
-      const centroid = new paper.Point(cx / _polygon.data.segments.length, cy / _polygon.data.segments.length);
+      const centroid = new paper.Point(cx / n_seg, cy / n_seg);
+
+      // Ray-casting point-in-polygon test
+      function point_in_poly(pt) {
+        let inside = false;
+        for (let i = 0, j = n_seg - 1; i < n_seg; j = i++) {
+          const pi = seg_pt(_polygon.data.segments[i]);
+          const pj = seg_pt(_polygon.data.segments[j]);
+          if (((pi.y > pt.y) !== (pj.y > pt.y)) &&
+              (pt.x < (pj.x - pi.x) * (pt.y - pi.y) / (pj.y - pi.y) + pi.x))
+            inside = !inside;
+        }
+        return inside;
+      }
+
+      // Random start position inside polygon (centroid as fallback)
+      let start_pt = centroid;
+      for (let attempt = 0; attempt < 50; attempt++) {
+        const candidate = new paper.Point(
+          min_x + Math.random() * (max_x - min_x),
+          min_y + Math.random() * (max_y - min_y)
+        );
+        if (point_in_poly(candidate)) { start_pt = candidate; break; }
+      }
 
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
         "msg": this.data.msg[_touch_id],
-        "pos": centroid,
-        "prev_dists": new Array(_polygon.data.segments.length).fill(0)
+        "pos": start_pt,
+        "prev_dists": new Array(n_seg).fill(0)
       });
 
-      // Spokes: lines from central touch to each vertex
+      // Spokes: lines from start position to each vertex
       let _spokes_group = new paper.Group({ "name": "spokes-group" });
-      for (let vi = 0; vi < _polygon.data.segments.length; vi++) {
+      for (let vi = 0; vi < n_seg; vi++) {
         let spoke = new paper.Path.Line({
-          "from": centroid.clone(),
+          "from": start_pt.clone(),
           "to": seg_pt(_polygon.data.segments[vi])
         });
         spoke.style = { "strokeWidth": 1, "strokeColor": "#aaa" };
@@ -123,7 +153,7 @@ function polygon_factory() {
       _touch_group.addChild(_spokes_group);
 
       // Central touch circle
-      let _touch_circle = make_touch_circle(centroid, { "fillColor": "orange" });
+      let _touch_circle = make_touch_circle(start_pt, { "fillColor": "orange" });
 
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
@@ -184,39 +214,6 @@ function polygon_factory() {
       };
 
       _touch_group.addChild(_touch_circle);
-
-      // Vertex handles (EDIT only — drag moves vertex + updates spoke + source circle)
-      let _handles_group = new paper.Group({ "name": "handles-group" });
-      for (let vi = 0; vi < _polygon.data.segments.length; vi++) {
-        let _handle = new paper.Path.Circle({
-          "name": "handle-" + vi,
-          "center": seg_pt(_polygon.data.segments[vi]),
-          "radius": HANDLE_RADIUS
-        });
-        _handle.style = {
-          "strokeWidth": 2,
-          "strokeColor": "rgb(255, 0, 212)",
-          "fillColor": "white"
-        };
-        _handle.onMouseEnter = function () { this.style.fillColor = "rgb(255, 0, 212)"; };
-        _handle.onMouseLeave = function () { this.style.fillColor = "white"; };
-        _handle.onMouseDown = function () {
-          if (e256_current_mode === MODE.EDIT) {
-            previous_touch = current_touch;
-            current_touch = { "id": null };
-          }
-        };
-        _handle.onMouseDrag = function (mouseEvent) {
-          if (e256_current_mode !== MODE.EDIT) return;
-          this.position = mouseEvent.point;
-          _polygon.data.segments[vi] = [mouseEvent.point.x, mouseEvent.point.y];
-          _polygon.children["polygon"].segments[vi].point = mouseEvent.point;
-          _spokes_group.children[vi].segments[1].point = mouseEvent.point;
-          update_item_main_params(_polygon.parent);
-        };
-        _handles_group.addChild(_handle);
-      }
-      _touch_group.addChild(_handles_group);
 
       return _touch_group;
     },
@@ -287,8 +284,48 @@ function polygon_factory() {
 
       _polygon_group.addChild(_polygon_curve);
 
+      // Vertex handles — one per vertex, shared across all touches
+      let _handles_group = new paper.Group({ "name": "handles-group" });
+      for (let vi = 0; vi < this.data.segments.length; vi++) {
+        const seg = this.data.segments[vi];
+        const vpt = (typeof seg[0] === "number")
+          ? new paper.Point(seg[0], seg[1])
+          : new paper.Point(seg[0]);
+        let _handle = new paper.Path.Circle({
+          "name": "handle-" + vi,
+          "center": vpt,
+          "radius": HANDLE_RADIUS
+        });
+        _handle.style = {
+          "strokeWidth": 2,
+          "strokeColor": "rgb(255, 0, 212)",
+          "fillColor": "white"
+        };
+        _handle.onMouseEnter = function () { this.style.fillColor = "rgb(255, 0, 212)"; };
+        _handle.onMouseLeave = function () { this.style.fillColor = "white"; };
+        _handle.onMouseDown = function () {
+          if (e256_current_mode === MODE.EDIT) {
+            previous_touch = current_touch;
+            current_touch = { "id": null };
+          }
+        };
+        _handle.onMouseDrag = function (mouseEvent) {
+          if (e256_current_mode !== MODE.EDIT) return;
+          this.position = mouseEvent.point;
+          _polygon_group.data.segments[vi] = [mouseEvent.point.x, mouseEvent.point.y];
+          _polygon_curve.segments[vi].point = mouseEvent.point;
+          for (let touch of _touchs_group.children) {
+            const spokes = touch.children["spokes-group"];
+            if (spokes && spokes.children[vi]) spokes.children[vi].segments[1].point = mouseEvent.point;
+          }
+          update_item_main_params(_polygon_group.parent);
+        };
+        _handles_group.addChild(_handle);
+      }
+
       this.addChild(_polygon_group);
       this.addChild(_touchs_group);
+      this.addChild(_handles_group);
     },
 
     onMouseDrag: function (mouseEvent) {
