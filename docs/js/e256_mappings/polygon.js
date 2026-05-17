@@ -29,10 +29,12 @@ function polygon_factory() {
 
       this.data.press = DEFAULT_POLYGON_MODE_Z;
 
+      // Build a regular polygon centered on the click; store segments as [paper.Point] arrays.
       let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT_POLYGON_SIDES, DEFAULT_POLYGON_SIZE).segments;
       this.data.segments = polygon.map(s => [s.point]);
-      this.data.touchs = DEFAULT_POLYGON_TOUCHS; // one central touch
+      this.data.touchs = DEFAULT_POLYGON_TOUCHS; // one central touch per polygon
 
+      // One source_N CC axis per vertex + one press axis per touch.
       this.data.msg = [];
       for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
         let touch_msg = {};
@@ -47,6 +49,8 @@ function polygon_factory() {
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs;
+      // Segments are stored normalized ([0,NEW_COLS]×[0,NEW_ROWS]) in the config file;
+      // convert back to canvas pixel coordinates for Paper.js rendering.
       this.data.segments = params.segments.map(seg => [
         mapp(seg[0], 0, NEW_COLS, 0, canvas_width),
         mapp(seg[1], 0, NEW_ROWS, 0, canvas_height)
@@ -69,6 +73,7 @@ function polygon_factory() {
       for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
         let touch_msg = {};
         if (this.data.press != previous_mode_z) {
+          // Press mode changed: reset all axes to fresh defaults.
           for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
             touch_msg["source_" + vertex_index] = midi_msg_builder(this.data.press);
           }
@@ -76,9 +81,11 @@ function polygon_factory() {
         }
         else {
           if (touch_index < previous_touch_count) {
+            // Reuse existing MIDI params for touches that already existed.
             touch_msg = this.children["touchs-group"].children[touch_index].msg;
           }
           else {
+            // New touch slot added: initialize with defaults.
             for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
               touch_msg["source_" + vertex_index] = midi_msg_builder(this.data.press);
             }
@@ -91,13 +98,14 @@ function polygon_factory() {
 
     new_touch: function (_polygon, _touch_id) {
 
+      // Segments can be [x, y] numbers (after a handle drag) or [paper.Point] (from setup).
       function seg_pt(seg) {
         return (typeof seg[0] === "number")
           ? new paper.Point(seg[0], seg[1])
           : new paper.Point(seg[0]);
       }
 
-      // Compute centroid + bounding box
+      // Compute centroid + bounding box for initial touch placement.
       const n_seg = _polygon.data.segments.length;
       let cx = 0, cy = 0;
       let min_x = Infinity, max_x = -Infinity, min_y = Infinity, max_y = -Infinity;
@@ -183,6 +191,7 @@ function polygon_factory() {
 
       _touch_circle.onMouseDrag = function (mouseEvent) {
         if (e256_current_mode === MODE.EDIT) {
+          // In EDIT mode just reposition the touch and update spoke origins.
           _touch_circle.position = mouseEvent.point;
           for (let spoke of _spokes_group.children) {
             spoke.segments[0].point = mouseEvent.point;
@@ -191,6 +200,7 @@ function polygon_factory() {
           const _polygon_curve = _polygon.children["polygon"];
           if (_polygon_curve && _polygon_curve.contains(mouseEvent.point)) {
             _touch_circle.position = mouseEvent.point;
+            // Bounding-box diagonal as 100% distance reference (matches firmware max_dist).
             const bounds = _polygon_curve.bounds;
             const max_dist = Math.sqrt(bounds.width * bounds.width + bounds.height * bounds.height);
             for (let vi = 0; vi < _spokes_group.children.length; vi++) {
@@ -199,6 +209,7 @@ function polygon_factory() {
               const dist = mouseEvent.point.getDistance(vpt);
               const key = "source_" + vi;
               if (_touch_group.msg[key]) {
+                // Inverted mapping: dist=0 (touch on vertex) → limit.max; dist=max → limit.min.
                 const new_val = Math.round(mapp(dist, 0, max_dist,
                   _touch_group.msg[key].limit.max, _touch_group.msg[key].limit.min));
                 if (new_val !== _touch_group.prev_dists[vi]) {
@@ -266,6 +277,7 @@ function polygon_factory() {
         if (e256_current_mode === MODE.EDIT) {
           current_part = this;
           if (current_part.type === "stroke") {
+            // Click on an edge: insert a new vertex at that point.
             let location = current_part.location;
             _polygon_curve.insert(location.index + 1, mouseEvent.point);
           }
@@ -284,7 +296,8 @@ function polygon_factory() {
 
       _polygon_group.addChild(_polygon_curve);
 
-      // Vertex handles — one per vertex, shared across all touches
+      // One handle per vertex, shared across all touches.
+      // Handles live in create() (not in new_touch) so multiple touches don't duplicate them.
       let _handles_group = new paper.Group({ "name": "handles-group" });
       for (let vi = 0; vi < this.data.segments.length; vi++) {
         const seg = this.data.segments[vi];
@@ -306,14 +319,16 @@ function polygon_factory() {
         _handle.onMouseDown = function () {
           if (e256_current_mode === MODE.EDIT) {
             previous_touch = current_touch;
-            current_touch = { "id": null };
+            current_touch = { "id": null }; // null sentinel: suppress MIDI params panel
           }
         };
         _handle.onMouseDrag = function (mouseEvent) {
           if (e256_current_mode !== MODE.EDIT) return;
           this.position = mouseEvent.point;
+          // Keep data.segments in sync so the firmware export stays accurate.
           _polygon_group.data.segments[vi] = [mouseEvent.point.x, mouseEvent.point.y];
           _polygon_curve.segments[vi].point = mouseEvent.point;
+          // Update the spoke endpoint for this vertex across all touches.
           for (let touch of _touchs_group.children) {
             const spokes = touch.children["spokes-group"];
             if (spokes && spokes.children[vi]) spokes.children[vi].segments[1].point = mouseEvent.point;
@@ -332,6 +347,8 @@ function polygon_factory() {
       if (e256_current_mode === MODE.EDIT) {
         if (current_part.type === "fill") {
           move_item(this, mouseEvent);
+          // move_item translates the Paper.js hierarchy but does not update data.segments,
+          // so read back the new vertex positions manually after the move.
           const curve = this.children["polygon-group"].children["polygon"];
           if (curve) {
             for (let vi = 0; vi < curve.segments.length; vi++) {
