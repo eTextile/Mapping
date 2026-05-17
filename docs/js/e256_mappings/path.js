@@ -86,23 +86,7 @@ function path_factory() {
         "prev_pos": null,
       });
 
-      let _touch_circle = new paper.Path.Circle({
-        "name": "touch-circle",
-        "center": this.data.segments[0],
-        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure!  
-      });
-
-      _touch_circle.style = {
-        "fillColor": "#606060"
-      }
-
-      _touch_circle.onMouseEnter = function () {
-        this.style.fillColor = "red";
-      }
-
-      _touch_circle.onMouseLeave = function () {
-        this.style.fillColor = "#606060";
-      }
+      let _touch_circle = make_touch_circle(this.data.segments[0], { "fillColor": "orange" });
 
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
@@ -111,21 +95,7 @@ function path_factory() {
             current_touch = _touch_group;
             break;
           case MODE.THROUGH:
-            switch (_path.data.press) {
-              case MIDI_TYPE.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
-                _touch_group.msg.press.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-            }
+            touch_press_down(_path, _touch_group);
             break;
           case MODE.PLAY:
             // N/A
@@ -135,20 +105,7 @@ function path_factory() {
 
       _touch_circle.onMouseUp = function () {
         if (e256_current_mode !== MODE.THROUGH) return;
-        switch (_path.data.press) {
-          case MIDI_TYPE.NOTE_ON:
-            _touch_group.msg.press.midi.data2 = 0;
-            send_midi_msg(_touch_group.msg.press.midi);
-            break;
-          case MIDI_TYPE.CONTROL_CHANGE:
-            _touch_group.msg.press.midi.data2 = 0;
-            send_midi_msg(_touch_group.msg.press.midi);
-            break;
-          case MIDI_TYPE.AFTERTOUCH_POLY:
-            _touch_group.msg.press.midi.data2 = 0;
-            send_midi_msg(_touch_group.msg.press.midi);
-            break;
-        }
+        touch_press_up(_path, _touch_group);
       }
 
       _touch_circle.onMouseDrag = function (mouseEvent) {

@@ -488,7 +488,7 @@ circular_buffer.prototype.push = function (midi_msg) {
   if (!term) return;
   let status = midi_msg_status_unpack(midi_msg.status);
   const type_name = (status.type === MIDI_TYPE.NOTE_ON && midi_msg.data2 === 0)
-    ? "NOTE_OFF" : MIDI_BY_NAME[status.type];
+    ? "NOFF" : (MIDI_SHORT_NAME[status.type] || MIDI_BY_NAME[status.type]);
 
   let node;
   if (this._nodes.length < this._max_length) {

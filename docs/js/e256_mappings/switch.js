@@ -119,15 +119,15 @@ function switch_factory() {
       });
 
       _touch_ellipse.style = {
-        "fillColor": "pink"
+        "fillColor": "orange"
       }
 
       _touch_ellipse.onMouseEnter = function () {
-        //this.style.fillColor = "orange";
+        this.style.fillColor = "red";
       }
 
       _touch_ellipse.onMouseLeave = function () {
-        //this.style.fillColor = "pink";
+        this.style.fillColor = "orange";
       }
 
       _touch_ellipse.onMouseDown = function () {
@@ -137,24 +137,8 @@ function switch_factory() {
             current_touch = _touch_group;
             break;
           case MODE.THROUGH:
-            this.style.fillColor = "orange";
-            switch (_switch.data.press) {
-              case MIDI_TYPE.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
-                _touch_group.msg.press.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case 0: // tap_tempo — firmware handles it on blob detection
-                break;
-            }
+            this.style.fillColor = "red";
+            if (_switch.data.press !== 0) touch_press_down(_switch, _touch_group);
             break;
           case MODE.PLAY:
             // N/A
@@ -168,24 +152,8 @@ function switch_factory() {
             // N/A
             break;
           case MODE.THROUGH:
-            this.style.fillColor = "pink";
-            switch (_switch.data.press) {
-              case MIDI_TYPE.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI_TYPE.NOTE_OFF);
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case 0: // tap_tempo — firmware handles it on blob detection
-                break;
-              }
+            this.style.fillColor = "orange";
+            if (_switch.data.press !== 0) touch_press_up(_switch, _touch_group);
             break;
           case MODE.PLAY:
             // N/A
@@ -194,21 +162,10 @@ function switch_factory() {
       }
       _touch_group.addChild(_touch_ellipse);
 
-      let _touch_txt = new paper.PointText({
-        "name": "touch-txt",
-        //"point": _touch_group.pos,
-        "point": new paper.Point(
-          _touch_group.pos.x - (half_frame_width / 2),
-          _touch_group.pos.y - (half_frame_height / 3)
-        ),
-        "content": _switch.data.press === 0 ? "TapTempo" : midi_msg_as_txt(_touch_group.msg.press),
-        "locked": true
-      });
-
-      _touch_txt.style = {
-        "fillColor": "black",
-        "fontSize": FONT_SIZE
-      };
+      let _touch_txt = make_touch_txt(
+        new paper.Point(_touch_group.pos.x - (half_frame_width / 2), _touch_group.pos.y - (half_frame_height / 3)),
+        _switch.data.press === 0 ? "TapTempo" : midi_msg_as_txt(_touch_group.msg.press)
+      );
 
       _touch_group.addChild(_touch_txt);
 

@@ -158,7 +158,7 @@ function knob_factory() {
       });
 
       _knob_touch.style = {
-        "fillColor": "black"
+        "fillColor": "orange"
       }
 
       _knob_touch.onMouseEnter = function () {
@@ -166,7 +166,7 @@ function knob_factory() {
       }
 
       _knob_touch.onMouseLeave = function () {
-        this.style.fillColor = "black";
+        this.style.fillColor = "orange";
       }
 
       _knob_touch.onMouseDown = function () {
@@ -176,21 +176,7 @@ function knob_factory() {
             current_touch = _touch_group;
             break;
           case MODE.THROUGH:
-            switch (_knob.data.press) {
-              case MIDI_TYPE.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
-                _touch_group.msg.press.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-            }
+            touch_press_down(_knob, _touch_group);
             break;
           case MODE.PLAY:
             // N/A
@@ -203,21 +189,7 @@ function knob_factory() {
           case MODE.EDIT:
             break;
           case MODE.THROUGH:
-            switch (_knob.data.press) {
-              case MIDI_TYPE.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI_TYPE.NOTE_OFF);
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-            }
+            touch_press_up(_knob, _touch_group);
             break;
           case MODE.PLAY:
             // N/A
@@ -265,17 +237,11 @@ function knob_factory() {
         }
       }
 
-      let _touch_txt = new paper.PointText({
-        "name": "touch-txt",
-        "point": new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y),        
-        "content": midi_msg_as_txt(_touch_group.msg.press),
-        "locked": true
-      });
-
-      _touch_txt.style = {
-        "fillColor": "white",
-        "fontSize": FONT_SIZE
-      };
+      let _touch_txt = make_touch_txt(
+        new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y),
+        midi_msg_as_txt(_touch_group.msg.press),
+        { "fillColor": "white" }
+      );
 
       _touch_group.addChild(_knob_needle);
       _touch_group.addChild(_knob_touch);

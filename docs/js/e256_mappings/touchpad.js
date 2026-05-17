@@ -141,23 +141,7 @@ function touchpad_factory() {
 
       _touch_group.addChild(_touch_line_y);
 
-      let _touch_circle = new paper.Path.Circle({
-        "name": "touch-circle",
-        "center": _touch_group.pos,
-        "radius": TOUCH_RADIUS
-      });
-
-      _touch_circle.style = {
-        "fillColor": "green"
-      }
-
-      _touch_circle.onMouseEnter = function () {
-        this.style.fillColor = "red";
-      }
-
-      _touch_circle.onMouseLeave = function () {
-        this.style.fillColor = "green";
-      }
+      let _touch_circle = make_touch_circle(_touch_group.pos, { "fillColor": "orange" });
 
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
@@ -166,49 +150,21 @@ function touchpad_factory() {
             current_touch = _touch_group;
             break;
           case MODE.THROUGH:
-            switch (_touchpad.data.press) {
-              case MIDI_TYPE.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
-                _touch_group.msg.press.midi.data2 = 127;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-            }
+            touch_press_down(_touchpad, _touch_group);
             break;
           case MODE.PLAY:
             // N/A
             break;
         }
       }
-      
-      _touch_circle.onMouseUp = function () {        
+
+      _touch_circle.onMouseUp = function () {
         switch (e256_current_mode) {
           case MODE.EDIT:
             // N/A
             break;
           case MODE.THROUGH:
-            switch (_touchpad.data.press) {
-              case MIDI_TYPE.NOTE_ON:
-                _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status & MIDI_TYPE.NOTE_OFF);
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                _touch_group.msg.press.midi.data2 = 0;
-                send_midi_msg(_touch_group.msg.press.midi);
-                break;
-            }
+            touch_press_up(_touchpad, _touch_group);
             break;
           case MODE.PLAY:
             // N/A
@@ -263,18 +219,7 @@ function touchpad_factory() {
 
       _touch_group.addChild(_touch_circle);
 
-      let _touch_txt = new paper.PointText({
-        "name": "touch-txt",
-        "point": _touch_group.pos,
-        "content": "T: " + _touch_id, // TODO: add all blob values
-        //"content": midi_msg_as_txt(_touch_id.msg.press),
-        "locked": true
-      });
-
-      _touch_txt.style = {
-        "fillColor": "black",
-        "fontSize": FONT_SIZE
-      }
+      let _touch_txt = make_touch_txt(_touch_group.pos, "T: " + _touch_id);
 
       _touch_group.addChild(_touch_txt);
 

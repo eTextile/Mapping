@@ -17,18 +17,9 @@ function round2(value) {
 };
 
 function mapp(input, in_min, in_max, out_min, out_max) {
-  if (input >= in_max) {
-    return out_max;
-  }
-  else if (input <= in_min) {
-    return out_min;
-  }
-  else if (out_min > out_max) {
-    return Math.abs((input - in_min) * (out_max - out_min) / (in_max - in_min) - out_max);
-  }
-  else {
-    return Math.abs((input - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
-  }
+  if (input >= in_max) return out_max;
+  if (input <= in_min) return out_min;
+  return out_min + (input - in_min) * (out_max - out_min) / (in_max - in_min);
 };
 
 // Max is exclusive and min is inclusive
@@ -81,10 +72,10 @@ function rotate_polar(degree, offset, dir) {
   let polar_value = 0;
   switch (dir){
     case 'clockwise':
-      polar_value = (Math.abs(degree - 380) + offset) % 380;
+      polar_value = ((Math.abs(degree - 360) + offset) % 360 + 360) % 360;
       break;
     case 'counter-clockwise':
-      polar_value = (Math.abs(degree + 380) - offset) % 380;
+      polar_value = ((Math.abs(degree + 360) - offset) % 360 + 360) % 360;
       break;
   }
   return polar_value;

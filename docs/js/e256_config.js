@@ -52,6 +52,16 @@ const MIDI_BY_NAME = Object.fromEntries(
   Object.entries(MIDI_TYPE).map(([k, v]) => [v, k])
 );
 
+const MIDI_SHORT_NAME = {
+  [MIDI_TYPE.NOTE_OFF]:           "NOFF",
+  [MIDI_TYPE.NOTE_ON]:            "NON",
+  [MIDI_TYPE.AFTERTOUCH_POLY]:    "AT",
+  [MIDI_TYPE.CONTROL_CHANGE]:     "CC",
+  [MIDI_TYPE.PROGRAM_CHANGE]:     "PC",
+  [MIDI_TYPE.AFTERTOUCH_CHANNEL]: "CAT",
+  [MIDI_TYPE.PITCH_BEND]:         "PB",
+};
+
 // E256 MIDI INPUT CHANNELS [1:15]
 const MIDI_INPUT_CHAN = Object.fromEntries(
   Array.from({ length: 15 }, (_, i) => [i + 1, String(i + 1)])

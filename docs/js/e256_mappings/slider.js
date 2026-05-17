@@ -191,23 +191,7 @@ function slider_factory() {
 
       _touch_group.addChild(_touch_line);
 
-      let _touch_circle = new paper.Path.Circle({
-        "name": "touch-circle",
-        "center": _touch_group.pos,
-        "radius": TOUCH_RADIUS // TODO: mapping with the blob pressure
-      });
-
-      _touch_circle.style = {
-        "fillColor": "#606060"
-      };
-
-      _touch_circle.onMouseEnter = function () {
-        this.style.fillColor = "red";
-      }
-
-      _touch_circle.onMouseLeave = function () {
-        this.style.fillColor = "#606060";
-      }
+      let _touch_circle = make_touch_circle(_touch_group.pos, { "fillColor": "orange" });
 
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
@@ -231,21 +215,7 @@ function slider_factory() {
                 send_midi_msg(_touch_group.msg.press.midi);
               }
             } else {
-              switch (_slider.data.press) {
-                case MIDI_TYPE.NOTE_ON:
-                  _touch_group.msg.press.midi.status = (_touch_group.msg.press.midi.status | MIDI_TYPE.NOTE_ON);
-                  _touch_group.msg.press.midi.data2 = 127;
-                  send_midi_msg(_touch_group.msg.press.midi);
-                  break;
-                case MIDI_TYPE.CONTROL_CHANGE:
-                  _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                  send_midi_msg(_touch_group.msg.press.midi);
-                  break;
-                case MIDI_TYPE.AFTERTOUCH_POLY:
-                  _touch_group.msg.press.midi.data2 = get_random_int(64, 127);
-                  send_midi_msg(_touch_group.msg.press.midi);
-                  break;
-              }
+              touch_press_down(_slider, _touch_group);
             }
             break;
           case MODE.PLAY:
@@ -275,21 +245,7 @@ function slider_factory() {
                 send_midi_msg(_touch_group.msg.press.midi);
               }
             } else {
-              switch (_slider.data.press) {
-                case MIDI_TYPE.NOTE_ON:
-                  _touch_group.msg.press.midi.status = midi_msg_status_pack(_touch_group.msg.press.midi.channel, MIDI_TYPE.NOTE_OFF);
-                  _touch_group.msg.press.midi.data2 = 0;
-                  send_midi_msg(_touch_group.msg.press.midi);
-                  break;
-                case MIDI_TYPE.CONTROL_CHANGE:
-                  _touch_group.msg.press.midi.data2 = 0;
-                  send_midi_msg(_touch_group.msg.press.midi);
-                  break;
-                case MIDI_TYPE.AFTERTOUCH_POLY:
-                  _touch_group.msg.press.midi.data2 = 0;
-                  send_midi_msg(_touch_group.msg.press.midi);
-                  break;
-              }
+              touch_press_up(_slider, _touch_group);
             }
             break;
           case MODE.PLAY:
@@ -364,17 +320,10 @@ function slider_factory() {
       const _txt_offset = TOUCH_RADIUS + 8;
       const _txt_x = (this.dir === "V_SLIDER") ? this.data.to.x + _txt_offset : _touch_group.pos.x;
       const _txt_y = (this.dir === "V_SLIDER") ? _touch_group.pos.y : this.data.from.y - _txt_offset;
-      let _touch_txt = new paper.PointText({
-        "name": "touch-txt",
-        "point": new paper.Point(_txt_x, _txt_y),
-        "content": "T:" + _touch_id + (_touch_group.msg.pos ? "\npos:" + _touch_group.msg.pos.midi.data1 : "") + "\nz:" + _touch_group.msg.press.midi.data1,
-        "locked": true
-      });
-
-      _touch_txt.style = {
-        "fillColor": "black",
-        "fontSize": FONT_SIZE
-      };
+      let _touch_txt = make_touch_txt(
+        new paper.Point(_txt_x, _txt_y),
+        "T:" + _touch_id + (_touch_group.msg.pos ? "\npos:" + _touch_group.msg.pos.midi.data1 : "") + "\nz:" + _touch_group.msg.press.midi.data1
+      );
 
       _touch_group.addChild(_touch_txt);
 
