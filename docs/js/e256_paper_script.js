@@ -73,7 +73,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
     if (current_part) { // Clicking on an existing item — always handled
       previous_controleur = current_controleur;
       let current_item = current_part.item;
-      while (current_item.parent) {
+      while (current_item.parent && !(current_item instanceof paper.Layer)) {
         current_controleur = current_item;
         current_item = current_item.parent;
       }
@@ -88,8 +88,12 @@ paper_tool.onMouseDown = function (mouseEvent) {
         hit_options = hit_options_A;
       }
 
-      paper.project.layers[current_controleur.name].activate();
-      paper.project.layers[current_controleur.name].bringToFront();
+      const target_layer = paper.project.layers[current_controleur.name]
+        || paper.project.layers.find(l => l.name === current_controleur.name);
+      if (target_layer) {
+        target_layer.activate();
+        target_layer.bringToFront();
+      }
       current_controleur.bringToFront();
 
       if (previous_controleur) {

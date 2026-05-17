@@ -118,3 +118,24 @@ $("#fetchConfig").click (
     }
   }
 );
+
+$(document).on("keydown", function (event) {
+  if ($(event.target).is("input, select, textarea")) return;
+  switch (event.key) {
+    case "h":      $("#help-overlay").toggleClass("active"); break;
+    case "Escape": $("#help-overlay").removeClass("active"); break;
+    case "p": $("#PLAY").trigger("click");         break;
+    case "e": $("#EDIT").trigger("click");         break;
+    case "t": $("#THROUGH").trigger("click");      break;
+    case "m": $("#MATRIX_RAW").trigger("click");   break;
+    case "M": $("#MAPPING").trigger("click");      break; // shift+m
+    case "c": $("#CALIBRATE").trigger("click");    break;
+    case "u": $("#uploadConfig").trigger("click"); break;
+    case "s": $("#saveConfig").trigger("click");   break;
+    case "f": $("#fetchConfig").trigger("click");  break;
+  }
+});
+
+$("#help-overlay").on("click", function (event) {
+  if (event.target === this) $(this).removeClass("active");
+});

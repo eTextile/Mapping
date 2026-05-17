@@ -141,3 +141,57 @@ input[type=number] {
 #midi_term.show {
   flex: 1;
 }
+
+#help-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+#help-overlay.active {
+  display: flex;
+}
+
+#help-panel {
+  background: white;
+  border-radius: var(--bs-border-radius);
+  padding: 2rem;
+  min-width: 320px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+#help-panel h4 {
+  color: rgb(255, 0, 212);
+  margin-bottom: 1rem;
+}
+
+#help-panel table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#help-panel td {
+  padding: 0.3rem 0.5rem;
+  vertical-align: middle;
+}
+
+#help-panel td:last-child {
+  padding-left: 1rem;
+  color: #333;
+}
+
+#help-panel kbd {
+  display: inline-block;
+  background: rgb(255, 0, 212);
+  color: white;
+  border-radius: 4px;
+  padding: 0.1em 0.45em;
+  font-size: 0.8em;
+  font-family: monospace;
+  font-weight: bold;
+  margin: 1px;
+}

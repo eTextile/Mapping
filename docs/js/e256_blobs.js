@@ -31,12 +31,13 @@ const BLOB_PARAM_CODE = {
 
 function blob_factory() {
 
+  paper.project.layers['blob'].activate();
+
   var _blob = new paper.Group({
     "UID": null,
 
     create: function (sysExMsg) {
 
-      paper.project.layers['blob'].activate();
       paper.project.layers['blob'].bringToFront();
 
       this.UID = sysExMsg[BLOB_PARAM_CODE.UID];
@@ -189,6 +190,13 @@ function blobs_factory() {
           this.blobs_array[index].update(sysExMsg);
         }
       }
+    },
+
+    clear: function () {
+      for (let blob of this.blobs_array) blob.remove();
+      this.blobs_array = [];
+      paper.project.layers['blob'].removeChildren();
+      paper.view.update();
     }
 
   });

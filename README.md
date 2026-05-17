@@ -1,9 +1,9 @@
 # eTextile-Synthesizer — Mapping Toolkit
 
-A browser-based application to configure tactile mapping on the **e256** matrix sensor. It lets you draw control zones directly over the sensor's pressure field, assign MIDI messages to each zone, and upload the configuration to the device — all over USB MIDI_TYPE.
+A browser-based application to configure tactile mapping on the **e256** matrix sensor. It lets you draw control zones directly over the sensor's pressure field, assign MIDI messages to each zone, and upload the configuration to the device — all over USB MIDI.
 
 **Live app:** https://mapping.etextile.org/ *(requires Chrome)*  
-**Version:** 1.0.26  
+**Version:** 1.0.27  
 **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ---
@@ -21,8 +21,10 @@ The e256 is a 16×16 resistive textile matrix. This app connects to it via the W
 Within **MAPPING** mode, three sub-modes are available:
 
 - **EDIT** — place and adjust control zones, set their MIDI parameters
-- **THROUGH** — pass raw blob data through as MIDI without any mapping
-- **PLAY** — run the current mapping live
+- **THROUGH** — interact directly with the mapping; MIDI messages are sent to the connected synth
+- **PLAY** — firmware drives the mapping live from sensor data; canvas updates in real time
+
+Blob overlays (visible in EDIT mode) are automatically cleared when switching to THROUGH, PLAY, or CALIBRATE.
 
 ---
 
@@ -45,13 +47,40 @@ Each control can be assigned any standard MIDI message type: Note On/Off, Contro
 ## MIDI features
 
 - **Pressure modes:** NoteOn (velocity), ControlChange (pressure only), AfterTouchPoly (note + modulation)
-- **Movement curves:** Linear, Logarithmic, Roller
+- **Movement curves:** Linear, Logarithmic, Roller (step sequencer)
+- **Roller (ROL) sliders:**
+  - Steps are displayed with their note name label inside each cell
+  - Active step is highlighted red on press and drag in THROUGH mode
+  - Step notes are configurable via the populate system
 - **Grid populate modes:** Off, Up, Down, As Played, Octave, Ping-Pong
 - **Tap Tempo:** any Switch control can be set to `TapTempo` mode — each touch sends MIDI TimingClock (0xF8) at the tapped BPM instead of a note or CC
 - **PLAY mode feedback:** incoming MIDI from the device animates the canvas in real time — slider steps colour red/grey on NoteOn/NoteOff; touch cursors move on CC
-- **MIDI terminal:** displays incoming messages; NoteOn with velocity 0 is shown as NOTE_OFF per standard MIDI convention
+- **MIDI terminal:** displays incoming and outgoing messages
 - **SysEx:** used for fetching and uploading the full configuration blob
 - **Config channels:** levels (ch 3), modes (ch 4), verbosity (ch 5), errors (ch 6)
+- **Auto-reconnect:** the app reconnects automatically to the device on page refresh
+
+---
+
+## Keyboard shortcuts
+
+Press **`h`** at any time to display the help overlay.
+
+| Key | Action |
+|-----|--------|
+| `p` | PLAY mode |
+| `e` | EDIT mode |
+| `t` | THROUGH mode |
+| `m` | MATRIX mode |
+| `shift` + `m` | MAPPING mode |
+| `c` | CALIBRATE |
+| `u` | UPLOAD config |
+| `s` | SAVE config |
+| `f` | FETCH config |
+| `h` | Toggle help overlay |
+| `Esc` | Close help overlay |
+
+Shortcuts are ignored when an input field is focused.
 
 ---
 
@@ -63,9 +92,16 @@ Each control can be assigned any standard MIDI message type: Note On/Off, Contro
 4. Switch to **MAPPING → EDIT** to design your control layout.
 5. Add controls from the toolbar (Touchpad, Slider, Knob, Switch, Grid, Path, Polygon).
 6. For each control, set the MIDI message type, channel, note/CC, min/max values, and pressure mode in the right panel.
-7. Click **UPLOAD CONFIG** to send the mapping to the device.
-8. Click **SAVE CONFIG** to write it to the e256's flash memory permanently.
-9. Use **FETCH CONFIG** to retrieve the current configuration stored on the device.
+7. Click **UPLOAD CONFIG** (or press `u`) to send the mapping to the device.
+   The upload follows a four-step handshake over USB MIDI:
+   - **ALLOCATE** — firmware allocates a buffer sized to the JSON payload.
+   - **UPLOAD** — app sends the JSON as chunked SysEx; firmware stores it in RAM.
+   - **APPLY** — firmware parses and applies the new mapping immediately (`mappings_apply_config()`).
+   - Back in **EDIT** mode — the device is already running the new mapping.
+8. Click **SAVE CONFIG** (or press `s`) to write it to the e256's flash memory permanently.
+   This requires a physical **long-press on the LEFT BUTTON** on the device.
+   Without this step the mapping is lost on power-off.
+9. Use **FETCH CONFIG** (or press `f`) to retrieve the current configuration stored on the device.
 
 ---
 

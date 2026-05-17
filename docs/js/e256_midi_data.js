@@ -11,6 +11,10 @@ for (let midi = 0; midi <= 127; midi++) {
   NOTES[key] = midi;
 }
 
+const midi_note_name = Array.from({ length: 128 }, (_, midi) => {
+  return NOTE_NAMES[midi % 12] + (Math.floor(midi / 12) - 1);
+});
+
 const CHORD_TYPES = {
   1: major,
   2: minor,

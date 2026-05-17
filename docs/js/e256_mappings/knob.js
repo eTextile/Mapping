@@ -238,17 +238,18 @@ function knob_factory() {
             if (polar.radius > _knob.radius) {
               new_polar = rotate_polar(rad_to_deg(polar.theta), _knob.data.offset, 'clockwise');
               //new_polar = rotate_polar(rad_to_deg(polar.theta), _knob.data.offset, 'counter-clockwise');
-              _touch_group.msg.theta.midi.data2 = Math.round(mapp(new_polar, 0, 380, _touch_group.msg.theta.limit.min, _touch_group.msg.theta.limit.max));
+              _touch_group.msg.theta.midi.data2 = Math.round(mapp(new_polar, 0, 360, _touch_group.msg.theta.limit.min, _touch_group.msg.theta.limit.max));
               _knob_touch_pos = pol_to_cart(_knob.radius, polar.theta);
             } else {
-              _touch_group.msg.radius.midi.data2 = Math.round(mapp(polar.radius, _knob.radius, 0, _touch_group.msg.radius.limit.min, _touch_group.msg.radius.limit.max));
+              _touch_group.msg.radius.midi.data2 = Math.round(mapp(polar.radius, 0, _knob.radius, _touch_group.msg.radius.limit.min, _touch_group.msg.radius.limit.max));
               new_polar = rotate_polar(rad_to_deg(polar.theta), _knob.data.offset, 'clockwise');
               //new_polar = rotate_polar(rad_to_deg(polar.theta), _knob.data.offset, 'counter-clockwise');
-              _touch_group.msg.theta.midi.data2 = Math.round(mapp(new_polar, 0, 380, _touch_group.msg.theta.limit.min, _touch_group.msg.theta.limit.max));
+              _touch_group.msg.theta.midi.data2 = Math.round(mapp(new_polar, 0, 360, _touch_group.msg.theta.limit.min, _touch_group.msg.theta.limit.max));
               _knob_touch_pos = pol_to_cart(polar.radius, polar.theta);
             }
             _knob_touch.position = new paper.Point(_knob.center.x + _knob_touch_pos.x, _knob.center.y + _knob_touch_pos.y);
-            _knob_needle.segments[1].point = new paper.Point(_knob.center.x + _knob_touch_pos.x, _knob.center.y + _knob_touch_pos.y);
+            _knob_needle.segments[1].point = _knob_touch.position;
+            _touch_txt.position = _knob_touch.position;
 
             if (_touch_group.msg.radius.midi.data2 != _touch_group.prev_pos_r) {
               _touch_group.prev_pos_r = _touch_group.msg.radius.midi.data2;
@@ -272,7 +273,7 @@ function knob_factory() {
       });
 
       _touch_txt.style = {
-        "fillColor": "purple",
+        "fillColor": "white",
         "fontSize": FONT_SIZE
       };
 

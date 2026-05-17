@@ -186,32 +186,32 @@ async function MIDIsetup() {
 function onMIDISuccess(midiAccess) {
   let input_setup = false;
   let output_setup = false;
-  
+
+  function try_connect() {
+    for (let input of midiAccess.inputs.values()) {
+      if (input.name === "ETEXTILE_SYNTH MIDI 1") { midi_input = input; input_setup = true; }
+    }
+    for (let output of midiAccess.outputs.values()) {
+      if (output.name === "ETEXTILE_SYNTH MIDI 1") { midi_output = output; output_setup = true; }
+    }
+    if (input_setup && output_setup && !midi_device_connected) {
+      midi_device_connected = true;
+      midi_input.onmidimessage = on_midi_message;
+      if (DEBUG) console.log("MIDI_IN: " + midi_input.name);
+      if (DEBUG) console.log("MIDI_OUT: " + midi_output.name);
+      setTimeout(function () {
+        send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.SYNC));
+        if (DEBUG) console.log("REQUEST: SYNC");
+      }, 1000);
+    }
+  }
+
+  try_connect(); // handle already-connected device on page load / refresh
+
   midiAccess.onstatechange = function (msg) {
     switch (msg.port.state) {
       case "connected":
-        for (let input of midiAccess.inputs.values()) {
-          if (input.name === "ETEXTILE_SYNTH MIDI 1") {
-            midi_input = input;
-            input_setup = true;
-          }
-        }
-        for (let output of midiAccess.outputs.values()) {
-          if (output.name === "ETEXTILE_SYNTH MIDI 1") {
-            midi_output = output;
-            output_setup = true;
-          }
-        }
-        if (input_setup && output_setup && !midi_device_connected) {
-          midi_device_connected = true;
-          midi_input.onmidimessage = on_midi_message;
-          if (DEBUG) console.log("MIDI_IN: " + midi_input.name);
-          if (DEBUG) console.log("MIDI_OUT: " + midi_output.name);
-          setTimeout(function () {
-            send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.SYNC));
-            if (DEBUG) console.log("REQUEST: SYNC");
-          }, 1000);
-        }
+        try_connect();
         break;
       case "disconnected":
         midi_input = null;
@@ -351,6 +351,7 @@ function on_midi_message(midi_msg) {
               $("#EDIT").removeClass("active");
               $("#THROUGH").addClass("active");
               $("#PLAY").removeClass("active");
+              e256_blobs.clear();
               e256_current_mode = MODE.THROUGH;
               alert_msg("mapping_through", "MODE: THROUGH", "success");
               break;
@@ -373,6 +374,7 @@ function on_midi_message(midi_msg) {
               $("#EDIT").removeClass("active");
               $("#THROUGH").removeClass("active");
               $("#PLAY").addClass("active");
+              e256_blobs.clear();
               e256_current_mode = MODE.PLAY;
               alert_msg("mapping_play", "MODE: PLAY", "success");
               break;
@@ -387,6 +389,7 @@ function on_midi_message(midi_msg) {
               break;
 
             case MODE_ACK.CALIBRATE:
+              e256_blobs.clear();
               e256_current_mode = e256_previous_mode;
               $("#CALIBRATE").removeClass("active");
               alert_msg("calibrate", "MODE: CALIBRATE", "success");
