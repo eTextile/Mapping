@@ -343,6 +343,70 @@ function polygon_factory() {
       this.addChild(_handles_group);
     },
 
+    // Called when the user clicks on empty canvas space while this polygon is active (EDIT mode).
+    // Adds a new vertex at the clicked position, extends all spokes, and registers a new source_N MIDI axis.
+    graw: function (mouseEvent) {
+      const new_pt = mouseEvent.point;
+      const _polygon_group = this.children["polygon-group"];
+      const _polygon_curve = _polygon_group.children["polygon"];
+      const _touchs_group = this.children["touchs-group"];
+      const _handles_group = this.children["handles-group"];
+      const vi = this.data.segments.length; // index of the new vertex
+      const key = "source_" + vi;
+
+      // Update data model
+      this.data.segments.push([new_pt.x, new_pt.y]);
+      _polygon_group.data.segments.push([new_pt.x, new_pt.y]);
+      _polygon_curve.add(new_pt);
+
+      // Add a spoke from each touch's current position to the new vertex, and extend its MIDI msg.
+      for (let touch of _touchs_group.children) {
+        const touch_circle = touch.children["touch-circle"];
+        const from_pt = touch_circle ? touch_circle.position.clone() : new_pt.clone();
+        const _spokes_group = touch.children["spokes-group"];
+        let spoke = new paper.Path.Line({ "from": from_pt, "to": new_pt.clone() });
+        spoke.style = { "strokeWidth": 1, "strokeColor": "#aaa" };
+        spoke.locked = true;
+        _spokes_group.addChild(spoke);
+        touch.prev_dists.push(0);
+        touch.msg[key] = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
+      }
+
+      // Add a draggable vertex handle for the new point.
+      const _handle = new paper.Path.Circle({
+        "name": "handle-" + vi,
+        "center": new_pt,
+        "radius": HANDLE_RADIUS
+      });
+      _handle.style = {
+        "strokeWidth": 2,
+        "strokeColor": "rgb(255, 0, 212)",
+        "fillColor": "white"
+      };
+      _handle.onMouseEnter = function () { this.style.fillColor = "rgb(255, 0, 212)"; };
+      _handle.onMouseLeave = function () { this.style.fillColor = "white"; };
+      _handle.onMouseDown = function () {
+        if (e256_current_mode === MODE.EDIT) {
+          previous_touch = current_touch;
+          current_touch = { "id": null };
+        }
+      };
+      _handle.onMouseDrag = function (mouseEvent) {
+        if (e256_current_mode !== MODE.EDIT) return;
+        this.position = mouseEvent.point;
+        _polygon_group.data.segments[vi] = [mouseEvent.point.x, mouseEvent.point.y];
+        _polygon_curve.segments[vi].point = mouseEvent.point;
+        for (let touch of _touchs_group.children) {
+          const spokes = touch.children["spokes-group"];
+          if (spokes && spokes.children[vi]) spokes.children[vi].segments[1].point = mouseEvent.point;
+        }
+        update_item_main_params(_polygon_group.parent);
+      };
+      _handles_group.addChild(_handle);
+
+      update_item_main_params(this);
+    },
+
     onMouseDrag: function (mouseEvent) {
       if (e256_current_mode === MODE.EDIT) {
         if (current_part.type === "fill") {

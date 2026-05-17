@@ -7,7 +7,6 @@
 var canvas_height = $("#loading_canvas").height();
 var canvas_width = canvas_height;
 //.log("PAPER_WIDTH: " + canvas_width + " PAPER_HEIGHT: " + canvas_height);
-//var scaleFactor = canvas_height / 127; // FEXME!
 
 var conf_size = 0;
 
@@ -274,17 +273,16 @@ function controleur_factory(item_type) {
       break;
     case "polygon":
       current_controleur = new polygon_factory();
+      create_once = true;
       break;
     }
     return current_controleur;
 };
 
-// FIXME: whenever the view is resized
 paper.view.onResize = function () {
   canvas_height = $("#loading_canvas").height();
   canvas_width = canvas_height;
   console.log("WIDTH: " + canvas_width + " HEIGHT: " + canvas_height);
-  //scaleFactor = canvas_height / 127; // FIXME!
   paper.view.viewSize.width = canvas_width;
   paper.view.viewSize.height = canvas_height;
   paper.view.setZoom(canvas_width / canvas_height);
