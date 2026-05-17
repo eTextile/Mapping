@@ -14,7 +14,6 @@ function polygon_factory() {
   const DEFAULT_POLYGON_TOUCHS = 1;
   const DEFAULT_POLYGON_MODE_DIST = MIDI_TYPE.CONTROL_CHANGE;
   const DEFAULT_POLYGON_MODE_Z = MIDI_TYPE.NOTE_ON;
-  const HANDLE_RADIUS = 8;
 
   var _polygon = new paper.Group({
     "name": "polygon",
@@ -293,8 +292,16 @@ function polygon_factory() {
       _polygon_curve.onMouseDrag = function (mouseEvent) {
         if (e256_current_mode === MODE.EDIT) {
           if (current_part.type === "segment") {
+            const vi = current_part.segment.index;
             current_part.segment.point = mouseEvent.point;
-            this.segments[current_part.segment.index].point = mouseEvent.point;
+            this.segments[vi].point = mouseEvent.point;
+            // Keep data.segments in sync so the firmware export stays accurate.
+            _polygon_group.data.segments[vi] = [mouseEvent.point.x, mouseEvent.point.y];
+            // Update the spoke endpoint for this vertex across all touches.
+            for (let touch of _touchs_group.children) {
+              const spokes = touch.children["spokes-group"];
+              if (spokes && spokes.children[vi]) spokes.children[vi].segments[1].point = mouseEvent.point;
+            }
             update_item_main_params(_polygon_group.parent);
           }
         }
@@ -302,51 +309,8 @@ function polygon_factory() {
 
       _polygon_group.addChild(_polygon_curve);
 
-      // One handle per vertex, shared across all touches.
-      // Handles live in create() (not in new_touch) so multiple touches don't duplicate them.
-      let _handles_group = new paper.Group({ "name": "handles-group" });
-      for (let vi = 0; vi < this.data.segments.length; vi++) {
-        const seg = this.data.segments[vi];
-        const vpt = (typeof seg[0] === "number")
-          ? new paper.Point(seg[0], seg[1])
-          : new paper.Point(seg[0]);
-        let _handle = new paper.Path.Circle({
-          "name": "handle-" + vi,
-          "center": vpt,
-          "radius": HANDLE_RADIUS
-        });
-        _handle.style = {
-          "strokeWidth": 2,
-          "strokeColor": "rgb(255, 0, 212)",
-          "fillColor": "white"
-        };
-        _handle.onMouseEnter = function () { this.style.fillColor = "rgb(255, 0, 212)"; };
-        _handle.onMouseLeave = function () { this.style.fillColor = "white"; };
-        _handle.onMouseDown = function () {
-          if (e256_current_mode === MODE.EDIT) {
-            previous_touch = current_touch;
-            current_touch = { "id": null }; // null sentinel: suppress MIDI params panel
-          }
-        };
-        _handle.onMouseDrag = function (mouseEvent) {
-          if (e256_current_mode !== MODE.EDIT) return;
-          this.position = mouseEvent.point;
-          // Keep data.segments in sync so the firmware export stays accurate.
-          _polygon_group.data.segments[vi] = [mouseEvent.point.x, mouseEvent.point.y];
-          _polygon_curve.segments[vi].point = mouseEvent.point;
-          // Update the spoke endpoint for this vertex across all touches.
-          for (let touch of _touchs_group.children) {
-            const spokes = touch.children["spokes-group"];
-            if (spokes && spokes.children[vi]) spokes.children[vi].segments[1].point = mouseEvent.point;
-          }
-          update_item_main_params(_polygon_group.parent);
-        };
-        _handles_group.addChild(_handle);
-      }
-
       this.addChild(_polygon_group);
       this.addChild(_touchs_group);
-      this.addChild(_handles_group);
     },
 
     // Called when the user clicks on empty canvas space while this polygon is active (EDIT mode).
@@ -356,7 +320,6 @@ function polygon_factory() {
       const _polygon_group = this.children["polygon-group"];
       const _polygon_curve = _polygon_group.children["polygon"];
       const _touchs_group = this.children["touchs-group"];
-      const _handles_group = this.children["handles-group"];
       const vi = this.data.segments.length; // index of the new vertex
       const key = "source_" + vi;
 
@@ -379,38 +342,6 @@ function polygon_factory() {
         new_msg.enabled = true;
         touch.msg[key] = new_msg;
       }
-
-      // Add a draggable vertex handle for the new point.
-      const _handle = new paper.Path.Circle({
-        "name": "handle-" + vi,
-        "center": new_pt,
-        "radius": HANDLE_RADIUS
-      });
-      _handle.style = {
-        "strokeWidth": 2,
-        "strokeColor": "rgb(255, 0, 212)",
-        "fillColor": "white"
-      };
-      _handle.onMouseEnter = function () { this.style.fillColor = "rgb(255, 0, 212)"; };
-      _handle.onMouseLeave = function () { this.style.fillColor = "white"; };
-      _handle.onMouseDown = function () {
-        if (e256_current_mode === MODE.EDIT) {
-          previous_touch = current_touch;
-          current_touch = { "id": null };
-        }
-      };
-      _handle.onMouseDrag = function (mouseEvent) {
-        if (e256_current_mode !== MODE.EDIT) return;
-        this.position = mouseEvent.point;
-        _polygon_group.data.segments[vi] = [mouseEvent.point.x, mouseEvent.point.y];
-        _polygon_curve.segments[vi].point = mouseEvent.point;
-        for (let touch of _touchs_group.children) {
-          const spokes = touch.children["spokes-group"];
-          if (spokes && spokes.children[vi]) spokes.children[vi].segments[1].point = mouseEvent.point;
-        }
-        update_item_main_params(_polygon_group.parent);
-      };
-      _handles_group.addChild(_handle);
 
       update_item_main_params(this);
 
