@@ -73,7 +73,7 @@ function create_item_main_params(item) {
       midi_param_val_x.setAttribute("aria-describedby", item.parent.id + "_" + param + "_atr_x");
 
       midi_param_val_x.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && Number(event.target.value)) {
+        if (event.key === "Enter" && Number.isFinite(parseFloat(event.target.value))) {
           item.data[param].x = parseFloat(event.target.value);
           re_create_item(item.parent);
         }
@@ -93,7 +93,7 @@ function create_item_main_params(item) {
       midi_param_val_y.setAttribute("aria-describedby", item.parent.id + "_" + param + "_atr_y");
 
       midi_param_val_y.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" && Number(event.target.value)) {
+        if (event.key === "Enter" && Number.isFinite(parseFloat(event.target.value))) {
           item.data[param].y = parseFloat(event.target.value);
           re_create_item(item.parent);
         }
