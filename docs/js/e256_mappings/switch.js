@@ -29,6 +29,7 @@ function switch_factory() {
       "chord": null,
       "press": null,
       "tap_tempo": false,
+      "input_chan": null,
       "msg": null
     },
 
@@ -47,6 +48,7 @@ function switch_factory() {
       this.data.chord = DEFAULT_SWITCH_CHORD;
       this.data.press = DEFAULT_SWITCH_MODE_Z;
       this.data.tap_tempo = false;
+      this.data.input_chan = 1;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
@@ -69,6 +71,7 @@ function switch_factory() {
       this.data.chord = params.chord;
       this.data.tap_tempo = params.tap_tempo || false;
       this.data.press = this.data.tap_tempo ? 0 : params.press;
+      this.data.input_chan = params.input_chan || 1;
       this.data.msg = params.msg;
     },
 
@@ -81,6 +84,7 @@ function switch_factory() {
       this.data.touchs = this.children["switch-group"].data.touchs;
 
       this.data.chord = this.children["switch-group"].data.chord; // TESTING!
+      this.data.input_chan = this.children["switch-group"].data.input_chan;
 
       let previous_press = this.data.press;
       this.data.press = this.children["switch-group"].data.press;
@@ -163,9 +167,11 @@ function switch_factory() {
       _touch_group.addChild(_touch_ellipse);
 
       let _touch_txt = make_touch_txt(
-        new paper.Point(_touch_group.pos.x - (half_frame_width / 2), _touch_group.pos.y - (half_frame_height / 3)),
-        _switch.data.press === 0 ? "TapTempo" : midi_msg_as_txt(_touch_group.msg.press)
+        _touch_group.pos,
+        String(_touch_id + 1),
+        { fontSize: FONT_SIZE * 2, fontWeight: "bold", justification: "center", fillColor: "white" }
       );
+      _touch_txt.position = _touch_group.pos;
 
       _touch_group.addChild(_touch_txt);
 
@@ -181,7 +187,8 @@ function switch_factory() {
           "to": this.data.to,
           "touchs": this.data.touchs,
           "chord": this.data.chord,
-          "press": this.data.press
+          "press": this.data.press,
+          "input_chan": this.data.input_chan
         }
       });
 

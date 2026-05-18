@@ -55,7 +55,8 @@ function path_factory() {
       let previous_mode_z = this.data.press;
       this.data.press = this.children["path-group"].data.press;
 
-      this.data.segments = this.children["path-group"].data.segments;
+      const _path_curve = this.children["path-group"].children["path-curve"];
+      this.data.segments = _path_curve.segments.map(s => s.point.clone());
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
@@ -117,6 +118,7 @@ function path_factory() {
             const _path_curve = _path.children["path-curve"];
             const nearest = _path_curve.getNearestPoint(mouseEvent.point);
             this.position = nearest;
+            _touch_label.position = nearest;
             const offset = _path_curve.getOffsetOf(nearest);
             const pos_val = Math.round(mapp(
               offset,
@@ -138,6 +140,14 @@ function path_factory() {
       }
 
       _touch_group.addChild(_touch_circle);
+
+      let _touch_label = make_touch_txt(
+        this.data.segments[0],
+        String(_touch_id + 1),
+        { fontSize: FONT_SIZE * 2, fontWeight: "bold", justification: "center", fillColor: "white" }
+      );
+      _touch_label.position = _touch_circle.position;
+      _touch_group.addChild(_touch_label);
 
       return _touch_group;
     },
@@ -228,6 +238,7 @@ function path_factory() {
     graw: function (mouseEvent) {
       this.children["path-group"].children["path-curve"].add(mouseEvent.point);
       this.children["path-group"].children["path-graduations"].add(mouseEvent.point);
+      this.children["path-group"].data.segments.push(mouseEvent.point.clone());
       // TODO: Place the touch to the segment middle!
       for (const _touch of this.children["touchs-group"].children) {
         let _path_graduation_interval = this.children["path-group"].children["path-curve"].length / (_touch.msg.pos.limit.max - _touch.msg.pos.limit.min);

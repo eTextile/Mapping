@@ -21,12 +21,14 @@ function polygon_factory() {
       "touchs": null,
       "segments": null,
       "press": null,
+      "input_chan": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
 
       this.data.press = DEFAULT_POLYGON_MODE_Z;
+      this.data.input_chan = 1;
 
       // Build a regular polygon centered on the click; store segments as [paper.Point] arrays.
       let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT_POLYGON_SIDES, DEFAULT_POLYGON_SIZE).segments;
@@ -56,6 +58,7 @@ function polygon_factory() {
         mapp(seg[0], 0, NEW_COLS, 0, canvas_width),
         mapp(seg[1], 0, NEW_ROWS, 0, canvas_height)
       ]);
+      this.data.input_chan = params.input_chan || 1;
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.press = status.type;
@@ -69,6 +72,7 @@ function polygon_factory() {
       this.data.press = this.children["polygon-group"].data.press;
 
       this.data.segments = this.children["polygon-group"].data.segments;
+      this.data.input_chan = this.children["polygon-group"].data.input_chan;
       this.data.msg = [];
 
       for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
@@ -198,6 +202,8 @@ function polygon_factory() {
         if (e256_current_mode === MODE.EDIT) {
           // In EDIT mode just reposition the touch and update spoke origins.
           _touch_circle.position = mouseEvent.point;
+          const _touch_label = _touch_group.children["touch-txt"];
+          if (_touch_label) _touch_label.position = mouseEvent.point;
           for (let spoke of _spokes_group.children) {
             spoke.segments[0].point = mouseEvent.point;
           }
@@ -231,6 +237,14 @@ function polygon_factory() {
 
       _touch_group.addChild(_touch_circle);
 
+      let _touch_label = make_touch_txt(
+        start_pt,
+        String(_touch_id + 1),
+        { fontSize: FONT_SIZE * 2, fontWeight: "bold", justification: "center", fillColor: "white" }
+      );
+      _touch_label.position = start_pt;
+      _touch_group.addChild(_touch_label);
+
       return _touch_group;
     },
 
@@ -241,7 +255,8 @@ function polygon_factory() {
         "data": {
           "touchs": this.data.touchs,
           "segments": this.data.segments,
-          "press": this.data.press
+          "press": this.data.press,
+          "input_chan": this.data.input_chan
         }
       });
       

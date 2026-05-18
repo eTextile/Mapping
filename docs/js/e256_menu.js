@@ -7,7 +7,6 @@
 var e256_current_mode = MODE.PENDING;
 var e256_previous_mode = null;
 var e256_draw_mode = null;
-var e256_previous_draw_mode = null;
 
 console.log("PROJECT: " + PROJECT);
 console.log("NAME: " + NAME + ": " + VERSION);
@@ -35,13 +34,13 @@ $("#connect_switch").on ("change",
 
 $(".e256_set_mode").click (
   function (event) {
-    e256_previous_mode = e256_current_mode;
-    e256_current_mode = MODE[event.target.id];
+    let requested_mode = MODE[event.target.id];
     if (midi_device_connected) {
-      if(e256_current_mode != e256_previous_mode) {
+      if (requested_mode !== e256_current_mode) {
+        e256_previous_mode = e256_current_mode;
         if (event.target.id === "CALIBRATE") $("#CALIBRATE").addClass("active");
-        send_midi_msg(new program_change(MIDI_CHANNEL.MODES, e256_current_mode));
-        if (DEBUG) console.log("REQUEST: " + MODE_CODES[e256_current_mode]);
+        send_sysex_cmd(requested_mode);
+        if (DEBUG) console.log("REQUEST: " + MODE_CODES[requested_mode]);
       }
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
@@ -49,11 +48,10 @@ $(".e256_set_mode").click (
   }
 );
 
-$(".mapingTool").click (
+$(".maping_tool").click (
   function (event) {
-    $(".mapingTool").removeClass("active");
+    $(".maping_tool").removeClass("active");
     $(this).addClass("active");
-    e256_previous_draw_mode = e256_draw_mode; ///////////////////////////////// FIXME!
     e256_draw_mode = event.target.id;
     
     switch (e256_draw_mode) {
@@ -71,11 +69,11 @@ $(".mapingTool").click (
   }
 );
 
-$("#uploadConfig").click (
+$("#upload_config").click (
   function () {
     if (midi_device_connected) {
-      $("#uploadConfig").addClass("active");
-      send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.ALLOCATE_CONFIG));
+      $("#upload_config").addClass("active");
+      send_sysex_cmd(MODE.ALLOCATE_CONFIG);
       if (DEBUG) console.log("REQUEST: ALLOCATE CONFIG");
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
@@ -83,7 +81,7 @@ $("#uploadConfig").click (
   }
 );
 
-$("#saveConfig").click(function () {
+$("#save_config").click(function () {
   e256_export_params();
   if (DEBUG) console.log(JSON.stringify(e256_config));
 
@@ -94,7 +92,7 @@ $("#saveConfig").click(function () {
   if (filename === "") filename = "e256_mapping.json";
   if (!filename.toLowerCase().endsWith(".json")) filename += ".json";
 
-  $("#saveConfig").addClass("active");
+  $("#save_config").addClass("active");
 
   var file = new File(
     [JSON.stringify(e256_config, null, 2)],
@@ -103,15 +101,15 @@ $("#saveConfig").click(function () {
   );
 
   saveAs(file, filename);
-  $("#saveConfig").removeClass("active");
+  $("#save_config").removeClass("active");
 });
 
 
-$("#fetchConfig").click (
+$("#fetch_config").click (
   function () {
     if (midi_device_connected) {
-      $("#fetchConfig").addClass("active");
-      send_midi_msg(new program_change(MIDI_CHANNEL.MODES, MODE.LOAD_CONFIG));
+      $("#fetch_config").addClass("active");
+      send_sysex_cmd(MODE.LOAD_CONFIG);
       if (DEBUG) console.log("REQUEST: LOAD CONFIG");
     } else {
       alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
@@ -124,15 +122,15 @@ $(document).on("keydown", function (event) {
   switch (event.key) {
     case "h":      $("#help-overlay").toggleClass("active"); break;
     case "Escape": $("#help-overlay").removeClass("active"); break;
-    case "p": $("#PLAY").trigger("click");         break;
-    case "e": $("#EDIT").trigger("click");         break;
-    case "t": $("#THROUGH").trigger("click");      break;
-    case "m": $("#MATRIX_RAW").trigger("click");   break;
-    case "M": $("#MAPPING").trigger("click");      break; // shift+m
-    case "c": $("#CALIBRATE").trigger("click");    break;
-    case "u": $("#uploadConfig").trigger("click"); break;
-    case "s": $("#saveConfig").trigger("click");   break;
-    case "f": $("#fetchConfig").trigger("click");  break;
+    case "p": $("#PLAY").trigger("click");          break;
+    case "e": $("#EDIT").trigger("click");          break;
+    case "t": $("#THROUGH").trigger("click");       break;
+    case "m": $("#MATRIX_RAW").trigger("click");    break;
+    case "M": $("#MAPPING").trigger("click");       break; // shift + m
+    case "c": $("#CALIBRATE").trigger("click");     break;
+    case "u": $("#upload_config").trigger("click"); break;
+    case "s": $("#save_config").trigger("click");   break;
+    case "f": $("#fetch_config").trigger("click");  break;
   }
 });
 

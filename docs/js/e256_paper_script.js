@@ -11,6 +11,7 @@ var canvas_width = canvas_height;
 var conf_size = 0;
 
 var create_once = false;
+var current_layer_index = 0;
 
 console.log("BOOTSTRAP: " + bootstrap.Tooltip.VERSION);
 console.log("JQUERY: " + jQuery().jquery);
@@ -61,12 +62,7 @@ var hit_options = hit_options_A;
 
 paper_tool.onMouseDown = function (mouseEvent) {
 
-  //console.log("hit_options: " + JSON.stringify(hit_options));
-
   current_part = paper.project.hitTest(mouseEvent.point, hit_options);
-
-  //console.log("draw_mode: " + e256_draw_mode);
-  //console.log("hit_test: " + current_part);
 
   if (e256_current_mode === MODE.EDIT) {
     if (current_part) { // Clicking on an existing item — always handled
@@ -100,7 +96,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
           item_menu_params(previous_controleur, "hide");
         }
       }
-      $(".mapingTool").removeClass("active");
+      $(".maping_tool").removeClass("active");
       item_menu_params(current_controleur, "show");
       $("#" + current_controleur.name).addClass("active");
 
@@ -119,7 +115,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
           draw_controler_from_mouse(mouseEvent);
         }
         else {
-          current_controleur.graw(mouseEvent); // Used by mapping path()
+          current_controleur.graw(mouseEvent); // Used by mapping path & polygon
         }
       }
       else {
@@ -154,6 +150,11 @@ paper_tool.onKeyDown = function (keyEvent) {
       switch (keyEvent.key) {
         case "space":
           create_once = false;
+          const layers = paper.project.layers.filter(l => l.hasChildren());
+          if (layers.length > 0) {
+            current_layer_index = (current_layer_index + 1) % layers.length;
+            layers[current_layer_index].bringToFront();
+          }
           break;
         default:
           break;

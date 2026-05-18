@@ -92,6 +92,22 @@ const MIDI_SYSEX = {
   LEVELS: 0x6C // TODO
 };
 
+// SysEx packet types  (byte[2] after F0 + DEVICE_ID)
+const SYSEX_PKT = {
+  CMD:   0x01,  // web → firmware: mode command
+  ACK:   0x02,  // firmware → web: mode acknowledgment
+  ERR:   0x03,  // firmware → web: error
+  PARAM: 0x04   // firmware → web: level parameter value
+};
+
+// SysEx PARAM IDs (mirrors MIDI_CC / level_code_t in firmware)
+const SYSEX_PARAM = {
+  THRESHOLD: 0,
+  SIG_IN:    1,
+  SIG_OUT:   2,
+  LINE_OUT:  3
+};
+
 const DATA1 = {
   0x80: "note",
   0x90: "note",

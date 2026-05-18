@@ -78,9 +78,9 @@ window.set_matrix_resolution = function (cols, rows) {
   document.getElementById("matrix_raw_btn").classList.toggle("active", is_raw);
   document.getElementById("matrix_interp_btn").classList.toggle("active", !is_raw);
 
-  if (typeof send_midi_msg === "function") {
+  if (typeof send_sysex_cmd === "function") {
     const mode = is_raw ? MODE.MATRIX_RAW : MODE.MATRIX_INTERP;
-    send_midi_msg(new program_change(MIDI_CHANNEL.MODES, mode));
+    send_sysex_cmd(mode);
   }
 };
 

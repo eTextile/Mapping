@@ -241,7 +241,8 @@ function create_item_touchs_menu_params(item) {
 
   let table_caption = document.createElement("caption");
   table_caption.className = "caption-top card-title display-6";
-  table_caption.textContent = item.name;
+  const _touch_index = parseInt(item.name.split("-")[1]);
+  table_caption.textContent = isNaN(_touch_index) ? item.name : item.name.split("-")[0] + "-" + (_touch_index + 1);
   table_params.appendChild(table_caption);
 
   let row_params_body = document.createElement("tbody");

@@ -33,6 +33,7 @@ function grid_factory() {
       "rows": null,
       "press": null,
       //"play_mode": null,
+      "input_chan": null,
       "msg": null
     },
 
@@ -48,6 +49,7 @@ function grid_factory() {
       );
       this.data.cols = DEFAULT_GRID_COLS;
       this.data.rows = DEFAULT_GRID_ROWS;
+      this.data.input_chan = 1;
 
       this.data.msg = [];
       current_key_count = this.data.cols * this.data.rows;
@@ -69,6 +71,7 @@ function grid_factory() {
       );
       this.data.cols = params.cols;
       this.data.rows = params.rows;
+      this.data.input_chan = params.input_chan || 1;
       this.data.msg = params.msg;
       this.data.press = params.press;
     },
@@ -81,6 +84,7 @@ function grid_factory() {
       this.data.to = this.children["grid-group"].data.to;
       this.data.cols = this.children["grid-group"].data.cols;
       this.data.rows = this.children["grid-group"].data.rows;
+      this.data.input_chan = this.children["grid-group"].data.input_chan;
 
       previous_key_count = current_key_count;
       current_key_count = this.data.cols * this.data.rows;
@@ -211,19 +215,13 @@ function grid_factory() {
 
       //paper.project.layers.text.activate();
 
-      let _key_txt = new paper.PointText({
-        "name": "key-text",
-        "point": new paper.Point(
-          _key_frame.position.x - (key_width / 4),
-          _key_frame.position.y - (key_height / 4)
-        ),
-        "content": midi_msg_as_txt(_key_group.msg.press),
-        "locked": true
-      });
-
-      _key_txt.style = {
-        "fillColor": "black"
-      };
+      let _key_txt = make_touch_txt(
+        _key_frame.position,
+        String(_key_id + 1),
+        { fontSize: FONT_SIZE * 2, fontWeight: "bold", justification: "center", fillColor: "white" }
+      );
+      _key_txt.name = "key-text";
+      _key_txt.position = _key_frame.position;
 
       _key_group.addChild(_key_txt);
 
@@ -247,7 +245,8 @@ function grid_factory() {
           "to": this.data.to,
           "cols": this.data.cols,
           "rows": this.data.rows,
-          "press": this.data.press
+          "press": this.data.press,
+          "input_chan": this.data.input_chan
         }
       });
 

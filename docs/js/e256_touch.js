@@ -65,11 +65,13 @@ function make_touch_txt(point, content, opts) {
     "name": "touch-txt",
     "point": point,
     "content": content,
+    "justification": opts.justification || "left",
     "locked": true
   });
   txt.style = {
     "fillColor": opts.fillColor || "black",
-    "fontSize": opts.fontSize || FONT_SIZE
+    "fontSize": opts.fontSize || FONT_SIZE,
+    "fontWeight": opts.fontWeight || "normal"
   };
   return txt;
 }

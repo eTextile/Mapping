@@ -317,13 +317,12 @@ function slider_factory() {
       }
       _touch_group.addChild(_touch_circle);
 
-      const _txt_offset = TOUCH_RADIUS + 8;
-      const _txt_x = (this.dir === "V_SLIDER") ? this.data.to.x + _txt_offset : _touch_group.pos.x;
-      const _txt_y = (this.dir === "V_SLIDER") ? _touch_group.pos.y : this.data.from.y - _txt_offset;
       let _touch_txt = make_touch_txt(
-        new paper.Point(_txt_x, _txt_y),
-        "T:" + _touch_id + (_touch_group.msg.pos ? "\npos:" + _touch_group.msg.pos.midi.data1 : "") + "\nz:" + _touch_group.msg.press.midi.data1
+        _touch_group.pos,
+        String(_touch_id + 1),
+        { fontSize: FONT_SIZE * 2, fontWeight: "bold", justification: "center", fillColor: "white" }
       );
+      _touch_txt.position = _touch_group.pos;
 
       _touch_group.addChild(_touch_txt);
 
@@ -427,13 +426,7 @@ function slider_factory() {
                 }
                 const new_pos = new paper.Point(new_x, new_y);
                 _touch.children["touch-circle"].position = new_pos;
-                const txt_x = (current_frame_height > current_frame_width)
-                  ? bounds.right + TOUCH_RADIUS + 8
-                  : new_x;
-                const txt_y = (current_frame_height > current_frame_width)
-                  ? new_y
-                  : bounds.top - TOUCH_RADIUS - 8;
-                _touch.children["touch-txt"].position = new paper.Point(txt_x, txt_y);
+                _touch.children["touch-txt"].position = new_pos;
               }
             };
 
@@ -667,14 +660,14 @@ function slider_factory() {
             if (this.dir === "V_SLIDER") {
               let y = frame.bounds.top + frame.bounds.bottom -
                 mapp(msg.data2, limit.min, limit.max, frame.bounds.top, frame.bounds.bottom);
-              touch_group.children["touch-line"].position.y   = y;
-              touch_group.children["touch-circle"].position.y = y;
-              touch_group.children["touch-txt"].position.y    = y;
+              touch_group.children["touch-line"].position.y    = y;
+              touch_group.children["touch-circle"].position.y  = y;
+              touch_group.children["touch-txt"].position.y     = y;
             } else {
               let x = mapp(msg.data2, limit.min, limit.max, frame.bounds.left, frame.bounds.right);
-              touch_group.children["touch-line"].position.x   = x;
-              touch_group.children["touch-circle"].position.x = x;
-              touch_group.children["touch-txt"].position.x    = x;
+              touch_group.children["touch-line"].position.x    = x;
+              touch_group.children["touch-circle"].position.x  = x;
+              touch_group.children["touch-txt"].position.x     = x;
             }
             updated = true;
             break;

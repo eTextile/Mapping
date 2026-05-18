@@ -26,6 +26,7 @@ function knob_factory() {
       "to": null,
       "offset": null,
       "press": null,
+      "input_chan": null,
       "msg": null
     },
 
@@ -42,6 +43,7 @@ function knob_factory() {
         mouseEvent.point.y + this.radius
       );
       this.data.offset = DEFAULT_KNOB_OFFSET;
+      this.data.input_chan = 1;
       this.center = mouseEvent.point;
       this.theta = deg_to_rad(DEFAULT_KNOB_OFFSET);
       this.data.msg = [];
@@ -80,6 +82,7 @@ function knob_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.offset = params.offset;
+      this.data.input_chan = params.input_chan || 1;
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.press = status.type;
@@ -98,6 +101,7 @@ function knob_factory() {
       this.data.from = this.children["knob-group"].data.from;
       this.data.to = this.children["knob-group"].data.to;
       this.data.offset = this.children["knob-group"].data.offset;
+      this.data.input_chan = this.children["knob-group"].data.input_chan;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
@@ -237,11 +241,13 @@ function knob_factory() {
         }
       }
 
+      let _knob_touch_center = new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y);
       let _touch_txt = make_touch_txt(
-        new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y),
-        midi_msg_as_txt(_touch_group.msg.press),
-        { "fillColor": "white" }
+        _knob_touch_center,
+        String(_touch_id + 1),
+        { fontSize: FONT_SIZE * 2, fontWeight: "bold", justification: "center", fillColor: "white" }
       );
+      _touch_txt.position = _knob_touch_center;
 
       _touch_group.addChild(_knob_needle);
       _touch_group.addChild(_knob_touch);
@@ -263,7 +269,8 @@ function knob_factory() {
           "from": this.data.from,
           "to": this.data.to,
           "offset": this.data.offset,
-          "press": this.data.press
+          "press": this.data.press,
+          "input_chan": this.data.input_chan
         }
       });
 
@@ -275,6 +282,37 @@ function knob_factory() {
         _touchs_group.addChild(this.new_touch(_knob_group, _touch));
       }
 
+      // Build a conic gradient circle using N triangular sectors (white→purple over upper half).
+      function build_conic(cx, cy, r, start_angle) {
+        const N = 72;
+        const step = 2 * Math.PI / N;
+        const overlap = step * 0.3;
+        let grp = new paper.Group({ "name": "knob-conic" });
+        for (let i = 0; i < N; i++) {
+          const a1 = start_angle + i * step;
+          const a2 = a1 + step + overlap;
+          const t = i / (N - 1);
+          const s = new paper.Path([
+            new paper.Point(cx, cy),
+            new paper.Point(cx + r * Math.cos(a1), cy + r * Math.sin(a1)),
+            new paper.Point(cx + r * Math.cos(a2), cy + r * Math.sin(a2))
+          ]);
+          s.closed = true;
+          s.strokeWidth = 0;
+          s.strokeColor = null;
+          s.fillColor = new paper.Color(1 - 0.498 * t, 1 - t, 1 - 0.498 * t);
+          grp.addChild(s);
+        }
+        return grp;
+      }
+
+      function refresh_conic() {
+        const old = _knob_group.children["knob-conic"];
+        const idx = old ? old.index : 1;
+        if (old) old.remove();
+        _knob_group.insertChild(idx, build_conic(_knob_group.center.x, _knob_group.center.y, _knob_group.radius, _knob_group.theta));
+      }
+
       let _knob_circle = new paper.Shape.Circle({
         //"name": "knob-circle",
         "center": _knob_group.center,
@@ -282,10 +320,10 @@ function knob_factory() {
       });
 
       _knob_circle.style = {
-        "strokeWidth": 1,
-        "strokeColor": "black",
-        "fillColor": "Purple"
-      }
+        "strokeWidth": 0,
+        "strokeColor": null,
+        "fillColor": new paper.Color(1, 1, 1, 0.01)
+      };
 
       _knob_circle.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
@@ -293,6 +331,7 @@ function knob_factory() {
             if (current_part.type === "fill") {
               move_item(_knob_group.parent, mouseEvent);
               _knob_group.center = this.position;
+              refresh_conic();
               update_item_main_params(_knob_group.parent);
             }
             break;
@@ -329,6 +368,7 @@ function knob_factory() {
             );
 
             _knob_group.data.offset = rad_to_deg(_knob_group.theta);
+            refresh_conic();
             update_item_main_params(_knob_group.parent);
             break;
           case MODE.PLAY:
@@ -396,6 +436,7 @@ function knob_factory() {
                   );
                   // "knob-offset"
                   _knob_group.center = _knob_circle.position;
+                  refresh_conic();
                   _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
                   _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
                   _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
@@ -433,6 +474,7 @@ function knob_factory() {
                   );
                   // "knob-offset"
                   _knob_group.center = _knob_circle.position;
+                  refresh_conic();
                   _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
                   _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
                   _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
@@ -469,6 +511,7 @@ function knob_factory() {
                   );
                   // "knob-offset"
                   _knob_group.center = _knob_circle.position;
+                  refresh_conic();
                   _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
                   _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
                   _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
@@ -506,6 +549,7 @@ function knob_factory() {
                   );
                   // "knob-offset"
                   _knob_group.center = _knob_circle.position;
+                  refresh_conic();
                   _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
                   _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
                   _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
@@ -536,6 +580,7 @@ function knob_factory() {
       }
      
       _knob_group.addChild(_knob_frame);
+      _knob_group.addChild(build_conic(_knob_group.center.x, _knob_group.center.y, _knob_group.radius, _knob_group.theta));
       _knob_group.addChild(_knob_circle);
       _knob_group.addChild(_knob_offset);
 

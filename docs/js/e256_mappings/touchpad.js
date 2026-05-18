@@ -28,6 +28,7 @@ function touchpad_factory() {
       "from": null,
       "to": null,
       "press": null,
+      "input_chan": null,
       "msg": null
     },
 
@@ -42,6 +43,7 @@ function touchpad_factory() {
         mouseEvent.point.x + (DEFAULT_PAD_WIDTH / 2),
         mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2)
       );
+      this.data.input_chan = 1;
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_PAD_TOUCHS; _touch++) {
         let touch_msg = {};
@@ -63,18 +65,20 @@ function touchpad_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.press = params.press;
+      this.data.input_chan = params.input_chan || 1;
       this.data.msg = params.msg;
     },
 
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["pad-group"].data.touchs;
-      
+
       let previous_mode_z = this.data.press;
       this.data.press = this.children["pad-group"].data.press;
 
       this.data.from = this.children["pad-group"].data.from;
       this.data.to = this.children["pad-group"].data.to;
+      this.data.input_chan = this.children["pad-group"].data.input_chan;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
@@ -219,7 +223,12 @@ function touchpad_factory() {
 
       _touch_group.addChild(_touch_circle);
 
-      let _touch_txt = make_touch_txt(_touch_group.pos, "T: " + _touch_id);
+      let _touch_txt = make_touch_txt(
+        _touch_group.pos,
+        String(_touch_id + 1),
+        { fontSize: FONT_SIZE * 2, fontWeight: "bold", justification: "center", fillColor: "white" }
+      );
+      _touch_txt.position = _touch_group.pos;
 
       _touch_group.addChild(_touch_txt);
 
@@ -237,7 +246,8 @@ function touchpad_factory() {
           "touchs": this.data.touchs,
           "from": this.data.from,
           "to": this.data.to,
-          "press": this.data.press
+          "press": this.data.press,
+          "input_chan": this.data.input_chan
         }
       });
 
