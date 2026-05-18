@@ -93,9 +93,9 @@ Shortcuts are ignored when an input field is focused.
 5. Add controls from the toolbar (Touchpad, Slider, Knob, Switch, Grid, Path, Polygon).
 6. For each control, set the MIDI message type, channel, note/CC, min/max values, and pressure mode in the right panel.
 7. Click **UPLOAD CONFIG** (or press `u`) to send the mapping to the device.
-   The upload follows a four-step handshake over USB MIDI:
-   - **ALLOCATE** — firmware allocates a buffer sized to the JSON payload.
-   - **UPLOAD** — app sends the JSON as chunked SysEx; firmware stores it in RAM.
+   All communication uses USB MIDI SysEx (`[F0, 0x7D, ...]`). The upload handshake:
+   - **ALLOCATE** — app tells the firmware the JSON size; firmware allocates a RAM buffer.
+   - **UPLOAD** — app sends the full JSON in one SysEx packet; firmware stores it in RAM.
    - **APPLY** — firmware parses and applies the new mapping immediately (`mappings_apply_config()`).
    - Back in **EDIT** mode — the device is already running the new mapping.
 8. Click **SAVE CONFIG** (or press `s`) to write it to the e256's flash memory permanently.
