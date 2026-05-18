@@ -125,7 +125,7 @@ function knob_factory() {
       }
       this.center = this.children["knob-group"].center;
       this.radius = this.children["knob-group"].radius;
-      this.theta = this.children["knob-group"].theta;
+      this.theta = deg_to_rad(this.children["knob-group"].data.offset);
     },
 
     new_touch: function (_knob, _touch_id) {
