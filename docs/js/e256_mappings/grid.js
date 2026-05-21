@@ -413,6 +413,33 @@ function grid_factory() {
           // N/A
           break;
       }
+    },
+
+    midi_play_update: function (msg) {
+      const keys_group = this.children["keys-group"];
+      if (!keys_group) return;
+      const status = midi_msg_status_unpack(msg.status);
+      let updated = false;
+
+      for (const key_group of keys_group.children) {
+        const press_midi = key_group.msg?.press?.midi;
+        if (!press_midi) continue;
+        const ps = midi_msg_status_unpack(press_midi.status);
+        if (ps.channel !== status.channel) continue;
+
+        if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
+          if (ps.type !== MIDI_TYPE.NOTE_ON || press_midi.data1 !== msg.data1) continue;
+          const active = status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0;
+          key_group.children["key-frame"].fillColor = active ? "red" : "pink";
+          updated = true;
+        } else if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
+          if (ps.type !== MIDI_TYPE.CONTROL_CHANGE || press_midi.data1 !== msg.data1) continue;
+          const t = msg.data2 / 127;
+          key_group.children["key-frame"].fillColor = new paper.Color(1, 1 - t, 1 - t);
+          updated = true;
+        }
+      }
+      if (updated) paper.view.update();
     }
 
   });

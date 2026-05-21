@@ -297,12 +297,47 @@ function polygon_factory() {
 
       _polygon_curve.onMouseDown = function (mouseEvent) {
         if (e256_current_mode === MODE.EDIT) {
-          current_part = this;
-          if (current_part.type === "stroke") {
-            // Click on an edge: insert a new vertex at that point.
-            let location = current_part.location;
-            _polygon_curve.insert(location.index + 1, mouseEvent.point);
+          // current_part is the HitResult set by paper_tool.onMouseDown before item handlers fire.
+          // Read it before overwriting so we can detect a stroke click.
+          if (current_part && current_part.type === "stroke" && current_part.item === this) {
+            const ins = current_part.location.index + 1;
+            const new_pt = mouseEvent.point;
+
+            _polygon_curve.insert(ins, new_pt);
+            _polygon_group.data.segments.splice(ins, 0, [new_pt.x, new_pt.y]);
+            _polygon.data.segments.splice(ins, 0, [new_pt.x, new_pt.y]);
+
+            // N = vertex count before insertion
+            const N = _polygon_group.data.segments.length - 1;
+
+            for (let touch of _touchs_group.children) {
+              const touch_circle = touch.children["touch-circle"];
+              const from_pt = touch_circle ? touch_circle.position.clone() : new_pt.clone();
+              const _spokes_group = touch.children["spokes-group"];
+
+              let spoke = new paper.Path.Line({ "from": from_pt, "to": new_pt.clone() });
+              spoke.style = { "strokeWidth": 1, "strokeColor": "#aaa" };
+              spoke.locked = true;
+              _spokes_group.insertChild(ins, spoke);
+
+              // Shift existing axes source_{ins}..source_{N-1} → source_{ins+1}..source_N
+              for (let i = N - 1; i >= ins; i--) {
+                touch.msg["source_" + (i + 1)] = touch.msg["source_" + i];
+              }
+              const new_msg = midi_msg_builder(DEFAULT_POLYGON_MODE_DIST);
+              new_msg.enabled = true;
+              touch.msg["source_" + ins] = new_msg;
+              touch.prev_dists.splice(ins, 0, 0);
+            }
+
+            remove_item_menu_params(_polygon);
+            create_item_menu_params(_polygon);
+            update_item_main_params(_polygon);
+            update_item_touchs_menu_params(_polygon);
+            item_menu_params(_polygon, "show");
+            if (current_touch && current_touch.id !== null) item_menu_params(current_touch, "show");
           }
+          current_part = this;
         }
       }
 

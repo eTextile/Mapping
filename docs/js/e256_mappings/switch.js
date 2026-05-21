@@ -20,6 +20,9 @@ function switch_factory() {
   let switch_radius_size_width = null;
   let switch_radius_size_height = null;
 
+  let _tap_times = [];
+  let _clock_timer_id = null;
+
   var _switch = new paper.Group({
     "name": "switch",
     "data": {
@@ -145,7 +148,22 @@ function switch_factory() {
             break;
           case MODE.THROUGH:
             this.style.fillColor = "red";
-            if (_switch.data.press !== 0) touch_press_down(_switch, _touch_group);
+            if (_switch.data.tap_tempo) {
+              const now = performance.now();
+              _tap_times.push(now);
+              if (_tap_times.length > 4) _tap_times.shift();
+              if (_tap_times.length >= 2) {
+                let total = 0;
+                for (let i = 1; i < _tap_times.length; i++) total += _tap_times[i] - _tap_times[i - 1];
+                const beat_ms = total / (_tap_times.length - 1);
+                if (_clock_timer_id) clearInterval(_clock_timer_id);
+                _clock_timer_id = setInterval(() => {
+                  if (midi_device_connected && midi_output) midi_output.send([0xF8]);
+                }, beat_ms / 24);
+              }
+            } else {
+              touch_press_down(_switch, _touch_group);
+            }
             break;
           case MODE.PLAY:
             // N/A
