@@ -68,7 +68,7 @@ function touch_press_down(mapping, touch_group) {
       touch_group.msg.press.midi.data2 = get_random_int(64, 127);
       send_midi_msg(touch_group.msg.press.midi);
       break;
-    case 0xFE: {
+    case MIDI_TYPE.CHORD: {
       const intervals = CHORD_INTERVALS[touch_group.msg.press.chord] || CHORD_INTERVALS[1];
       const note_on_status = ((mapping.data.input_chan - 1) & 0x0F) | MIDI_TYPE.NOTE_ON;
       for (const interval of intervals) {
@@ -94,7 +94,7 @@ function touch_press_up(mapping, touch_group) {
       touch_group.msg.press.midi.data2 = 0;
       send_midi_msg(touch_group.msg.press.midi);
       break;
-    case 0xFE: {
+    case MIDI_TYPE.CHORD: {
       const intervals = CHORD_INTERVALS[touch_group.msg.press.chord] || CHORD_INTERVALS[1];
       const note_on_status = ((mapping.data.input_chan - 1) & 0x0F) | MIDI_TYPE.NOTE_ON;
       for (const interval of intervals) {

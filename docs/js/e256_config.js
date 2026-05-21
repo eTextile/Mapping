@@ -46,6 +46,7 @@ const MIDI_TYPE = {
   PROGRAM_CHANGE: 0xC0,
   AFTERTOUCH_CHANNEL: 0xD0,
   PITCH_BEND: 0xE0,
+  CHORD: 0xFE,
 };
 
 const MIDI_BY_NAME = Object.fromEntries(
