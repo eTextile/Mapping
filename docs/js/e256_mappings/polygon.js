@@ -211,6 +211,8 @@ function polygon_factory() {
           const _polygon_curve = _polygon.children["polygon"];
           if (_polygon_curve && _polygon_curve.contains(mouseEvent.point)) {
             _touch_circle.position = mouseEvent.point;
+            const _touch_label = _touch_group.children["touch-txt"];
+            if (_touch_label) _touch_label.position = mouseEvent.point;
             // Bounding-box diagonal as 100% distance reference (matches firmware max_dist).
             const bounds = _polygon_curve.bounds;
             const max_dist = Math.sqrt(bounds.width * bounds.width + bounds.height * bounds.height);
