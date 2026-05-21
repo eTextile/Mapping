@@ -266,11 +266,19 @@ function create_item_touchs_menu_params(item) {
       let chord_atr_tr = document.createElement("tr");
       let chord_val_tr = document.createElement("tr");
 
+      let empty_th = document.createElement("th");
+      chord_atr_tr.appendChild(empty_th);
+
       let chord_atr = document.createElement("th");
       chord_atr.className = "align-middle text-center";
       chord_atr.setAttribute("colspan", "2");
       chord_atr.textContent = "chord";
       chord_atr_tr.appendChild(chord_atr);
+
+      let press_lbl = document.createElement("th");
+      press_lbl.className = "align-middle text-center";
+      press_lbl.textContent = "press";
+      chord_val_tr.appendChild(press_lbl);
 
       let chord_td = document.createElement("td");
       chord_td.setAttribute("colspan", "2");
@@ -348,15 +356,15 @@ function create_item_touchs_menu_params(item) {
         case "midi":
           for (const midi_byte in msg_obj[param]) {
 
+            // velo (data2) is set dynamically by firmware — skip from UI
+            if (midi_byte === "data2") continue;
+
             switch (midi_byte) {
               case "status":
                 param_arg = "chan";
                 break;
               case "data1":
                 param_arg = DATA1[status.type];
-                break;
-              case "data2":
-                param_arg = DATA2[status.type];
                 break;
             }
             if (param_arg) {
@@ -385,9 +393,8 @@ function create_item_touchs_menu_params(item) {
               param_val.addEventListener("keydown", function (event) {
                 if (event.key !== "Enter" || event.target.type !== "number") return;
                 if (midi_byte === "status") {
-                  if (event.target.value > 0 && event.target.value <= 16) {
+                  if (event.target.value > 0 && event.target.value <= 16)
                     msg_obj[param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
-                  }
                 } else if (event.target.value > -1 && event.target.value < 128) {
                   msg_obj[param][midi_byte] = Number(event.target.value);
                 }
@@ -395,9 +402,8 @@ function create_item_touchs_menu_params(item) {
               param_val.addEventListener("change", function (event) {
                 if (event.target.type !== "number") return;
                 if (midi_byte === "status") {
-                  if (event.target.value > 0 && event.target.value <= 16) {
+                  if (event.target.value > 0 && event.target.value <= 16)
                     msg_obj[param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
-                  }
                 } else if (event.target.value > -1 && event.target.value < 128) {
                   msg_obj[param][midi_byte] = Number(event.target.value);
                 }
@@ -406,15 +412,6 @@ function create_item_touchs_menu_params(item) {
               param_td.appendChild(param_val);
               row_params_atr_tr.appendChild(param_atr);
               row_params_val_tr.appendChild(param_td);
-            } else if (midi_byte === "data2") {
-              // data2 unused for this MIDI type (e.g. ControlChange): add invisible placeholder
-              // so shorter rows align with NoteOn rows that have a velo/data2 column.
-              let empty_th = document.createElement("th");
-              empty_th.style.cssText = "border: none; background: transparent;";
-              let empty_td = document.createElement("td");
-              empty_td.style.cssText = "border: none; background: transparent;";
-              row_params_atr_tr.appendChild(empty_th);
-              row_params_val_tr.appendChild(empty_td);
             }
           }
           break;
