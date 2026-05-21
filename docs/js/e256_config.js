@@ -174,6 +174,18 @@ const CHORD_NAMES = {
   9: "Sus4"
 };
 
+const CHORD_INTERVALS = {
+  1: [0, 4, 7],       // Major
+  2: [0, 3, 7],       // Minor
+  3: [0, 3, 6],       // Diminished
+  4: [0, 4, 8],       // Augmented
+  5: [0, 4, 7, 11],   // Maj7
+  6: [0, 3, 7, 10],   // Min7
+  7: [0, 4, 7, 10],   // Dom7
+  8: [0, 2, 7],       // Sus2
+  9: [0, 5, 7]        // Sus4
+};
+
 const NOTE_CLASSES = {
   0:  "C",
   1:  "C#",
