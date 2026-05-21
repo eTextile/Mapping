@@ -253,7 +253,8 @@ function create_item_touchs_menu_params(item) {
   let row_params_body = document.createElement("tbody");
 
   for (const msg_type in item.msg) {
-    if (msg_type === "pos" && item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL) continue;
+    if (msg_type === "pos"   && item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL) continue;
+    if (msg_type === "press" && item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL) continue;
 
     const msg_obj = item.msg[msg_type];
 
