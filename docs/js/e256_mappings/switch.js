@@ -26,7 +26,6 @@ function switch_factory() {
       "from": null,
       "to": null,
       "touchs": null,
-      "chord": null,
       "press": null,
       "tap_tempo": false,
       "input_chan": null,
@@ -45,7 +44,6 @@ function switch_factory() {
       );
       
       this.data.touchs = DEFAULT_SWITCH_TOUCHS;
-      this.data.chord = DEFAULT_SWITCH_CHORD;
       this.data.press = DEFAULT_SWITCH_MODE_Z;
       this.data.tap_tempo = false;
       this.data.input_chan = 1;
@@ -68,9 +66,15 @@ function switch_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.touchs = params.touchs;
-      this.data.chord = params.chord;
       this.data.tap_tempo = params.tap_tempo || false;
-      this.data.press = this.data.tap_tempo ? 0 : params.press;
+      if (this.data.tap_tempo) {
+        this.data.press = 0;
+      } else {
+        const p = params.msg && params.msg[0] && params.msg[0].press;
+        this.data.press = p?.midi
+          ? midi_msg_status_unpack(p.midi.status).type
+          : (p?.chord !== undefined ? 0xFE : 0xFF);
+      }
       this.data.input_chan = params.input_chan || 1;
       this.data.msg = params.msg;
     },
@@ -83,7 +87,6 @@ function switch_factory() {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["switch-group"].data.touchs;
 
-      this.data.chord = this.children["switch-group"].data.chord; // TESTING!
       this.data.input_chan = this.children["switch-group"].data.input_chan;
 
       let previous_press = this.data.press;
@@ -186,7 +189,6 @@ function switch_factory() {
           "from": this.data.from,
           "to": this.data.to,
           "touchs": this.data.touchs,
-          "chord": this.data.chord,
           "press": this.data.press,
           "input_chan": this.data.input_chan
         }

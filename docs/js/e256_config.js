@@ -131,9 +131,11 @@ const DATA2 = {
 };
 
 const PRESSURE = {
+  0xFF: "None",           // NO PRESS MIDI OUTPUT
   0x90: "NoteOn",         // TRIGGER NOTE WITH VELOCITY
   0xB0: "ControlChange",  // PRESSURE ONLY
   0xA0: "AfterTouchPoly", // TRIGGER NOTE AND MODULATE
+  0xFE: "Chord",          // SEND A CHORD (switch only)
   0: "TapTempo"           // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
 }
 
@@ -158,6 +160,33 @@ const POPULATE = {
   3: "AS_PLAYED",
   4: "OCTAVE",
   5: "PING_PONG"
+};
+
+const CHORD_NAMES = {
+  1: "Major",
+  2: "Minor",
+  3: "Diminished",
+  4: "Augmented",
+  5: "Maj7",
+  6: "Min7",
+  7: "Dom7",
+  8: "Sus2",
+  9: "Sus4"
+};
+
+const NOTE_CLASSES = {
+  0:  "C",
+  1:  "C#",
+  2:  "D",
+  3:  "D#",
+  4:  "E",
+  5:  "F",
+  6:  "F#",
+  7:  "G",
+  8:  "G#",
+  9:  "A",
+  10: "A#",
+  11: "B"
 };
 
 const POPULATE_CODES = Object.fromEntries(

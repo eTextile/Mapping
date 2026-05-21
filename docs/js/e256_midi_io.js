@@ -162,6 +162,10 @@ function midi_msg_builder(midi_msg_type) {
         MIDI_DEFAULT.MAX_VAL
       );
       break;
+    case 0xFE: // chord sentinel — stores chord type + root note class, no MIDI bytes
+      msg.chord = 1;  // default: Major
+      msg.note = 0;   // default: C
+      break;
     case 0: // tap_tempo sentinel — dummy NoteOn so JSON stays valid; firmware ignores it when tap_tempo: true
       msg.midi = new note_on(MIDI_DEFAULT.OUTPUT_CHANNEL, 0, 0);
       msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);

@@ -84,8 +84,10 @@ function knob_factory() {
       this.data.offset = params.offset;
       this.data.input_chan = params.input_chan || 1;
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.press = status.type;
+      const _kp = params.msg[0].press;
+      this.data.press = _kp?.midi
+        ? midi_msg_status_unpack(_kp.midi.status).type
+        : (_kp?.chord !== undefined ? 0xFE : 0xFF);
 
       this.radius = (this.data.to.x - this.data.from.x) / 2;
       this.center = new paper.Point(this.data.from.x + this.radius, this.data.from.y + this.radius);

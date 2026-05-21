@@ -75,8 +75,10 @@ function slider_factory() {
       this.data.input_chan = params.input_chan || DEFAULT_SLIDER_INPUT_CHAN;
       this.data.steps = params.steps || DEFAULT_SLIDER_STEPS;
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.press = status.type;
+      const _sp = params.msg[0].press;
+      this.data.press = _sp?.midi
+        ? midi_msg_status_unpack(_sp.midi.status).type
+        : (_sp?.chord !== undefined ? 0xFE : 0xFF);
       this.data.move = params.move || DEFAULT_SLIDER_MODE_MOVE;
       this.data.populate = params.populate || DEFAULT_SLIDER_POPULATE;
       this.data.from = new paper.Point(
@@ -203,7 +205,7 @@ function slider_factory() {
             if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
               let step_idx = get_step_idx(_touch_circle.position);
               _touch_group.current_step = step_idx;
-              let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
+              let chan = ((_touch_group.msg.press?.midi?.status ?? 0) & 0x0F) + 1;
               let note = (_slider.parent.data.step_note && _slider.parent.data.step_note[step_idx] !== undefined)
                 ? _slider.parent.data.step_note[step_idx] : 60 + step_idx;
               send_midi_msg(note_on(chan, note, 127));
@@ -231,7 +233,7 @@ function slider_factory() {
           case MODE.THROUGH:
             if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
               if (_touch_group.current_step >= 0) {
-                let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
+                let chan = ((_touch_group.msg.press?.midi?.status ?? 0) & 0x0F) + 1;
                 let note = (_slider.parent.data.step_note && _slider.parent.data.step_note[_touch_group.current_step] !== undefined)
                   ? _slider.parent.data.step_note[_touch_group.current_step] : 60 + _touch_group.current_step;
                 send_midi_msg(note_off(chan, note, 0));
@@ -290,7 +292,7 @@ function slider_factory() {
             if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
               let new_step = get_step_idx(mouseEvent.point);
               if (new_step !== _touch_group.current_step) {
-                let chan = (_touch_group.msg.press.midi.status & 0x0F) + 1;
+                let chan = ((_touch_group.msg.press?.midi?.status ?? 0) & 0x0F) + 1;
                 let step_notes = _slider.parent.data.step_note;
                 let _sg = _slider.children["steps-group"];
                 if (_touch_group.current_step >= 0) {

@@ -127,10 +127,15 @@ function create_item_main_params(item) {
       const pressure_source = is_switch
         ? PRESSURE
         : Object.fromEntries(Object.entries(PRESSURE).filter(([k]) => k !== "0"));
+      // Force None (key "255") first — integer keys are sorted numerically by JS engines
+      let press_entries = Object.entries(pressure_source);
+      const none_idx = press_entries.findIndex(([k]) => k === "255");
+      if (none_idx > 0) press_entries.unshift(press_entries.splice(none_idx, 1)[0]);
       const { span, select } = create_select_field({
         param: "press",
         source: pressure_source,
-        item
+        item,
+        entries: press_entries
       });
       select.addEventListener("change", () => {
         re_create_item(item.parent);
@@ -179,7 +184,7 @@ function create_item_main_params(item) {
   return part_params;
 };
 
-function create_select_field({ param, source, item }) {
+function create_select_field({ param, source, item, entries: custom_entries }) {
   const span = document.createElement("span");
   span.className = "input-group-text";
   span.textContent = param;
@@ -187,7 +192,7 @@ function create_select_field({ param, source, item }) {
   const select = document.createElement("select");
   select.className = "form-select form-select-sm";
 
-  const entries = Object.entries(source);
+  const entries = custom_entries || Object.entries(source);
 
   entries.forEach(([key, label]) => {
     const opt = document.createElement("option");
@@ -251,23 +256,82 @@ function create_item_touchs_menu_params(item) {
     if (msg_type === "pos" && item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL) continue;
 
     const msg_obj = item.msg[msg_type];
+
+    // Skip press row when press mode is None (no midi, no chord)
+    if (msg_type === "press" && !msg_obj.midi && msg_obj.chord === undefined) continue;
+
+    // Chord press: replace MIDI byte inputs with chord-type + root-note selects
+    if (msg_type === "press" && msg_obj.chord !== undefined) {
+      // chord + note: each fills exactly 2 of the 4 table columns (no label column)
+      let chord_atr_tr = document.createElement("tr");
+      let chord_val_tr = document.createElement("tr");
+
+      let chord_atr = document.createElement("th");
+      chord_atr.className = "align-middle text-center";
+      chord_atr.setAttribute("colspan", "2");
+      chord_atr.textContent = "chord";
+      chord_atr_tr.appendChild(chord_atr);
+
+      let chord_td = document.createElement("td");
+      chord_td.setAttribute("colspan", "2");
+      let chord_select = document.createElement("select");
+      chord_select.className = "form-select form-select-sm";
+      Object.entries(CHORD_NAMES).forEach(([k, v]) => {
+        let opt = document.createElement("option");
+        opt.value = k; opt.textContent = v;
+        if (String(msg_obj.chord) === k) opt.selected = true;
+        chord_select.appendChild(opt);
+      });
+      chord_select.addEventListener("change", e => { msg_obj.chord = Number(e.target.value); });
+      chord_td.appendChild(chord_select);
+      chord_val_tr.appendChild(chord_td);
+
+      let note_atr = document.createElement("th");
+      note_atr.className = "align-middle text-center";
+      note_atr.setAttribute("colspan", "2");
+      note_atr.textContent = "note";
+      chord_atr_tr.appendChild(note_atr);
+
+      let note_td = document.createElement("td");
+      note_td.setAttribute("colspan", "2");
+      let note_select = document.createElement("select");
+      note_select.className = "form-select form-select-sm";
+      Object.entries(NOTE_CLASSES).forEach(([k, v]) => {
+        let opt = document.createElement("option");
+        opt.value = k; opt.textContent = v;
+        if (String(msg_obj.note) === k) opt.selected = true;
+        note_select.appendChild(opt);
+      });
+      note_select.addEventListener("change", e => { msg_obj.note = Number(e.target.value); });
+      note_td.appendChild(note_select);
+      chord_val_tr.appendChild(note_td);
+
+      row_params_body.appendChild(chord_atr_tr);
+      row_params_body.appendChild(chord_val_tr);
+      continue;
+    }
+
     const row_inputs = []; // collect all inputs for this msg_type to toggle them
 
     let row_params_atr_tr = document.createElement("tr");
     let row_params_val_tr = document.createElement("tr");
 
-    // Toggle switch in the header cell
     let first_param_atr = document.createElement("th");
     first_param_atr.className = "align-middle text-center";
-    let toggle_wrap = document.createElement("div");
-    toggle_wrap.className = "form-check form-switch d-flex justify-content-center mb-0";
-    let toggle = document.createElement("input");
-    toggle.type = "checkbox";
-    toggle.className = "form-check-input";
-    toggle.setAttribute("role", "switch");
-    toggle.checked = msg_obj.enabled !== false; // default true when undefined
-    toggle_wrap.appendChild(toggle);
-    first_param_atr.appendChild(toggle_wrap);
+
+    // Toggle switch — not shown for press (use None in the press select instead)
+    let toggle = null;
+    if (msg_type !== "press") {
+      let toggle_wrap = document.createElement("div");
+      toggle_wrap.className = "form-check form-switch d-flex justify-content-center mb-0";
+      toggle = document.createElement("input");
+      toggle.type = "checkbox";
+      toggle.className = "form-check-input";
+      toggle.setAttribute("role", "switch");
+      toggle.checked = msg_obj.enabled !== false;
+      toggle_wrap.appendChild(toggle);
+      first_param_atr.appendChild(toggle_wrap);
+    }
     row_params_atr_tr.appendChild(first_param_atr);
 
     let status = midi_msg_status_unpack(msg_obj["midi"]["status"]);
@@ -395,14 +459,16 @@ function create_item_touchs_menu_params(item) {
       }
     }
 
-    // Apply initial disabled state and wire up toggle
-    if (msg_obj.enabled === false) {
-      row_inputs.forEach(inp => { inp.disabled = true; });
+    // Apply initial disabled state and wire up toggle (press has no toggle)
+    if (toggle) {
+      if (msg_obj.enabled === false) {
+        row_inputs.forEach(inp => { inp.disabled = true; });
+      }
+      toggle.addEventListener("change", function () {
+        msg_obj.enabled = this.checked;
+        row_inputs.forEach(inp => { inp.disabled = !this.checked; });
+      });
     }
-    toggle.addEventListener("change", function () {
-      msg_obj.enabled = this.checked;
-      row_inputs.forEach(inp => { inp.disabled = !this.checked; });
-    });
 
     row_params_body.appendChild(row_params_atr_tr);
     row_params_body.appendChild(row_params_val_tr);
