@@ -4,6 +4,55 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
+// Rebuild a pie-sector pressure arc on an existing Paper.js Path.
+// angle in radians, 0 = empty, 2π = full circle, sweeping clockwise from 12 o'clock.
+function _rebuild_pressure_arc(arc, cx, cy, r, angle) {
+  arc.removeSegments();
+  arc.closed = false;
+  if (angle <= 0) return;
+  angle = Math.min(angle, 2 * Math.PI * 0.9999);
+  const start = -Math.PI / 2;
+  arc.add(new paper.Point(cx, cy));
+  arc.add(new paper.Point(cx + Math.cos(start) * r, cy + Math.sin(start) * r));
+  const N = Math.ceil(angle / Math.PI);
+  const seg = angle / N;
+  let a = start;
+  for (let i = 0; i < N; i++) {
+    const a_mid = a + seg * 0.5;
+    const a_end = a + seg;
+    arc.arcTo(
+      new paper.Point(cx + Math.cos(a_mid) * r, cy + Math.sin(a_mid) * r),
+      new paper.Point(cx + Math.cos(a_end) * r, cy + Math.sin(a_end) * r)
+    );
+    a = a_end;
+  }
+  arc.closed = true;
+}
+
+// Create an empty pressure arc path (to be inserted before the touch-circle).
+function make_touch_arc(center) {
+  let arc = new paper.Path({
+    "name": "touch-arc",
+    "closed": false,
+    "locked": true
+  });
+  arc.style = {
+    "strokeWidth": 0,
+    "strokeColor": null,
+    "fillColor": new paper.Color(1, 1, 1, 0.75)
+  };
+  return arc;
+}
+
+// Update the touch-arc of a touch_group from a normalised value [0–127].
+// Uses the current position of touch-circle as the arc centre.
+function update_touch_arc(touch_group, value, circle_name) {
+  const arc = touch_group.children["touch-arc"];
+  const circle = touch_group.children[circle_name || "touch-circle"];
+  if (!arc || !circle) return;
+  _rebuild_pressure_arc(arc, circle.position.x, circle.position.y, TOUCH_RADIUS, (value / 127) * 2 * Math.PI);
+}
+
 function touch_press_down(mapping, touch_group) {
   switch (mapping.data.press) {
     case MIDI_TYPE.NOTE_ON:

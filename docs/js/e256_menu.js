@@ -122,9 +122,9 @@ $(document).on("keydown", function (event) {
   switch (event.key) {
     case "h":      $("#help-overlay").toggleClass("active"); break;
     case "Escape": $("#help-overlay").removeClass("active"); break;
-    case "p": $("#PLAY").trigger("click");          break;
-    case "e": $("#EDIT").trigger("click");          break;
-    case "t": $("#THROUGH").trigger("click");       break;
+    case "p": $("#EDIT, #THROUGH").removeClass("active"); $("#PLAY").trigger("click");   break;
+    case "e": $("#PLAY, #THROUGH").removeClass("active"); $("#EDIT").trigger("click");   break;
+    case "t": $("#EDIT, #PLAY").removeClass("active");    $("#THROUGH").trigger("click"); break;
     case "m": $("#MATRIX_RAW").trigger("click");    break;
     case "M": $("#MAPPING").trigger("click");       break; // shift + m
     case "c": $("#CALIBRATE").trigger("click");     break;

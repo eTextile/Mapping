@@ -316,6 +316,8 @@ function slider_factory() {
         }
       }
       _touch_group.addChild(_touch_circle);
+      let _touch_arc = make_touch_arc(_touch_group.pos);
+      _touch_group.addChild(_touch_arc);
 
       let _touch_txt = make_touch_txt(
         _touch_group.pos,
@@ -654,8 +656,8 @@ function slider_factory() {
       if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
         let frame = slider_group.children["slider-frame"];
         for (let touch_group of touchs_group.children) {
-          let pos_midi = touch_group.msg.pos.midi;
-          if (pos_midi.status === msg.status && pos_midi.data1 === msg.data1) {
+          let pos_midi = touch_group.msg.pos ? touch_group.msg.pos.midi : null;
+          if (pos_midi && pos_midi.status === msg.status && pos_midi.data1 === msg.data1) {
             let limit = touch_group.msg.pos.limit;
             if (this.dir === "V_SLIDER") {
               let y = frame.bounds.top + frame.bounds.bottom -
@@ -669,6 +671,15 @@ function slider_factory() {
               touch_group.children["touch-circle"].position.x  = x;
               touch_group.children["touch-txt"].position.x     = x;
             }
+            update_touch_arc(touch_group, touch_group.last_press_value || 0);
+            updated = true;
+            break;
+          }
+          let press_midi = touch_group.msg.press ? touch_group.msg.press.midi : null;
+          if (press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.CONTROL_CHANGE &&
+              press_midi.status === msg.status && press_midi.data1 === msg.data1) {
+            touch_group.last_press_value = msg.data2;
+            update_touch_arc(touch_group, msg.data2);
             updated = true;
             break;
           }
@@ -676,14 +687,29 @@ function slider_factory() {
       }
       else if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
         let steps_group = slider_group.children["steps-group"];
-        if (!steps_group) return;
         for (let touch_group of touchs_group.children) {
           if ((touch_group.msg.press.midi.status & 0x0F) === (msg.status & 0x0F)) {
-            // Reverse-lookup: find which step currently holds this note
-            let step_idx = this.data.step_note.indexOf(msg.data1);
-            if (step_idx < 0 || step_idx >= steps_group.children.length) return;
             let active = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0);
-            steps_group.children[step_idx].children[0].fillColor = active ? "red" : null;
+            if (steps_group) {
+              let step_idx = this.data.step_note.indexOf(msg.data1);
+              if (step_idx >= 0 && step_idx < steps_group.children.length) {
+                steps_group.children[step_idx].children[0].fillColor = active ? "red" : null;
+              }
+            }
+            touch_group.last_press_value = active ? msg.data2 : 0;
+            update_touch_arc(touch_group, touch_group.last_press_value);
+            updated = true;
+            break;
+          }
+        }
+      }
+      else if (status.type === MIDI_TYPE.AFTERTOUCH_POLY) {
+        for (let touch_group of touchs_group.children) {
+          let press_midi = touch_group.msg.press ? touch_group.msg.press.midi : null;
+          if (press_midi && (press_midi.status & 0x0F) === (msg.status & 0x0F) &&
+              press_midi.data1 === msg.data1) {
+            touch_group.last_press_value = msg.data2;
+            update_touch_arc(touch_group, msg.data2);
             updated = true;
             break;
           }

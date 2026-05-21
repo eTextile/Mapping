@@ -249,8 +249,11 @@ function knob_factory() {
       );
       _touch_txt.position = _knob_touch_center;
 
+      let _knob_touch_arc = make_touch_arc(new paper.Point(_touch_group.center.x + _knob_touch_pos.x, _touch_group.center.y + _knob_touch_pos.y));
+
       _touch_group.addChild(_knob_needle);
       _touch_group.addChild(_knob_touch);
+      _touch_group.addChild(_knob_touch_arc);
       _touch_group.addChild(_touch_txt);
 
       return _touch_group;
@@ -586,6 +589,74 @@ function knob_factory() {
 
       this.addChild(_knob_group);
       this.addChild(_touchs_group);
+    },
+
+    midi_play_update: function (msg) {
+      const touchs_group = this.children["touchs-group"];
+      const knob_group = this.children["knob-group"];
+      if (!touchs_group || !knob_group) return;
+      const status = midi_msg_status_unpack(msg.status);
+      let updated = false;
+
+      for (const touch_group of touchs_group.children) {
+        if (!touch_group.msg) continue;
+
+        if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
+          const r = touch_group.msg.radius;
+          if (r) {
+            const rs = midi_msg_status_unpack(r.midi.status);
+            if (rs.channel === status.channel && r.midi.data1 === msg.data1) {
+              touch_group.radius = mapp(msg.data2, r.limit.min, r.limit.max, 0, knob_group.radius);
+              const pos = pol_to_cart(touch_group.radius, touch_group.theta || knob_group.theta);
+              touch_group.children["knob-touch"].position = new paper.Point(knob_group.center.x + pos.x, knob_group.center.y + pos.y);
+              touch_group.children["knob-needle"].segments[1].point = touch_group.children["knob-touch"].position;
+              touch_group.children["touch-txt"].position = touch_group.children["knob-touch"].position;
+              update_touch_arc(touch_group, touch_group.last_press_value || 0, "knob-touch");
+              updated = true;
+              continue;
+            }
+          }
+          const t = touch_group.msg.theta;
+          if (t) {
+            const ts = midi_msg_status_unpack(t.midi.status);
+            if (ts.channel === status.channel && t.midi.data1 === msg.data1) {
+              touch_group.theta = deg_to_rad(mapp(msg.data2, t.limit.min, t.limit.max, 0, 360));
+              const pos = pol_to_cart(touch_group.radius || 0, touch_group.theta);
+              touch_group.children["knob-touch"].position = new paper.Point(knob_group.center.x + pos.x, knob_group.center.y + pos.y);
+              touch_group.children["knob-needle"].segments[1].point = touch_group.children["knob-touch"].position;
+              touch_group.children["touch-txt"].position = touch_group.children["knob-touch"].position;
+              update_touch_arc(touch_group, touch_group.last_press_value || 0, "knob-touch");
+              updated = true;
+              continue;
+            }
+          }
+        }
+
+        const press_midi = touch_group.msg.press ? touch_group.msg.press.midi : null;
+        if (!press_midi) continue;
+        const ps = midi_msg_status_unpack(press_midi.status);
+        if (ps.channel !== status.channel) continue;
+
+        if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
+          if (ps.type !== MIDI_TYPE.NOTE_ON || press_midi.data1 !== msg.data1) continue;
+          const value = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) ? msg.data2 : 0;
+          touch_group.last_press_value = value;
+          update_touch_arc(touch_group, value, "knob-touch");
+          updated = true;
+        } else if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
+          if (ps.type !== MIDI_TYPE.CONTROL_CHANGE || press_midi.data1 !== msg.data1) continue;
+          touch_group.last_press_value = msg.data2;
+          update_touch_arc(touch_group, msg.data2, "knob-touch");
+          updated = true;
+        } else if (status.type === MIDI_TYPE.AFTERTOUCH_POLY) {
+          if (press_midi.data1 !== msg.data1) continue;
+          touch_group.last_press_value = msg.data2;
+          update_touch_arc(touch_group, msg.data2, "knob-touch");
+          updated = true;
+        }
+      }
+
+      if (updated) paper.view.update();
     }
 
   });

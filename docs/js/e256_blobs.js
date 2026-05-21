@@ -46,16 +46,31 @@ function blob_factory() {
         "name": "blob-group"
       });
 
-      let _blob_centroid = new paper.Shape.Ellipse({
-        "name": "blob-centroid",
-        "center": null,
-        "radius": null,
+      // Pressure arc — drawn first so the circle outline sits on top.
+      let _blob_arc = new paper.Path({
+        "name": "blob-arc",
+        "closed": false,
         "locked": true
       });
+      _blob_arc.style = {
+        "strokeWidth": 0,
+        "strokeColor": null,
+        "fillColor": null
+      };
+      _blob_group.addChild(_blob_arc);
 
+      // Fixed-size circle outline — radius never changes.
+      let _blob_centroid = new paper.Path.Circle({
+        "name": "blob-centroid",
+        "center": new paper.Point(0, 0),
+        "radius": TOUCH_RADIUS,
+        "locked": true
+      });
       _blob_centroid.style = {
-        "fillColor": null,
-      }
+        "strokeWidth": 2,
+        "strokeColor": null,
+        "fillColor": null
+      };
       _blob_group.addChild(_blob_centroid);
 
       let _blob_txt = new paper.PointText({
@@ -64,7 +79,6 @@ function blob_factory() {
         "content": null,
         "locked": true
       });
-
       _blob_txt.style = {
         "fillColor": "black",
         "fontSize": FONT_SIZE / 1.5
@@ -81,7 +95,6 @@ function blob_factory() {
         "center": new paper.Point(0, 0),
         "size": new paper.Size(1, 1)
       });
-
       _blob_rect.style = {
         "strokeWidth": 1,
         "strokeColor": null,
@@ -93,15 +106,17 @@ function blob_factory() {
     },
 
     present: function () {
-      this.children["blob-group"].children["blob-centroid"].style.fillColor = 'green';
-      this.children["blob-group"].children["blob-box"].style.strokeColor = 'green';
+      this.children["blob-group"].children["blob-centroid"].style.strokeColor = "green";
+      this.children["blob-group"].children["blob-arc"].style.fillColor = new paper.Color(0, 0.8, 0, 0.65);
+      this.children["blob-group"].children["blob-box"].style.strokeColor = "green";
     },
 
     missing: function () {
-      this.children["blob-group"].children["blob-centroid"].style.fillColor = 'orange';
-      this.children["blob-group"].children["blob-box"].style.strokeColor = 'orange';
+      this.children["blob-group"].children["blob-centroid"].style.strokeColor = "orange";
+      this.children["blob-group"].children["blob-arc"].style.fillColor = new paper.Color(1, 0.55, 0, 0.65);
+      this.children["blob-group"].children["blob-box"].style.strokeColor = "orange";
     },
-    
+
     released: function () {
       this.remove();
     },
@@ -113,10 +128,15 @@ function blob_factory() {
         mapp((sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_WHOLE_PART] + (sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_FRACTIONAL_PART] / 100)), 0, NEW_ROWS, 0, canvas_height)
       );
 
+      // Fixed circle, just move it.
       this.children["blob-group"].children["blob-centroid"].position = centroid;
-      this.children["blob-group"].children["blob-centroid"].radius = sysExMsg[BLOB_PARAM_CODE.DEPTH];
 
-      let blob_width = Math.round(mapp(sysExMsg[BLOB_PARAM_CODE.WIDTH], 0, NEW_COLS, 0, canvas_width));
+      // Pressure arc: 0–127 → 0°–360°.
+      const depth = sysExMsg[BLOB_PARAM_CODE.DEPTH];
+      const arc = this.children["blob-group"].children["blob-arc"];
+      _rebuild_pressure_arc(arc, centroid.x, centroid.y, TOUCH_RADIUS, (depth / 127) * 2 * Math.PI);
+
+      let blob_width  = Math.round(mapp(sysExMsg[BLOB_PARAM_CODE.WIDTH],  0, NEW_COLS, 0, canvas_width));
       let blob_height = Math.round(mapp(sysExMsg[BLOB_PARAM_CODE.HEIGHT], 0, NEW_ROWS, 0, canvas_height));
 
       this.children["blob-group"].children["blob-box"].position = centroid;
@@ -127,13 +147,14 @@ function blob_factory() {
         "UID: " + sysExMsg[BLOB_PARAM_CODE.UID] +
         "\nX: " + centroid.x.toFixed(2) +
         "\nY: " + centroid.y.toFixed(2) +
-        "\nZ: " + sysExMsg[BLOB_PARAM_CODE.DEPTH] +
+        "\nZ: " + depth +
         "\nW: " + blob_width +
         "\nH: " + blob_height +
         "\nVxy: " + sysExMsg[BLOB_PARAM_CODE.VELOCITY_XY] +
         "\nVz: " + sysExMsg[BLOB_PARAM_CODE.VELOCITY_Z] +
         "\nAz: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_Z] +
         "\nAd: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_DONE];
+
       const VXY_ALPHA = 0.2;
       this.smooth_vxy = this.smooth_vxy !== undefined
         ? this.smooth_vxy + VXY_ALPHA * (sysExMsg[BLOB_PARAM_CODE.VELOCITY_XY] - this.smooth_vxy)
@@ -162,7 +183,7 @@ function blobs_factory() {
 
   var _blobs_array = new paper.Group({
     "blobs_array": [],
-    
+
     update(sysExMsg) {
 
       let index = this.blobs_array.findIndex((blob) => blob.UID === sysExMsg[BLOB_PARAM_CODE.UID]);
