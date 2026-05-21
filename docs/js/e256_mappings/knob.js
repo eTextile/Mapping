@@ -154,7 +154,7 @@ function knob_factory() {
       _knob_needle.style = {
         "strokeCap": "round",
         "strokeColor": "black",
-        "strokeWidth": 2
+        "strokeWidth": 1
       }
 
       let _knob_touch = new paper.Shape.Circle({
