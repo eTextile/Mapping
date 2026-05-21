@@ -308,7 +308,7 @@ function polygon_factory() {
 
       _polygon_curve.onMouseDrag = function (mouseEvent) {
         if (e256_current_mode === MODE.EDIT) {
-          if (current_part.type === "segment") {
+          if (current_part.type === "segment" && current_part.item === this) {
             const vi = current_part.segment.index;
             current_part.segment.point = mouseEvent.point;
             this.segments[vi].point = mouseEvent.point;
