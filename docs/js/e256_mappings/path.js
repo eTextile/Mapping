@@ -185,19 +185,19 @@ function path_factory() {
       }
 
       _path_curve.onMouseEnter = function () {
-        if (e256_current_mode === EDIT) {
+        if (e256_current_mode === MODE.EDIT) {
           this.selected = true;
         }
       }
 
       _path_curve.onMouseLeave = function () {
-        if (e256_current_mode === EDIT) {
+        if (e256_current_mode === MODE.EDIT) {
             this.selected = false;
         }
       }
 
       _path_curve.onMouseDrag = function (mouseEvent) {
-        if (e256_current_mode === EDIT) {
+        if (e256_current_mode === MODE.EDIT) {
           if (current_part.type === "segment") {
             current_part.segment.point = mouseEvent.point;
             this.segments[current_part.segment.index].point = mouseEvent.point;

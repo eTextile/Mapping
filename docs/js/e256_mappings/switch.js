@@ -302,7 +302,7 @@ function switch_factory() {
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.from.x + half_frame_width;
-                  new_pos.y = _switch_group.data.from.y + half_frame_height;switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  new_pos.y = _switch_group.data.from.y + half_frame_height;
                   switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
                   switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;                  
                   for (const _touch of _touchs_group.children) {

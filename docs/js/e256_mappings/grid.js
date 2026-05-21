@@ -73,7 +73,7 @@ function grid_factory() {
       this.data.rows = params.rows;
       this.data.input_chan = params.input_chan || 1;
       this.data.msg = params.msg;
-      this.data.press = params.press;
+      this.data.press = params.press || DEFAULT_GRID_MODE_PRESS;
     },
 
     save_params: function () {
