@@ -431,23 +431,27 @@ function create_item_touchs_menu_params(item) {
             param_val.setAttribute("aria-describedby", item.id + "_" + msg_type + "_" + limit + "_atr");
             row_inputs.push(param_val);
 
-            param_val.addEventListener("input", function (event) {
-              if (event.target.type !== "number") return;
-              $("#" + event.target.id).css("background-color",
-                (event.target.value > -1 && event.target.value < 128) ? "lightGreen" : "pink");
-            });
-            param_val.addEventListener("keydown", function (event) {
-              if (event.key !== "Enter" || event.target.type !== "number") return;
-              if (event.target.value > -1 && event.target.value < 128) {
-                msg_obj[param][limit] = Number(event.target.value);
-              }
-            });
-            param_val.addEventListener("change", function (event) {
-              if (event.target.type !== "number") return;
-              if (event.target.value > -1 && event.target.value < 128) {
-                msg_obj[param][limit] = Number(event.target.value);
-              }
-            });
+            if (msg_type === "press" && status.type === MIDI_TYPE.NOTE_ON) {
+              param_val.disabled = true;
+            } else {
+              param_val.addEventListener("input", function (event) {
+                if (event.target.type !== "number") return;
+                $("#" + event.target.id).css("background-color",
+                  (event.target.value > -1 && event.target.value < 128) ? "lightGreen" : "pink");
+              });
+              param_val.addEventListener("keydown", function (event) {
+                if (event.key !== "Enter" || event.target.type !== "number") return;
+                if (event.target.value > -1 && event.target.value < 128) {
+                  msg_obj[param][limit] = Number(event.target.value);
+                }
+              });
+              param_val.addEventListener("change", function (event) {
+                if (event.target.type !== "number") return;
+                if (event.target.value > -1 && event.target.value < 128) {
+                  msg_obj[param][limit] = Number(event.target.value);
+                }
+              });
+            }
             let param_td = document.createElement("td");
             param_td.appendChild(param_val);
             row_params_atr_tr.appendChild(param_atr);
