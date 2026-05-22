@@ -152,7 +152,7 @@ function create_item_main_params(item) {
       const is_switch = item.parent && item.parent.name === "switch";
       const pressure_source = is_switch
         ? PRESSURE
-        : Object.fromEntries(Object.entries(PRESSURE).filter(([k]) => k !== "0"));
+        : Object.fromEntries(Object.entries(PRESSURE).filter(([k]) => k !== String(MIDI_TYPE.CLOCK)));
       // Force None (key "255") first — integer keys are sorted numerically by JS engines
       let press_entries = Object.entries(pressure_source);
       const none_idx = press_entries.findIndex(([k]) => k === "255");

@@ -170,7 +170,7 @@ function switch_factory() {
             break;
           case MODE.THROUGH:
             this.style.fillColor = "orange";
-            if (_switch.data.press !== 0) touch_press_up(_switch, _touch_group);
+            if (_switch.data.press !== MIDI_TYPE.CLOCK) touch_press_up(_switch, _touch_group);
             break;
           case MODE.PLAY:
             // N/A

@@ -224,16 +224,22 @@ function clear_all_layers() {
 // Create all controlers from config
 function create_controlers_from_config(configFile) {
   for (const _ctl_type in configFile.mappings) {
-    //console.log("CTL_TYPE: " + _ctl_type);
-    paper.project.layers[_ctl_type].activate();
+    if (DEBUG) console.log("CTL_TYPE: " + _ctl_type);
+    const layer = paper.project.layers[_ctl_type];
+    if (!layer) { console.warn("UNKNOWN_LAYER: " + _ctl_type); continue; }
+    layer.activate();
     for (const _ctl_index in configFile.mappings[_ctl_type]) {
-      current_controleur = controleur_factory(_ctl_type);
-      current_controleur.setup_from_config(configFile.mappings[_ctl_type][_ctl_index]);
-      current_controleur.create();
-      create_item_menu_params(current_controleur);
-      update_item_main_params(current_controleur);
-      update_item_touchs_menu_params(current_controleur);
-      item_menu_params(current_controleur, "hide");
+      try {
+        current_controleur = controleur_factory(_ctl_type);
+        current_controleur.setup_from_config(configFile.mappings[_ctl_type][_ctl_index]);
+        current_controleur.create();
+        create_item_menu_params(current_controleur);
+        update_item_main_params(current_controleur);
+        update_item_touchs_menu_params(current_controleur);
+        item_menu_params(current_controleur, "hide");
+      } catch (e) {
+        console.error("CREATE_CONTROLEUR_ERROR [" + _ctl_type + "][" + _ctl_index + "]:", e);
+      }
     }
   }
   invalidate_midi_play_cache();

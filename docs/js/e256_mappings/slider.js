@@ -18,7 +18,6 @@ function slider_factory() {
   const DEFAULT_SLIDER_POPULATE = POPULATE_CODES.OFF;
   const DEFAULT_SLIDER_STEPS = 20;
 
-
   const DEFAULT_SLIDER_DIR = "V_SLIDER";
 
   let current_frame_width = null;
