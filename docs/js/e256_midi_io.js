@@ -7,7 +7,6 @@
 var midi_input = null;
 var midi_output = null;
 var midi_device_connected = false;
-var config_upload_pending = false;
 var loaded_file = null; // From user desktop
 var fetch_config_file = null; // From e256 flash memory
 
@@ -452,13 +451,10 @@ function handle_sysex_ack(ack) {
       if (DEBUG) console.log("UPLOADING_CONFIG: " + JSON.stringify(e256_config));
       break;
     case MODE_ACK.UPLOAD_DONE:
-      config_upload_pending = true;
       send_sysex_cmd(MODE.APPLY_CONFIG);
       if (DEBUG) console.log("REQUEST: APPLY CONFIG");
       break;
     case MODE_ACK.APPLY_CONFIG:
-      if (!config_upload_pending) break;
-      config_upload_pending = false;
       $("#upload_config").removeClass("active");
       alert_msg("config_apply", "RECEIVED: CONFIG_APPLY", "success");
       alert_msg("config_save", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
