@@ -343,13 +343,13 @@ function slider_factory() {
         "dir": this.dir,
         "data": {
           "touchs": this.data.touchs,
-          "chan": this.data.chan,
           "steps": this.data.steps,
           "press": this.data.press,
           "move": this.data.move,
           "populate": this.data.populate,
           "from": this.data.from,
-          "to": this.data.to
+          "to": this.data.to,
+          "chan": this.data.chan
         }
       });
 
