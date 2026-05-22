@@ -249,6 +249,11 @@ function re_create_item(item) {
   update_item_main_params(item);
   update_item_touchs_menu_params(item);
   item_menu_params(item, "show");
+  for (const part of item.children) {
+    for (const sub_part of part.children) {
+      if (sub_part.msg) item_menu_params(sub_part, "show");
+    }
+  }
 };
 
 function controleur_factory(item_type) {
