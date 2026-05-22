@@ -43,7 +43,7 @@ function touchpad_factory() {
         mouseEvent.point.x + (DEFAULT_PAD_WIDTH / 2),
         mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2)
       );
-      this.data.input_chan = 1;
+      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_PAD_TOUCHS; _touch++) {
         let touch_msg = {};
@@ -65,7 +65,7 @@ function touchpad_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.press = params.press;
-      this.data.input_chan = params.input_chan || 1;
+      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
       this.data.msg = params.msg;
     },
 

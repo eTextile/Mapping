@@ -28,7 +28,7 @@ function polygon_factory() {
     setup_from_mouse_event: function (mouseEvent) {
 
       this.data.press = DEFAULT_POLYGON_MODE_Z;
-      this.data.input_chan = 1;
+      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
 
       // Build a regular polygon centered on the click; store segments as [paper.Point] arrays.
       let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT_POLYGON_SIDES, DEFAULT_POLYGON_SIZE).segments;
@@ -58,7 +58,7 @@ function polygon_factory() {
         mapp(seg[0], 0, NEW_COLS, 0, canvas_width),
         mapp(seg[1], 0, NEW_ROWS, 0, canvas_height)
       ]);
-      this.data.input_chan = params.input_chan || 1;
+      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.press = status.type;

@@ -43,7 +43,7 @@ function knob_factory() {
         mouseEvent.point.y + this.radius
       );
       this.data.offset = DEFAULT_KNOB_OFFSET;
-      this.data.input_chan = 1;
+      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
       this.center = mouseEvent.point;
       this.theta = deg_to_rad(DEFAULT_KNOB_OFFSET);
       this.data.msg = [];
@@ -82,12 +82,12 @@ function knob_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.offset = params.offset;
-      this.data.input_chan = params.input_chan || 1;
+      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
       this.data.msg = params.msg;
-      const _kp = params.msg[0].press;
-      this.data.press = _kp?.midi
-        ? midi_msg_status_unpack(_kp.midi.status).type
-        : (_kp?.chord !== undefined ? 0xFE : 0xFF);
+      this.data.press = params.press ?? MIDI_TYPE.NONE;
+      if (this.data.press === MIDI_TYPE.NONE) {
+        for (const touch_msg of this.data.msg) touch_msg.press = {};
+      }
 
       this.radius = (this.data.to.x - this.data.from.x) / 2;
       this.center = new paper.Point(this.data.from.x + this.radius, this.data.from.y + this.radius);

@@ -30,7 +30,6 @@ function switch_factory() {
       "to": null,
       "touchs": null,
       "press": null,
-      "tap_tempo": false,
       "input_chan": null,
       "msg": null
     },
@@ -48,8 +47,7 @@ function switch_factory() {
       
       this.data.touchs = DEFAULT_SWITCH_TOUCHS;
       this.data.press = DEFAULT_SWITCH_MODE_Z;
-      this.data.tap_tempo = false;
-      this.data.input_chan = 1;
+      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
@@ -69,17 +67,12 @@ function switch_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.touchs = params.touchs;
-      this.data.tap_tempo = params.tap_tempo || false;
-      if (this.data.tap_tempo) {
-        this.data.press = 0;
-      } else {
-        const p = params.msg && params.msg[0] && params.msg[0].press;
-        this.data.press = p?.midi
-          ? midi_msg_status_unpack(p.midi.status).type
-          : (p?.chord !== undefined ? 0xFE : 0xFF);
-      }
-      this.data.input_chan = params.input_chan || 1;
+      this.data.press = params.press ?? MIDI_TYPE.NONE;
+      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
       this.data.msg = params.msg;
+      if (this.data.press === MIDI_TYPE.NONE) {
+        for (const touch_msg of this.data.msg) touch_msg.press = {};
+      }
     },
 
     save_params: function () {
@@ -94,7 +87,6 @@ function switch_factory() {
 
       let previous_press = this.data.press;
       this.data.press = this.children["switch-group"].data.press;
-      this.data.tap_tempo = (this.data.press === 0);
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
@@ -148,7 +140,7 @@ function switch_factory() {
             break;
           case MODE.THROUGH:
             this.style.fillColor = "red";
-            if (_switch.data.tap_tempo) {
+            if (_switch.data.press === MIDI_TYPE.CLOCK) {
               const now = performance.now();
               _tap_times.push(now);
               if (_tap_times.length > 4) _tap_times.shift();

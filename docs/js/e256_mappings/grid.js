@@ -49,7 +49,7 @@ function grid_factory() {
       );
       this.data.cols = DEFAULT_GRID_COLS;
       this.data.rows = DEFAULT_GRID_ROWS;
-      this.data.input_chan = 1;
+      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
 
       this.data.msg = [];
       current_key_count = this.data.cols * this.data.rows;
@@ -71,7 +71,7 @@ function grid_factory() {
       );
       this.data.cols = params.cols;
       this.data.rows = params.rows;
-      this.data.input_chan = params.input_chan || 1;
+      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
       this.data.msg = params.msg;
       this.data.press = params.press || DEFAULT_GRID_MODE_PRESS;
     },

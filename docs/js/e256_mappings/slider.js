@@ -17,7 +17,7 @@ function slider_factory() {
   const DEFAULT_SLIDER_MODE_PRESS = MIDI_TYPE.NOTE_ON;
   const DEFAULT_SLIDER_POPULATE = POPULATE_CODES.OFF;
   const DEFAULT_SLIDER_STEPS = 20;
-  const DEFAULT_SLIDER_INPUT_CHAN = 1;
+
 
   const DEFAULT_SLIDER_DIR = "V_SLIDER";
 
@@ -44,7 +44,7 @@ function slider_factory() {
     setup_from_mouse_event: function (mouseEvent) {
       this.dir = DEFAULT_SLIDER_DIR;
       this.data.touchs = DEFAULT_SLIDER_TOUCHS;
-      this.data.input_chan = DEFAULT_SLIDER_INPUT_CHAN;
+      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
       this.data.press = DEFAULT_SLIDER_MODE_PRESS;
       this.data.move = DEFAULT_SLIDER_MODE_MOVE;
       this.data.populate = DEFAULT_SLIDER_POPULATE;
@@ -72,13 +72,13 @@ function slider_factory() {
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs || 1;
-      this.data.input_chan = params.input_chan || DEFAULT_SLIDER_INPUT_CHAN;
+      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
       this.data.steps = params.steps || DEFAULT_SLIDER_STEPS;
       this.data.msg = params.msg;
-      const _sp = params.msg[0].press;
-      this.data.press = _sp?.midi
-        ? midi_msg_status_unpack(_sp.midi.status).type
-        : (_sp?.chord !== undefined ? 0xFE : 0xFF);
+      this.data.press = params.press ?? MIDI_TYPE.NONE;
+      if (this.data.press === MIDI_TYPE.NONE) {
+        for (const touch_msg of this.data.msg) touch_msg.press = {};
+      }
       this.data.move = params.move || DEFAULT_SLIDER_MODE_MOVE;
       this.data.populate = params.populate || DEFAULT_SLIDER_POPULATE;
       this.data.from = new paper.Point(

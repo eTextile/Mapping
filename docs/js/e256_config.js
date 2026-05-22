@@ -28,6 +28,7 @@ const TOUCH_RADIUS = 25;
 const FONT_SIZE = 20;
 
 const MIDI_DEFAULT = {
+  INPUT_CHANNEL: 1,
   OUTPUT_CHANNEL: 1,
   NOTE_ON: 64,
   VELOCITY: 127,
@@ -46,7 +47,9 @@ const MIDI_TYPE = {
   PROGRAM_CHANGE: 0xC0,
   AFTERTOUCH_CHANNEL: 0xD0,
   PITCH_BEND: 0xE0,
+  CLOCK: 0xF8,
   CHORD: 0xFE,
+  NONE: 0xFF,
 };
 
 const MIDI_BY_NAME = Object.fromEntries(
@@ -132,12 +135,12 @@ const DATA2 = {
 };
 
 const PRESSURE = {
-  0xFF: "None",           // NO PRESS MIDI OUTPUT
-  0x90: "NoteOn",         // TRIGGER NOTE WITH VELOCITY
-  0xB0: "ControlChange",  // PRESSURE ONLY
-  0xA0: "AfterTouchPoly", // TRIGGER NOTE AND MODULATE
-  0xFE: "Chord",          // SEND A CHORD (switch only)
-  0: "TapTempo"           // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
+  [MIDI_TYPE.NONE]:            "None",           // NO PRESS MIDI OUTPUT
+  [MIDI_TYPE.NOTE_ON]:         "NoteOn",         // TRIGGER NOTE WITH VELOCITY
+  [MIDI_TYPE.CONTROL_CHANGE]:  "ControlChange",  // PRESSURE ONLY
+  [MIDI_TYPE.AFTERTOUCH_POLY]: "AfterTouchPoly", // TRIGGER NOTE AND MODULATE
+  [MIDI_TYPE.CHORD]:           "Chord",          // SEND A CHORD (switch only)
+  [MIDI_TYPE.CLOCK]:       "TapTempo"        // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
 }
 
 const PRESSURE_CODES = Object.fromEntries(
