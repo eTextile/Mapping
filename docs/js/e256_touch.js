@@ -70,7 +70,7 @@ function touch_press_down(mapping, touch_group) {
       break;
     case MIDI_TYPE.CHORD: {
       const intervals = CHORD_INTERVALS[touch_group.msg.press.chord] || CHORD_INTERVALS[1];
-      const note_on_status = ((mapping.data.input_chan - 1) & 0x0F) | MIDI_TYPE.NOTE_ON;
+      const note_on_status = ((mapping.data.chan.out - 1) & 0x0F) | MIDI_TYPE.NOTE_ON;
       for (const interval of intervals) {
         send_midi_msg({ status: note_on_status, data1: touch_group.msg.press.note + interval, data2: 127 });
       }
@@ -96,7 +96,7 @@ function touch_press_up(mapping, touch_group) {
       break;
     case MIDI_TYPE.CHORD: {
       const intervals = CHORD_INTERVALS[touch_group.msg.press.chord] || CHORD_INTERVALS[1];
-      const note_on_status = ((mapping.data.input_chan - 1) & 0x0F) | MIDI_TYPE.NOTE_ON;
+      const note_on_status = ((mapping.data.chan.out - 1) & 0x0F) | MIDI_TYPE.NOTE_ON;
       for (const interval of intervals) {
         send_midi_msg({ status: note_on_status, data1: touch_group.msg.press.note + interval, data2: 0 });
       }

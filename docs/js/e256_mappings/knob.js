@@ -26,7 +26,7 @@ function knob_factory() {
       "to": null,
       "offset": null,
       "press": null,
-      "input_chan": null,
+      "chan": null,
       "msg": null
     },
 
@@ -43,7 +43,7 @@ function knob_factory() {
         mouseEvent.point.y + this.radius
       );
       this.data.offset = DEFAULT_KNOB_OFFSET;
-      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.center = mouseEvent.point;
       this.theta = deg_to_rad(DEFAULT_KNOB_OFFSET);
       this.data.msg = [];
@@ -82,7 +82,7 @@ function knob_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.offset = params.offset;
-      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
       this.data.press = params.press ?? MIDI_TYPE.NONE;
       if (this.data.press === MIDI_TYPE.NONE) {
@@ -103,7 +103,7 @@ function knob_factory() {
       this.data.from = this.children["knob-group"].data.from;
       this.data.to = this.children["knob-group"].data.to;
       this.data.offset = this.children["knob-group"].data.offset;
-      this.data.input_chan = this.children["knob-group"].data.input_chan;
+      this.data.chan = this.children["knob-group"].data.chan;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
@@ -275,7 +275,7 @@ function knob_factory() {
           "to": this.data.to,
           "offset": this.data.offset,
           "press": this.data.press,
-          "input_chan": this.data.input_chan
+          "chan": this.data.chan
         }
       });
 

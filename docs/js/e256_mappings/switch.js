@@ -30,7 +30,7 @@ function switch_factory() {
       "to": null,
       "touchs": null,
       "press": null,
-      "input_chan": null,
+      "chan": null,
       "msg": null
     },
 
@@ -47,7 +47,7 @@ function switch_factory() {
       
       this.data.touchs = DEFAULT_SWITCH_TOUCHS;
       this.data.press = DEFAULT_SWITCH_MODE_Z;
-      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
 
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
@@ -68,7 +68,7 @@ function switch_factory() {
       );
       this.data.touchs = params.touchs;
       this.data.press = params.press ?? MIDI_TYPE.NONE;
-      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
       if (this.data.press === MIDI_TYPE.NONE) {
         for (const touch_msg of this.data.msg) touch_msg.press = {};
@@ -83,7 +83,7 @@ function switch_factory() {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["switch-group"].data.touchs;
 
-      this.data.input_chan = this.children["switch-group"].data.input_chan;
+      this.data.chan = this.children["switch-group"].data.chan;
 
       let previous_press = this.data.press;
       this.data.press = this.children["switch-group"].data.press;
@@ -200,7 +200,7 @@ function switch_factory() {
           "to": this.data.to,
           "touchs": this.data.touchs,
           "press": this.data.press,
-          "input_chan": this.data.input_chan
+          "chan": this.data.chan
         }
       });
 

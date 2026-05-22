@@ -28,7 +28,7 @@ function touchpad_factory() {
       "from": null,
       "to": null,
       "press": null,
-      "input_chan": null,
+      "chan": null,
       "msg": null
     },
 
@@ -43,7 +43,7 @@ function touchpad_factory() {
         mouseEvent.point.x + (DEFAULT_PAD_WIDTH / 2),
         mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2)
       );
-      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT_PAD_TOUCHS; _touch++) {
         let touch_msg = {};
@@ -65,7 +65,7 @@ function touchpad_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.press = params.press;
-      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
     },
 
@@ -78,7 +78,7 @@ function touchpad_factory() {
 
       this.data.from = this.children["pad-group"].data.from;
       this.data.to = this.children["pad-group"].data.to;
-      this.data.input_chan = this.children["pad-group"].data.input_chan;
+      this.data.chan = this.children["pad-group"].data.chan;
 
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
@@ -249,7 +249,7 @@ function touchpad_factory() {
           "from": this.data.from,
           "to": this.data.to,
           "press": this.data.press,
-          "input_chan": this.data.input_chan
+          "chan": this.data.chan
         }
       });
 

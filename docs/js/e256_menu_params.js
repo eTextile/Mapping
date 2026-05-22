@@ -101,14 +101,25 @@ function create_item_main_params(item) {
       part_param.appendChild(midi_param_val_y);
     }
 
-    else if (param === "input_chan") {
-      const { span, select } = create_select_field({
-        param: "input_chan",
+    else if (param === "chan") {
+      const { span: span_in, select: sel_in } = create_select_field({
+        param: "chan",
         source: MIDI_INPUT_CHAN,
-        item
+        item,
+        sub_key: "in"
       });
-      part_param.appendChild(span);
-      part_param.appendChild(select);
+      span_in.textContent = "in";
+      const { span: span_out, select: sel_out } = create_select_field({
+        param: "chan",
+        source: MIDI_INPUT_CHAN,
+        item,
+        sub_key: "out"
+      });
+      span_out.textContent = "out";
+      part_param.appendChild(span_in);
+      part_param.appendChild(sel_in);
+      part_param.appendChild(span_out);
+      part_param.appendChild(sel_out);
     }
     else if (param === "move") {
       const { span, select } = create_select_field({
@@ -184,30 +195,33 @@ function create_item_main_params(item) {
   return part_params;
 };
 
-function create_select_field({ param, source, item, entries: custom_entries }) {
+function create_select_field({ param, source, item, entries: custom_entries, sub_key }) {
   const span = document.createElement("span");
   span.className = "input-group-text";
-  span.textContent = param;
+  span.textContent = sub_key ?? param;
 
   const select = document.createElement("select");
   select.className = "form-select form-select-sm";
 
   const entries = custom_entries || Object.entries(source);
 
+  const current_val = sub_key ? item.data[param]?.[sub_key] : item.data[param];
+
   entries.forEach(([key, label]) => {
     const opt = document.createElement("option");
     opt.value = key;
     opt.textContent = label;
-
-    if (String(item.data[param]) === key) {
-      opt.selected = true;
-    }
-
+    if (String(current_val) === key) opt.selected = true;
     select.appendChild(opt);
   });
 
   select.addEventListener("change", (e) => {
-    item.data[param] = Number(e.target.value);
+    if (sub_key) {
+      if (!item.data[param]) item.data[param] = {};
+      item.data[param][sub_key] = Number(e.target.value);
+    } else {
+      item.data[param] = Number(e.target.value);
+    }
   });
 
   return { span, select };

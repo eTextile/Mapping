@@ -21,14 +21,14 @@ function polygon_factory() {
       "touchs": null,
       "segments": null,
       "press": null,
-      "input_chan": null,
+      "chan": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
 
       this.data.press = DEFAULT_POLYGON_MODE_Z;
-      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
 
       // Build a regular polygon centered on the click; store segments as [paper.Point] arrays.
       let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT_POLYGON_SIDES, DEFAULT_POLYGON_SIZE).segments;
@@ -58,7 +58,7 @@ function polygon_factory() {
         mapp(seg[0], 0, NEW_COLS, 0, canvas_width),
         mapp(seg[1], 0, NEW_ROWS, 0, canvas_height)
       ]);
-      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
       let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
       this.data.press = status.type;
@@ -72,7 +72,7 @@ function polygon_factory() {
       this.data.press = this.children["polygon-group"].data.press;
 
       this.data.segments = this.children["polygon-group"].data.segments;
-      this.data.input_chan = this.children["polygon-group"].data.input_chan;
+      this.data.chan = this.children["polygon-group"].data.chan;
       this.data.msg = [];
 
       for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
@@ -258,7 +258,7 @@ function polygon_factory() {
           "touchs": this.data.touchs,
           "segments": this.data.segments,
           "press": this.data.press,
-          "input_chan": this.data.input_chan
+          "chan": this.data.chan
         }
       });
       

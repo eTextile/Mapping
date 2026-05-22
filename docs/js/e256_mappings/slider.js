@@ -31,7 +31,7 @@ function slider_factory() {
     "dir": null,
     "data": {
       "touchs": null,
-      "input_chan": null,
+      "chan": null,
       "from": null,
       "to": null,
       "move": null,
@@ -44,7 +44,7 @@ function slider_factory() {
     setup_from_mouse_event: function (mouseEvent) {
       this.dir = DEFAULT_SLIDER_DIR;
       this.data.touchs = DEFAULT_SLIDER_TOUCHS;
-      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.press = DEFAULT_SLIDER_MODE_PRESS;
       this.data.move = DEFAULT_SLIDER_MODE_MOVE;
       this.data.populate = DEFAULT_SLIDER_POPULATE;
@@ -72,7 +72,7 @@ function slider_factory() {
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs || 1;
-      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.steps = params.steps || DEFAULT_SLIDER_STEPS;
       this.data.msg = params.msg;
       this.data.press = params.press ?? MIDI_TYPE.NONE;
@@ -105,7 +105,7 @@ function slider_factory() {
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["slider-group"].data.touchs;
-      this.data.input_chan = this.children["slider-group"].data.input_chan;
+      this.data.chan = this.children["slider-group"].data.chan;
 
       this.data.move = this.children["slider-group"].data.move;
       this.data.populate = this.children["slider-group"].data.populate;
@@ -343,7 +343,7 @@ function slider_factory() {
         "dir": this.dir,
         "data": {
           "touchs": this.data.touchs,
-          "input_chan": this.data.input_chan,
+          "chan": this.data.chan,
           "steps": this.data.steps,
           "press": this.data.press,
           "move": this.data.move,
@@ -567,7 +567,7 @@ function slider_factory() {
     },
 
     // Mirrors mapping_slider_hardware_midi_update() in the firmware.
-    // Called in PLAY mode when a NoteOn arrives on input_chan to keep step_note[] in sync.
+    // Called in PLAY mode when a NoteOn arrives on chan.in to keep step_note[] in sync.
     _apply_populate_note_on: function(note) {
       let steps = this.data.steps;
       if (!steps) return;
@@ -632,7 +632,7 @@ function slider_factory() {
     },
 
     // Called by midi_play_update_all() in PLAY mode for each incoming MIDI message.
-    // NoteOn on input_chan (populate != OFF) → updates step_note[] mirror via populate logic.
+    // NoteOn on chan.in (populate != OFF) → updates step_note[] mirror via populate logic.
     // CC  → moves every touch whose pos.midi matches (status + data1) along the slider axis.
     // NoteOn/Off (ROL) → looks up the active step via step_note[] and colors it red / clears it.
     midi_play_update: function(msg) {
@@ -645,7 +645,7 @@ function slider_factory() {
       // Populate path: keep step_note[] mirror in sync with the firmware
       if (this.data.move === MOVE_CODES.ROL &&
           this.data.populate !== POPULATE_CODES.OFF &&
-          status.channel === this.data.input_chan) {
+          status.channel === this.data.chan) {
         if (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) {
           this._apply_populate_note_on(msg.data1);
           updated = true;

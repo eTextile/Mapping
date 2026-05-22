@@ -33,7 +33,7 @@ function grid_factory() {
       "rows": null,
       "press": null,
       //"play_mode": null,
-      "input_chan": null,
+      "chan": null,
       "msg": null
     },
 
@@ -49,7 +49,7 @@ function grid_factory() {
       );
       this.data.cols = DEFAULT_GRID_COLS;
       this.data.rows = DEFAULT_GRID_ROWS;
-      this.data.input_chan = MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
 
       this.data.msg = [];
       current_key_count = this.data.cols * this.data.rows;
@@ -71,7 +71,7 @@ function grid_factory() {
       );
       this.data.cols = params.cols;
       this.data.rows = params.rows;
-      this.data.input_chan = params.input_chan || MIDI_DEFAULT.INPUT_CHANNEL;
+      this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
       this.data.press = params.press || DEFAULT_GRID_MODE_PRESS;
     },
@@ -84,7 +84,7 @@ function grid_factory() {
       this.data.to = this.children["grid-group"].data.to;
       this.data.cols = this.children["grid-group"].data.cols;
       this.data.rows = this.children["grid-group"].data.rows;
-      this.data.input_chan = this.children["grid-group"].data.input_chan;
+      this.data.chan = this.children["grid-group"].data.chan;
 
       previous_key_count = current_key_count;
       current_key_count = this.data.cols * this.data.rows;
@@ -246,7 +246,7 @@ function grid_factory() {
           "cols": this.data.cols,
           "rows": this.data.rows,
           "press": this.data.press,
-          "input_chan": this.data.input_chan
+          "chan": this.data.chan
         }
       });
 
