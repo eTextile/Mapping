@@ -118,6 +118,19 @@ function create_item_main_params(item) {
         item,
         sub_key: "out"
       });
+      sel_out.addEventListener("change", () => {
+        const new_out = item.data.chan.out;
+        if (item.parent?.data?.msg) {
+          for (const touch_msg of item.parent.data.msg) {
+            for (const msg_type in touch_msg) {
+              const midi = touch_msg[msg_type]?.midi;
+              if (midi?.status !== undefined)
+                midi.status = (midi.status & 0xF0) | ((new_out - 1) & 0x0F);
+            }
+          }
+          update_item_touchs_menu_params(item.parent);
+        }
+      });
       part_param.appendChild(span_in);
       part_param.appendChild(sel_in);
       part_param.appendChild(span_out);
