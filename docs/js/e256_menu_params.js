@@ -301,18 +301,41 @@ function create_item_touchs_menu_params(item) {
       note_atr.textContent = "note";
       chord_atr_tr.appendChild(note_atr);
 
-      let note_td = document.createElement("td");
-      note_td.setAttribute("colspan", "2");
-      let note_select = document.createElement("select");
+      const init_pc  = msg_obj.note % 12;
+      const init_oct = Math.floor(msg_obj.note / 12) - 1;
+
+      let note_select   = document.createElement("select");
+      let octave_select = document.createElement("select");
+
+      const update_root = () => {
+        msg_obj.note = Number(note_select.value) + (Number(octave_select.value) + 1) * 12;
+      };
+
       note_select.className = "form-select form-select-sm";
       Object.entries(NOTE_CLASSES).forEach(([k, v]) => {
         let opt = document.createElement("option");
         opt.value = k; opt.textContent = v;
-        if (String(msg_obj.note) === k) opt.selected = true;
+        if (Number(k) === init_pc) opt.selected = true;
         note_select.appendChild(opt);
       });
-      note_select.addEventListener("change", e => { msg_obj.note = Number(e.target.value); });
-      note_td.appendChild(note_select);
+      note_select.addEventListener("change", update_root);
+
+      octave_select.className = "form-select form-select-sm";
+      for (let oct = -1; oct <= 9; oct++) {
+        let opt = document.createElement("option");
+        opt.value = oct; opt.textContent = oct;
+        if (oct === init_oct) opt.selected = true;
+        octave_select.appendChild(opt);
+      }
+      octave_select.addEventListener("change", update_root);
+
+      let note_td = document.createElement("td");
+      note_td.setAttribute("colspan", "2");
+      let note_wrapper = document.createElement("div");
+      note_wrapper.className = "d-flex gap-1";
+      note_wrapper.appendChild(note_select);
+      note_wrapper.appendChild(octave_select);
+      note_td.appendChild(note_wrapper);
       chord_val_tr.appendChild(note_td);
 
       row_params_body.appendChild(chord_atr_tr);
