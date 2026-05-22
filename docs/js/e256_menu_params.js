@@ -102,20 +102,22 @@ function create_item_main_params(item) {
     }
 
     else if (param === "chan") {
+      let chan_lbl = document.createElement("span");
+      chan_lbl.className = "input-group-text";
+      chan_lbl.textContent = "chan";
+      part_param.appendChild(chan_lbl);
       const { span: span_in, select: sel_in } = create_select_field({
         param: "chan",
         source: MIDI_INPUT_CHAN,
         item,
         sub_key: "in"
       });
-      span_in.textContent = "in";
       const { span: span_out, select: sel_out } = create_select_field({
         param: "chan",
         source: MIDI_INPUT_CHAN,
         item,
         sub_key: "out"
       });
-      span_out.textContent = "out";
       part_param.appendChild(span_in);
       part_param.appendChild(sel_in);
       part_param.appendChild(span_out);
