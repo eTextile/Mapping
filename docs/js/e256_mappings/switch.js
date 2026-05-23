@@ -405,7 +405,6 @@ function switch_factory() {
         }
         const ellipse = touch_group.children["touch-ellipse"];
         if (ellipse) ellipse.style.fillColor = value > 0 ? "red" : "orange";
-        touch_update_label(touch_group, value);
         updated = true;
         break;
       }

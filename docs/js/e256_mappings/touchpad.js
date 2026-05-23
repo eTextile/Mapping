@@ -471,7 +471,6 @@ function touchpad_factory() {
             update_touch_arc(touch_group, touch_group.last_press_value || 0);
             const _cx = touch_group.children["touch-circle"];
             if (_cx && msg.data2 > 0) _cx.style.fillColor = "red";
-            touch_update_label(touch_group, msg.data2);
             updated = true;
             break;
           }
@@ -485,7 +484,6 @@ function touchpad_factory() {
             update_touch_arc(touch_group, touch_group.last_press_value || 0);
             const _cy = touch_group.children["touch-circle"];
             if (_cy && msg.data2 > 0) _cy.style.fillColor = "red";
-            touch_update_label(touch_group, msg.data2);
             updated = true;
             break;
           }
@@ -495,7 +493,6 @@ function touchpad_factory() {
               press_midi.status === msg.status && press_midi.data1 === msg.data1) {
             touch_group.last_press_value = msg.data2;
             update_touch_arc(touch_group, msg.data2);
-            touch_update_label(touch_group, msg.data2);
             updated = true;
             break;
           }
@@ -512,7 +509,6 @@ function touchpad_factory() {
           else if (status.type === MIDI_TYPE.AFTERTOUCH_POLY)     value = msg.data2;
           touch_group.last_press_value = value;
           update_touch_arc(touch_group, value);
-          touch_update_label(touch_group, value);
           updated = true;
           break;
         }

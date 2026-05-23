@@ -420,9 +420,7 @@ function polygon_factory() {
       let updated = false;
       for (const touch_group of touchs_group.children) {
         if (!touch_group.msg) continue;
-        const touch_idx = parseInt(touch_group.name.split("-")[1]) + 1;
         const _circle = touch_group.children["touch-circle"];
-        const _txt = touch_group.children["touch-txt"];
         let found = false;
         if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
           for (const key of Object.keys(touch_group.msg)) {
@@ -431,7 +429,6 @@ function polygon_factory() {
             if (!src?.midi || !src.enabled) continue;
             if (src.midi.status === msg.status && src.midi.data1 === msg.data1) {
               if (_circle) _circle.style.fillColor = msg.data2 > 0 ? "red" : "orange";
-              if (_txt) _txt.content = msg.data2 > 0 ? msg.data2 : touch_idx;
               found = true;
               break;
             }
@@ -441,7 +438,6 @@ function polygon_factory() {
             if (pm && (pm.status & 0xF0) === MIDI_TYPE.CONTROL_CHANGE &&
                 pm.status === msg.status && pm.data1 === msg.data1) {
               update_touch_arc(touch_group, msg.data2);
-              if (_txt) _txt.content = msg.data2 > 0 ? msg.data2 : touch_idx;
               found = true;
             }
           }
@@ -450,7 +446,6 @@ function polygon_factory() {
           if (pm && (pm.status & 0x0F) === (msg.status & 0x0F) && pm.data1 === msg.data1) {
             const value = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) ? msg.data2 : 0;
             update_touch_arc(touch_group, value);
-            if (_txt) _txt.content = value > 0 ? value : touch_idx;
             found = true;
           }
         }

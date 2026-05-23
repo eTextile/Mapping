@@ -129,12 +129,6 @@ function make_touch_circle(center, opts) {
   return circle;
 }
 
-// Update the touch label to show the MIDI value when active, or revert to touch index when released.
-function touch_update_label(touch_group, value) {
-  const txt = touch_group.children["touch-txt"];
-  if (txt) txt.content = value > 0 ? value : (parseInt(touch_group.name.split("-")[1]) + 1);
-}
-
 function make_touch_txt(point, content, opts) {
   opts = opts || {};
   let txt = new paper.PointText({
