@@ -531,6 +531,7 @@ function send_midi_msg(msg) {
       midi_output.send([msg.status, msg.data1, msg.data2]);
     }
     midi_term_out.push(msg);
+    if (e256_current_mode === MODE.THROUGH) midi_term_in.push(msg);
   }
   else {
     alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
