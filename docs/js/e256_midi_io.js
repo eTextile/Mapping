@@ -402,7 +402,7 @@ function handle_sysex_ack(ack) {
       $("#e256_params").hide(); $("#midi_term").collapse("show");
       item_menu_params(current_controleur, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").addClass("active"); $("#PLAY").removeClass("active");
-      e256_blobs.clear(); e256_current_mode = MODE.THROUGH;
+      e256_blobs.clear(); midi_term_in.clear(); midi_term_out.clear(); e256_current_mode = MODE.THROUGH;
       alert_msg("MODE: THROUGH", "success");
       break;
     case MODE_ACK.PLAY:
@@ -415,7 +415,7 @@ function handle_sysex_ack(ack) {
       $("#e256_params").hide(); $("#midi_term").collapse("show");
       item_menu_params(current_controleur, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").removeClass("active"); $("#PLAY").addClass("active");
-      e256_blobs.clear(); e256_current_mode = MODE.PLAY;
+      e256_blobs.clear(); midi_term_in.clear(); midi_term_out.clear(); e256_current_mode = MODE.PLAY;
       alert_msg("MODE: PLAY", "success");
       break;
     case MODE_ACK.PENDING:

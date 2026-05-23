@@ -614,6 +614,13 @@ function circular_buffer(container_id, max_length) {
   this._write_idx = 0;
 };
 
+circular_buffer.prototype.clear = function () {
+  const term = document.getElementById(this._container_id);
+  if (term) term.replaceChildren();
+  this._nodes = [];
+  this._write_idx = 0;
+};
+
 circular_buffer.prototype.push = function (midi_msg) {
   const term = document.getElementById(this._container_id);
   if (!term) return;
