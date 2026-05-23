@@ -23,6 +23,16 @@ const NEW_FRAME = (NEW_COLS * NEW_ROWS);
 const INTERP_CHUNK_SIZE = 256;
 const INTERP_NUM_CHUNKS = NEW_FRAME / INTERP_CHUNK_SIZE;
 
+// Firmware mapping limits (mirrors config.h MAX_*_TOUCHS)
+const MAX_TOUCHS = {
+  "switch":   2,
+  "slider":   2,
+  "knob":     4,
+  "touchpad": 5,
+  "polygon":  3,
+  "grid":     3
+};
+
 // E256 SOFTWARE CONSTANTS
 const TOUCH_RADIUS = 25;
 const FONT_SIZE = 20;

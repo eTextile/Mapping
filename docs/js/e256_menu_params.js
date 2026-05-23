@@ -197,7 +197,17 @@ function create_item_main_params(item) {
 
       midi_param_val.addEventListener("keydown", (e) => {
         if (e.key !== "Enter") return;
-        item.data[param] = Number(e.target.value);
+        const val = Number(e.target.value);
+        if (param === "touchs") {
+          const mapping_name = item.parent?.name;
+          const max = MAX_TOUCHS[mapping_name];
+          if (max !== undefined && val > max) {
+            alert_msg("MAX " + mapping_name.toUpperCase() + " TOUCHS: " + max, "danger");
+            e.target.value = item.data[param];
+            return;
+          }
+        }
+        item.data[param] = val;
         if (param === "steps" && item.redraw_steps) item.redraw_steps();
         else re_create_item(item.parent);
       });
