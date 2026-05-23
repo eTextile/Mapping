@@ -114,6 +114,9 @@ function switch_factory() {
         "pos": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
       });
 
+      let _touch_arc = make_touch_arc(_touch_group.pos);
+      _touch_group.addChild(_touch_arc);
+
       let _touch_ellipse = new paper.Shape.Ellipse({
         "name": "touch-ellipse",
         "center": _touch_group.pos,
@@ -403,8 +406,7 @@ function switch_factory() {
         } else {
           continue;
         }
-        const ellipse = touch_group.children["touch-ellipse"];
-        if (ellipse) ellipse.style.fillColor = value > 0 ? "red" : "orange";
+        update_touch_arc(touch_group, value, "touch-ellipse");
         updated = true;
         break;
       }
