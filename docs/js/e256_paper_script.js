@@ -94,6 +94,9 @@ paper_tool.onMouseDown = function (mouseEvent) {
       if (previous_controleur) {
         if (current_controleur.id != previous_controleur.id) {
           item_menu_params(previous_controleur, "hide");
+          touch_selection_locked = false;
+          const first_touch = find_first_touch(current_controleur);
+          if (first_touch) show_only_touch(first_touch);
         }
       }
       $(".maping_tool").removeClass("active");
@@ -102,12 +105,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
 
       if (DEBUG) console.log("CUR_TOUCH: " + current_touch.id + " PREV_TOUCH: " + previous_touch.id);
 
-      if (previous_touch) {
-        if (current_touch.id != previous_touch.id) {
-          item_menu_params(previous_touch, "hide");
-        }
-      }
-      item_menu_params(current_touch, "show");
+      show_only_touch(current_touch);
     }
     else { // Clicking on empty space
       if (e256_draw_mode) {
@@ -119,7 +117,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
         }
       }
       else {
-        alert_msg("select_mapping", "SELECT A MAPPING!", "danger");
+        alert_msg("SELECT A MAPPING!", "danger");
       }
     }
   }
@@ -167,6 +165,36 @@ paper.onFrame = function () {
   // Every frame
 };
 
+function find_first_touch(item) {
+  for (const part of item.children) {
+    for (const sub_part of part.children) {
+      if (sub_part.msg) return sub_part;
+    }
+  }
+  return null;
+}
+
+function show_only_touch(touch_group, select = false) {
+  if (!touch_group || !touch_group.parent) return;
+  for (const sibling of touch_group.parent.children) {
+    if (!sibling.msg) continue;
+    const active = sibling.id === touch_group.id;
+    const el = document.getElementById(sibling.name + "_" + sibling.id);
+    if (el) {
+      el.className = active ? "collapse show" : "collapse";
+      el.style.height = "";
+    }
+    const visual = sibling.children["touch-circle"] || sibling.children["knob-touch"] || sibling.children["key-frame"];
+    if (visual) {
+      if (active && select)  visual.style.fillColor = "red";
+      else if (!active)      visual.style.fillColor = visual.name === "key-frame" ? "pink" : "orange";
+    }
+  }
+  previous_touch = current_touch;
+  current_touch = touch_group;
+  paper.view.update();
+}
+
 function draw_controler_from_mouse(mouseEvent) {
 
   paper.project.layers[e256_draw_mode].activate();
@@ -184,6 +212,10 @@ function draw_controler_from_mouse(mouseEvent) {
   update_item_main_params(current_controleur);
   update_item_touchs_menu_params(current_controleur);
   item_menu_params(current_controleur, "show");
+
+  touch_selection_locked = false;
+  const first_touch = find_first_touch(current_controleur);
+  if (first_touch) show_only_touch(first_touch);
 };
 
 function draw_controlers_from_config(raw_configFile) {
@@ -192,7 +224,7 @@ function draw_controlers_from_config(raw_configFile) {
     configFile = JSON.parse(raw_configFile);
     //console.log("CONFIG: " + raw_configFile); // PROB!
   } catch (err) {
-    alert_msg("json_error", "NOT VALID JSON!", "danger");
+    alert_msg("NOT VALID JSON!", "danger");
     return;
   }
   clear_all_meunu_params();
@@ -255,11 +287,9 @@ function re_create_item(item) {
   update_item_main_params(item);
   update_item_touchs_menu_params(item);
   item_menu_params(item, "show");
-  for (const part of item.children) {
-    for (const sub_part of part.children) {
-      if (sub_part.msg) item_menu_params(sub_part, "show");
-    }
-  }
+  touch_selection_locked = false;
+  const first_touch = find_first_touch(item);
+  if (first_touch) show_only_touch(first_touch);
 };
 
 function controleur_factory(item_type) {

@@ -15,6 +15,7 @@ var previous_controleur = { "id": null };
 var current_touch = { "id": null };
 var previous_touch = { "id": null };
 var current_part = { "id": null };
+var touch_selection_locked = false;
 
 function* default_midi_index() {
   let index = 0;
@@ -182,7 +183,7 @@ async function MIDIsetup() {
       navigator.requestMIDIAccess({ sysex: true }).then(onMIDISuccess);
     }
     if (permissionStatus.state === "denied") {
-      alert_msg("no_midi_support", "This browser does not support MIDI!", "danger");
+      alert_msg("This browser does not support MIDI!", "danger");
     }
   });
 };
@@ -294,7 +295,7 @@ function on_midi_message(midi_msg) {
         if (pkt_type === SYSEX_PKT.ACK) {
           handle_sysex_ack(payload);
         } else if (pkt_type === SYSEX_PKT.ERR) {
-          alert_msg("sysex_error", "ERROR: " + ERROR_CODES[payload], "danger");
+          alert_msg("ERROR: " + ERROR_CODES[payload], "danger");
         } else if (pkt_type === SYSEX_PKT.PARAM) {
           handle_sysex_param(payload, midi_msg.data[4]);
         }
@@ -306,7 +307,7 @@ function on_midi_message(midi_msg) {
           const decoder = new TextDecoder();
           let conf_str = decoder.decode(midi_msg.data);
           fetch_config_file = conf_str.slice(1, -1);
-          alert_msg("fetch_config", "FETCH CONFIG DONE", "success");
+          alert_msg("FETCH CONFIG DONE", "success");
           break;
         }
         case MODE.MATRIX_RAW:
@@ -324,23 +325,25 @@ function on_midi_message(midi_msg) {
           e256_blobs.update(blob_data);
           break;
         }
+        case MODE.PENDING:
+          break;
         case MODE.THROUGH:
           break;
         case MODE.PLAY:
           break;
         default:
-          alert_msg("wrong_sysex", "SYSEX_TYPE_NOT_HANDLED: " + MODE_CODES[e256_current_mode], "warning");
+          alert_msg("SYSEX_TYPE_NOT_HANDLED: " + MODE_CODES[e256_current_mode], "warning");
           break;
       }
       break;
 
     case MIDI_TYPE.CONTROL_CHANGE:
-      if (e256_current_mode === MODE.PLAY) try { midi_play_update_all(msg); } catch(e) { if (DEBUG) console.warn("midi_play_update:", e); }
+      if (e256_current_mode === MODE.PLAY) try { midi_play_update_all(msg); } catch(e) { console.warn("midi_play_update:", e); }
       midi_term_in.push(msg);
       break;
 
     default:
-      if (e256_current_mode === MODE.PLAY) try { midi_play_update_all(msg); } catch(e) { if (DEBUG) console.warn("midi_play_update:", e); }
+      if (e256_current_mode === MODE.PLAY) try { midi_play_update_all(msg); } catch(e) { console.warn("midi_play_update:", e); }
       midi_term_in.push(msg);
       break;
   }
@@ -352,12 +355,12 @@ function handle_sysex_ack(ack) {
     case MODE_ACK.MATRIX_RAW:
       updateMenu(); e256_current_mode = MODE.MATRIX_RAW;
       $("#connection_status").html("CONNECTED / MATRIX_RAW");
-      alert_msg("matrix_raw", "MODE: MATRIX_RAW", "success");
+      alert_msg("MODE: MATRIX_RAW", "success");
       break;
     case MODE_ACK.MATRIX_INTERP:
       updateMenu(); e256_current_mode = MODE.MATRIX_INTERP;
       $("#connection_status").html("CONNECTED / MATRIX_INTERP");
-      alert_msg("matrix_interp", "MODE: MATRIX_INTERP", "success");
+      alert_msg("MODE: MATRIX_INTERP", "success");
       break;
     case MODE_ACK.MAPPING:
       $("#calibrate_menu").collapse("show"); $("#matrix_menu").collapse("hide");
@@ -367,7 +370,7 @@ function handle_sysex_ack(ack) {
       $("#mode_explanation").html("Define your custom MIDI interface onto the eTextile device");
       $("#MATRIX_RAW").removeClass("active"); $("#MAPPING").addClass("active");
       e256_current_mode = MODE.MAPPING;
-      alert_msg("mapping", "MODE: MAPPING", "success");
+      alert_msg("MODE: MAPPING", "success");
       $("#EDIT").trigger("click");
       break;
     case MODE_ACK.EDIT:
@@ -379,7 +382,7 @@ function handle_sysex_ack(ack) {
       item_menu_params(current_touch, "show");
       $("#PLAY").removeClass("active"); $("#THROUGH").removeClass("active"); $("#EDIT").addClass("active");
       e256_current_mode = MODE.EDIT;
-      alert_msg("mapping_edit", "MODE: EDIT", "success");
+      alert_msg("MODE: EDIT", "success");
       break;
     case MODE_ACK.THROUGH:
       $("#calibrate_menu").collapse("show"); $("#matrix_menu").collapse("hide");
@@ -392,7 +395,7 @@ function handle_sysex_ack(ack) {
       item_menu_params(current_controleur, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").addClass("active"); $("#PLAY").removeClass("active");
       e256_blobs.clear(); e256_current_mode = MODE.THROUGH;
-      alert_msg("mapping_through", "MODE: THROUGH", "success");
+      alert_msg("MODE: THROUGH", "success");
       break;
     case MODE_ACK.PLAY:
       $("#calibrate_menu").collapse("show"); $("#matrix_menu").collapse("hide");
@@ -405,7 +408,7 @@ function handle_sysex_ack(ack) {
       item_menu_params(current_controleur, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").removeClass("active"); $("#PLAY").addClass("active");
       e256_blobs.clear(); e256_current_mode = MODE.PLAY;
-      alert_msg("mapping_play", "MODE: PLAY", "success");
+      alert_msg("MODE: PLAY", "success");
       break;
     case MODE_ACK.PENDING:
       break;
@@ -416,7 +419,7 @@ function handle_sysex_ack(ack) {
     case MODE_ACK.CALIBRATE:
       e256_blobs.clear(); e256_current_mode = e256_previous_mode;
       $("#CALIBRATE").removeClass("active");
-      alert_msg("calibrate", "MODE: CALIBRATE", "success");
+      alert_msg("MODE: CALIBRATE", "success");
       break;
     case MODE_ACK.LOAD_CONFIG:
       e256_current_mode = MODE.FETCH_CONFIG;
@@ -432,7 +435,7 @@ function handle_sysex_ack(ack) {
       if (fetch_config_file !== null && fetch_config_file.length !== 15) {
         draw_controlers_from_config(fetch_config_file);
       } else {
-        alert_msg("no_config_file", "NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger");
+        alert_msg("NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger");
       }
       send_sysex_cmd(MODE.EDIT);
       if (DEBUG) console.log("REQUEST: EDIT MODE");
@@ -440,7 +443,7 @@ function handle_sysex_ack(ack) {
     case MODE_ACK.ALLOCATE_CONFIG:
       e256_export_params();
       sysex_alloc(conf_size);
-      alert_msg("allocate", "ALLOCATE_CONFIG_SIZE: " + conf_size, "success");
+      alert_msg("ALLOCATE_CONFIG_SIZE: " + conf_size, "success");
       break;
     case MODE_ACK.ALLOCATE_DONE:
       send_sysex_cmd(MODE.UPLOAD_CONFIG);
@@ -456,13 +459,13 @@ function handle_sysex_ack(ack) {
       break;
     case MODE_ACK.APPLY_CONFIG:
       $("#upload_config").removeClass("active");
-      alert_msg("config_apply", "RECEIVED: CONFIG_APPLY", "success");
-      alert_msg("config_save", "PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
+      alert_msg("RECEIVED: CONFIG_APPLY", "success");
+      alert_msg("PRESS THE ETEXTILE-SYNTHESIZER LEFT PUSH BUTTON TO SAVE THE CONFIG IN THE FLASH MEMORY!", "warning");
       send_sysex_cmd(MODE.EDIT);
       if (DEBUG) console.log("REQUEST: EDIT MODE");
       break;
     case MODE_ACK.WRITE_CONFIG:
-      alert_msg("config_saved", "NOW THE ETEXTILE-SYNTHESIZER CAN BE USED IN STANDALONE MODE!", "success");
+      alert_msg("NOW THE ETEXTILE-SYNTHESIZER CAN BE USED IN STANDALONE MODE!", "success");
       break;
     default:
       if (DEBUG) console.log("NOT_HANDLED_ACK: " + MODE_ACK_CODES[ack]);
@@ -515,7 +518,7 @@ function send_sysex_cmd(cmd) {
   if (midi_device_connected) {
     midi_output.send([MIDI_SYSEX.START, MIDI_SYSEX.DEVICE_ID, SYSEX_PKT.CMD, cmd, MIDI_SYSEX.END]);
   } else {
-    alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
+    alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
   }
 };
 
@@ -530,7 +533,7 @@ function send_midi_msg(msg) {
     midi_term_out.push(msg);
   }
   else {
-    alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
+    alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
   }
 };
 

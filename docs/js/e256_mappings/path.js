@@ -8,11 +8,14 @@
 // Multitouch MIDI path GUI
 // http://paperjs.org/reference/path/#path
 function path_factory() {
-  const DEFAULT_PATH_STROKE_WIDTH = 50;
-  const DEFAULT_PATH_TOUCHS = 1;
-  const DEFAULT_PATH_MODE_POS = MIDI_TYPE.CONTROL_CHANGE;
-  const DEFAULT_PATH_MODE_Z = MIDI_TYPE.NOTE_ON;
 
+  const DEFAULT_PATH = {
+    STROKE_WIDTH: 50,
+    TOUCHS: 1,
+    MODE_POS: MIDI_TYPE.CONTROL_CHANGE,
+    MODE_Z: MIDI_TYPE.NOTE_ON
+  }
+  
   var _path = new paper.Group({
     "name": "path",
     "data": {
@@ -23,8 +26,8 @@ function path_factory() {
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.touchs = DEFAULT_PATH_TOUCHS;
-      this.data.press = DEFAULT_PATH_MODE_Z;
+      this.data.touchs = DEFAULT_PATH.TOUCHS;
+      this.data.press = DEFAULT_PATH.MODE_Z;
 
       this.data.segments = [];
       this.data.segments.push(mouseEvent.point);
@@ -32,9 +35,9 @@ function path_factory() {
       //console.log("path: " + this.data.segments);
 
       this.data.msg = [];
-      for (let _touch = 0; _touch < DEFAULT_PATH_TOUCHS; _touch++) {
+      for (let _touch = 0; _touch < DEFAULT_PATH.TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
+        touch_msg.pos = midi_msg_builder(DEFAULT_PATH.MODE_POS);
         touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
       }
@@ -62,7 +65,7 @@ function path_factory() {
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.press != previous_mode_z) {
-          touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
+          touch_msg.pos = midi_msg_builder(DEFAULT_PATH.MODE_POS);
           touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
@@ -70,7 +73,7 @@ function path_factory() {
             touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            touch_msg.pos = midi_msg_builder(DEFAULT_PATH_MODE_POS);
+            touch_msg.pos = midi_msg_builder(DEFAULT_PATH.MODE_POS);
             touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
@@ -89,11 +92,15 @@ function path_factory() {
 
       let _touch_circle = make_touch_circle(this.data.segments[0], { "fillColor": "orange" });
 
+      _touch_circle.on("mouseenter", function () {
+        if (e256_current_mode === MODE.EDIT && !touch_selection_locked) show_only_touch(_touch_group);
+      });
+
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
           case MODE.EDIT:
-            previous_touch = current_touch;
-            current_touch = _touch_group;
+            show_only_touch(_touch_group, true);
+            touch_selection_locked = true;
             break;
           case MODE.THROUGH:
             touch_press_down(_path, _touch_group);
@@ -178,7 +185,7 @@ function path_factory() {
       });
 
       _path_curve.style = {
-        "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
+        "strokeWidth": DEFAULT_PATH.STROKE_WIDTH,
         "strokeColor": "purple",
         "strokeCap": "round",
         "strokeJoin": "round"
@@ -222,7 +229,7 @@ function path_factory() {
       });
 
       _graduations.style = {
-        "strokeWidth": DEFAULT_PATH_STROKE_WIDTH,
+        "strokeWidth": DEFAULT_PATH.STROKE_WIDTH,
         "strokeColor": "black",
         "dashArray": [1, 10]
       }

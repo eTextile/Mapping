@@ -7,13 +7,16 @@
 /////////// GRID Factory
 // Multitouch MIDI grid GUI
 function grid_factory() {
-  const DEFAULT_GRID_WIDTH = 450;
-  const DEFAULT_GRID_HEIGHT = 450;
-  const DEFAULT_GRID_COLS = 4;
-  const DEFAULT_GRID_ROWS = 4;
-  const DEFAULT_GRID_MODE_PRESS = MIDI_TYPE.NOTE_ON;
-  const GRID_MIN_SIZE = 30;
-  
+
+  const DEFAULT_GRID = {
+    WIDTH: 450,
+    HEIGHT: 450,
+    COLS: 4,
+    ROWS: 4,
+    MODE_PRESS: MIDI_TYPE.NOTE_ON,
+    MIN_SIZE: 30
+  };
+
   let frame_width = null;
   let frame_height = null;
   let key_width = null;
@@ -38,17 +41,17 @@ function grid_factory() {
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.press = DEFAULT_GRID_MODE_PRESS;
+      this.data.press = DEFAULT_GRID.MODE_PRESS;
       this.data.from = new paper.Point(
-        mouseEvent.point.x - (DEFAULT_GRID_WIDTH / 2),
-        mouseEvent.point.y - (DEFAULT_GRID_HEIGHT / 2)
+        mouseEvent.point.x - (DEFAULT_GRID.WIDTH / 2),
+        mouseEvent.point.y - (DEFAULT_GRID.HEIGHT / 2)
       );
       this.data.to = new paper.Point(
-        mouseEvent.point.x + (DEFAULT_GRID_WIDTH / 2),
-        mouseEvent.point.y + (DEFAULT_GRID_HEIGHT / 2)
+        mouseEvent.point.x + (DEFAULT_GRID.WIDTH / 2),
+        mouseEvent.point.y + (DEFAULT_GRID.HEIGHT / 2)
       );
-      this.data.cols = DEFAULT_GRID_COLS;
-      this.data.rows = DEFAULT_GRID_ROWS;
+      this.data.cols = DEFAULT_GRID.COLS;
+      this.data.rows = DEFAULT_GRID.ROWS;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
 
       this.data.msg = [];
@@ -73,7 +76,7 @@ function grid_factory() {
       this.data.rows = params.rows;
       this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
-      this.data.press = params.press || DEFAULT_GRID_MODE_PRESS;
+      this.data.press = params.press || DEFAULT_GRID.MODE_PRESS;
     },
 
     save_params: function () {
@@ -141,7 +144,7 @@ function grid_factory() {
         this.style.fillColor = "orange";
         switch (e256_current_mode) {
           case MODE.EDIT:
-            // N/A
+            if (!touch_selection_locked) show_only_touch(_key_group);
             break;
           case MODE.THROUGH:
             switch (_grid.data.press) {
@@ -167,7 +170,7 @@ function grid_factory() {
       };
 
       _key_frame.onMouseLeave = function () {
-        this.style.fillColor = "pink";
+        if (!(touch_selection_locked && current_touch.id === _key_group.id)) this.style.fillColor = "pink";
         switch (e256_current_mode) {
           case MODE.EDIT:
             // N/A
@@ -196,9 +199,14 @@ function grid_factory() {
       };
 
       _key_frame.onMouseDown = function () {
-        previous_touch = current_touch;
-        current_touch = _key_group;
-        this.style.fillColor = "red";
+        if (e256_current_mode === MODE.EDIT) {
+          show_only_touch(_key_group, true);
+          touch_selection_locked = true;
+        } else {
+          previous_touch = current_touch;
+          current_touch = _key_group;
+          this.style.fillColor = "red";
+        }
       };
 
       _key_frame.onMouseUp = function () {
@@ -303,13 +311,13 @@ function grid_factory() {
               let newPos = new paper.Point();
               switch (current_part.name) {
                 case "top-left":
-                  frame_width = Math.max(GRID_MIN_SIZE, this.bounds.right - mouseEvent.point.x);
+                  frame_width = Math.max(DEFAULT_GRID.MIN_SIZE, this.bounds.right - mouseEvent.point.x);
                   key_width = frame_width / _grid_group.data.cols;
                   half_key_width = key_width / 2;
                   this.segments[0].point.x = mouseEvent.point.x;
                   this.segments[1].point = mouseEvent.point;
                   this.segments[2].point.y = mouseEvent.point.y;
-                  frame_height = Math.max(GRID_MIN_SIZE, this.bounds.bottom - mouseEvent.point.y);
+                  frame_height = Math.max(DEFAULT_GRID.MIN_SIZE, this.bounds.bottom - mouseEvent.point.y);
                   key_height = frame_height / _grid_group.data.rows;
                   half_key_height = key_height / 2;
                   for (const _key of _keys_group.children) {
@@ -323,13 +331,13 @@ function grid_factory() {
                   _grid_group.data.from = mouseEvent.point;
                   break;
                 case "top-right":
-                  frame_width = Math.max(GRID_MIN_SIZE, mouseEvent.point.x - this.bounds.left);
+                  frame_width = Math.max(DEFAULT_GRID.MIN_SIZE, mouseEvent.point.x - this.bounds.left);
                   key_width = frame_width / _grid_group.data.cols;
                   half_key_width = key_width / 2;
                   this.segments[1].point.y = mouseEvent.point.y;
                   this.segments[2].point = mouseEvent.point;
                   this.segments[3].point.x = mouseEvent.point.x;
-                  frame_height = Math.max(GRID_MIN_SIZE, this.bounds.bottom - mouseEvent.point.y);
+                  frame_height = Math.max(DEFAULT_GRID.MIN_SIZE, this.bounds.bottom - mouseEvent.point.y);
                   key_height = frame_height / _grid_group.data.rows;
                   half_key_height = key_height / 2; this.segments[2].point.y = mouseEvent.point.y;
                   for (const _key of _keys_group.children) {
@@ -344,13 +352,13 @@ function grid_factory() {
                   _grid_group.data.to.x = mouseEvent.point.x;
                   break;
                 case "bottom-right":
-                  frame_width = Math.max(GRID_MIN_SIZE, mouseEvent.point.x - this.bounds.left);
+                  frame_width = Math.max(DEFAULT_GRID.MIN_SIZE, mouseEvent.point.x - this.bounds.left);
                   key_width = frame_width / _grid_group.data.cols;
                   half_key_width = key_width / 2;
                   this.segments[2].point.x = mouseEvent.point.x;
                   this.segments[3].point = mouseEvent.point;
                   this.segments[0].point.y = mouseEvent.point.y;
-                  frame_height = Math.max(GRID_MIN_SIZE, mouseEvent.point.y - this.bounds.top);
+                  frame_height = Math.max(DEFAULT_GRID.MIN_SIZE, mouseEvent.point.y - this.bounds.top);
                   key_height = frame_height / _grid_group.data.rows;
                   half_key_height = key_height / 2;
                   for (const _key of _keys_group.children) {
@@ -364,13 +372,13 @@ function grid_factory() {
                   _grid_group.data.to = mouseEvent.point;
                   break;
                 case "bottom-left":
-                  frame_width = Math.max(GRID_MIN_SIZE, this.bounds.right - mouseEvent.point.x);
+                  frame_width = Math.max(DEFAULT_GRID.MIN_SIZE, this.bounds.right - mouseEvent.point.x);
                   key_width = frame_width / _grid_group.data.cols;
                   half_key_width = key_width / 2;
                   this.segments[3].point.y = mouseEvent.point.y;
                   this.segments[0].point = mouseEvent.point;
                   this.segments[1].point.x = mouseEvent.point.x;
-                  frame_height = Math.max(GRID_MIN_SIZE, mouseEvent.point.y - this.bounds.top);
+                  frame_height = Math.max(DEFAULT_GRID.MIN_SIZE, mouseEvent.point.y - this.bounds.top);
                   key_height = frame_height / _grid_group.data.rows;
                   half_key_height = key_height / 2;
                   for (const _key of _keys_group.children) {

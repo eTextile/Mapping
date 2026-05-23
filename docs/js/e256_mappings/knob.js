@@ -7,13 +7,16 @@
 /////////// KNOB Factory
 // Multitouch MIDI knob GUI
 function knob_factory() {
-  const DEFAULT_KNOB_TOUCHS = 1;
-  const DEFAULT_KNOB_RADIUS = 250;
-  const DEFAULT_KNOB_OFFSET = -45;
-  const DEFAULT_KNOB_MIN_SIZE = 30;
-  const DEFAULT_KNOB_MODE_R = MIDI_TYPE.CONTROL_CHANGE;
-  const DEFAULT_KNOB_MODE_T = MIDI_TYPE.CONTROL_CHANGE;
-  const DEFAULT_KNOB_MODE_Z = MIDI_TYPE.NOTE_ON;
+ 
+  const DEFAULT_KNOB = {
+    TOUCHS: 1,
+    RADIUS: 250,
+    OFFSET: -45,
+    MIN_SIZE: 30,
+    MODE_R: MIDI_TYPE.CONTROL_CHANGE,
+    MODE_T: MIDI_TYPE.CONTROL_CHANGE,
+    MODE_Z: MIDI_TYPE.NOTE_ON
+  }
 
   var _knob = new paper.Group({
     "name": "knob",
@@ -31,9 +34,9 @@ function knob_factory() {
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.touchs = DEFAULT_KNOB_TOUCHS;
-      this.data.press = DEFAULT_KNOB_MODE_Z;
-      this.radius = DEFAULT_KNOB_RADIUS;
+      this.data.touchs = DEFAULT_KNOB.TOUCHS;
+      this.data.press = DEFAULT_KNOB.MODE_Z;
+      this.radius = DEFAULT_KNOB.RADIUS;
       this.data.from = new paper.Point(
         mouseEvent.point.x - this.radius,
         mouseEvent.point.y - this.radius
@@ -42,16 +45,16 @@ function knob_factory() {
         mouseEvent.point.x + this.radius,
         mouseEvent.point.y + this.radius
       );
-      this.data.offset = DEFAULT_KNOB_OFFSET;
+      this.data.offset = DEFAULT_KNOB.OFFSET;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.center = mouseEvent.point;
-      this.theta = deg_to_rad(DEFAULT_KNOB_OFFSET);
+      this.theta = deg_to_rad(DEFAULT_KNOB.OFFSET);
       this.data.msg = [];
       let touch_msg;
-      for (let _touch = 0; _touch < DEFAULT_KNOB_TOUCHS; _touch++) {
+      for (let _touch = 0; _touch < DEFAULT_KNOB.TOUCHS; _touch++) {
         touch_msg = {};
-        touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
-        touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
+        touch_msg.radius = midi_msg_builder(DEFAULT_KNOB.MODE_R);
+        touch_msg.theta = midi_msg_builder(DEFAULT_KNOB.MODE_T);
         touch_msg.press = midi_msg_builder(this.data.press);
         /*
         switch (this.data.press) {
@@ -109,8 +112,8 @@ function knob_factory() {
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.press != previous_mode_z) {
-          touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
-          touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
+          touch_msg.radius = midi_msg_builder(DEFAULT_KNOB.MODE_R);
+          touch_msg.theta = midi_msg_builder(DEFAULT_KNOB.MODE_T);
           touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
@@ -118,8 +121,8 @@ function knob_factory() {
             touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            touch_msg.radius = midi_msg_builder(DEFAULT_KNOB_MODE_R);
-            touch_msg.theta = midi_msg_builder(DEFAULT_KNOB_MODE_T);
+            touch_msg.radius = midi_msg_builder(DEFAULT_KNOB.MODE_R);
+            touch_msg.theta = midi_msg_builder(DEFAULT_KNOB.MODE_T);
             touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
@@ -169,17 +172,18 @@ function knob_factory() {
 
       _knob_touch.onMouseEnter = function () {
         this.style.fillColor = "red";
+        if (e256_current_mode === MODE.EDIT && !touch_selection_locked) show_only_touch(_touch_group);
       }
 
       _knob_touch.onMouseLeave = function () {
-        this.style.fillColor = "orange";
+        if (!(touch_selection_locked && current_touch.id === _touch_group.id)) this.style.fillColor = "orange";
       }
 
       _knob_touch.onMouseDown = function () {
         switch (e256_current_mode) {
           case MODE.EDIT:
-            previous_touch = current_touch;
-            current_touch = _touch_group;
+            show_only_touch(_touch_group, true);
+            touch_selection_locked = true;
             break;
           case MODE.THROUGH:
             touch_press_down(_knob, _touch_group);

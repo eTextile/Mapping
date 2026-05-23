@@ -43,7 +43,7 @@ $(".e256_set_mode").click (
         if (DEBUG) console.log("REQUEST: " + MODE_CODES[requested_mode]);
       }
     } else {
-      alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
+      alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
   }
 );
@@ -76,7 +76,7 @@ $("#upload_config").click (
       send_sysex_cmd(MODE.ALLOCATE_CONFIG);
       if (DEBUG) console.log("REQUEST: ALLOCATE CONFIG");
     } else {
-      alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
+      alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
   }
 );
@@ -112,7 +112,7 @@ $("#fetch_config").click (
       send_sysex_cmd(MODE.LOAD_CONFIG);
       if (DEBUG) console.log("REQUEST: LOAD CONFIG");
     } else {
-      alert_msg("not_connected", "ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
+      alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
     }
   }
 );

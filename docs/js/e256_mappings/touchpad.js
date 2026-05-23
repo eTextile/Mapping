@@ -6,16 +6,19 @@
 
 /////////// TOUCHPAD Factory
 function touchpad_factory() {
-  const DEFAULT_PAD_WIDTH = 450;
-  const DEFAULT_PAD_HEIGHT = 450;
-  const DEFAULT_PAD_TOUCH_MARGIN = 35;
-  const DEFAULT_PAD_MIN_WIDTH = 100;
-  const DEFAULT_PAD_MIN_HEIGHT = 100;
-  const DEFAULT_PAD_MODE_X = MIDI_TYPE.CONTROL_CHANGE;
-  const DEFAULT_PAD_MODE_Y = MIDI_TYPE.CONTROL_CHANGE;
-  const DEFAULT_PAD_MODE_Z = MIDI_TYPE.NOTE_ON;
-  const DEFAULT_PAD_TOUCHS = 1;
- 
+
+  const DEFAULT_PAD = {
+    WIDTH: 450,
+    HEIGHT: 450,
+    TOUCH_MARGIN: 35,
+    MIN_WIDTH: 100,
+    MIN_HEIGHT: 100,
+    MODE_X: MIDI_TYPE.CONTROL_CHANGE,
+    MODE_Y: MIDI_TYPE.CONTROL_CHANGE,
+    MODE_Z: MIDI_TYPE.NOTE_ON,
+    TOUCHS: 1
+  };
+
   let current_frame_width = null;
   let previous_frame_width = null;
   let current_frame_height = null;
@@ -33,22 +36,22 @@ function touchpad_factory() {
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.touchs = DEFAULT_PAD_TOUCHS;
-      this.data.press = DEFAULT_PAD_MODE_Z;
+      this.data.touchs = DEFAULT_PAD.TOUCHS;
+      this.data.press = DEFAULT_PAD.MODE_Z;
       this.data.from = new paper.Point(
-        mouseEvent.point.x - (DEFAULT_PAD_WIDTH / 2),
-        mouseEvent.point.y - (DEFAULT_PAD_HEIGHT / 2)
+        mouseEvent.point.x - (DEFAULT_PAD.WIDTH / 2),
+        mouseEvent.point.y - (DEFAULT_PAD.HEIGHT / 2)
       );
       this.data.to = new paper.Point(
-        mouseEvent.point.x + (DEFAULT_PAD_WIDTH / 2),
-        mouseEvent.point.y + (DEFAULT_PAD_HEIGHT / 2)
+        mouseEvent.point.x + (DEFAULT_PAD.WIDTH / 2),
+        mouseEvent.point.y + (DEFAULT_PAD.HEIGHT / 2)
       );
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = [];
-      for (let _touch = 0; _touch < DEFAULT_PAD_TOUCHS; _touch++) {
+      for (let _touch = 0; _touch < DEFAULT_PAD.TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
-        touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
+        touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD.MODE_X);
+        touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD.MODE_Y);
         touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
       }
@@ -84,8 +87,8 @@ function touchpad_factory() {
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.press != previous_mode_z) {
-          touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
-          touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
+          touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD.MODE_X);
+          touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD.MODE_Y);
           touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
@@ -93,8 +96,8 @@ function touchpad_factory() {
             touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD_MODE_X);
-            touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD_MODE_Y);
+            touch_msg.pos_x = midi_msg_builder(DEFAULT_PAD.MODE_X);
+            touch_msg.pos_y = midi_msg_builder(DEFAULT_PAD.MODE_Y);
             touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
@@ -106,8 +109,8 @@ function touchpad_factory() {
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
         "pos": new paper.Point(
-          get_random_int(this.data.from.x + DEFAULT_PAD_TOUCH_MARGIN, this.data.to.x - DEFAULT_PAD_TOUCH_MARGIN),
-          get_random_int(this.data.from.y + DEFAULT_PAD_TOUCH_MARGIN, this.data.to.y - DEFAULT_PAD_TOUCH_MARGIN)
+          get_random_int(this.data.from.x + DEFAULT_PAD.TOUCH_MARGIN, this.data.to.x - DEFAULT_PAD.TOUCH_MARGIN),
+          get_random_int(this.data.from.y + DEFAULT_PAD.TOUCH_MARGIN, this.data.to.y - DEFAULT_PAD.TOUCH_MARGIN)
         ),
         "msg": this.data.msg[_touch_id],
         "prev_pos_x": null,
@@ -147,11 +150,15 @@ function touchpad_factory() {
 
       let _touch_circle = make_touch_circle(_touch_group.pos, { "fillColor": "orange" });
 
+      _touch_circle.on("mouseenter", function () {
+        if (e256_current_mode === MODE.EDIT && !touch_selection_locked) show_only_touch(_touch_group);
+      });
+
       _touch_circle.onMouseDown = function () {
         switch (e256_current_mode) {
           case MODE.EDIT:
-            previous_touch = current_touch;
-            current_touch = _touch_group;
+            show_only_touch(_touch_group, true);
+            touch_selection_locked = true;
             break;
           case MODE.THROUGH:
             touch_press_down(_touchpad, _touch_group);
@@ -309,10 +316,10 @@ function touchpad_factory() {
               switch (current_part.name) {
                 case "top-left":
                   previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT_PAD_MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
+                  current_frame_width = Math.max(DEFAULT_PAD.MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
                   previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT_PAD_MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
-                  if (current_frame_width >= DEFAULT_PAD_MIN_WIDTH && current_frame_height >= DEFAULT_PAD_MIN_HEIGHT) {
+                  current_frame_height = Math.max(DEFAULT_PAD.MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
+                  if (current_frame_width >= DEFAULT_PAD.MIN_WIDTH && current_frame_height >= DEFAULT_PAD.MIN_HEIGHT) {
                     this.segments[0].point.x = mouseEvent.point.x;
                     this.segments[1].point = mouseEvent.point;
                     this.segments[2].point.y = mouseEvent.point.y;
@@ -333,10 +340,10 @@ function touchpad_factory() {
                   break;
                 case "top-right":
                   previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT_PAD_MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
+                  current_frame_width = Math.max(DEFAULT_PAD.MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
                   previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT_PAD_MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
-                  if (current_frame_width >= DEFAULT_PAD_MIN_WIDTH && current_frame_height >= DEFAULT_PAD_MIN_HEIGHT) {
+                  current_frame_height = Math.max(DEFAULT_PAD.MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
+                  if (current_frame_width >= DEFAULT_PAD.MIN_WIDTH && current_frame_height >= DEFAULT_PAD.MIN_HEIGHT) {
                     this.segments[1].point.y = mouseEvent.point.y;
                     this.segments[2].point = mouseEvent.point;
                     this.segments[3].point.x = mouseEvent.point.x;
@@ -359,9 +366,9 @@ function touchpad_factory() {
                 case "bottom-right":
                   previous_frame_width = current_frame_width;
                   previous_frame_height = current_frame_height;
-                  current_frame_width = Math.max(DEFAULT_PAD_MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
-                  current_frame_height = Math.max(DEFAULT_PAD_MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
-                  if (current_frame_width >= DEFAULT_PAD_MIN_WIDTH && current_frame_height >= DEFAULT_PAD_MIN_HEIGHT) {
+                  current_frame_width = Math.max(DEFAULT_PAD.MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
+                  current_frame_height = Math.max(DEFAULT_PAD.MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
+                  if (current_frame_width >= DEFAULT_PAD.MIN_WIDTH && current_frame_height >= DEFAULT_PAD.MIN_HEIGHT) {
                     this.segments[2].point.x = mouseEvent.point.x;
                     this.segments[3].point = mouseEvent.point;
                     this.segments[0].point.y = mouseEvent.point.y;
@@ -382,10 +389,10 @@ function touchpad_factory() {
                   break;
                 case "bottom-left":
                   previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT_PAD_MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
+                  current_frame_width = Math.max(DEFAULT_PAD.MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
                   previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT_PAD_MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
-                  if (current_frame_width >= DEFAULT_PAD_MIN_WIDTH && current_frame_height >= DEFAULT_PAD_MIN_HEIGHT) {
+                  current_frame_height = Math.max(DEFAULT_PAD.MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
+                  if (current_frame_width >= DEFAULT_PAD.MIN_WIDTH && current_frame_height >= DEFAULT_PAD.MIN_HEIGHT) {
                     this.segments[3].point.y = mouseEvent.point.y;
                     this.segments[0].point = mouseEvent.point;
                     this.segments[1].point.x = mouseEvent.point.x;

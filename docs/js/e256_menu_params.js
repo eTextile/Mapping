@@ -268,14 +268,14 @@ function create_item_touchs_menu_params(item) {
   let sub_part_params = document.createElement("div");           // Sub part menu main div
   sub_part_params.setAttribute("id", item.name + "_" + item.id); // Sub part menu UID
 
-  sub_part_params.className = "collapse";
+  const _touch_index = parseInt(item.name.split("-")[1]);
+  sub_part_params.className = (!isNaN(_touch_index) && _touch_index === 0) ? "collapse show" : "collapse";
 
   let table_params = document.createElement("table");
   table_params.className = "table table-sm table-striped table-bordered";
 
   let table_caption = document.createElement("caption");
   table_caption.className = "caption-top card-title display-6";
-  const _touch_index = parseInt(item.name.split("-")[1]);
   table_caption.textContent = isNaN(_touch_index) ? item.name : item.name.split("-")[0] + "-" + (_touch_index + 1);
   table_params.appendChild(table_caption);
 
@@ -630,9 +630,7 @@ circular_buffer.prototype.push = function (midi_msg) {
   }
 
   node.textContent = type_name + " :\t[ " + status.channel + ", " + midi_msg.data1 + ", " + midi_msg.data2 + " ]";
-  node.style.color = e256_current_mode === MODE.THROUGH ? "white"
-                   : e256_current_mode === MODE.PLAY    ? "lightGreen"
-                   : "";
+  node.style.color = "lightGreen";
 
   term.appendChild(node); // move to end (no-op on first insert, O(1) move when reusing)
   this._write_idx = (this._write_idx + 1) % this._max_length;
@@ -642,36 +640,15 @@ var midi_term_out = new circular_buffer("midi_term_out", 25);
 var midi_term_in  = new circular_buffer("midi_term_in",  25);
 
 //////////////// Alert
-function alert_msg(identifier, message, type) {
+alert_msg._seq = 0;
 
-  const is_existing_alert_node = document.querySelector("#" + identifier);
-
-  if (is_existing_alert_node === null) {
-
-    const div_alert = document.createElement('div');
-
-    div_alert.setAttribute("id", identifier);
-    div_alert.className = "alert alert-" + type;
-    //div_alert.className = "alert-dismissible fade show"
-    div_alert.setAttribute("role", "alert");
-    div_alert.textContent = message;
-    
-    /*
-    let button = document.createElement("button");
-    button.setAttribute("type", "button");
-    button.className = "btn-close";
-    button.setAttribute("data-bs-dismiss", "alert");
-    button.setAttribute("aria-label", "Close");
-    div_alert.appendChild(button);
-    */
-
-    $("#live_alert_placeholder").append(div_alert);
-
-    setTimeout(
-      function () {
-        const alert_timeout = bootstrap.Alert.getOrCreateInstance("#" + identifier);
-        alert_timeout.close();
-    }, 3500);
-  }
-
+function alert_msg(message, type) {
+  const id = "alert_" + (++alert_msg._seq);
+  const div_alert = document.createElement("div");
+  div_alert.setAttribute("id", id);
+  div_alert.className = "alert alert-" + type;
+  div_alert.setAttribute("role", "alert");
+  div_alert.textContent = message;
+  $("#live_alert_placeholder").append(div_alert);
+  setTimeout(() => bootstrap.Alert.getOrCreateInstance("#" + id).close(), 3500);
 };

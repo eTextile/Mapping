@@ -126,6 +126,12 @@ function switch_factory() {
 
       _touch_ellipse.onMouseEnter = function () {
         this.style.fillColor = "red";
+        if (e256_current_mode === MODE.EDIT) {
+          if (current_touch.id !== _touch_group.id) item_menu_params(current_touch, "hide");
+          previous_touch = current_touch;
+          current_touch = _touch_group;
+          item_menu_params(current_touch, "show");
+        }
       }
 
       _touch_ellipse.onMouseLeave = function () {
