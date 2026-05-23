@@ -71,29 +71,11 @@ const MIDI_INPUT_CHAN = Object.fromEntries(
   Array.from({ length: 15 }, (_, i) => [i + 1, String(i + 1)])
 );
 
-// E256 MIDI I/O CHANNELS CONSTANTS [1:15]
-const MIDI_CHANNEL = {
-  LEVELS: 3,
-  MODES: 4,
-  VERBOSITY: 5,
-  ERROR: 6
-};
-
-// E256 MIDI I/O CC LEVELS CONSTANTS
-const MIDI_CC = {
-  THRESHOLD: 0, //  THRESHOLD - LEDs | 1 1 |
-  SIG_IN: 1,    //  SIG_IN    - LEDs | 1 0 |
-  SIG_OUT: 2,   //  SIG_OUT   - LEDs | 0 1 |
-  LINE_OUT: 3   //  LINE_OUT  - LEDs | 0 0 |
-};
-
 // E256 MIDI SYSEX CONSTANTS
 const MIDI_SYSEX = {
   START: 0xF0,
   END: 0xF7,
-  DEVICE_ID: 0x7D,
-  CONFIG: 0x7C,
-  LEVELS: 0x6C // TODO
+  DEVICE_ID: 0x7D
 };
 
 // SysEx packet types  (byte[2] after F0 + DEVICE_ID)
