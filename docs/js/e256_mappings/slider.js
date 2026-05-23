@@ -693,6 +693,9 @@ function slider_factory() {
               touch_group.children["touch-txt"].position.x     = x;
             }
             update_touch_arc(touch_group, touch_group.last_press_value || 0);
+            const _c = touch_group.children["touch-circle"];
+            if (_c && msg.data2 > 0) _c.style.fillColor = "red";
+            touch_update_label(touch_group, msg.data2);
             updated = true;
             break;
           }
@@ -701,6 +704,7 @@ function slider_factory() {
               press_midi.status === msg.status && press_midi.data1 === msg.data1) {
             touch_group.last_press_value = msg.data2;
             update_touch_arc(touch_group, msg.data2);
+            touch_update_label(touch_group, msg.data2);
             updated = true;
             break;
           }
@@ -720,6 +724,7 @@ function slider_factory() {
             }
             touch_group.last_press_value = active ? msg.data2 : 0;
             update_touch_arc(touch_group, touch_group.last_press_value);
+            touch_update_label(touch_group, touch_group.last_press_value);
             updated = true;
             break;
           }
@@ -733,6 +738,7 @@ function slider_factory() {
               press_midi.data1 === msg.data1) {
             touch_group.last_press_value = msg.data2;
             update_touch_arc(touch_group, msg.data2);
+            touch_update_label(touch_group, msg.data2);
             updated = true;
             break;
           }

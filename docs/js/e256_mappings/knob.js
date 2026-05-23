@@ -618,6 +618,9 @@ function knob_factory() {
               touch_group.children["knob-needle"].segments[1].point = touch_group.children["knob-touch"].position;
               touch_group.children["touch-txt"].position = touch_group.children["knob-touch"].position;
               update_touch_arc(touch_group, touch_group.last_press_value || 0, "knob-touch");
+              const _kt_r = touch_group.children["knob-touch"];
+              if (_kt_r && msg.data2 > 0) _kt_r.style.fillColor = "red";
+              touch_update_label(touch_group, msg.data2);
               updated = true;
               continue;
             }
@@ -632,6 +635,9 @@ function knob_factory() {
               touch_group.children["knob-needle"].segments[1].point = touch_group.children["knob-touch"].position;
               touch_group.children["touch-txt"].position = touch_group.children["knob-touch"].position;
               update_touch_arc(touch_group, touch_group.last_press_value || 0, "knob-touch");
+              const _kt_t = touch_group.children["knob-touch"];
+              if (_kt_t && msg.data2 > 0) _kt_t.style.fillColor = "red";
+              touch_update_label(touch_group, msg.data2);
               updated = true;
               continue;
             }
@@ -648,16 +654,19 @@ function knob_factory() {
           const value = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) ? msg.data2 : 0;
           touch_group.last_press_value = value;
           update_touch_arc(touch_group, value, "knob-touch");
+          touch_update_label(touch_group, value);
           updated = true;
         } else if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
           if (ps.type !== MIDI_TYPE.CONTROL_CHANGE || press_midi.data1 !== msg.data1) continue;
           touch_group.last_press_value = msg.data2;
           update_touch_arc(touch_group, msg.data2, "knob-touch");
+          touch_update_label(touch_group, msg.data2);
           updated = true;
         } else if (status.type === MIDI_TYPE.AFTERTOUCH_POLY) {
           if (press_midi.data1 !== msg.data1) continue;
           touch_group.last_press_value = msg.data2;
           update_touch_arc(touch_group, msg.data2, "knob-touch");
+          touch_update_label(touch_group, msg.data2);
           updated = true;
         }
       }

@@ -413,6 +413,52 @@ function polygon_factory() {
       if (current_touch && current_touch.id !== null) item_menu_params(current_touch, "show");
     },
 
+    midi_play_update: function(msg) {
+      const touchs_group = this.children["touchs-group"];
+      if (!touchs_group) return;
+      const status = midi_msg_status_unpack(msg.status);
+      let updated = false;
+      for (const touch_group of touchs_group.children) {
+        if (!touch_group.msg) continue;
+        const touch_idx = parseInt(touch_group.name.split("-")[1]) + 1;
+        const _circle = touch_group.children["touch-circle"];
+        const _txt = touch_group.children["touch-txt"];
+        let found = false;
+        if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
+          for (const key of Object.keys(touch_group.msg)) {
+            if (!key.startsWith("source_")) continue;
+            const src = touch_group.msg[key];
+            if (!src?.midi || !src.enabled) continue;
+            if (src.midi.status === msg.status && src.midi.data1 === msg.data1) {
+              if (_circle) _circle.style.fillColor = msg.data2 > 0 ? "red" : "orange";
+              if (_txt) _txt.content = msg.data2 > 0 ? msg.data2 : touch_idx;
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            const pm = touch_group.msg.press?.midi;
+            if (pm && (pm.status & 0xF0) === MIDI_TYPE.CONTROL_CHANGE &&
+                pm.status === msg.status && pm.data1 === msg.data1) {
+              update_touch_arc(touch_group, msg.data2);
+              if (_txt) _txt.content = msg.data2 > 0 ? msg.data2 : touch_idx;
+              found = true;
+            }
+          }
+        } else if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
+          const pm = touch_group.msg.press?.midi;
+          if (pm && (pm.status & 0x0F) === (msg.status & 0x0F) && pm.data1 === msg.data1) {
+            const value = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) ? msg.data2 : 0;
+            update_touch_arc(touch_group, value);
+            if (_txt) _txt.content = value > 0 ? value : touch_idx;
+            found = true;
+          }
+        }
+        if (found) { updated = true; break; }
+      }
+      if (updated) paper.view.update();
+    },
+
     onMouseDrag: function (mouseEvent) {
       if (e256_current_mode === MODE.EDIT) {
         if (current_part.type === "fill") {

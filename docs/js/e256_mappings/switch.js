@@ -381,6 +381,35 @@ function switch_factory() {
           // N/A
           break;
       }
+    },
+
+    midi_play_update: function(msg) {
+      const touchs_group = this.children["touchs-group"];
+      if (!touchs_group) return;
+      const status = midi_msg_status_unpack(msg.status);
+      let updated = false;
+      for (const touch_group of touchs_group.children) {
+        const press_midi = touch_group.msg?.press?.midi;
+        if (!press_midi) continue;
+        const ps = midi_msg_status_unpack(press_midi.status);
+        if (ps.channel !== status.channel) continue;
+        let value = 0;
+        if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
+          if (ps.type !== MIDI_TYPE.NOTE_ON || press_midi.data1 !== msg.data1) continue;
+          value = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) ? msg.data2 : 0;
+        } else if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
+          if (ps.type !== MIDI_TYPE.CONTROL_CHANGE || press_midi.data1 !== msg.data1) continue;
+          value = msg.data2;
+        } else {
+          continue;
+        }
+        const ellipse = touch_group.children["touch-ellipse"];
+        if (ellipse) ellipse.style.fillColor = value > 0 ? "red" : "orange";
+        touch_update_label(touch_group, value);
+        updated = true;
+        break;
+      }
+      if (updated) paper.view.update();
     }
 
   });
