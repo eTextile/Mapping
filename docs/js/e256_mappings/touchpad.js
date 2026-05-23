@@ -504,6 +504,7 @@ function touchpad_factory() {
           let press_midi = touch_group.msg.press ? touch_group.msg.press.midi : null;
           if (!press_midi) continue;
           if ((press_midi.status & 0x0F) !== (msg.status & 0x0F)) continue;
+          if (press_midi.data1 !== msg.data1) continue;
           let value = 0;
           if (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) value = msg.data2;
           else if (status.type === MIDI_TYPE.AFTERTOUCH_POLY)     value = msg.data2;

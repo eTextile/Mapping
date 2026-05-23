@@ -712,19 +712,20 @@ function slider_factory() {
         let steps_group = slider_group.children["steps-group"];
         for (let touch_group of touchs_group.children) {
           if (!touch_group.msg || !touch_group.msg.press?.midi) continue;
-          if ((touch_group.msg.press.midi.status & 0x0F) === (msg.status & 0x0F)) {
-            let active = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0);
-            if (steps_group) {
-              let step_idx = this.data.step_note.indexOf(msg.data1);
-              if (step_idx >= 0 && step_idx < steps_group.children.length) {
-                steps_group.children[step_idx].children[0].fillColor = active ? "red" : null;
-              }
+          const press_midi_n = touch_group.msg.press.midi;
+          if ((press_midi_n.status & 0x0F) !== (msg.status & 0x0F)) continue;
+          if (this.data.move !== MOVE_CODES.ROL && press_midi_n.data1 !== msg.data1) continue;
+          let active = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0);
+          if (steps_group) {
+            let step_idx = this.data.step_note.indexOf(msg.data1);
+            if (step_idx >= 0 && step_idx < steps_group.children.length) {
+              steps_group.children[step_idx].children[0].fillColor = active ? "red" : null;
             }
-            touch_group.last_press_value = active ? msg.data2 : 0;
-            update_touch_arc(touch_group, touch_group.last_press_value);
-            updated = true;
-            break;
           }
+          touch_group.last_press_value = active ? msg.data2 : 0;
+          update_touch_arc(touch_group, touch_group.last_press_value);
+          updated = true;
+          break;
         }
       }
       else if (status.type === MIDI_TYPE.AFTERTOUCH_POLY) {
