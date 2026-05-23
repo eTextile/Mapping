@@ -338,13 +338,21 @@ function on_midi_message(midi_msg) {
       break;
 
     case MIDI_TYPE.CONTROL_CHANGE:
-      if (e256_current_mode === MODE.PLAY) try { midi_play_update_all(msg); } catch(e) { console.warn("midi_play_update:", e); }
-      midi_term_in.push(msg);
+      if (e256_current_mode === MODE.PLAY) {
+        try { midi_play_update_all(msg); } catch(e) { console.warn("midi_play_update:", e); }
+        midi_term_out.push(msg);
+      } else {
+        midi_term_in.push(msg);
+      }
       break;
 
     default:
-      if (e256_current_mode === MODE.PLAY) try { midi_play_update_all(msg); } catch(e) { console.warn("midi_play_update:", e); }
-      midi_term_in.push(msg);
+      if (e256_current_mode === MODE.PLAY) {
+        try { midi_play_update_all(msg); } catch(e) { console.warn("midi_play_update:", e); }
+        midi_term_out.push(msg);
+      } else {
+        midi_term_in.push(msg);
+      }
       break;
   }
 };
