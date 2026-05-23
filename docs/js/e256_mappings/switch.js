@@ -22,6 +22,7 @@ function switch_factory() {
 
   let _tap_times = [];
   let _clock_timer_id = null;
+  let _initial_aspect_ratio = null;
 
   var _switch = new paper.Group({
     "name": "switch",
@@ -260,22 +261,57 @@ function switch_factory() {
         }
       }
 
-      /*
       _switch_frame.onMouseDown = function () {
-      }
-      */
+        const w = _switch_group.data.to.x - _switch_group.data.from.x;
+        const h = _switch_group.data.to.y - _switch_group.data.from.y;
+        _initial_aspect_ratio = h > 0 ? w / h : 1;
+      };
 
       _switch_frame.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
           case MODE.EDIT:
             let new_pos = new paper.Point();
             if (current_part.type === "bounds") {
+              let pt = mouseEvent.point.clone();
+              const ratio = _initial_aspect_ratio || 1;
+              if (mouseEvent.modifiers.shift) {
+                switch (current_part.name) {
+                  case "top-left": {
+                    const dx = _switch_group.data.to.x - pt.x;
+                    const dy = _switch_group.data.to.y - pt.y;
+                    if (dx / ratio > dy) pt.y = _switch_group.data.to.y - dx / ratio;
+                    else pt.x = _switch_group.data.to.x - dy * ratio;
+                    break;
+                  }
+                  case "top-right": {
+                    const dx = pt.x - _switch_group.data.from.x;
+                    const dy = _switch_group.data.to.y - pt.y;
+                    if (dx / ratio > dy) pt.y = _switch_group.data.to.y - dx / ratio;
+                    else pt.x = _switch_group.data.from.x + dy * ratio;
+                    break;
+                  }
+                  case "bottom-right": {
+                    const dx = pt.x - _switch_group.data.from.x;
+                    const dy = pt.y - _switch_group.data.from.y;
+                    if (dx / ratio > dy) pt.y = _switch_group.data.from.y + dx / ratio;
+                    else pt.x = _switch_group.data.from.x + dy * ratio;
+                    break;
+                  }
+                  case "bottom-left": {
+                    const dx = _switch_group.data.to.x - pt.x;
+                    const dy = pt.y - _switch_group.data.from.y;
+                    if (dx / ratio > dy) pt.y = _switch_group.data.from.y + dx / ratio;
+                    else pt.x = _switch_group.data.to.x - dy * ratio;
+                    break;
+                  }
+                }
+              }
               switch (current_part.name) {
                 case "top-left":
-                  this.segments[0].point.x = mouseEvent.point.x;
-                  this.segments[1].point = mouseEvent.point;
-                  this.segments[2].point.y = mouseEvent.point.y;
-                  _switch_group.data.from = mouseEvent.point;
+                  this.segments[0].point.x = pt.x;
+                  this.segments[1].point = pt;
+                  this.segments[2].point.y = pt.y;
+                  _switch_group.data.from = pt;
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.to.x - half_frame_width;
@@ -292,11 +328,11 @@ function switch_factory() {
                   }
                   break;
                 case "top-right":
-                  this.segments[1].point.y = mouseEvent.point.y;
-                  this.segments[2].point = mouseEvent.point;
-                  this.segments[3].point.x = mouseEvent.point.x;
-                  _switch_group.data.from.y = mouseEvent.point.y;
-                  _switch_group.data.to.x = mouseEvent.point.x;
+                  this.segments[1].point.y = pt.y;
+                  this.segments[2].point = pt;
+                  this.segments[3].point.x = pt.x;
+                  _switch_group.data.from.y = pt.y;
+                  _switch_group.data.to.x = pt.x;
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.from.x + half_frame_width;
@@ -313,16 +349,16 @@ function switch_factory() {
                   }
                   break;
                 case "bottom-right":
-                  this.segments[2].point.x = mouseEvent.point.x;
-                  this.segments[3].point = mouseEvent.point;
-                  this.segments[0].point.y = mouseEvent.point.y;
-                  _switch_group.data.to = mouseEvent.point;
+                  this.segments[2].point.x = pt.x;
+                  this.segments[3].point = pt;
+                  this.segments[0].point.y = pt.y;
+                  _switch_group.data.to = pt;
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.from.x + half_frame_width;
                   new_pos.y = _switch_group.data.from.y + half_frame_height;
                   switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
-                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;                  
+                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
                   for (const _touch of _touchs_group.children) {
                     _touch.children["touch-ellipse"].position = new_pos;
                     _touch.children["touch-txt"].position = new_pos;
@@ -333,11 +369,11 @@ function switch_factory() {
                   }
                   break;
                 case "bottom-left":
-                  this.segments[3].point.y = mouseEvent.point.y;
-                  this.segments[0].point = mouseEvent.point;
-                  this.segments[1].point.x = mouseEvent.point.x;
-                  _switch_group.data.from.x = mouseEvent.point.x;
-                  _switch_group.data.to.y = mouseEvent.point.y;
+                  this.segments[3].point.y = pt.y;
+                  this.segments[0].point = pt;
+                  this.segments[1].point.x = pt.x;
+                  _switch_group.data.from.x = pt.x;
+                  _switch_group.data.to.y = pt.y;
                   half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.to.x - half_frame_width;
