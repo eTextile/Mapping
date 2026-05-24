@@ -49,7 +49,7 @@ const MIDI_TYPE = {
   PITCH_BEND: 0xE0,
   CLOCK: 0xF8,
   CHORD: 0xFE,
-  NONE: 0xFF,
+  NONE: 0xFF
 };
 
 const MIDI_BY_NAME = Object.fromEntries(
@@ -80,10 +80,11 @@ const MIDI_SYSEX = {
 
 // SysEx packet types  (byte[2] after F0 + DEVICE_ID)
 const SYSEX_PKT = {
-  CMD:   0x01,  // web → firmware: mode command
-  ACK:   0x02,  // firmware → web: mode acknowledgment
-  ERR:   0x03,  // firmware → web: error
-  PARAM: 0x04   // firmware → web: level parameter value
+  CMD:     0x01,  // web → firmware: mode command
+  ACK:     0x02,  // firmware → web: mode acknowledgment
+  ERR:     0x03,  // firmware → web: error
+  PARAM:   0x04,  // firmware → web: level parameter value
+  MIDI_IN: 0x05   // firmware → web: hardware MIDI IN forwarded message
 };
 
 // SysEx PARAM IDs (mirrors MIDI_CC / level_code_t in firmware)

@@ -298,6 +298,15 @@ function on_midi_message(midi_msg) {
           alert_msg("ERROR: " + ERROR_CODES[payload], "danger");
         } else if (pkt_type === SYSEX_PKT.PARAM) {
           handle_sysex_param(payload, midi_msg.data[4]);
+        } else if (pkt_type === SYSEX_PKT.MIDI_IN && e256_current_mode === MODE.PLAY) {
+          const type_nibble    = midi_msg.data[3];
+          const channel_0based = midi_msg.data[4];
+          const msg = {
+            status: (type_nibble << 4) | channel_0based,
+            data1:  midi_msg.data[5],
+            data2:  midi_msg.data[6]
+          };
+          midi_term_in.push(msg);
         }
         break;
       }
