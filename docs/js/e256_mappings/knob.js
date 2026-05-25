@@ -8,7 +8,7 @@
 // Multitouch MIDI knob GUI
 function knob_factory() {
  
-  const DEFAULT_KNOB = {
+  const DEFAULT = {
     TOUCHS: 1,
     RADIUS: 250,
     OFFSET: -45,
@@ -34,9 +34,9 @@ function knob_factory() {
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.data.touchs = DEFAULT_KNOB.TOUCHS;
-      this.data.press = DEFAULT_KNOB.MODE_Z;
-      this.radius = DEFAULT_KNOB.RADIUS;
+      this.data.touchs = DEFAULT.TOUCHS;
+      this.data.press = DEFAULT.MODE_Z;
+      this.radius = DEFAULT.RADIUS;
       this.data.from = new paper.Point(
         mouseEvent.point.x - this.radius,
         mouseEvent.point.y - this.radius
@@ -45,16 +45,16 @@ function knob_factory() {
         mouseEvent.point.x + this.radius,
         mouseEvent.point.y + this.radius
       );
-      this.data.offset = DEFAULT_KNOB.OFFSET;
+      this.data.offset = DEFAULT.OFFSET;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.center = mouseEvent.point;
-      this.theta = deg_to_rad(DEFAULT_KNOB.OFFSET);
+      this.theta = deg_to_rad(DEFAULT.OFFSET);
       this.data.msg = [];
       let touch_msg;
-      for (let _touch = 0; _touch < DEFAULT_KNOB.TOUCHS; _touch++) {
+      for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         touch_msg = {};
-        touch_msg.radius = midi_msg_builder(DEFAULT_KNOB.MODE_R);
-        touch_msg.theta = midi_msg_builder(DEFAULT_KNOB.MODE_T);
+        touch_msg.radius = midi_msg_builder(DEFAULT.MODE_R);
+        touch_msg.theta = midi_msg_builder(DEFAULT.MODE_T);
         touch_msg.press = midi_msg_builder(this.data.press);
         /*
         switch (this.data.press) {
@@ -112,8 +112,8 @@ function knob_factory() {
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.press != previous_mode_z) {
-          touch_msg.radius = midi_msg_builder(DEFAULT_KNOB.MODE_R);
-          touch_msg.theta = midi_msg_builder(DEFAULT_KNOB.MODE_T);
+          touch_msg.radius = midi_msg_builder(DEFAULT.MODE_R);
+          touch_msg.theta = midi_msg_builder(DEFAULT.MODE_T);
           touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
@@ -121,8 +121,8 @@ function knob_factory() {
             touch_msg = this.children["touchs-group"].children[_touch].msg;
           }
           else {
-            touch_msg.radius = midi_msg_builder(DEFAULT_KNOB.MODE_R);
-            touch_msg.theta = midi_msg_builder(DEFAULT_KNOB.MODE_T);
+            touch_msg.radius = midi_msg_builder(DEFAULT.MODE_R);
+            touch_msg.theta = midi_msg_builder(DEFAULT.MODE_T);
             touch_msg.press = midi_msg_builder(this.data.press);
           }
         }

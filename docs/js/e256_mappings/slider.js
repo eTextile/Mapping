@@ -8,7 +8,7 @@
 // Multitouch MIDI slider GUI
 function slider_factory() {
 
-  const DEFAULT_SLIDER = {
+  const DEFAULT = {
     WIDTH: 60,
     HEIGHT: 400,
     MIN_WIDTH: 50,
@@ -43,30 +43,30 @@ function slider_factory() {
     },
 
     setup_from_mouse_event: function (mouseEvent) {
-      this.dir = DEFAULT_SLIDER.DIR;
-      this.data.touchs = DEFAULT_SLIDER.TOUCHS;
+      this.dir = DEFAULT.DIR;
+      this.data.touchs = DEFAULT.TOUCHS;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
-      this.data.press = DEFAULT_SLIDER.MODE_PRESS;
-      this.data.move = DEFAULT_SLIDER.MODE_MOVE;
-      this.data.populate = DEFAULT_SLIDER.POPULATE;
-      this.data.steps = DEFAULT_SLIDER.STEPS;
+      this.data.press = DEFAULT.MODE_PRESS;
+      this.data.move = DEFAULT.MODE_MOVE;
+      this.data.populate = DEFAULT.POPULATE;
+      this.data.steps = DEFAULT.STEPS;
 
       this.data.from = new paper.Point(
-        mouseEvent.point.x - (DEFAULT_SLIDER.WIDTH / 2),
-        mouseEvent.point.y - (DEFAULT_SLIDER.HEIGHT / 2)
+        mouseEvent.point.x - (DEFAULT.WIDTH / 2),
+        mouseEvent.point.y - (DEFAULT.HEIGHT / 2)
       );
       this.data.to = new paper.Point(
-        mouseEvent.point.x + (DEFAULT_SLIDER.WIDTH / 2),
-        mouseEvent.point.y + (DEFAULT_SLIDER.HEIGHT / 2)
+        mouseEvent.point.x + (DEFAULT.WIDTH / 2),
+        mouseEvent.point.y + (DEFAULT.HEIGHT / 2)
       );
       this.data.msg = [];
-      for (let _touch = 0; _touch < DEFAULT_SLIDER.TOUCHS; _touch++) {
+      for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER.MODE_POS);
+        touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
         touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
       }
-      this.data.step_note = Array.from({ length: DEFAULT_SLIDER.STEPS }, (_, i) => 60 + i);
+      this.data.step_note = Array.from({ length: DEFAULT.STEPS }, (_, i) => 60 + i);
       this._populate_notes = [];
       this._populate_count = 0;
     },
@@ -74,14 +74,14 @@ function slider_factory() {
     setup_from_config: function (params) {
       this.data.touchs = params.touchs || 1;
       this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
-      this.data.steps = params.steps || DEFAULT_SLIDER.STEPS;
+      this.data.steps = params.steps || DEFAULT.STEPS;
       this.data.msg = params.msg;
       this.data.press = params.press ?? MIDI_TYPE.NONE;
       if (this.data.press === MIDI_TYPE.NONE) {
         for (const touch_msg of this.data.msg) touch_msg.press = {};
       }
-      this.data.move = params.move || DEFAULT_SLIDER.MODE_MOVE;
-      this.data.populate = params.populate || DEFAULT_SLIDER.POPULATE;
+      this.data.move = params.move || DEFAULT.MODE_MOVE;
+      this.data.populate = params.populate || DEFAULT.POPULATE;
       this.data.from = new paper.Point(
         mapp(params.from[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.from[1], 0, NEW_ROWS, 0, canvas_height)
@@ -125,17 +125,17 @@ function slider_factory() {
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
         if (this.data.press != previous_press) {
-          if (!is_rol) touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER.MODE_POS);
+          if (!is_rol) touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
           touch_msg.press = midi_msg_builder(this.data.press);
         }
         else {
           if (_touch < previous_touch_count) {
             touch_msg = this.children["touchs-group"].children[_touch].msg;
             if (is_rol) delete touch_msg.pos;
-            else if (!touch_msg.pos) touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER.MODE_POS);
+            else if (!touch_msg.pos) touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
           }
           else {
-            if (!is_rol) touch_msg.pos = midi_msg_builder(DEFAULT_SLIDER.MODE_POS);
+            if (!is_rol) touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
             touch_msg.press = midi_msg_builder(this.data.press);
           }
         }
@@ -442,10 +442,10 @@ function slider_factory() {
             switch (current_part.name) {
               case "top-left":
                 previous_frame_width = current_frame_width;
-                current_frame_width = Math.max(DEFAULT_SLIDER.MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
+                current_frame_width = Math.max(DEFAULT.MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
                 previous_frame_height = current_frame_height;
-                current_frame_height = Math.max(DEFAULT_SLIDER.MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
-                if (current_frame_width >= DEFAULT_SLIDER.MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER.MIN_HEIGHT) {
+                current_frame_height = Math.max(DEFAULT.MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
+                if (current_frame_width >= DEFAULT.MIN_WIDTH && current_frame_height >= DEFAULT.MIN_HEIGHT) {
                   this.segments[0].point.x = mouseEvent.point.x;
                   this.segments[1].point = mouseEvent.point;
                   this.segments[2].point.y = mouseEvent.point.y;
@@ -455,10 +455,10 @@ function slider_factory() {
                 break;
               case "top-right":
                 previous_frame_width = current_frame_width;
-                current_frame_width = Math.max(DEFAULT_SLIDER.MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
+                current_frame_width = Math.max(DEFAULT.MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
                 previous_frame_height = current_frame_height;
-                current_frame_height = Math.max(DEFAULT_SLIDER.MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
-                if (current_frame_width >= DEFAULT_SLIDER.MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER.MIN_HEIGHT) {
+                current_frame_height = Math.max(DEFAULT.MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
+                if (current_frame_width >= DEFAULT.MIN_WIDTH && current_frame_height >= DEFAULT.MIN_HEIGHT) {
                   this.segments[1].point.y = mouseEvent.point.y;
                   this.segments[2].point = mouseEvent.point;
                   this.segments[3].point.x = mouseEvent.point.x;
@@ -469,10 +469,10 @@ function slider_factory() {
                 break;
               case "bottom-right":
                 previous_frame_width = current_frame_width;
-                current_frame_width = Math.max(DEFAULT_SLIDER.MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
+                current_frame_width = Math.max(DEFAULT.MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
                 previous_frame_height = current_frame_height;
-                current_frame_height = Math.max(DEFAULT_SLIDER.MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
-                if (current_frame_width >= DEFAULT_SLIDER.MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER.MIN_HEIGHT) {
+                current_frame_height = Math.max(DEFAULT.MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
+                if (current_frame_width >= DEFAULT.MIN_WIDTH && current_frame_height >= DEFAULT.MIN_HEIGHT) {
                   this.segments[2].point.x = mouseEvent.point.x;
                   this.segments[3].point = mouseEvent.point;
                   this.segments[0].point.y = mouseEvent.point.y;
@@ -482,10 +482,10 @@ function slider_factory() {
                 break;
               case "bottom-left":
                 previous_frame_width = current_frame_width;
-                current_frame_width = Math.max(DEFAULT_SLIDER.MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
+                current_frame_width = Math.max(DEFAULT.MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
                 previous_frame_height = current_frame_height;
-                current_frame_height = Math.max(DEFAULT_SLIDER.MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
-                if (current_frame_width >= DEFAULT_SLIDER.MIN_WIDTH && current_frame_height >= DEFAULT_SLIDER.MIN_HEIGHT) {
+                current_frame_height = Math.max(DEFAULT.MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
+                if (current_frame_width >= DEFAULT.MIN_WIDTH && current_frame_height >= DEFAULT.MIN_HEIGHT) {
                   this.segments[3].point.y = mouseEvent.point.y;
                   this.segments[0].point = mouseEvent.point;
                   this.segments[1].point.x = mouseEvent.point.x;

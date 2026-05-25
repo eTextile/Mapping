@@ -6,30 +6,31 @@ This work is licensed under Creative Commons Attribution-ShareAlike 4.0 Internat
 
 /////////// SWITCH Factory
 function switch_factory() {
-  const DEFAULT_SWITCH_WIDTH = canvas_width / SCALE_X;
-  const DEFAULT_SWITCH_HEIGHT = canvas_height / SCALE_X;
-  //const DEFAULT_SWITCH_MIN_SIZE = 50;
-  const DEFAULT_SWITCH_TOUCHS = 1;
-  const DEFAULT_SWITCH_MODE_Z = MIDI_TYPE.NOTE_ON;
-  const DEFAULT_SWITCH_CHORD = 1;
-  const DEFAULT_SWITCH_BUTTON_PADDING = 8;
+  const DEFAULT = {
+    WIDTH:          canvas_width / SCALE_X,
+    HEIGHT:         canvas_height / SCALE_X,
+    TOUCHS:         1,
+    MODE_Z:         MIDI_TYPE.NOTE_ON,
+    CHORD:          1,
+    BUTTON_PADDING: 8
+  };
 
   let half_frame_width = null;
   let half_frame_height = null;
 
-  let switch_radius_size_width = null;
-  let switch_radius_size_height = null;
+  let switch_radius_step = null;
 
   let _tap_times = [];
   let _clock_timer_id = null;
   let _initial_aspect_ratio = null;
+  let _pressed_touch_id = null;
 
   var _switch = new paper.Group({
     "name": "switch",
     "data": {
+      "touchs": null,
       "from": null,
       "to": null,
-      "touchs": null,
       "press": null,
       "chan": null,
       "msg": null
@@ -38,20 +39,20 @@ function switch_factory() {
     setup_from_mouse_event: function (mouseEvent) {
  
       this.data.from = new paper.Point(
-        mouseEvent.point.x - (DEFAULT_SWITCH_WIDTH / 2),
-        mouseEvent.point.y - (DEFAULT_SWITCH_HEIGHT / 2)
+        mouseEvent.point.x - (DEFAULT.WIDTH / 2),
+        mouseEvent.point.y - (DEFAULT.HEIGHT / 2)
       );
       this.data.to = new paper.Point(
-        mouseEvent.point.x + (DEFAULT_SWITCH_WIDTH / 2),
-        mouseEvent.point.y + (DEFAULT_SWITCH_HEIGHT / 2)
+        mouseEvent.point.x + (DEFAULT.WIDTH / 2),
+        mouseEvent.point.y + (DEFAULT.HEIGHT / 2)
       );
       
-      this.data.touchs = DEFAULT_SWITCH_TOUCHS;
-      this.data.press = DEFAULT_SWITCH_MODE_Z;
+      this.data.touchs = DEFAULT.TOUCHS;
+      this.data.press = DEFAULT.MODE_Z;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
 
       this.data.msg = [];
-      for (let _touch = 0; _touch < DEFAULT_SWITCH_TOUCHS; _touch++) {
+      for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
         touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
@@ -107,7 +108,7 @@ function switch_factory() {
       }
     },
 
-    new_touch: function (_switch, _touch_id) {
+    new_touch: function (_switch, _touch_id, touchs_count) {
 
       let _touch_group = new paper.Group({
         "name": "touch-" + _touch_id,
@@ -115,38 +116,44 @@ function switch_factory() {
         "pos": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
       });
 
-      let _touch_ellipse = new paper.Shape.Ellipse({
+      const _disc_radius = switch_radius_step * (touchs_count - _touch_id);
+      // Opacity increases toward the center so rings are visually distinct
+      const _disc_alpha = 0.25 + 0.6 * (_touch_id / Math.max(touchs_count - 1, 1));
+
+      let _touch_ellipse = new paper.Shape.Circle({
         "name": "touch-ellipse",
         "center": _touch_group.pos,
-        "radius": new paper.Point((switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch_id * switch_radius_size_width), (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch_id * switch_radius_size_height)),
+        "radius": _disc_radius,
       });
 
+      const _disc_color       = new paper.Color(1, 0.6, 0, _disc_alpha);
+      const _disc_color_hover = new paper.Color(1, 0.4, 0, Math.min(_disc_alpha + 0.2, 1));
+
       _touch_ellipse.style = {
-        "fillColor": "orange"
-      }
+        "fillColor": _disc_color,
+        "strokeColor": null
+      };
 
       _touch_ellipse.onMouseEnter = function () {
-        this.style.fillColor = "red";
-        if (e256_current_mode === MODE.EDIT) {
-          if (current_touch.id !== _touch_group.id) item_menu_params(current_touch, "hide");
-          previous_touch = current_touch;
-          current_touch = _touch_group;
-          item_menu_params(current_touch, "show");
-        }
+        if (_pressed_touch_id !== null && _pressed_touch_id !== _touch_id) return;
+        this.style.fillColor = _disc_color_hover;
+        if (e256_current_mode === MODE.EDIT && !touch_selection_locked) show_only_touch(_touch_group);
       }
 
       _touch_ellipse.onMouseLeave = function () {
-        this.style.fillColor = "orange";
+        if (_pressed_touch_id === _touch_id) return;
+        this.style.fillColor = _disc_color;
       }
 
       _touch_ellipse.onMouseDown = function () {
+        _pressed_touch_id = _touch_id;
         switch (e256_current_mode) {
           case MODE.EDIT:
-            previous_touch = current_touch;
-            current_touch = _touch_group;
+            show_only_touch(_touch_group, true);
+            touch_selection_locked = true;
             break;
           case MODE.THROUGH:
-            this.style.fillColor = "red";
+            this.style.fillColor = new paper.Color(1, 0, 0, _disc_alpha + 0.2);
             if (_switch.data.press === MIDI_TYPE.CLOCK) {
               const now = performance.now();
               _tap_times.push(now);
@@ -171,12 +178,13 @@ function switch_factory() {
       }
 
       _touch_ellipse.onMouseUp = function () {
+        _pressed_touch_id = null;
+        this.style.fillColor = _disc_color;
         switch (e256_current_mode) {
           case MODE.EDIT:
             // N/A
             break;
           case MODE.THROUGH:
-            this.style.fillColor = "orange";
             if (_switch.data.press !== MIDI_TYPE.CLOCK) touch_press_up(_switch, _touch_group);
             break;
           case MODE.PLAY:
@@ -188,12 +196,12 @@ function switch_factory() {
       let _touch_arc = make_touch_arc(_touch_group.pos);
       _touch_group.addChild(_touch_arc);
 
+      // ID label placed just inside the top edge of this disc
       let _touch_txt = make_touch_txt(
-        _touch_group.pos,
+        new paper.Point(_touch_group.pos.x, _touch_group.pos.y - _disc_radius + FONT_SIZE),
         String(_touch_id + 1),
-        { fontSize: FONT_SIZE * 2, fontWeight: "bold", justification: "center", fillColor: "white" }
+        { fontSize: FONT_SIZE, fontWeight: "bold", justification: "center", fillColor: "white" }
       );
-      _touch_txt.position = _touch_group.pos;
 
       _touch_group.addChild(_touch_txt);
 
@@ -205,9 +213,9 @@ function switch_factory() {
       let _switch_group = new paper.Group({
         "name": "switch-group",
         "data": {
+          "touchs": this.data.touchs,
           "from": this.data.from,
           "to": this.data.to,
-          "touchs": this.data.touchs,
           "press": this.data.press,
           "chan": this.data.chan
         }
@@ -216,15 +224,14 @@ function switch_factory() {
       half_frame_width = (_switch_group.data.to.x - _switch_group.data.from.x) / 2;
       half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
 
-      switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
-      switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+      switch_radius_step = (Math.min(half_frame_width, half_frame_height) - DEFAULT.BUTTON_PADDING) / _switch_group.data.touchs;
 
       let _touchs_group = new paper.Group({
         "name": "touchs-group"
       });
 
       for (let _touch = 0; _touch < _switch_group.data.touchs; _touch++) {
-        _touchs_group.addChild(this.new_touch(_switch_group, _touch));
+        _touchs_group.addChild(this.new_touch(_switch_group, _touch, _switch_group.data.touchs));
       }
 
       let _switch_frame = new paper.Path.Rectangle({
@@ -316,15 +323,13 @@ function switch_factory() {
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.to.x - half_frame_width;
                   new_pos.y = _switch_group.data.to.y - half_frame_height;
-                  switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
-                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_step = (Math.min(half_frame_width, half_frame_height) - DEFAULT.BUTTON_PADDING) / _switch_group.data.touchs;
                   for (const _touch of _touchs_group.children) {
+                    const tid = Number(_touch.name[_touch.name.length - 1]);
+                    const r = switch_radius_step * (_switch_group.data.touchs - tid);
                     _touch.children["touch-ellipse"].position = new_pos;
-                    _touch.children["touch-txt"].position = new_pos;
-                    _touch.children["touch-ellipse"].radius = [
-                      (switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_width),
-                      (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_height)
-                    ];
+                    _touch.children["touch-ellipse"].radius = r;
+                    _touch.children["touch-txt"].position = new paper.Point(new_pos.x, new_pos.y - r + FONT_SIZE);
                   }
                   break;
                 case "top-right":
@@ -337,15 +342,13 @@ function switch_factory() {
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.from.x + half_frame_width;
                   new_pos.y = _switch_group.data.to.y - half_frame_height;
-                  switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
-                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_step = (Math.min(half_frame_width, half_frame_height) - DEFAULT.BUTTON_PADDING) / _switch_group.data.touchs;
                   for (const _touch of _touchs_group.children) {
+                    const tid = Number(_touch.name[_touch.name.length - 1]);
+                    const r = switch_radius_step * (_switch_group.data.touchs - tid);
                     _touch.children["touch-ellipse"].position = new_pos;
-                    _touch.children["touch-txt"].position = new_pos;
-                    _touch.children["touch-ellipse"].radius = [
-                      (switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_width),
-                      (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_height)
-                    ];
+                    _touch.children["touch-ellipse"].radius = r;
+                    _touch.children["touch-txt"].position = new paper.Point(new_pos.x, new_pos.y - r + FONT_SIZE);
                   }
                   break;
                 case "bottom-right":
@@ -357,15 +360,13 @@ function switch_factory() {
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.from.x + half_frame_width;
                   new_pos.y = _switch_group.data.from.y + half_frame_height;
-                  switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
-                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_step = (Math.min(half_frame_width, half_frame_height) - DEFAULT.BUTTON_PADDING) / _switch_group.data.touchs;
                   for (const _touch of _touchs_group.children) {
+                    const tid = Number(_touch.name[_touch.name.length - 1]);
+                    const r = switch_radius_step * (_switch_group.data.touchs - tid);
                     _touch.children["touch-ellipse"].position = new_pos;
-                    _touch.children["touch-txt"].position = new_pos;
-                    _touch.children["touch-ellipse"].radius = [
-                      (switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_width),
-                      (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_height)
-                    ];
+                    _touch.children["touch-ellipse"].radius = r;
+                    _touch.children["touch-txt"].position = new paper.Point(new_pos.x, new_pos.y - r + FONT_SIZE);
                   }
                   break;
                 case "bottom-left":
@@ -378,15 +379,13 @@ function switch_factory() {
                   half_frame_height = (_switch_group.data.to.y - _switch_group.data.from.y) / 2;
                   new_pos.x = _switch_group.data.to.x - half_frame_width;
                   new_pos.y = _switch_group.data.from.y + half_frame_height;
-                  switch_radius_size_width = (half_frame_width - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
-                  switch_radius_size_height = (half_frame_height - DEFAULT_SWITCH_BUTTON_PADDING) / DEFAULT_SWITCH_TOUCHS;
+                  switch_radius_step = (Math.min(half_frame_width, half_frame_height) - DEFAULT.BUTTON_PADDING) / _switch_group.data.touchs;
                   for (const _touch of _touchs_group.children) {
+                    const tid = Number(_touch.name[_touch.name.length - 1]);
+                    const r = switch_radius_step * (_switch_group.data.touchs - tid);
                     _touch.children["touch-ellipse"].position = new_pos;
-                    _touch.children["touch-txt"].position = new_pos;
-                    _touch.children["touch-ellipse"].radius = [
-                      (switch_radius_size_width * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_width),
-                      (switch_radius_size_height * DEFAULT_SWITCH_TOUCHS) - (_touch.name[_touch.name.length - 1] * switch_radius_size_height)
-                    ];
+                    _touch.children["touch-ellipse"].radius = r;
+                    _touch.children["touch-txt"].position = new paper.Point(new_pos.x, new_pos.y - r + FONT_SIZE);
                   }
                   break;
                 default:

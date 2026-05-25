@@ -9,7 +9,7 @@
 // Multidimensional crossfade
 function polygon_factory() {
 
-  const DEFAULT_POLYGON = {
+  const DEFAULT = {
     SIDES: 3,
     SIZE: 300,
     STROKE_WIDTH: 1,
@@ -30,13 +30,13 @@ function polygon_factory() {
 
     setup_from_mouse_event: function (mouseEvent) {
 
-      this.data.press = DEFAULT_POLYGON.MODE_Z;
+      this.data.press = DEFAULT.MODE_Z;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
 
       // Build a regular polygon centered on the click; store segments as [paper.Point] arrays.
-      let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT_POLYGON.SIDES, DEFAULT_POLYGON.SIZE).segments;
+      let polygon = new paper.Path.RegularPolygon(mouseEvent.point, DEFAULT.SIDES, DEFAULT.SIZE).segments;
       this.data.segments = polygon.map(s => [s.point]);
-      this.data.touchs = DEFAULT_POLYGON.TOUCHS; // one central touch per polygon
+      this.data.touchs = DEFAULT.TOUCHS; // one central touch per polygon
 
       // One source_N CC axis per vertex + one press axis per touch.
       this.data.msg = [];
@@ -44,7 +44,7 @@ function polygon_factory() {
         let touch_msg = {};
         for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
           const key = "source_" + vertex_index;
-          const src_msg = midi_msg_builder(DEFAULT_POLYGON.MODE_DIST);
+          const src_msg = midi_msg_builder(DEFAULT.MODE_DIST);
           src_msg.enabled = true;
           touch_msg[key] = src_msg;
         }
@@ -83,7 +83,7 @@ function polygon_factory() {
         if (this.data.press != previous_mode_z) {
           // Press mode changed: reset all axes to fresh defaults.
           for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
-            const src = midi_msg_builder(DEFAULT_POLYGON.MODE_DIST);
+            const src = midi_msg_builder(DEFAULT.MODE_DIST);
             src.enabled = true;
             touch_msg["source_" + vertex_index] = src;
           }
@@ -97,7 +97,7 @@ function polygon_factory() {
           else {
             // New touch slot added: initialize with defaults.
             for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
-              const src = midi_msg_builder(DEFAULT_POLYGON.MODE_DIST);
+              const src = midi_msg_builder(DEFAULT.MODE_DIST);
               src.enabled = true;
               touch_msg["source_" + vertex_index] = src;
             }
@@ -284,7 +284,7 @@ function polygon_factory() {
       });
 
       _polygon_curve.style = {
-        "strokeWidth": DEFAULT_POLYGON.STROKE_WIDTH,
+        "strokeWidth": DEFAULT.STROKE_WIDTH,
         "fillColor": new paper.Color(0, 0, 0, 0.01),
         "strokeColor": "black",
         "strokeJoin": "round"
@@ -331,7 +331,7 @@ function polygon_factory() {
               for (let i = N - 1; i >= ins; i--) {
                 touch.msg["source_" + (i + 1)] = touch.msg["source_" + i];
               }
-              const new_msg = midi_msg_builder(DEFAULT_POLYGON.MODE_DIST);
+              const new_msg = midi_msg_builder(DEFAULT.MODE_DIST);
               new_msg.enabled = true;
               touch.msg["source_" + ins] = new_msg;
               touch.prev_dists.splice(ins, 0, 0);
@@ -397,7 +397,7 @@ function polygon_factory() {
         spoke.locked = true;
         _spokes_group.addChild(spoke);
         touch.prev_dists.push(0);
-        const new_msg = midi_msg_builder(DEFAULT_POLYGON.MODE_DIST);
+        const new_msg = midi_msg_builder(DEFAULT.MODE_DIST);
         new_msg.enabled = true;
         touch.msg[key] = new_msg;
       }
