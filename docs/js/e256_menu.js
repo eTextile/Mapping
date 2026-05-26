@@ -125,8 +125,10 @@ $(document).on("keydown", function (event) {
     case "p": $("#EDIT, #THROUGH").removeClass("active"); $("#PLAY").trigger("click");   break;
     case "e": $("#PLAY, #THROUGH").removeClass("active"); $("#EDIT").trigger("click");   break;
     case "t": $("#EDIT, #PLAY").removeClass("active");    $("#THROUGH").trigger("click"); break;
-    case "m": $("#MATRIX_RAW").trigger("click");    break;
-    case "M": $("#MAPPING").trigger("click");       break; // shift + m
+    case "m":
+      if ($("#MAPPING").hasClass("active")) $("#MATRIX_RAW").trigger("click");
+      else $("#MAPPING").trigger("click");
+      break;
     case "c": $("#CALIBRATE").trigger("click");     break;
     case "u": $("#upload_config").trigger("click"); break;
     case "s": $("#save_config").trigger("click");   break;

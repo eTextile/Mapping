@@ -49,8 +49,7 @@
         <tr><td><kbd>p</kbd></td><td>PLAY mode</td></tr>
         <tr><td><kbd>e</kbd></td><td>EDIT mode</td></tr>
         <tr><td><kbd>t</kbd></td><td>THROUGH mode</td></tr>
-        <tr><td><kbd>m</kbd></td><td>MATRIX mode</td></tr>
-        <tr><td><kbd>shift</kbd><kbd>m</kbd></td><td>MAPPING mode</td></tr>
+        <tr><td><kbd>m</kbd></td><td>Toggle MAPPING / MATRIX mode</td></tr>
         <tr><td><kbd>c</kbd></td><td>CALIBRATE</td></tr>
         <tr><td><kbd>u</kbd></td><td>UPLOAD config</td></tr>
         <tr><td><kbd>s</kbd></td><td>SAVE config</td></tr>
@@ -142,7 +141,6 @@
                     </div>
                     <div class="btn-group" role="group">
                       <button id="fetch_config" class="btn btn-outline-primary" type="button">FETCH</button>
-                      <button id="upload_config" class="btn btn-outline-primary" type="button">UPLOAD</button>
                       <button id="save_config" class="btn btn-outline-primary" type="button">SAVE</button>
                     </div>
                     <div id="load_menu" class="collapse">
@@ -189,6 +187,10 @@
       <div class="card-body card shadow d-flex flex-column">
 
         <div id="e256_params" class="p-2"></div>
+
+        <div class="px-2 pb-2">
+          <button id="upload_config" class="btn btn-outline-primary w-100" type="button">UPLOAD</button>
+        </div>
 
         <div id="midi_term" class="collapse p-2">
           <div class="row g-1">

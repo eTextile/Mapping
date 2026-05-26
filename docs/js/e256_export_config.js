@@ -70,6 +70,7 @@ function list_layer_params(layer) {
             slider_params[param] = item.data[param];
           }
         }
+        slider_params["dir"] = (item.dir === "V_SLIDER") ? 0 : 1;
         e256_params.push(slider_params);
         break;
 

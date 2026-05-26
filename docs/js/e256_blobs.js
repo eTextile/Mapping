@@ -142,7 +142,10 @@ function blob_factory() {
       this.children["blob-group"].children["blob-box"].position = centroid;
       this.children["blob-group"].children["blob-box"].size = new paper.Size(blob_width, blob_height);
 
-      this.children["blob-group"].children["blob-txt"].position = centroid;
+      this.children["blob-group"].children["blob-txt"].position = new paper.Point(
+        centroid.x + 2 * TOUCH_RADIUS + 15,
+        centroid.y
+      );
       this.children["blob-group"].children["blob-txt"].content =
         "UID: " + sysExMsg[BLOB_PARAM_CODE.UID] +
         "\nX: " + centroid.x.toFixed(2) +
