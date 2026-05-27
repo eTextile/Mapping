@@ -8,7 +8,7 @@
 // https://getbootstrap.com/docs/5.0/forms/form-control/
 function create_item_menu_params(item) {
   let div_menu_params = document.getElementById("e256_params");
-  div_menu_params.className = "card-body";
+  div_menu_params.className = "p-2";
 
   let div_item_menu_params = document.createElement("div");            // div item params
   div_item_menu_params.setAttribute("id", item.name + "_" + item.id);  // div UID use to delate the div
@@ -423,7 +423,7 @@ function create_item_touchs_menu_params(item) {
             if (param_arg) {
               let param_atr = document.createElement("th");
               param_atr.setAttribute("id", item.id + "_" + msg_type + "_" + param_arg + "_atr");
-              param_atr.className = "align-middle text-center";
+              param_atr.className = "align-middle text-center" + (midi_byte === "status" ? " midi-col-chan" : "");
               param_atr.textContent = param_arg;
 
               let param_val = document.createElement("input");
@@ -462,7 +462,24 @@ function create_item_touchs_menu_params(item) {
                 }
               });
               let param_td = document.createElement("td");
+              if (midi_byte === "status") param_td.className = "midi-col-chan";
               param_td.appendChild(param_val);
+              if (midi_byte === "data1" && status.type === MIDI_TYPE.CONTROL_CHANGE) {
+                const cc_select = document.createElement("select");
+                cc_select.className = "form-select form-select-sm cc-select";
+                cc_select.dataset.inputId = param_val.id;
+                if (active_synth_profile) {
+                  _populate_cc_select(cc_select);
+                  param_val.style.display = "none";
+                } else {
+                  cc_select.style.display = "none";
+                }
+                cc_select.addEventListener("change", () => {
+                  param_val.value = cc_select.value;
+                  msg_obj[param][midi_byte] = Number(cc_select.value);
+                });
+                param_td.appendChild(cc_select);
+              }
               row_params_atr_tr.appendChild(param_atr);
               row_params_val_tr.appendChild(param_td);
             }
@@ -473,7 +490,7 @@ function create_item_touchs_menu_params(item) {
           for (const limit in msg_obj[param]) {
             let param_atr = document.createElement("th");
             param_atr.setAttribute("id", item.id + "_" + MIDI_BY_NAME[status.type] + "_" + limit + "_atr");
-            param_atr.className = "align-middle text-center";
+            param_atr.className = "align-middle text-center midi-col-limit";
             param_atr.textContent = limit;
 
             let param_val = document.createElement("input");
@@ -505,6 +522,7 @@ function create_item_touchs_menu_params(item) {
               });
             }
             let param_td = document.createElement("td");
+            param_td.className = "midi-col-limit";
             param_td.appendChild(param_val);
             row_params_atr_tr.appendChild(param_atr);
             row_params_val_tr.appendChild(param_td);
@@ -561,7 +579,11 @@ function update_item_touchs_menu_params(item) {
                     break;
                 }
                 const el = document.getElementById(sub_part.id + "_" + msg_type + "_" + midi_arg + "_val");
-                if (el) el.value = midi_value;
+                if (el) {
+                  el.value = midi_value;
+                  const cc_sel = el.parentElement && el.parentElement.querySelector(".cc-select");
+                  if (cc_sel) cc_sel.value = String(midi_value);
+                }
               }
               break;
             case "limit": {

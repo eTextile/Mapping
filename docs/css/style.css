@@ -126,6 +126,19 @@ input[type=number] {
   margin-bottom: 0;
 }
 
+
+.midi-col-chan {
+  width: 3rem;
+  min-width: 3rem;
+  max-width: 3rem;
+}
+
+.midi-col-limit {
+  width: 4rem;
+  min-width: 4rem;
+  max-width: 4rem;
+}
+
 #midi_term {
   background-color: rgb(90, 80, 100);
 
