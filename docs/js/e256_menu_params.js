@@ -12,7 +12,7 @@ function create_item_menu_params(item) {
 
   let div_item_menu_params = document.createElement("div");            // div item params
   div_item_menu_params.setAttribute("id", item.name + "_" + item.id);  // div UID use to delate the div
-  div_item_menu_params.className = "collapse";                         // Used to show/hide item params
+  div_item_menu_params.style.display = "none";
 
   let card_header = document.createElement("div");                     // div item name
   card_header.className = "card-title display-6";
@@ -164,7 +164,7 @@ function create_item_main_params(item) {
         entries: press_entries
       });
       select.addEventListener("change", () => {
-        re_create_item(item.parent);
+        re_create_touch_params(item.parent);
       });
       part_param.appendChild(span);
       part_param.appendChild(select);
@@ -269,7 +269,8 @@ function create_item_touchs_menu_params(item) {
   sub_part_params.setAttribute("id", item.name + "_" + item.id); // Sub part menu UID
 
   const _touch_index = parseInt(item.name.split("-")[1]);
-  sub_part_params.className = (!isNaN(_touch_index) && _touch_index === 0) ? "collapse show" : "collapse";
+  sub_part_params.className = "touch-params-section";
+  sub_part_params.style.display = (!isNaN(_touch_index) && _touch_index === 0) ? "" : "none";
 
   let table_params = document.createElement("table");
   table_params.className = "table table-sm table-striped table-bordered";
@@ -546,6 +547,7 @@ function create_item_touchs_menu_params(item) {
     row_params_body.appendChild(row_params_val_tr);
   }
   table_params.appendChild(row_params_body);
+  if (!row_params_body.hasChildNodes()) return sub_part_params; // empty in ROL mode — nothing to show
   sub_part_params.appendChild(table_params);
   return sub_part_params;
 };
@@ -602,8 +604,9 @@ function update_item_touchs_menu_params(item) {
 
 // Show / Hide item menu params
 function item_menu_params(item, state) {
-  if (item) { 
-    $("#" + item.name + "_" + item.id).collapse(state);
+  if (item) {
+    const el = document.getElementById(item.name + "_" + item.id);
+    if (el) el.style.display = (state === "show") ? "" : "none";
   }
 };
 

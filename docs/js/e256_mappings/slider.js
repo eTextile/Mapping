@@ -124,21 +124,14 @@ function slider_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.press != previous_press) {
-          if (!is_rol) touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
-          touch_msg.press = midi_msg_builder(this.data.press);
-        }
-        else {
-          if (_touch < previous_touch_count) {
-            touch_msg = this.children["touchs-group"].children[_touch].msg;
-            if (is_rol) delete touch_msg.pos;
-            else if (!touch_msg.pos) touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
-          }
-          else {
-            if (!is_rol) touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
-            touch_msg.press = midi_msg_builder(this.data.press);
-          }
-        }
+        const prev = (_touch < previous_touch_count)
+          ? this.children["touchs-group"].children[_touch].msg
+          : {};
+        if (!is_rol) touch_msg.pos = prev.pos || midi_msg_builder(DEFAULT.MODE_POS);
+        else delete touch_msg.pos;
+        touch_msg.press = (this.data.press != previous_press || !prev.press)
+          ? midi_msg_builder(this.data.press)
+          : prev.press;
         this.data.msg.push(touch_msg);
       }
     },
@@ -351,12 +344,12 @@ function slider_factory() {
         "dir": this.dir,
         "data": {
           "touchs": this.data.touchs,
-          "steps": this.data.steps,
-          "press": this.data.press,
-          "move": this.data.move,
-          "populate": this.data.populate,
           "from": this.data.from,
           "to": this.data.to,
+          "press": this.data.press,
+          "move": this.data.move,
+          "steps": this.data.steps,
+          "populate": this.data.populate,
           "chan": this.data.chan
         }
       });
@@ -639,6 +632,77 @@ function slider_factory() {
       if (this._populate_count === 0) this._populate_notes = [];
     },
 
+    // Called in PLAY/THROUGH mode for each incoming blob SysEx packet.
+    // Maps blob UID → touch circle index, blob centroid → position on slider.
+    // ROL: snaps to step grid. LIN: continuous centroid position.
+    midi_play_blob_update: function(sysExMsg) {
+      let slider_group = this.children["slider-group"];
+      let touchs_group = this.children["touchs-group"];
+      if (!slider_group || !touchs_group || !touchs_group.children.length) return;
+      let frame = slider_group.children["slider-frame"];
+      if (!frame) return;
+
+      let cx = mapp(sysExMsg[BLOB_PARAM_CODE.CENTROID_X_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_X_FRACTIONAL_PART] / 100, 0, NEW_COLS, 0, canvas_width);
+      let cy = mapp(sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_FRACTIONAL_PART] / 100, 0, NEW_ROWS, 0, canvas_height);
+      let blob_uid    = sysExMsg[BLOB_PARAM_CODE.UID];
+      let blob_status = sysExMsg[BLOB_PARAM_CODE.STATUS];
+      let touch_idx   = blob_uid % touchs_group.children.length;
+      let touch_group = touchs_group.children[touch_idx];
+      if (!touch_group) return;
+
+      if (blob_status === BLOB_STATUS.RELEASED || blob_status === BLOB_STATUS.FREE) {
+        if (frame.contains(new paper.Point(cx, cy))) {
+          touch_group.last_press_value = 0;
+          update_touch_arc(touch_group, 0);
+          paper.view.update();
+        }
+        return;
+      }
+
+      if (!frame.contains(new paper.Point(cx, cy))) return;
+
+      let depth = sysExMsg[BLOB_PARAM_CODE.DEPTH];
+
+      if (this.data.move === MOVE_CODES.ROL) {
+        let steps = slider_group.data.steps;
+        let step_idx = (this.dir === "V_SLIDER")
+          ? Math.floor(mapp(cy, frame.bounds.top,  frame.bounds.bottom, 0, steps))
+          : Math.floor(mapp(cx, frame.bounds.left, frame.bounds.right,  0, steps));
+        step_idx = Math.max(0, Math.min(steps - 1, step_idx));
+        // Use the step cell's actual visual center — guaranteed to match the rendered grid
+        const steps_group = slider_group.children["steps-group"];
+        const cell = steps_group && steps_group.children[step_idx];
+        if (cell) {
+          if (this.dir === "V_SLIDER") {
+            let y = cell.bounds.center.y;
+            touch_group.children["touch-line"].position.y   = y;
+            touch_group.children["touch-circle"].position.y = y;
+            touch_group.children["touch-txt"].position.y    = y;
+          } else {
+            let x = cell.bounds.center.x;
+            touch_group.children["touch-line"].position.x   = x;
+            touch_group.children["touch-circle"].position.x = x;
+            touch_group.children["touch-txt"].position.x    = x;
+          }
+        }
+      } else {
+        if (this.dir === "V_SLIDER") {
+          let y = Math.max(frame.bounds.top, Math.min(frame.bounds.bottom, cy));
+          touch_group.children["touch-line"].position.y   = y;
+          touch_group.children["touch-circle"].position.y = y;
+          touch_group.children["touch-txt"].position.y    = y;
+        } else {
+          let x = Math.max(frame.bounds.left, Math.min(frame.bounds.right, cx));
+          touch_group.children["touch-line"].position.x   = x;
+          touch_group.children["touch-circle"].position.x = x;
+          touch_group.children["touch-txt"].position.x    = x;
+        }
+      }
+      touch_group.last_press_value = depth;
+      update_touch_arc(touch_group, depth);
+      paper.view.update();
+    },
+
     // Called by midi_play_update_all() in PLAY mode for each incoming MIDI message.
     // NoteOn on chan.in (populate != OFF) → updates step_note[] mirror via populate logic.
     // CC  → moves every touch whose pos.midi matches (status + data1) along the slider axis.
@@ -647,14 +711,6 @@ function slider_factory() {
       let status = midi_msg_status_unpack(msg.status);
       let slider_group = this.children["slider-group"];
       let touchs_group = this.children["touchs-group"];
-      if (window.e256_midi_trace) console.log(
-        "slider midi_play_update: status=0x" + msg.status.toString(16),
-        "type=0x" + status.type.toString(16),
-        "ch=" + status.channel,
-        "data1=" + msg.data1, "data2=" + msg.data2,
-        "| slider-group:", !!slider_group, "touchs-group:", !!touchs_group,
-        "| touchs:", touchs_group?.children?.length
-      );
       if (!slider_group || !touchs_group) return;
       let updated = false;
 
@@ -676,11 +732,6 @@ function slider_factory() {
         for (let touch_group of touchs_group.children) {
           if (!touch_group.msg) continue;
           let pos_midi = touch_group.msg.pos ? touch_group.msg.pos.midi : null;
-          if (window.e256_midi_trace) console.log(
-            "slider CC in:", msg.status.toString(16), msg.data1,
-            "| pos_midi:", pos_midi?.status?.toString(16), pos_midi?.data1,
-            "| match:", pos_midi && pos_midi.status === msg.status && pos_midi.data1 === msg.data1
-          );
           if (pos_midi && pos_midi.status === msg.status && pos_midi.data1 === msg.data1) {
             let limit = touch_group.msg.pos.limit;
             if (this.dir === "V_SLIDER") {
@@ -712,37 +763,27 @@ function slider_factory() {
       else if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
         let steps_group = slider_group.children["steps-group"];
         let frame = slider_group.children["slider-frame"];
-        for (let touch_group of touchs_group.children) {
-          if (!touch_group.msg || !touch_group.msg.press?.midi) continue;
-          const press_midi_n = touch_group.msg.press.midi;
-          if ((press_midi_n.status & 0x0F) !== (msg.status & 0x0F)) continue;
-          if (this.data.move !== MOVE_CODES.ROL && press_midi_n.data1 !== msg.data1) continue;
-          let active = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0);
-          if (this.data.move === MOVE_CODES.ROL) {
-            let step_idx = this.data.step_note.indexOf(msg.data1);
-            if (steps_group && step_idx >= 0 && step_idx < steps_group.children.length) {
-              steps_group.children[step_idx].children[0].fillColor = active ? "red" : null;
-            }
-            if (active && step_idx >= 0 && frame) {
-              let t_center = (step_idx + 0.5) / this.data.steps;
-              if (this.dir === "V_SLIDER") {
-                let y = frame.bounds.top + t_center * frame.bounds.height;
-                touch_group.children["touch-line"].position.y   = y;
-                touch_group.children["touch-circle"].position.y = y;
-                touch_group.children["touch-txt"].position.y    = y;
-              } else {
-                let x = frame.bounds.left + t_center * frame.bounds.width;
-                touch_group.children["touch-line"].position.x   = x;
-                touch_group.children["touch-circle"].position.x = x;
-                touch_group.children["touch-txt"].position.x    = x;
-              }
-            }
+        let active = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0);
+        if (this.data.move === MOVE_CODES.ROL) {
+          // In ROL PLAY mode, MIDI notes cannot be assigned to a specific touch —
+          // only step cell coloring is reliable feedback.
+          let step_idx = this.data.step_note.indexOf(msg.data1);
+          if (steps_group && step_idx >= 0 && step_idx < steps_group.children.length) {
+            steps_group.children[step_idx].children[0].fillColor = active ? "red" : null;
+            updated = true;
           }
-          if (active) touch_group.last_press_value = msg.data2;
-          else if (this.data.move !== MOVE_CODES.ROL) touch_group.last_press_value = 0;
-          update_touch_arc(touch_group, touch_group.last_press_value || 0);
-          updated = true;
-          break;
+        } else {
+          for (let touch_group of touchs_group.children) {
+            if (!touch_group.msg || !touch_group.msg.press?.midi) continue;
+            const press_midi_n = touch_group.msg.press.midi;
+            if ((press_midi_n.status & 0x0F) !== (msg.status & 0x0F)) continue;
+            if (press_midi_n.data1 !== msg.data1) continue;
+            if (active) touch_group.last_press_value = msg.data2;
+            else touch_group.last_press_value = 0;
+            update_touch_arc(touch_group, touch_group.last_press_value || 0);
+            updated = true;
+            break;
+          }
         }
       }
       else if (status.type === MIDI_TYPE.AFTERTOUCH_POLY) {

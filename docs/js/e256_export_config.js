@@ -7,6 +7,10 @@
 var e256_config = ({}); // empty JSON declaration
 
 function e256_export_params() {
+  const profile_sel = document.getElementById("synth_profile_select");
+  if (profile_sel && profile_sel.value) e256_config["synth_profile"] = profile_sel.value;
+  else delete e256_config["synth_profile"];
+
   e256_config["mappings"] = {};
   for (const layer of paper.project.layers) {
     //console.log("LAYER: " + layer.name);

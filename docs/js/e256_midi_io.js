@@ -269,7 +269,7 @@ function updateMenu() {
     $("#mode_explanation").html("Configure the MIDI tactile commands of your eTextile-Synthesizer");
     $("#midi_term").collapse("hide");
     $("#connect_switch").removeClass("btn-success").addClass("btn-danger");
-    $("#e256_params").collapse("hide"); $("#upload_section").hide();
+    $("#e256_params").collapse("hide"); $("#upload_section").hide(); $("#synth_profile_section").hide();
     $("#MAPPING").removeClass("active");
     $("#MATRIX_RAW").removeClass("active");
   }
@@ -336,10 +336,16 @@ function on_midi_message(midi_msg) {
         }
         case MODE.PENDING:
           break;
-        case MODE.THROUGH:
+        case MODE.THROUGH: {
+          let blob_data = midi_msg.data.subarray(1, -1);
+          if (blob_data.length >= 14) midi_play_blob_update_all(blob_data);
           break;
-        case MODE.PLAY:
+        }
+        case MODE.PLAY: {
+          let blob_data = midi_msg.data.subarray(1, -1);
+          if (blob_data.length >= 14) midi_play_blob_update_all(blob_data);
           break;
+        }
         default:
           alert_msg("SYSEX_TYPE_NOT_HANDLED: " + MODE_CODES[e256_current_mode], "warning");
           break;
@@ -370,12 +376,12 @@ function handle_sysex_ack(ack) {
   if (DEBUG) console.log("ACK: " + MODE_ACK_CODES[ack]);
   switch (ack) {
     case MODE_ACK.MATRIX_RAW:
-      updateMenu(); $("#upload_section").hide(); e256_current_mode = MODE.MATRIX_RAW;
+      updateMenu(); $("#e256_params").hide(); $("#upload_section").hide(); $("#synth_profile_section").hide(); e256_current_mode = MODE.MATRIX_RAW;
       $("#connection_status").html("CONNECTED / MATRIX_RAW");
       alert_msg("MODE: MATRIX_RAW", "success");
       break;
     case MODE_ACK.MATRIX_INTERP:
-      updateMenu(); $("#upload_section").hide(); e256_current_mode = MODE.MATRIX_INTERP;
+      updateMenu(); $("#e256_params").hide(); $("#upload_section").hide(); $("#synth_profile_section").hide(); e256_current_mode = MODE.MATRIX_INTERP;
       $("#connection_status").html("CONNECTED / MATRIX_INTERP");
       alert_msg("MODE: MATRIX_INTERP", "success");
       break;
@@ -394,7 +400,7 @@ function handle_sysex_ack(ack) {
       $("#edit_menu").collapse("show"); $("#load_menu").collapse("show");
       $("#connection_status").html("CONNECTED / EDIT");
       $("#mode_explanation").html("Add tactile commands to the eTextile device");
-      $("#midi_term").collapse("hide"); $("#e256_params").show(); $("#upload_section").show();
+      $("#midi_term").collapse("hide"); $("#e256_params").show(); $("#upload_section").show(); $("#synth_profile_section").show();
       item_menu_params(current_controleur, "show");
       item_menu_params(current_touch, "show");
       $("#PLAY").removeClass("active"); $("#THROUGH").removeClass("active"); $("#EDIT").addClass("active");
@@ -408,7 +414,7 @@ function handle_sysex_ack(ack) {
       $("#edit_menu").collapse("hide"); $("#load_menu").collapse("hide");
       $("#connection_status").html("CONNECTED / THROUGH");
       $("#mode_explanation").html("Send Midi msg to the external synth");
-      $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide();
+      $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide(); $("#synth_profile_section").hide();
       item_menu_params(current_controleur, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").addClass("active"); $("#PLAY").removeClass("active");
       e256_blobs.clear(); midi_term_in.clear(); midi_term_out.clear(); e256_current_mode = MODE.THROUGH;
@@ -421,7 +427,7 @@ function handle_sysex_ack(ack) {
       $("#edit_menu").collapse("hide"); $("#load_menu").collapse("hide");
       $("#connection_status").html("CONNECTED / PLAY");
       $("#mode_explanation").html("Evaluate what you have made");
-      $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide();
+      $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide(); $("#synth_profile_section").hide();
       item_menu_params(current_controleur, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").removeClass("active"); $("#PLAY").addClass("active");
       e256_blobs.clear(); midi_term_in.clear(); midi_term_out.clear(); e256_current_mode = MODE.PLAY;
@@ -527,6 +533,20 @@ function midi_play_update_all(msg) {
   }
   for (const item of _midi_play_items) {
     item.midi_play_update(msg);
+  }
+}
+
+function midi_play_blob_update_all(blob_data) {
+  if (_midi_play_items === null) {
+    _midi_play_items = [];
+    for (const layer of paper.project.layers) {
+      for (const item of layer.children) {
+        if (typeof item.midi_play_update === "function") _midi_play_items.push(item);
+      }
+    }
+  }
+  for (const item of _midi_play_items) {
+    if (typeof item.midi_play_blob_update === "function") item.midi_play_blob_update(blob_data);
   }
 }
 

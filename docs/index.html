@@ -147,15 +147,6 @@
                       <input id="loadConfig" type="file" accept=".json, .wav" style="display:none">
                       <button class="btn btn-outline-primary w-100" type="button" onclick="document.getElementById('loadConfig').click()">LOAD CONFIG</button>
                     </div>
-                    <div class="input-group input-group-sm">
-                      <span class="input-group-text">Synth</span>
-                      <select id="synth_profile_select" class="form-select form-select-sm"></select>
-                    </div>
-                    <div class="btn-group btn-group-sm w-100" role="group">
-                      <input id="load_synth_profile_file" type="file" accept=".json" style="display:none">
-                      <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('load_synth_profile_file').click()">LOAD PROFILE</button>
-                      <button id="save_synth_profile_btn" class="btn btn-outline-secondary" type="button">SAVE PROFILE</button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -194,6 +185,13 @@
     <section class="col-sm-3 sidenav d-flex flex-column">
       
       <div class="card-body card shadow d-flex flex-column">
+
+        <div id="synth_profile_section" class="px-2 pt-2" style="display:none">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text">Synth</span>
+            <select id="synth_profile_select" class="form-select form-select-sm"></select>
+          </div>
+        </div>
 
         <div id="e256_params" class="p-2"></div>
 

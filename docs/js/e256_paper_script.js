@@ -181,8 +181,7 @@ function show_only_touch(touch_group, select = false) {
     const active = sibling.id === touch_group.id;
     const el = document.getElementById(sibling.name + "_" + sibling.id);
     if (el) {
-      el.className = active ? "collapse show" : "collapse";
-      el.style.height = "";
+      el.style.display = active ? "" : "none";
     }
     const visual = sibling.children["touch-circle"] || sibling.children["knob-touch"] || sibling.children["key-frame"];
     if (visual) {
@@ -255,6 +254,13 @@ function clear_all_layers() {
 
 // Create all controlers from config
 function create_controlers_from_config(configFile) {
+  const profile_sel = document.getElementById("synth_profile_select");
+  if (profile_sel) {
+    const key = configFile.synth_profile || "";
+    profile_sel.value = key;
+    _set_synth_profile(key || null);
+  }
+
   for (const _ctl_type in configFile.mappings) {
     if (DEBUG) console.log("CTL_TYPE: " + _ctl_type);
     const layer = paper.project.layers[_ctl_type];
@@ -288,6 +294,28 @@ function re_create_item(item) {
   update_item_touchs_menu_params(item);
   item_menu_params(item, "show");
   touch_selection_locked = false;
+  const first_touch = find_first_touch(item);
+  if (first_touch) show_only_touch(first_touch);
+};
+
+function re_create_touch_params(item) {
+  item.save_params();
+  const touchs_group = item.children["touchs-group"];
+  if (touchs_group) {
+    for (let i = 0; i < touchs_group.children.length; i++) {
+      touchs_group.children[i].msg = item.data.msg[i];
+    }
+  }
+  const container = document.getElementById(item.name + "_" + item.id);
+  if (!container) return;
+  container.querySelectorAll(".touch-params-section").forEach(el => el.remove());
+  for (const part of item.children) {
+    for (const sub_part of part.children) {
+      if (sub_part.msg) container.appendChild(create_item_touchs_menu_params(sub_part));
+    }
+  }
+  update_item_touchs_menu_params(item);
+  invalidate_midi_play_cache();
   const first_touch = find_first_touch(item);
   if (first_touch) show_only_touch(first_touch);
 };

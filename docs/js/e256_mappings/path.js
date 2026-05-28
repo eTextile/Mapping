@@ -64,19 +64,13 @@ function path_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.press != previous_mode_z) {
-          touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
-          touch_msg.press = midi_msg_builder(this.data.press);
-        }
-        else {
-          if (_touch < previous_touch_count) {
-            touch_msg = this.children["touchs-group"].children[_touch].msg;
-          }
-          else {
-            touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
-            touch_msg.press = midi_msg_builder(this.data.press);
-          }
-        }
+        const prev = (_touch < previous_touch_count)
+          ? this.children["touchs-group"].children[_touch].msg
+          : {};
+        touch_msg.pos   = prev.pos   || midi_msg_builder(DEFAULT.MODE_POS);
+        touch_msg.press = (this.data.press != previous_mode_z || !prev.press)
+          ? midi_msg_builder(this.data.press)
+          : prev.press;
         this.data.msg.push(touch_msg);
       }
     },

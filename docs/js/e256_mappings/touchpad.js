@@ -16,6 +16,7 @@ function touchpad_factory() {
     MODE_X: MIDI_TYPE.CONTROL_CHANGE,
     MODE_Y: MIDI_TYPE.CONTROL_CHANGE,
     MODE_Z: MIDI_TYPE.NOTE_ON,
+    MODE_SIZE: MIDI_TYPE.CONTROL_CHANGE,
     TOUCHS: 1
   };
 
@@ -52,6 +53,7 @@ function touchpad_factory() {
         let touch_msg = {};
         touch_msg.pos_x = midi_msg_builder(DEFAULT.MODE_X);
         touch_msg.pos_y = midi_msg_builder(DEFAULT.MODE_Y);
+        touch_msg.size  = midi_msg_builder(DEFAULT.MODE_SIZE);
         touch_msg.press = midi_msg_builder(this.data.press);
         this.data.msg.push(touch_msg);
       }
@@ -86,21 +88,15 @@ function touchpad_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.press != previous_mode_z) {
-          touch_msg.pos_x = midi_msg_builder(DEFAULT.MODE_X);
-          touch_msg.pos_y = midi_msg_builder(DEFAULT.MODE_Y);
-          touch_msg.press = midi_msg_builder(this.data.press);
-        }
-        else {
-          if (_touch < previous_touch_count) {
-            touch_msg = this.children["touchs-group"].children[_touch].msg;
-          }
-          else {
-            touch_msg.pos_x = midi_msg_builder(DEFAULT.MODE_X);
-            touch_msg.pos_y = midi_msg_builder(DEFAULT.MODE_Y);
-            touch_msg.press = midi_msg_builder(this.data.press);
-          }
-        }
+        const prev = (_touch < previous_touch_count)
+          ? this.children["touchs-group"].children[_touch].msg
+          : {};
+        touch_msg.pos_x = prev.pos_x || midi_msg_builder(DEFAULT.MODE_X);
+        touch_msg.pos_y = prev.pos_y || midi_msg_builder(DEFAULT.MODE_Y);
+        touch_msg.size  = prev.size  || midi_msg_builder(DEFAULT.MODE_SIZE);
+        touch_msg.press = (this.data.press != previous_mode_z || !prev.press)
+          ? midi_msg_builder(this.data.press)
+          : prev.press;
         this.data.msg.push(touch_msg);
       }
     },
@@ -493,6 +489,13 @@ function touchpad_factory() {
               press_midi.status === msg.status && press_midi.data1 === msg.data1) {
             touch_group.last_press_value = msg.data2;
             update_touch_arc(touch_group, msg.data2);
+            updated = true;
+            break;
+          }
+
+          let size_midi = touch_group.msg.size ? touch_group.msg.size.midi : null;
+          if (size_midi && size_midi.status === msg.status && size_midi.data1 === msg.data1) {
+            touch_group.last_size_value = msg.data2;
             updated = true;
             break;
           }

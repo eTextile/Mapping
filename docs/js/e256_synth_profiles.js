@@ -210,36 +210,6 @@ function synth_profiles_init() {
   }
 
   sel.addEventListener("change", () => _set_synth_profile(sel.value || null));
-
-  const load_input = document.getElementById("load_synth_profile_file");
-  load_input.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const profile = JSON.parse(ev.target.result);
-        if (!profile.name || typeof profile.cc !== "object") throw new Error("missing name or cc fields");
-        const key = profile.name.toLowerCase().replace(/\s+/g, "_");
-        SYNTH_PROFILES[key] = profile;
-        if (!sel.querySelector(`option[value="${key}"]`)) {
-          _add_profile_to_select(sel, key, profile.name);
-        }
-        sel.value = key;
-        _set_synth_profile(key);
-      } catch (err) {
-        alert("Invalid synth profile: " + err.message);
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
-  });
-
-  document.getElementById("save_synth_profile_btn").addEventListener("click", () => {
-    if (!active_synth_profile) return;
-    const blob = new Blob([JSON.stringify(active_synth_profile, null, 2)], { type: "application/json" });
-    saveAs(blob, active_synth_profile.name.replace(/\s+/g, "_") + "_profile.json");
-  });
 }
 
 window.addEventListener("DOMContentLoaded", synth_profiles_init);
