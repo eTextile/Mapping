@@ -636,71 +636,39 @@ function slider_factory() {
     // Maps blob UID → touch circle index, blob centroid → position on slider.
     // ROL: snaps to step grid. LIN: continuous centroid position.
     midi_play_blob_update: function(sysExMsg) {
-      let slider_group = this.children["slider-group"];
-      let touchs_group = this.children["touchs-group"];
-      if (!slider_group || !touchs_group || !touchs_group.children.length) return;
-      let frame = slider_group.children["slider-frame"];
-      if (!frame) return;
-
-      let cx = mapp(sysExMsg[BLOB_PARAM_CODE.CENTROID_X_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_X_FRACTIONAL_PART] / 100, 0, NEW_COLS, 0, canvas_width);
-      let cy = mapp(sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_FRACTIONAL_PART] / 100, 0, NEW_ROWS, 0, canvas_height);
-      let blob_uid    = sysExMsg[BLOB_PARAM_CODE.UID];
-      let blob_status = sysExMsg[BLOB_PARAM_CODE.STATUS];
-      let touch_idx   = blob_uid % touchs_group.children.length;
-      let touch_group = touchs_group.children[touch_idx];
-      if (!touch_group) return;
-
-      if (blob_status === BLOB_STATUS.RELEASED || blob_status === BLOB_STATUS.FREE) {
-        if (frame.contains(new paper.Point(cx, cy))) {
-          touch_group.last_press_value = 0;
-          update_touch_arc(touch_group, 0);
-          paper.view.update();
-        }
-        return;
-      }
-
-      if (!frame.contains(new paper.Point(cx, cy))) return;
-
-      let depth = sysExMsg[BLOB_PARAM_CODE.DEPTH];
-
-      if (this.data.move === MOVE_CODES.ROL) {
-        let steps = slider_group.data.steps;
-        let step_idx = (this.dir === "V_SLIDER")
-          ? Math.floor(mapp(cy, frame.bounds.top,  frame.bounds.bottom, 0, steps))
-          : Math.floor(mapp(cx, frame.bounds.left, frame.bounds.right,  0, steps));
-        step_idx = Math.max(0, Math.min(steps - 1, step_idx));
-        // Use the step cell's actual visual center — guaranteed to match the rendered grid
-        const steps_group = slider_group.children["steps-group"];
-        const cell = steps_group && steps_group.children[step_idx];
-        if (cell) {
-          if (this.dir === "V_SLIDER") {
-            let y = cell.bounds.center.y;
-            touch_group.children["touch-line"].position.y   = y;
-            touch_group.children["touch-circle"].position.y = y;
-            touch_group.children["touch-txt"].position.y    = y;
+      const slider_group = this.children["slider-group"];
+      const frame = slider_group && slider_group.children["slider-frame"];
+      const is_v  = this.dir === "V_SLIDER";
+      const is_rol = this.data.move === MOVE_CODES.ROL;
+      blob_update_touch_visual(sysExMsg, this.children["touchs-group"], (touch_group, cx, cy, active) => {
+        if (!frame || !frame.contains(new paper.Point(cx, cy))) return false;
+        if (active) {
+          if (is_rol) {
+            const steps = slider_group.data.steps;
+            const step_idx = Math.max(0, Math.min(steps - 1, Math.floor(
+              mapp(is_v ? cy : cx,
+                   is_v ? frame.bounds.top  : frame.bounds.left,
+                   is_v ? frame.bounds.bottom : frame.bounds.right,
+                   0, steps)
+            )));
+            const cell = slider_group.children["steps-group"]?.children[step_idx];
+            if (cell) {
+              const pos = is_v ? cell.bounds.center.y : cell.bounds.center.x;
+              touch_group.children["touch-line"].position[is_v ? "y" : "x"]   = pos;
+              touch_group.children["touch-circle"].position[is_v ? "y" : "x"] = pos;
+              touch_group.children["touch-txt"].position[is_v ? "y" : "x"]    = pos;
+            }
           } else {
-            let x = cell.bounds.center.x;
-            touch_group.children["touch-line"].position.x   = x;
-            touch_group.children["touch-circle"].position.x = x;
-            touch_group.children["touch-txt"].position.x    = x;
+            const coord = is_v
+              ? Math.max(frame.bounds.top,  Math.min(frame.bounds.bottom, cy))
+              : Math.max(frame.bounds.left, Math.min(frame.bounds.right,  cx));
+            touch_group.children["touch-line"].position[is_v ? "y" : "x"]   = coord;
+            touch_group.children["touch-circle"].position[is_v ? "y" : "x"] = coord;
+            touch_group.children["touch-txt"].position[is_v ? "y" : "x"]    = coord;
           }
         }
-      } else {
-        if (this.dir === "V_SLIDER") {
-          let y = Math.max(frame.bounds.top, Math.min(frame.bounds.bottom, cy));
-          touch_group.children["touch-line"].position.y   = y;
-          touch_group.children["touch-circle"].position.y = y;
-          touch_group.children["touch-txt"].position.y    = y;
-        } else {
-          let x = Math.max(frame.bounds.left, Math.min(frame.bounds.right, cx));
-          touch_group.children["touch-line"].position.x   = x;
-          touch_group.children["touch-circle"].position.x = x;
-          touch_group.children["touch-txt"].position.x    = x;
-        }
-      }
-      touch_group.last_press_value = depth;
-      update_touch_arc(touch_group, depth);
-      paper.view.update();
+        return true;
+      });
     },
 
     // Called by midi_play_update_all() in PLAY mode for each incoming MIDI message.

@@ -174,6 +174,34 @@ function find_first_touch(item) {
   return null;
 }
 
+// Shared blob-tracking helper for all mapping types in PLAY/THROUGH mode.
+// Decodes centroid, resolves touch slot via UID, updates arc + color.
+// move_fn(touch_group, cx, cy, active) → true if in bounds and handled, false to skip.
+// When active=false (RELEASED/FREE): caller should skip position update and return true.
+function blob_update_touch_visual(sysExMsg, touchs_group, move_fn) {
+  if (!touchs_group || !touchs_group.children.length) return;
+  const cx = mapp(
+    sysExMsg[BLOB_PARAM_CODE.CENTROID_X_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_X_FRACTIONAL_PART] / 100,
+    0, NEW_COLS, 0, canvas_width
+  );
+  const cy = mapp(
+    sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_FRACTIONAL_PART] / 100,
+    0, NEW_ROWS, 0, canvas_height
+  );
+  const blob_status = sysExMsg[BLOB_PARAM_CODE.STATUS];
+  const active = blob_status !== BLOB_STATUS.RELEASED && blob_status !== BLOB_STATUS.FREE;
+  const touch_idx = sysExMsg[BLOB_PARAM_CODE.UID] % touchs_group.children.length;
+  const touch_group = touchs_group.children[touch_idx];
+  if (!touch_group) return;
+  if (!move_fn(touch_group, cx, cy, active)) return;
+  const depth = active ? sysExMsg[BLOB_PARAM_CODE.DEPTH] : 0;
+  touch_group.last_press_value = depth;
+  const touch_el = touch_group.children["knob-touch"] || touch_group.children["touch-circle"];
+  if (touch_el) touch_el.style.fillColor = active ? "red" : "orange";
+  update_touch_arc(touch_group, depth, touch_el ? touch_el.name : undefined);
+  paper.view.update();
+}
+
 function show_only_touch(touch_group, select = false) {
   if (!touch_group || !touch_group.parent) return;
   for (const sibling of touch_group.parent.children) {

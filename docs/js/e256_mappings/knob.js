@@ -590,6 +590,26 @@ function knob_factory() {
       this.addChild(_touchs_group);
     },
 
+    midi_play_blob_update: function(sysExMsg) {
+      const knob_group = this.children["knob-group"];
+      blob_update_touch_visual(sysExMsg, this.children["touchs-group"], (touch_group, cx, cy, active) => {
+        if (!knob_group) return false;
+        const dx = cx - knob_group.center.x;
+        const dy = cy - knob_group.center.y;
+        if (Math.hypot(dx, dy) > knob_group.radius) return false;
+        if (active) {
+          const theta = Math.atan2(dy, dx);
+          const pos   = pol_to_cart(touch_group.radius || knob_group.radius, theta);
+          const new_pos = new paper.Point(knob_group.center.x + pos.x, knob_group.center.y + pos.y);
+          touch_group.theta = theta;
+          touch_group.children["knob-touch"].position = new_pos;
+          touch_group.children["knob-needle"].segments[1].point = new_pos;
+          touch_group.children["touch-txt"].position = new_pos;
+        }
+        return true;
+      });
+    },
+
     midi_play_update: function (msg) {
       const touchs_group = this.children["touchs-group"];
       const knob_group = this.children["knob-group"];

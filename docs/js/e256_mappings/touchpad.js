@@ -446,42 +446,19 @@ function touchpad_factory() {
     // Called by midi_play_blob_update_all() in PLAY/THROUGH mode for each incoming SysEx blob.
     // Uses blob UID for touch identity — immune to shared-CC configuration.
     midi_play_blob_update: function(sysExMsg) {
-      let frame = this.children["pad-group"].children["pad-frame"];
-      let touchs_group = this.children["touchs-group"];
-      if (!frame || !touchs_group || !touchs_group.children.length) return;
-
-      let cx = mapp(sysExMsg[BLOB_PARAM_CODE.CENTROID_X_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_X_FRACTIONAL_PART] / 100, 0, NEW_COLS, 0, canvas_width);
-      let cy = mapp(sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_FRACTIONAL_PART] / 100, 0, NEW_ROWS, 0, canvas_height);
-
-      if (!frame.contains(new paper.Point(cx, cy))) return;
-
-      let blob_uid    = sysExMsg[BLOB_PARAM_CODE.UID];
-      let blob_status = sysExMsg[BLOB_PARAM_CODE.STATUS];
-      let touch_idx   = blob_uid % touchs_group.children.length;
-      let touch_group = touchs_group.children[touch_idx];
-      if (!touch_group) return;
-
-      if (blob_status === BLOB_STATUS.RELEASED || blob_status === BLOB_STATUS.FREE) {
-        touch_group.last_press_value = 0;
-        update_touch_arc(touch_group, 0);
-        touch_group.children["touch-circle"].style.fillColor = "orange";
-        paper.view.update();
-        return;
-      }
-
-      let x = Math.max(frame.bounds.left,  Math.min(frame.bounds.right,  cx));
-      let y = Math.max(frame.bounds.top,   Math.min(frame.bounds.bottom, cy));
-
-      touch_group.children["touch-line-x"].position.y = y;
-      touch_group.children["touch-line-y"].position.x = x;
-      touch_group.children["touch-circle"].position   = new paper.Point(x, y);
-      touch_group.children["touch-txt"].position      = new paper.Point(x, y);
-      touch_group.children["touch-circle"].style.fillColor = "red";
-
-      let depth = sysExMsg[BLOB_PARAM_CODE.DEPTH];
-      touch_group.last_press_value = depth;
-      update_touch_arc(touch_group, depth);
-      paper.view.update();
+      const frame = this.children["pad-group"].children["pad-frame"];
+      blob_update_touch_visual(sysExMsg, this.children["touchs-group"], (touch_group, cx, cy, active) => {
+        if (!frame || !frame.contains(new paper.Point(cx, cy))) return false;
+        if (active) {
+          const x = Math.max(frame.bounds.left, Math.min(frame.bounds.right,  cx));
+          const y = Math.max(frame.bounds.top,  Math.min(frame.bounds.bottom, cy));
+          touch_group.children["touch-line-x"].position.y = y;
+          touch_group.children["touch-line-y"].position.x = x;
+          touch_group.children["touch-circle"].position   = new paper.Point(x, y);
+          touch_group.children["touch-txt"].position      = new paper.Point(x, y);
+        }
+        return true;
+      });
     },
 
     // Called by midi_play_update_all() in PLAY mode for each incoming MIDI message.
