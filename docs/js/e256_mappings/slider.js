@@ -696,28 +696,8 @@ function slider_factory() {
       }
 
       if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
-        let frame = slider_group.children["slider-frame"];
         for (let touch_group of touchs_group.children) {
           if (!touch_group.msg) continue;
-          let pos_midi = touch_group.msg.pos ? touch_group.msg.pos.midi : null;
-          if (pos_midi && pos_midi.status === msg.status && pos_midi.data1 === msg.data1) {
-            let limit = touch_group.msg.pos.limit;
-            if (this.dir === "V_SLIDER") {
-              let y = frame.bounds.top + frame.bounds.bottom -
-                mapp(msg.data2, limit.min, limit.max, frame.bounds.top, frame.bounds.bottom);
-              touch_group.children["touch-line"].position.y    = y;
-              touch_group.children["touch-circle"].position.y  = y;
-              touch_group.children["touch-txt"].position.y     = y;
-            } else {
-              let x = mapp(msg.data2, limit.min, limit.max, frame.bounds.left, frame.bounds.right);
-              touch_group.children["touch-line"].position.x    = x;
-              touch_group.children["touch-circle"].position.x  = x;
-              touch_group.children["touch-txt"].position.x     = x;
-            }
-            update_touch_arc(touch_group, msg.data2);
-            updated = true;
-            break;
-          }
           let press_midi = touch_group.msg.press ? touch_group.msg.press.midi : null;
           if (press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.CONTROL_CHANGE &&
               press_midi.status === msg.status && press_midi.data1 === msg.data1) {

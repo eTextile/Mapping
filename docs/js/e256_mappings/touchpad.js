@@ -473,35 +473,6 @@ function touchpad_factory() {
 
       if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
         for (let touch_group of touchs_group.children) {
-          let pos_x_midi = touch_group.msg.pos_x.midi;
-          let pos_y_midi = touch_group.msg.pos_y.midi;
-
-          if (pos_x_midi.status === msg.status && pos_x_midi.data1 === msg.data1) {
-            let x = mapp(msg.data2, touch_group.msg.pos_x.limit.min, touch_group.msg.pos_x.limit.max,
-                         frame.bounds.left, frame.bounds.right);
-            touch_group.children["touch-line-y"].position.x = x;
-            touch_group.children["touch-circle"].position.x = x;
-            touch_group.children["touch-txt"].position.x    = x;
-            update_touch_arc(touch_group, touch_group.last_press_value || 0);
-            const _cx = touch_group.children["touch-circle"];
-            if (_cx && msg.data2 > 0) _cx.style.fillColor = "red";
-            updated = true;
-            break;
-          }
-
-          if (pos_y_midi.status === msg.status && pos_y_midi.data1 === msg.data1) {
-            let y = mapp(msg.data2, touch_group.msg.pos_y.limit.min, touch_group.msg.pos_y.limit.max,
-                         frame.bounds.top, frame.bounds.bottom);
-            touch_group.children["touch-line-x"].position.y = y;
-            touch_group.children["touch-circle"].position.y = y;
-            touch_group.children["touch-txt"].position.y    = y;
-            update_touch_arc(touch_group, touch_group.last_press_value || 0);
-            const _cy = touch_group.children["touch-circle"];
-            if (_cy && msg.data2 > 0) _cy.style.fillColor = "red";
-            updated = true;
-            break;
-          }
-
           let press_midi = touch_group.msg.press ? touch_group.msg.press.midi : null;
           if (press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.CONTROL_CHANGE &&
               press_midi.status === msg.status && press_midi.data1 === msg.data1) {

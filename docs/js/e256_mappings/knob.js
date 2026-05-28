@@ -620,41 +620,6 @@ function knob_factory() {
       for (const touch_group of touchs_group.children) {
         if (!touch_group.msg) continue;
 
-        if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
-          const r = touch_group.msg.radius;
-          if (r) {
-            const rs = midi_msg_status_unpack(r.midi.status);
-            if (rs.channel === status.channel && r.midi.data1 === msg.data1) {
-              touch_group.radius = mapp(msg.data2, r.limit.min, r.limit.max, 0, knob_group.radius);
-              const pos = pol_to_cart(touch_group.radius, touch_group.theta || knob_group.theta);
-              touch_group.children["knob-touch"].position = new paper.Point(knob_group.center.x + pos.x, knob_group.center.y + pos.y);
-              touch_group.children["knob-needle"].segments[1].point = touch_group.children["knob-touch"].position;
-              touch_group.children["touch-txt"].position = touch_group.children["knob-touch"].position;
-              update_touch_arc(touch_group, touch_group.last_press_value || 0, "knob-touch");
-              const _kt_r = touch_group.children["knob-touch"];
-              if (_kt_r && msg.data2 > 0) _kt_r.style.fillColor = "red";
-              updated = true;
-              continue;
-            }
-          }
-          const t = touch_group.msg.theta;
-          if (t) {
-            const ts = midi_msg_status_unpack(t.midi.status);
-            if (ts.channel === status.channel && t.midi.data1 === msg.data1) {
-              touch_group.theta = deg_to_rad(mapp(msg.data2, t.limit.min, t.limit.max, 0, 360));
-              const pos = pol_to_cart(touch_group.radius || 0, touch_group.theta);
-              touch_group.children["knob-touch"].position = new paper.Point(knob_group.center.x + pos.x, knob_group.center.y + pos.y);
-              touch_group.children["knob-needle"].segments[1].point = touch_group.children["knob-touch"].position;
-              touch_group.children["touch-txt"].position = touch_group.children["knob-touch"].position;
-              update_touch_arc(touch_group, touch_group.last_press_value || 0, "knob-touch");
-              const _kt_t = touch_group.children["knob-touch"];
-              if (_kt_t && msg.data2 > 0) _kt_t.style.fillColor = "red";
-              updated = true;
-              continue;
-            }
-          }
-        }
-
         const press_midi = touch_group.msg.press ? touch_group.msg.press.midi : null;
         if (!press_midi) continue;
         const ps = midi_msg_status_unpack(press_midi.status);
