@@ -235,8 +235,9 @@ function path_factory() {
       this.addChild(_touchs_group);
     },
 
-    // Call on mousedown event
-    graw: function (mouseEvent) {
+    // Called when the user clicks on empty canvas space while this path is active (EDIT mode).
+    // Appends a new vertex at the clicked position.
+    draw_next_point: function (mouseEvent) {
       this.children["path-group"].children["path-curve"].add(mouseEvent.point);
       this.children["path-group"].children["path-graduations"].add(mouseEvent.point);
       this.children["path-group"].data.segments.push(mouseEvent.point.clone());

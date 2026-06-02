@@ -641,30 +641,39 @@ function slider_factory() {
       const is_v  = this.dir === "V_SLIDER";
       const is_rol = this.data.move === MOVE_CODES.ROL;
       blob_update_touch_visual(sysExMsg, this.children["touchs-group"], (touch_group, cx, cy, active) => {
-        if (!frame || !frame.contains(new paper.Point(cx, cy))) return false;
+        if (active && (!frame || !frame.contains(new paper.Point(cx, cy)))) return false;
+        touch_group._blob_positioned = active;
+        const touch_line   = touch_group.children["touch-line"];
+        const touch_circle = touch_group.children["touch-circle"];
+        const touch_txt    = touch_group.children["touch-txt"];
+        if (touch_line) touch_line.visible = active;
         if (active) {
+          let coord;
           if (is_rol) {
             const steps = slider_group.data.steps;
             const step_idx = Math.max(0, Math.min(steps - 1, Math.floor(
               mapp(is_v ? cy : cx,
-                   is_v ? frame.bounds.top  : frame.bounds.left,
+                   is_v ? frame.bounds.top    : frame.bounds.left,
                    is_v ? frame.bounds.bottom : frame.bounds.right,
                    0, steps)
             )));
             const cell = slider_group.children["steps-group"]?.children[step_idx];
-            if (cell) {
-              const pos = is_v ? cell.bounds.center.y : cell.bounds.center.x;
-              touch_group.children["touch-line"].position[is_v ? "y" : "x"]   = pos;
-              touch_group.children["touch-circle"].position[is_v ? "y" : "x"] = pos;
-              touch_group.children["touch-txt"].position[is_v ? "y" : "x"]    = pos;
-            }
+            if (cell) coord = is_v ? cell.bounds.center.y : cell.bounds.center.x;
           } else {
-            const coord = is_v
+            coord = is_v
               ? Math.max(frame.bounds.top,  Math.min(frame.bounds.bottom, cy))
               : Math.max(frame.bounds.left, Math.min(frame.bounds.right,  cx));
-            touch_group.children["touch-line"].position[is_v ? "y" : "x"]   = coord;
-            touch_group.children["touch-circle"].position[is_v ? "y" : "x"] = coord;
-            touch_group.children["touch-txt"].position[is_v ? "y" : "x"]    = coord;
+          }
+          if (coord !== undefined && touch_circle) {
+            if (touch_line) touch_line.position[is_v ? "y" : "x"] = coord;
+            const new_pos = new paper.Point(
+              is_v ? touch_circle.position.x : coord,
+              is_v ? coord : touch_circle.position.y
+            );
+            touch_circle.position = new_pos;
+            if (touch_txt) touch_txt.position = new_pos;
+            const press_midi = touch_group.msg?.press?.midi;
+            touch_note_on_arc_update(touch_group, "touch-circle");
           }
         }
         return true;
@@ -726,9 +735,12 @@ function slider_factory() {
             const press_midi_n = touch_group.msg.press.midi;
             if ((press_midi_n.status & 0x0F) !== (msg.status & 0x0F)) continue;
             if (press_midi_n.data1 !== msg.data1) continue;
-            if (active) touch_group.last_press_value = msg.data2;
-            else touch_group.last_press_value = 0;
-            update_touch_arc(touch_group, touch_group.last_press_value || 0);
+            touch_group.last_press_value = active ? msg.data2 : 0;
+            if (active) {
+              if (touch_group._blob_positioned) update_touch_arc(touch_group, msg.data2);
+            } else {
+              touch_note_off_reset(touch_group, ["touch-circle", "touch-txt", "touch-line"]);
+            }
             updated = true;
             break;
           }

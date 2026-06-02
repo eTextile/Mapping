@@ -448,15 +448,21 @@ function touchpad_factory() {
     midi_play_blob_update: function(sysExMsg) {
       const frame = this.children["pad-group"].children["pad-frame"];
       blob_update_touch_visual(sysExMsg, this.children["touchs-group"], (touch_group, cx, cy, active) => {
-        if (!frame || !frame.contains(new paper.Point(cx, cy))) return false;
+        if (active && (!frame || !frame.contains(new paper.Point(cx, cy)))) return false;
+        const line_x = touch_group.children["touch-line-x"];
+        const line_y = touch_group.children["touch-line-y"];
+        touch_group._blob_positioned = active;
         if (active) {
           const x = Math.max(frame.bounds.left, Math.min(frame.bounds.right,  cx));
           const y = Math.max(frame.bounds.top,  Math.min(frame.bounds.bottom, cy));
-          touch_group.children["touch-line-x"].position.y = y;
-          touch_group.children["touch-line-y"].position.x = x;
-          touch_group.children["touch-circle"].position   = new paper.Point(x, y);
-          touch_group.children["touch-txt"].position      = new paper.Point(x, y);
+          line_x.position.y = y;
+          line_y.position.x = x;
+          touch_group.children["touch-circle"].position = new paper.Point(x, y);
+          touch_group.children["touch-txt"].position    = new paper.Point(x, y);
+          touch_note_on_arc_update(touch_group, "touch-circle");
         }
+        if (line_x) line_x.visible = active;
+        if (line_y) line_y.visible = active;
         return true;
       });
     },
@@ -477,6 +483,15 @@ function touchpad_factory() {
           if (press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.CONTROL_CHANGE &&
               press_midi.status === msg.status && press_midi.data1 === msg.data1) {
             touch_group.last_press_value = msg.data2;
+            const active = msg.data2 > 0;
+            const touch_el  = touch_group.children["touch-circle"];
+            const touch_txt = touch_group.children["touch-txt"];
+            const line_x    = touch_group.children["touch-line-x"];
+            const line_y    = touch_group.children["touch-line-y"];
+            if (touch_el)  touch_el.visible  = active;
+            if (touch_txt) touch_txt.visible = active;
+            if (line_x)    line_x.visible    = active;
+            if (line_y)    line_y.visible    = active;
             update_touch_arc(touch_group, msg.data2);
             updated = true;
             break;
@@ -501,7 +516,11 @@ function touchpad_factory() {
           if (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) value = msg.data2;
           else if (status.type === MIDI_TYPE.AFTERTOUCH_POLY)     value = msg.data2;
           touch_group.last_press_value = value;
-          update_touch_arc(touch_group, value);
+          if (value > 0) {
+            if (touch_group._blob_positioned) update_touch_arc(touch_group, value);
+          } else {
+            touch_note_off_reset(touch_group, ["touch-circle", "touch-txt", "touch-line-x", "touch-line-y"]);
+          }
           updated = true;
           break;
         }

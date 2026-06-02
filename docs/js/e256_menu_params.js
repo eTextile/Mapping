@@ -15,7 +15,7 @@ function create_item_menu_params(item) {
   div_item_menu_params.style.display = "none";
 
   let card_header = document.createElement("div");                     // div item name
-  card_header.className = "card-title display-6";
+  card_header.className = "btn btn-outline-primary w-100 fw-bold fs-5 disabled mb-2";
   card_header.append(item.name + " params");
   div_item_menu_params.appendChild(card_header);
 
@@ -272,13 +272,13 @@ function create_item_touchs_menu_params(item) {
   sub_part_params.className = "touch-params-section";
   sub_part_params.style.display = (!isNaN(_touch_index) && _touch_index === 0) ? "" : "none";
 
+  let touch_label = document.createElement("div");
+  touch_label.className = "btn btn-outline-primary w-100 fw-bold fs-5 disabled text-nowrap overflow-hidden my-2";
+  touch_label.textContent = isNaN(_touch_index) ? item.name : item.name.split("-")[0] + "-" + (_touch_index + 1);
+  sub_part_params.appendChild(touch_label);
+
   let table_params = document.createElement("table");
   table_params.className = "table table-sm table-striped table-bordered";
-
-  let table_caption = document.createElement("caption");
-  table_caption.className = "caption-top card-title display-6";
-  table_caption.textContent = isNaN(_touch_index) ? item.name : item.name.split("-")[0] + "-" + (_touch_index + 1);
-  table_params.appendChild(table_caption);
 
   let row_params_body = document.createElement("tbody");
 
@@ -678,7 +678,7 @@ function alert_msg(message, type) {
   const id = "alert_" + (++alert_msg._seq);
   const div_alert = document.createElement("div");
   div_alert.setAttribute("id", id);
-  div_alert.className = "alert alert-" + type;
+  div_alert.className = "alert alert-" + type + " mb-2";
   div_alert.setAttribute("role", "alert");
   div_alert.textContent = message;
   $("#live_alert_placeholder").append(div_alert);

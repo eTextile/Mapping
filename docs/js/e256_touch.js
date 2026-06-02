@@ -51,6 +51,7 @@ function update_touch_arc(touch_group, value, circle_name) {
   const circle = touch_group.children[circle_name || "touch-circle"];
   if (!arc || !circle) return;
   _rebuild_pressure_arc(arc, circle.position.x, circle.position.y, TOUCH_RADIUS, (value / 127) * 2 * Math.PI);
+  arc.visible = value > 0;
   if (e256_current_mode === MODE.PLAY) circle.style.fillColor = value > 0 ? "red" : "orange";
 }
 

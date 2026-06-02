@@ -374,7 +374,7 @@ function polygon_factory() {
 
     // Called when the user clicks on empty canvas space while this polygon is active (EDIT mode).
     // Adds a new vertex at the clicked position, extends all spokes, and registers a new source_N MIDI axis.
-    graw: function (mouseEvent) {
+    draw_next_point: function (mouseEvent) {
       const new_pt = mouseEvent.point;
       const _polygon_group = this.children["polygon-group"];
       const _polygon_curve = _polygon_group.children["polygon"];

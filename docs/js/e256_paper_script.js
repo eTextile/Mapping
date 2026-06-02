@@ -6,11 +6,13 @@
 
 var canvas_height = $("#loading_canvas").height();
 var canvas_width = canvas_height;
-//.log("PAPER_WIDTH: " + canvas_width + " PAPER_HEIGHT: " + canvas_height);
 
 var conf_size = 0;
 
-var create_once = false;
+// true while a path/polygon is being drawn point-by-point: subsequent empty-canvas clicks
+// call draw_next_point() to append vertices instead of starting a new mapping.
+// Reset to false when drawing is finalised (Space key) or a different tool is selected.
+var shape_drawing_in_progress = false;
 var current_layer_index = 0;
 
 console.log("BOOTSTRAP: " + bootstrap.Tooltip.VERSION);
@@ -42,23 +44,26 @@ new paper.Layer({ project: paper.project, name: "polygon", insert: true});
 
 var paper_tool = new paper.Tool();
 
-let hit_options_A = {
+// Default: hit-test whole items (fill/stroke/bounds) without exposing individual vertices.
+// Used for all mapping types so the user selects/moves the entire shape.
+const hit_opts_item = {
   "segments": false,
-  "stroke": true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
-  "bounds": true, // hit-test the corners and side-centers of the bounding rectangle of items
+  "stroke": true,
+  "bounds": true,
   "fill": true,
   "tolerance": 10
 };
 
-let hit_options_B = {
+// Switched to for path/polygon mappings so individual vertices can be grabbed and moved.
+const hit_opts_vertex = {
   "segments": true,
-  "stroke": true, // hit-test the stroke of path items, taking into account the setting of stroke color and width
-  "bounds": false, // hit-test the corners and side-centers of the bounding rectangle of items
+  "stroke": true,
+  "bounds": false,
   "fill": true,
   "tolerance": 10
 };
 
-var hit_options = hit_options_A;
+var hit_options = hit_opts_item;
 
 paper_tool.onMouseDown = function (mouseEvent) {
 
@@ -66,54 +71,51 @@ paper_tool.onMouseDown = function (mouseEvent) {
 
   if (e256_current_mode === MODE.EDIT) {
     if (current_part) { // Clicking on an existing item — always handled
-      previous_controleur = current_controleur;
+      previous_controller = current_controller;
       let current_item = current_part.item;
       while (current_item.parent && !(current_item instanceof paper.Layer)) {
-        current_controleur = current_item;
+        current_controller = current_item;
         current_item = current_item.parent;
       }
 
-      if (DEBUG) console.log("CUR_CTR_ID: " + current_controleur.id + " PREV_CTR_ID: " + previous_controleur.id);
-      e256_draw_mode = current_controleur.name;
+      e256_draw_mode = current_controller.name;
 
       if (e256_draw_mode === "polygon" || e256_draw_mode === "path") {
-        hit_options = hit_options_B;
+        hit_options = hit_opts_vertex;
       }
       else {
-        hit_options = hit_options_A;
+        hit_options = hit_opts_item;
       }
 
-      const target_layer = paper.project.layers[current_controleur.name]
-        || paper.project.layers.find(l => l.name === current_controleur.name);
+      const target_layer = paper.project.layers[current_controller.name]
+        || paper.project.layers.find(l => l.name === current_controller.name);
       if (target_layer) {
         target_layer.activate();
         target_layer.bringToFront();
       }
-      current_controleur.bringToFront();
+      current_controller.bringToFront();
 
-      if (previous_controleur) {
-        if (current_controleur.id != previous_controleur.id) {
-          item_menu_params(previous_controleur, "hide");
+      if (previous_controller) {
+        if (current_controller.id != previous_controller.id) {
+          item_menu_params(previous_controller, "hide");
           touch_selection_locked = false;
-          const first_touch = find_first_touch(current_controleur);
+          const first_touch = find_first_touch(current_controller);
           if (first_touch) show_only_touch(first_touch);
         }
       }
       $(".maping_tool").removeClass("active");
-      item_menu_params(current_controleur, "show");
-      $("#" + current_controleur.name).addClass("active");
-
-      if (DEBUG) console.log("CUR_TOUCH: " + current_touch.id + " PREV_TOUCH: " + previous_touch.id);
+      item_menu_params(current_controller, "show");
+      $("#" + current_controller.name).addClass("active");
 
       show_only_touch(current_touch);
     }
     else { // Clicking on empty space
       if (e256_draw_mode) {
-        if (!create_once) {
-          draw_controler_from_mouse(mouseEvent);
+        if (!shape_drawing_in_progress) {
+          create_mapping_from_mouse(mouseEvent);
         }
         else {
-          current_controleur.graw(mouseEvent); // Used by mapping path & polygon
+          current_controller.draw_next_point(mouseEvent); // path/polygon: append next vertex
         }
       }
       else {
@@ -128,16 +130,16 @@ paper_tool.onKeyDown = function (keyEvent) {
     if (keyEvent.modifiers.shift) {
       switch (keyEvent.key) {
         case "backspace":
-          remove_item_menu_params(current_controleur);
-          current_controleur.remove();
+          remove_item_menu_params(current_controller);
+          current_controller.remove();
           invalidate_midi_play_cache();
-          current_controleur = previous_controleur;
-          previous_controleur = null; // TODO: add linked list controleur managment
+          current_controller = previous_controller;
+          previous_controller = null;
           break;
         case "enter":
           if (e256_draw_mode === "path") {
             // TODO: remove last path point
-            current_controleur.back();
+            current_controller.back();
           }
           break;
         default:
@@ -147,7 +149,7 @@ paper_tool.onKeyDown = function (keyEvent) {
     else {
       switch (keyEvent.key) {
         case "space":
-          create_once = false;
+          shape_drawing_in_progress = false;
           const layers = paper.project.layers.filter(l => l.hasChildren());
           if (layers.length > 0) {
             current_layer_index = (current_layer_index + 1) % layers.length;
@@ -161,9 +163,7 @@ paper_tool.onKeyDown = function (keyEvent) {
   }
 };
 
-paper.onFrame = function () {
-  // Every frame
-};
+paper.onFrame = function () {};
 
 function find_first_touch(item) {
   for (const part of item.children) {
@@ -176,10 +176,57 @@ function find_first_touch(item) {
 
 // Shared blob-tracking helper for all mapping types in PLAY/THROUGH mode.
 // Decodes centroid, resolves touch slot via UID, updates arc + color.
+// Mirrors firmware slot_mask assignment: first free slot wins, freed slots are recycled
+// immediately so a lifted-and-replaced finger always gets a valid slot.
 // move_fn(touch_group, cx, cy, active) → true if in bounds and handled, false to skip.
 // When active=false (RELEASED/FREE): caller should skip position update and return true.
 function blob_update_touch_visual(sysExMsg, touchs_group, move_fn) {
   if (!touchs_group || !touchs_group.children.length) return;
+
+  const uid         = sysExMsg[BLOB_PARAM_CODE.UID];
+  const blob_status = sysExMsg[BLOB_PARAM_CODE.STATUS];
+
+  // Lazy-init slot tracking, mirroring firmware slot_mask / active_blob_count.
+  if (!touchs_group._uid_map) {
+    touchs_group._uid_map      = new Map(); // uid → slot index
+    touchs_group._slot_mask    = 0;         // bitmask of occupied slots
+    touchs_group._active_count = 0;
+  }
+
+  let touch_idx;
+  const releasing = blob_status === BLOB_STATUS.RELEASED || blob_status === BLOB_STATUS.FREE;
+
+  if (blob_status === BLOB_STATUS.NEW) {
+    // Find first free slot (first clear bit), mirroring firmware assign_blob scan
+    const n = touchs_group.children.length;
+    touch_idx = -1;
+    for (let i = 0; i < n; i++) {
+      if (!(touchs_group._slot_mask & (1 << i))) { touch_idx = i; break; }
+    }
+    if (touch_idx < 0) return; // all slots occupied
+    touchs_group._uid_map.set(uid, touch_idx);
+    touchs_group._slot_mask |= (1 << touch_idx);
+    touchs_group._active_count++;
+  } else if (releasing) {
+    touch_idx = touchs_group._uid_map.get(uid);
+    if (touch_idx === undefined) return;
+    touchs_group._uid_map.delete(uid);
+    touchs_group._slot_mask &= ~(1 << touch_idx);
+    touchs_group._active_count--;
+    if (touchs_group._active_count <= 0) {
+      touchs_group._uid_map.clear();
+      touchs_group._slot_mask    = 0;
+      touchs_group._active_count = 0;
+    }
+  } else {
+    // PRESENT / MISSING: blob still tracked, keep existing slot
+    touch_idx = touchs_group._uid_map.get(uid);
+    if (touch_idx === undefined) return;
+  }
+
+  const touch_group = touchs_group.children[touch_idx];
+  if (!touch_group) return;
+
   const cx = mapp(
     sysExMsg[BLOB_PARAM_CODE.CENTROID_X_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_X_FRACTIONAL_PART] / 100,
     0, NEW_COLS, 0, canvas_width
@@ -188,17 +235,76 @@ function blob_update_touch_visual(sysExMsg, touchs_group, move_fn) {
     sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_WHOLE_PART] + sysExMsg[BLOB_PARAM_CODE.CENTROID_Y_FRACTIONAL_PART] / 100,
     0, NEW_ROWS, 0, canvas_height
   );
-  const blob_status = sysExMsg[BLOB_PARAM_CODE.STATUS];
-  const active = blob_status !== BLOB_STATUS.RELEASED && blob_status !== BLOB_STATUS.FREE;
-  const touch_idx = sysExMsg[BLOB_PARAM_CODE.UID] % touchs_group.children.length;
-  const touch_group = touchs_group.children[touch_idx];
-  if (!touch_group) return;
+  const active = !releasing;
+
   if (!move_fn(touch_group, cx, cy, active)) return;
-  const depth = active ? sysExMsg[BLOB_PARAM_CODE.DEPTH] : 0;
-  touch_group.last_press_value = depth;
-  const touch_el = touch_group.children["knob-touch"] || touch_group.children["touch-circle"];
-  if (touch_el) touch_el.style.fillColor = active ? "red" : "orange";
-  update_touch_arc(touch_group, depth, touch_el ? touch_el.name : undefined);
+  const touch_el  = touch_group.children["knob-touch"] || touch_group.children["touch-circle"];
+  const touch_txt = touch_group.children["touch-txt"];
+  const needle    = touch_group.children["knob-needle"];
+  if (touch_el)  { touch_el.visible = active; if (active) touch_el.style.fillColor = "red"; }
+  if (touch_txt) touch_txt.visible = active;
+  if (needle)    needle.visible    = active;
+  const press_midi = touch_group.msg?.press?.midi;
+  const is_note_on_press = press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.NOTE_ON;
+  if (!is_note_on_press) {
+    const depth = active ? sysExMsg[BLOB_PARAM_CODE.DEPTH] : 0;
+    touch_group.last_press_value = depth;
+    update_touch_arc(touch_group, depth, touch_el ? touch_el.name : undefined);
+  }
+  paper.view.update();
+}
+
+// Redraws the NoteOn velocity arc at the blob-updated touch position.
+// Only fires when press type is NoteOn and a velocity is active.
+function touch_note_on_arc_update(touch_group, touch_el_name) {
+  const press_midi = touch_group.msg?.press?.midi;
+  if (press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.NOTE_ON && touch_group.last_press_value > 0)
+    update_touch_arc(touch_group, touch_group.last_press_value, touch_el_name);
+}
+
+// Hides all touch visuals and resets blob state on NoteOff.
+function touch_note_off_reset(touch_group, element_names, touch_el_name) {
+  touch_group._blob_positioned = false;
+  for (const name of element_names) {
+    const el = touch_group.children[name];
+    if (el) el.visible = false;
+  }
+  update_touch_arc(touch_group, 0, touch_el_name);
+}
+
+// Set visibility of every touch visual in every mapping layer.
+// Called on PLAY entry (false) and EDIT return (true).
+// Also resets blob→slot tracking state when hiding so the next PLAY session starts clean.
+function set_all_touch_visuals_visible(visible) {
+  for (const layer of paper.project.layers) {
+    for (const item of layer.children) {
+      const touchs_group = item.children && item.children["touchs-group"];
+      if (!touchs_group) continue;
+      if (!visible) {
+        // Reset slot-tracking state so the next PLAY session starts with no stale assignments.
+        touchs_group._uid_map      = null;
+        touchs_group._slot_mask    = 0;
+        touchs_group._active_count = 0;
+      }
+      for (const touch_group of touchs_group.children) {
+        touch_group._blob_positioned = false;
+        const touch_el   = touch_group.children["knob-touch"] || touch_group.children["touch-circle"];
+        const touch_txt  = touch_group.children["touch-txt"];
+        const needle     = touch_group.children["knob-needle"];
+        const touch_line = touch_group.children["touch-line"];
+        const line_x     = touch_group.children["touch-line-x"];
+        const line_y     = touch_group.children["touch-line-y"];
+        if (touch_el)   touch_el.visible   = visible;
+        if (touch_txt)  touch_txt.visible  = visible;
+        if (needle)     needle.visible     = visible;
+        if (touch_line) touch_line.visible = visible;
+        if (line_x)     line_x.visible     = visible;
+        if (line_y)     line_y.visible     = visible;
+        const arc = touch_group.children["touch-arc"];
+        if (arc) { arc.removeSegments(); arc.visible = visible; }
+      }
+    }
+  }
   paper.view.update();
 }
 
@@ -222,45 +328,43 @@ function show_only_touch(touch_group, select = false) {
   paper.view.update();
 }
 
-function draw_controler_from_mouse(mouseEvent) {
+function create_mapping_from_mouse(mouseEvent) {
 
   paper.project.layers[e256_draw_mode].activate();
 
-  previous_controleur = current_controleur;
-  current_controleur = controleur_factory(e256_draw_mode);
-  current_controleur.setup_from_mouse_event(mouseEvent);
-  current_controleur.create();
+  previous_controller = current_controller;
+  current_controller = mapping_factory(e256_draw_mode);
+  current_controller.setup_from_mouse_event(mouseEvent);
+  current_controller.create();
   invalidate_midi_play_cache();
-  current_controleur.bringToFront();
+  current_controller.bringToFront();
 
-  if (previous_controleur != null) item_menu_params(previous_controleur, "hide");
+  if (previous_controller != null) item_menu_params(previous_controller, "hide");
   if (previous_touch != null) item_menu_params(previous_touch, "hide");
-  create_item_menu_params(current_controleur);
-  update_item_main_params(current_controleur);
-  update_item_touchs_menu_params(current_controleur);
-  item_menu_params(current_controleur, "show");
+  create_item_menu_params(current_controller);
+  update_item_main_params(current_controller);
+  update_item_touchs_menu_params(current_controller);
+  item_menu_params(current_controller, "show");
 
   touch_selection_locked = false;
-  const first_touch = find_first_touch(current_controleur);
+  const first_touch = find_first_touch(current_controller);
   if (first_touch) show_only_touch(first_touch);
 };
 
-function draw_controlers_from_config(raw_configFile) {
+function load_mappings_from_config(raw_configFile) {
   let configFile = null;
   try {
     configFile = JSON.parse(raw_configFile);
-    //console.log("CONFIG: " + raw_configFile); // PROB!
   } catch (err) {
     alert_msg("NOT VALID JSON!", "danger");
     return;
   }
-  clear_all_meunu_params();
+  clear_all_menu_params();
   clear_all_layers();
-  create_controlers_from_config(configFile);
+  create_mappings_from_config(configFile);
 };
 
-// Clear all meunu params
-function clear_all_meunu_params() {
+function clear_all_menu_params() {
   for (const layer of paper.project.layers) {
     if (layer.hasChildren()) {
       for (item of layer.children) {
@@ -270,7 +374,6 @@ function clear_all_meunu_params() {
   }
 };
 
-// Clear all layers
 function clear_all_layers() {
   for (const layer of paper.project.layers) {
     if (layer.hasChildren()) {
@@ -280,8 +383,7 @@ function clear_all_layers() {
   invalidate_midi_play_cache();
 };
 
-// Create all controlers from config
-function create_controlers_from_config(configFile) {
+function create_mappings_from_config(configFile) {
   const profile_sel = document.getElementById("synth_profile_select");
   if (profile_sel) {
     const key = configFile.synth_profile || "";
@@ -296,15 +398,15 @@ function create_controlers_from_config(configFile) {
     layer.activate();
     for (const _ctl_index in configFile.mappings[_ctl_type]) {
       try {
-        current_controleur = controleur_factory(_ctl_type);
-        current_controleur.setup_from_config(configFile.mappings[_ctl_type][_ctl_index]);
-        current_controleur.create();
-        create_item_menu_params(current_controleur);
-        update_item_main_params(current_controleur);
-        update_item_touchs_menu_params(current_controleur);
-        item_menu_params(current_controleur, "hide");
+        current_controller = mapping_factory(_ctl_type);
+        current_controller.setup_from_config(configFile.mappings[_ctl_type][_ctl_index]);
+        current_controller.create();
+        create_item_menu_params(current_controller);
+        update_item_main_params(current_controller);
+        update_item_touchs_menu_params(current_controller);
+        item_menu_params(current_controller, "hide");
       } catch (e) {
-        console.error("CREATE_CONTROLEUR_ERROR [" + _ctl_type + "][" + _ctl_index + "]:", e);
+        console.error("CREATE_CONTROLLER_ERROR [" + _ctl_type + "][" + _ctl_index + "]:", e);
       }
     }
   }
@@ -324,6 +426,7 @@ function re_create_item(item) {
   touch_selection_locked = false;
   const first_touch = find_first_touch(item);
   if (first_touch) show_only_touch(first_touch);
+  document.activeElement?.blur();
 };
 
 function re_create_touch_params(item) {
@@ -346,35 +449,26 @@ function re_create_touch_params(item) {
   invalidate_midi_play_cache();
   const first_touch = find_first_touch(item);
   if (first_touch) show_only_touch(first_touch);
+  document.activeElement?.blur();
 };
 
-function controleur_factory(item_type) {
+function mapping_factory(item_type) {
   switch (item_type) {
-    case "switch":
-      current_controleur = new switch_factory();
-      break;
-    case "slider":
-      current_controleur = new slider_factory();
-      break;
-    case "knob":
-      current_controleur = new knob_factory();
-      break;
-    case "touchpad":
-      current_controleur = new touchpad_factory();
-      break;
-    case "grid":
-      current_controleur = new grid_factory();
-      break;
+    case "switch":   current_controller = new switch_factory();   break;
+    case "slider":   current_controller = new slider_factory();   break;
+    case "knob":     current_controller = new knob_factory();     break;
+    case "touchpad": current_controller = new touchpad_factory(); break;
+    case "grid":     current_controller = new grid_factory();     break;
     case "path":
-      current_controleur = new path_factory();
-      create_once = true;
+      current_controller = new path_factory();
+      shape_drawing_in_progress = true; // vertex-by-vertex drawing mode
       break;
     case "polygon":
-      current_controleur = new polygon_factory();
-      create_once = true;
+      current_controller = new polygon_factory();
+      shape_drawing_in_progress = true; // vertex-by-vertex drawing mode
       break;
-    }
-    return current_controleur;
+  }
+  return current_controller;
 };
 
 paper.view.onResize = function () {
@@ -390,7 +484,7 @@ paper.view.onResize = function () {
 function onReaderLoad(event) {
   conf_size = event.target.result.length;
   if (DEBUG) console.log("INPUT_CONF_SIZE: " + conf_size);
-  draw_controlers_from_config(event.target.result);
+  load_mappings_from_config(event.target.result);
 };
 
 function loadFile(event) {

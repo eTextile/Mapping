@@ -12,7 +12,7 @@ function knob_factory() {
     TOUCHS: 1,
     RADIUS: 250,
     OFFSET: -45,
-    MIN_SIZE: 30,
+    MIN_SIZE: 150,
     MODE_R: MIDI_TYPE.CONTROL_CHANGE,
     MODE_T: MIDI_TYPE.CONTROL_CHANGE,
     MODE_Z: MIDI_TYPE.NOTE_ON
@@ -121,8 +121,10 @@ function knob_factory() {
           : prev.press;
         this.data.msg.push(touch_msg);
       }
-      this.center = this.children["knob-group"].center;
-      this.radius = this.children["knob-group"].radius;
+      // Recompute from data, not from Paper.js visual properties: the knob-group's .center
+      // and .radius are only updated when the user drags, not when from/to are edited via inputs.
+      this.radius = (this.data.to.x - this.data.from.x) / 2;
+      this.center = new paper.Point(this.data.from.x + this.radius, this.data.from.y + this.radius);
       this.theta = deg_to_rad(this.children["knob-group"].data.offset);
     },
 
@@ -412,165 +414,80 @@ function knob_factory() {
       }
 
       _knob_frame.onMouseDrag = function (mouseEvent) {
-        let _knob_previous_radius = null;
-        let _knob_frame_whdth = null;
-
         switch (e256_current_mode) {
           case MODE.EDIT:
             if (current_part.type === "bounds") {
               switch (current_part.name) {
-                case "top-left":
-                  this.segments[0].point.x = mouseEvent.point.x;
-                  this.segments[1].point = mouseEvent.point;
+                case "top-left": {
+                  const side = this.bounds.right - mouseEvent.point.x;
+                  if (side < DEFAULT.MIN_SIZE * 2) break;
+                  this.segments[0].point   = new paper.Point(mouseEvent.point.x, mouseEvent.point.y + side);
+                  this.segments[1].point   = mouseEvent.point;
                   this.segments[2].point.y = mouseEvent.point.y;
-                  _knob_frame_whdth = this.bounds.right - mouseEvent.point.x;
-                  this.segments[0].point.y = mouseEvent.point.y + _knob_frame_whdth;
-                  this.segments[3].point.y = mouseEvent.point.y + _knob_frame_whdth;
-                  _knob_group.data.from = mouseEvent.point;
-                  _knob_group.data.to.y = mouseEvent.point.y + _knob_frame_whdth;
-
-                  _knob_previous_radius = _knob_circle.radius;
-                  _knob_group.radius = (_knob_group.data.to.x - _knob_group.data.from.x) / 2;
-                  _knob_circle.radius = _knob_group.radius;
-                  _knob_circle.position = new paper.Point(
-                    _knob_group.data.to.x - _knob_group.radius,
-                    _knob_group.data.to.y - _knob_group.radius
-                  );
-                  // "knob-offset"
-                  _knob_group.center = _knob_circle.position;
-                  refresh_conic();
-                  _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
-                  _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
-                  _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
-                  // "knob-touch" & "knob-needle"
-                  for (const _touch of _touchs_group.children) {
-                    _touch.radius = (_touch.radius * _knob_group.radius) / _knob_previous_radius;
-                    _knob_touch_pos = pol_to_cart(_touch.radius, _touch.theta);
-                    _touch.children["knob-touch"].position = new paper.Point(
-                      _knob_group.center.x + _knob_touch_pos.x,
-                      _knob_group.center.y + _knob_touch_pos.y
-                    );
-                    _touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
-                    _touch.children["knob-needle"].segments[0].point = _knob_group.center;
-                    _touch.children["knob-needle"].segments[1].point = _touch.children["knob-touch"].position;
-                  }
+                  this.segments[3].point.y = mouseEvent.point.y + side;
+                  _knob_group.data.from    = mouseEvent.point;
+                  _knob_group.data.to.y    = mouseEvent.point.y + side;
                   break;
-
-                case "top-right":
+                }
+                case "top-right": {
+                  const side = mouseEvent.point.x - this.bounds.left;
+                  if (side < DEFAULT.MIN_SIZE * 2) break;
                   this.segments[1].point.y = mouseEvent.point.y;
-                  this.segments[2].point = mouseEvent.point;
+                  this.segments[2].point   = mouseEvent.point;
                   this.segments[3].point.x = mouseEvent.point.x;
-                  _knob_frame_whdth = mouseEvent.point.x - this.bounds.left;
-                  this.segments[0].point.y = mouseEvent.point.y + _knob_frame_whdth;
-                  this.segments[3].point.y = mouseEvent.point.y + _knob_frame_whdth;
-                  _knob_group.data.from.y = mouseEvent.point.y;
-                  _knob_group.data.to.x = mouseEvent.point.x;
-                  _knob_group.data.to.y = mouseEvent.point.y + _knob_frame_whdth;
-
-                  _knob_previous_radius = _knob_circle.radius;
-                  _knob_group.radius = (_knob_group.data.to.x - _knob_group.data.from.x) / 2;
-                  _knob_circle.radius = _knob_group.radius;
-                  _knob_circle.position = new paper.Point(
-                    _knob_group.data.from.x + _knob_group.radius,
-                    _knob_group.data.to.y - _knob_group.radius
-                  );
-                  // "knob-offset"
-                  _knob_group.center = _knob_circle.position;
-                  refresh_conic();
-                  _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
-                  _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
-                  _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
-                  // "knob-touch" & "knob-needle"
-                  for (const _touch of _touchs_group.children) {
-                    _touch.radius = (_touch.radius * _knob_group.radius) / _knob_previous_radius;
-                    _knob_touch_pos = pol_to_cart(_touch.radius, _touch.theta);
-                    _touch.children["knob-touch"].position = new paper.Point(
-                      _knob_group.center.x + _knob_touch_pos.x,
-                      _knob_group.center.y + _knob_touch_pos.y
-                    );
-                    _touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
-                    _touch.children["knob-needle"].segments[0].point = _knob_group.center;
-                    _touch.children["knob-needle"].segments[1].point = _touch.children["knob-touch"].position;
-                  }
+                  this.segments[0].point.y = mouseEvent.point.y + side;
+                  this.segments[3].point.y = mouseEvent.point.y + side;
+                  _knob_group.data.from.y  = mouseEvent.point.y;
+                  _knob_group.data.to.x    = mouseEvent.point.x;
+                  _knob_group.data.to.y    = mouseEvent.point.y + side;
                   break;
-
-                case "bottom-right":
-                  this.segments[2].point.x = mouseEvent.point.x;
-                  this.segments[3].point = mouseEvent.point;
+                }
+                case "bottom-right": {
+                  const side = mouseEvent.point.x - this.bounds.left;
+                  if (side < DEFAULT.MIN_SIZE * 2) break;
+                  this.segments[2].point   = new paper.Point(mouseEvent.point.x, mouseEvent.point.y - side);
+                  this.segments[3].point   = mouseEvent.point;
                   this.segments[0].point.y = mouseEvent.point.y;
-                  _knob_frame_whdth = mouseEvent.point.x - this.bounds.left;
-                  this.segments[1].point.y = mouseEvent.point.y - _knob_frame_whdth;
-                  this.segments[2].point.y = mouseEvent.point.y - _knob_frame_whdth;
-                  _knob_group.data.from.y = mouseEvent.point.y - _knob_frame_whdth;
-                  _knob_group.data.to = mouseEvent.point;
-
-                  _knob_previous_radius = _knob_circle.radius;
-                  _knob_group.radius = (_knob_group.data.to.x - _knob_group.data.from.x) / 2;
-                  _knob_circle.radius = _knob_group.radius;
-                  _knob_circle.position = new paper.Point(
-                    _knob_group.data.from.x + _knob_group.radius,
-                    _knob_group.data.from.y + _knob_group.radius
-                  );
-                  // "knob-offset"
-                  _knob_group.center = _knob_circle.position;
-                  refresh_conic();
-                  _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
-                  _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
-                  _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
-                  // "knob-touch" & "knob-needle"
-                  for (const _touch of _touchs_group.children) {
-                    _touch.radius = (_touch.radius * _knob_group.radius) / _knob_previous_radius;
-                    _knob_touch_pos = pol_to_cart(_touch.radius, _touch.theta);
-                    _touch.children["knob-touch"].position = new paper.Point(
-                      _knob_group.center.x + _knob_touch_pos.x,
-                      _knob_group.center.y + _knob_touch_pos.y
-                    );
-                    _touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
-                    _touch.children["knob-needle"].segments[0].point = _knob_group.center;
-                    _touch.children["knob-needle"].segments[1].point = _touch.children["knob-touch"].position;
-                  }
+                  this.segments[1].point.y = mouseEvent.point.y - side;
+                  _knob_group.data.from.y  = mouseEvent.point.y - side;
+                  _knob_group.data.to      = mouseEvent.point;
                   break;
-
-                case "bottom-left":
+                }
+                case "bottom-left": {
+                  const side = this.bounds.right - mouseEvent.point.x;
+                  if (side < DEFAULT.MIN_SIZE * 2) break;
                   this.segments[3].point.y = mouseEvent.point.y;
-                  this.segments[0].point = mouseEvent.point;
-                  this.segments[1].point.x = mouseEvent.point.x;
-                  _knob_frame_whdth = this.bounds.right - mouseEvent.point.x;
-                  this.segments[1].point.y = mouseEvent.point.y - _knob_frame_whdth;
-                  this.segments[2].point.y = mouseEvent.point.y - _knob_frame_whdth;
-                  _knob_group.data.from.x = mouseEvent.point.x;
-                  _knob_group.data.from.y = mouseEvent.point.y - _knob_frame_whdth;
-                  _knob_group.data.to.y = mouseEvent.point.y;
-
-                  _knob_previous_radius = _knob_circle.radius;
-                  _knob_group.radius = (_knob_group.data.to.x - _knob_group.data.from.x) / 2;
-                  _knob_circle.radius = _knob_group.radius;
-                  _knob_circle.position = new paper.Point(
-                    _knob_group.data.to.x - _knob_group.radius,
-                    _knob_group.data.from.y + _knob_group.radius
-                  );
-                  // "knob-offset"
-                  _knob_group.center = _knob_circle.position;
-                  refresh_conic();
-                  _knob_offset_pos = pol_to_cart(_knob_group.radius, deg_to_rad(_knob_group.data.offset));
-                  _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
-                  _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
-                  // "knob-touch" & "knob-needle"
-                  for (const _touch of _touchs_group.children) {
-                    _touch.radius = (_touch.radius * _knob_group.radius) / _knob_previous_radius;
-                    _knob_touch_pos = pol_to_cart(_touch.radius, _touch.theta);
-                    _touch.children["knob-touch"].position = new paper.Point(
-                      _knob_group.center.x + _knob_touch_pos.x,
-                      _knob_group.center.y + _knob_touch_pos.y
-                    );
-                    _touch.children["touch-txt"].position = _touch.children["knob-touch"].position;
-                    _touch.children["knob-needle"].segments[0].point = _knob_group.center;
-                    _touch.children["knob-needle"].segments[1].point = _touch.children["knob-touch"].position;
-                  }
+                  this.segments[0].point   = mouseEvent.point;
+                  this.segments[1].point   = new paper.Point(mouseEvent.point.x, mouseEvent.point.y - side);
+                  this.segments[2].point.y = mouseEvent.point.y - side;
+                  _knob_group.data.from    = new paper.Point(mouseEvent.point.x, mouseEvent.point.y - side);
+                  _knob_group.data.to.y    = mouseEvent.point.y;
                   break;
+                }
                 default:
-                  //console.log("PART_NOT_USE: " + current_part.name);
                   break;
+              }
+              const new_radius = (_knob_group.data.to.x - _knob_group.data.from.x) / 2;
+              const scale      = new_radius / _knob_circle.radius;
+              _knob_group.radius    = new_radius;
+              _knob_circle.radius   = new_radius;
+              _knob_group.center    = new paper.Point(
+                _knob_group.data.from.x + new_radius,
+                _knob_group.data.from.y + new_radius
+              );
+              _knob_circle.position = _knob_group.center;
+              refresh_conic();
+              _knob_offset_pos = pol_to_cart(new_radius, deg_to_rad(_knob_group.data.offset));
+              _knob_offset.position.x = _knob_group.center.x + _knob_offset_pos.x;
+              _knob_offset.position.y = _knob_group.center.y + _knob_offset_pos.y;
+              for (const _touch of _touchs_group.children) {
+                _touch.radius *= scale;
+                const tp      = pol_to_cart(_touch.radius, _touch.theta);
+                const new_pos = new paper.Point(_knob_group.center.x + tp.x, _knob_group.center.y + tp.y);
+                _touch.children["knob-touch"].position           = new_pos;
+                _touch.children["touch-txt"].position            = new_pos;
+                _touch.children["knob-needle"].segments[0].point = _knob_group.center;
+                _touch.children["knob-needle"].segments[1].point = new_pos;
               }
               update_item_main_params(_knob_group.parent);
             }
@@ -596,15 +513,16 @@ function knob_factory() {
         if (!knob_group) return false;
         const dx = cx - knob_group.center.x;
         const dy = cy - knob_group.center.y;
-        if (Math.hypot(dx, dy) > knob_group.radius) return false;
+        if (active && Math.hypot(dx, dy) > knob_group.radius) return false;
+        touch_group._blob_positioned = active;
         if (active) {
-          const theta = Math.atan2(dy, dx);
-          const pos   = pol_to_cart(touch_group.radius || knob_group.radius, theta);
-          const new_pos = new paper.Point(knob_group.center.x + pos.x, knob_group.center.y + pos.y);
-          touch_group.theta = theta;
-          touch_group.children["knob-touch"].position = new_pos;
+          const new_pos = new paper.Point(cx, cy);
+          touch_group.radius = Math.hypot(dx, dy);
+          touch_group.theta  = Math.atan2(dy, dx);
+          touch_group.children["knob-touch"].position           = new_pos;
           touch_group.children["knob-needle"].segments[1].point = new_pos;
-          touch_group.children["touch-txt"].position = new_pos;
+          touch_group.children["touch-txt"].position            = new_pos;
+          touch_note_on_arc_update(touch_group, "knob-touch");
         }
         return true;
       });
@@ -629,7 +547,11 @@ function knob_factory() {
           if (ps.type !== MIDI_TYPE.NOTE_ON || press_midi.data1 !== msg.data1) continue;
           const value = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) ? msg.data2 : 0;
           touch_group.last_press_value = value;
-          update_touch_arc(touch_group, value, "knob-touch");
+          if (value > 0) {
+            if (touch_group._blob_positioned) update_touch_arc(touch_group, value, "knob-touch");
+          } else {
+            touch_note_off_reset(touch_group, ["knob-touch", "touch-txt", "knob-needle"], "knob-touch");
+          }
           updated = true;
         } else if (status.type === MIDI_TYPE.CONTROL_CHANGE) {
           if (ps.type !== MIDI_TYPE.CONTROL_CHANGE || press_midi.data1 !== msg.data1) continue;

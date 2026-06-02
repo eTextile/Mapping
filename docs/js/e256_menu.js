@@ -6,6 +6,7 @@
 
 var e256_current_mode = MODE.PENDING;
 var e256_previous_mode = null;
+var e256_pending_mode = null;
 var e256_draw_mode = null;
 
 console.log("PROJECT: " + PROJECT);
@@ -34,13 +35,22 @@ $("#connect_switch").on ("change",
 
 $(".e256_set_mode").click (
   function (event) {
-    let requested_mode = MODE[event.target.id];
+    const btn_id = event.currentTarget.id;
+    let requested_mode = MODE[btn_id];
     if (midi_device_connected) {
       if (requested_mode !== e256_current_mode) {
         e256_previous_mode = e256_current_mode;
-        if (event.target.id === "CALIBRATE") $("#CALIBRATE").addClass("active");
-        send_sysex_cmd(requested_mode);
-        if (DEBUG) console.log("REQUEST: " + MODE_CODES[requested_mode]);
+        if ((requested_mode === MODE.PLAY || requested_mode === MODE.EDIT || requested_mode === MODE.THROUGH) &&
+            (e256_current_mode === MODE.MATRIX_RAW || e256_current_mode === MODE.MATRIX_INTERP)) {
+          e256_pending_mode = requested_mode;
+          send_sysex_cmd(MODE.MAPPING);
+          if (DEBUG) console.log("REQUEST: MAPPING (pending " + MODE_CODES[requested_mode] + ")");
+        } else {
+          e256_pending_mode = null;
+          if (btn_id === "CALIBRATE") $("#CALIBRATE").addClass("active");
+          send_sysex_cmd(requested_mode);
+          if (DEBUG) console.log("REQUEST: " + MODE_CODES[requested_mode]);
+        }
       }
     } else {
       alert_msg("ETEXTILE-SYNTHESIZER IS NOT CONNECTED!", "danger");
@@ -56,16 +66,16 @@ $(".maping_tool").click (
     
     switch (e256_draw_mode) {
       case "path":
-        hit_options = hit_options_B;
+        hit_options = hit_opts_vertex;
         break;
       case "polygon":
-        hit_options = hit_options_B;
+        hit_options = hit_opts_vertex;
         break;
       default:
-        hit_options = hit_options_A;
+        hit_options = hit_opts_item;
         break;
     }
-    create_once = false;
+    shape_drawing_in_progress = false;
   }
 );
 
@@ -125,9 +135,13 @@ $(document).on("keydown", function (event) {
     case "p": $("#EDIT, #THROUGH").removeClass("active"); $("#PLAY").trigger("click");   break;
     case "e": $("#PLAY, #THROUGH").removeClass("active"); $("#EDIT").trigger("click");   break;
     case "t": $("#EDIT, #PLAY").removeClass("active");    $("#THROUGH").trigger("click"); break;
+    case "r": $("#matrix_raw_btn").trigger("click");    break;
+    case "i": $("#matrix_interp_btn").trigger("click"); break;
     case "m":
-      if ($("#MAPPING").hasClass("active")) $("#MATRIX_RAW").trigger("click");
-      else $("#MAPPING").trigger("click");
+      if (e256_current_mode === MODE.MATRIX_RAW || e256_current_mode === MODE.MATRIX_INTERP)
+        $("#MAPPING").trigger("click");
+      else if (window.set_matrix_resolution)
+        window.set_matrix_resolution(RAW_COLS, RAW_ROWS);
       break;
     case "c": $("#CALIBRATE").trigger("click");     break;
     case "u": $("#upload_config").trigger("click"); break;

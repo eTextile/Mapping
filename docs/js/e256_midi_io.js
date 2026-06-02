@@ -10,13 +10,17 @@ var midi_device_connected = false;
 var loaded_file = null; // From user desktop
 var fetch_config_file = null; // From e256 flash memory
 
-var current_controleur = { "id": null };
-var previous_controleur = { "id": null };
+var current_controller = { "id": null };
+var previous_controller = { "id": null };
 var current_touch = { "id": null };
 var previous_touch = { "id": null };
 var current_part = { "id": null };
+// Prevents hover (onMouseEnter) from overriding the selected touch's highlight colour while
+// the user holds/drags on a touch circle in EDIT mode. Set true in each mapping's onMouseDown,
+// cleared whenever the active touch or mapping changes.
 var touch_selection_locked = false;
 
+// Generator: cycles MIDI CC values 0–127 to auto-assign defaults for new mappings.
 function* default_midi_index() {
   let index = 0;
   while (true) {
@@ -394,16 +398,23 @@ function handle_sysex_ack(ack) {
       $("#MATRIX_RAW").removeClass("active"); $("#MAPPING").addClass("active");
       e256_current_mode = MODE.MAPPING;
       alert_msg("MODE: MAPPING", "success");
-      $("#EDIT").trigger("click");
+      if (e256_pending_mode !== null) {
+        const pending_id = MODE_CODES[e256_pending_mode];
+        e256_pending_mode = null;
+        $("#" + pending_id).trigger("click");
+      } else {
+        $("#EDIT").trigger("click");
+      }
       break;
     case MODE_ACK.EDIT:
       $("#edit_menu").collapse("show"); $("#load_menu").collapse("show");
       $("#connection_status").html("CONNECTED / EDIT");
       $("#mode_explanation").html("Add tactile commands to the eTextile device");
       $("#midi_term").collapse("hide"); $("#e256_params").show(); $("#upload_section").show(); $("#synth_profile_section").show();
-      item_menu_params(current_controleur, "show");
+      item_menu_params(current_controller, "show");
       item_menu_params(current_touch, "show");
       $("#PLAY").removeClass("active"); $("#THROUGH").removeClass("active"); $("#EDIT").addClass("active");
+      set_all_touch_visuals_visible(true);
       e256_current_mode = MODE.EDIT;
       alert_msg("MODE: EDIT", "success");
       break;
@@ -415,7 +426,7 @@ function handle_sysex_ack(ack) {
       $("#connection_status").html("CONNECTED / THROUGH");
       $("#mode_explanation").html("Send Midi msg to the external synth");
       $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide(); $("#synth_profile_section").hide();
-      item_menu_params(current_controleur, "hide"); item_menu_params(current_touch, "hide");
+      item_menu_params(current_controller, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").addClass("active"); $("#PLAY").removeClass("active");
       e256_blobs.clear(); midi_term_in.clear(); midi_term_out.clear(); e256_current_mode = MODE.THROUGH;
       alert_msg("MODE: THROUGH", "success");
@@ -428,9 +439,11 @@ function handle_sysex_ack(ack) {
       $("#connection_status").html("CONNECTED / PLAY");
       $("#mode_explanation").html("Evaluate what you have made");
       $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide(); $("#synth_profile_section").hide();
-      item_menu_params(current_controleur, "hide"); item_menu_params(current_touch, "hide");
+      item_menu_params(current_controller, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").removeClass("active"); $("#PLAY").addClass("active");
-      e256_blobs.clear(); midi_term_in.clear(); midi_term_out.clear(); e256_current_mode = MODE.PLAY;
+      e256_blobs.clear(); midi_term_in.clear(); midi_term_out.clear();
+      set_all_touch_visuals_visible(false);
+      e256_current_mode = MODE.PLAY;
       alert_msg("MODE: PLAY", "success");
       break;
     case MODE_ACK.PENDING:
@@ -451,12 +464,12 @@ function handle_sysex_ack(ack) {
       break;
     case MODE_ACK.FETCH_CONFIG:
       $("#fetch_config").removeClass("active");
-      if (current_controleur) {
-        $("#" + current_controleur.name).removeClass("active");
-        previous_controleur = current_controleur; current_controleur = null;
+      if (current_controller) {
+        $("#" + current_controller.name).removeClass("active");
+        previous_controller = current_controller; current_controller = null;
       }
       if (fetch_config_file !== null && fetch_config_file.length !== 15) {
-        draw_controlers_from_config(fetch_config_file);
+        load_mappings_from_config(fetch_config_file);
       } else {
         alert_msg("NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger");
       }
