@@ -16,7 +16,8 @@ function create_item_menu_params(item) {
 
   let card_header = document.createElement("div");                     // div item name
   card_header.className = "btn btn-outline-primary w-100 fw-bold fs-5 disabled mb-2";
-  card_header.append(item.name + " params");
+  const mapping_index = item.parent ? item.parent.children.indexOf(item) + 1 : item.id;
+  card_header.append(item.name + "-" + mapping_index);
   div_item_menu_params.appendChild(card_header);
 
   for (const part of item.children) { // 1ST LEVEL ITEM MENU PARAMS
@@ -200,6 +201,7 @@ function create_item_main_params(item) {
         item.data[param] = Number(e.target.value);
         if (param === "steps" && item.redraw_steps) item.redraw_steps();
         else re_create_item(item.parent);
+        e.target.blur();
       });
 
       part_param.appendChild(midi_param_val);
@@ -272,9 +274,12 @@ function create_item_touchs_menu_params(item) {
   sub_part_params.className = "touch-params-section";
   sub_part_params.style.display = (!isNaN(_touch_index) && _touch_index === 0) ? "" : "none";
 
+  const is_rol = item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL;
+
   let touch_label = document.createElement("div");
   touch_label.className = "btn btn-outline-primary w-100 fw-bold fs-5 disabled text-nowrap overflow-hidden my-2";
   touch_label.textContent = isNaN(_touch_index) ? item.name : item.name.split("-")[0] + "-" + (_touch_index + 1);
+  touch_label.style.display = is_rol ? "none" : "";
   sub_part_params.appendChild(touch_label);
 
   let table_params = document.createElement("table");
@@ -452,6 +457,7 @@ function create_item_touchs_menu_params(item) {
                 } else if (event.target.value > -1 && event.target.value < 128) {
                   msg_obj[param][midi_byte] = Number(event.target.value);
                 }
+                event.target.blur();
               });
               param_val.addEventListener("change", function (event) {
                 if (event.target.type !== "number") return;
@@ -514,6 +520,7 @@ function create_item_touchs_menu_params(item) {
                 if (event.target.value > -1 && event.target.value < 128) {
                   msg_obj[param][limit] = Number(event.target.value);
                 }
+                event.target.blur();
               });
               param_val.addEventListener("change", function (event) {
                 if (event.target.type !== "number") return;

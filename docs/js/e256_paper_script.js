@@ -128,34 +128,81 @@ paper_tool.onMouseDown = function (mouseEvent) {
 paper_tool.onKeyDown = function (keyEvent) {
   if (e256_current_mode === MODE.EDIT) {
     if (keyEvent.modifiers.shift) {
-      switch (keyEvent.key) {
-        case "backspace":
-          remove_item_menu_params(current_controller);
-          current_controller.remove();
-          invalidate_midi_play_cache();
-          current_controller = previous_controller;
-          previous_controller = null;
-          break;
-        case "enter":
-          if (e256_draw_mode === "path") {
-            // TODO: remove last path point
-            current_controller.back();
+      // keyEvent.key with Shift produces shifted chars ("!", "@"…); use event.code instead.
+      const digit_match = keyEvent.event?.code?.match(/^Digit(\d)$/);
+      if (digit_match) {
+        const digit = parseInt(digit_match[1]);
+        if (digit >= 1) {
+          // Shift+N selects touch N-1 of the current controller (1-indexed for ergonomics).
+          const touchs_group = current_controller.children["touchs-group"];
+          if (touchs_group) {
+            const touch_group = touchs_group.children[digit - 1];
+            if (touch_group && touch_group.msg) {
+              show_only_touch(touch_group, true);
+              touch_selection_locked = true;
+            }
           }
-          break;
-        default:
-          break;
+        }
+      } else {
+        switch (keyEvent.key) {
+          case "backspace":
+            remove_item_menu_params(current_controller);
+            current_controller.remove();
+            invalidate_midi_play_cache();
+            current_controller = previous_controller;
+            previous_controller = null;
+            break;
+          case "enter":
+            if (e256_draw_mode === "path") {
+              // TODO: remove last path point
+              current_controller.back();
+            }
+            break;
+          default:
+            break;
+        }
       }
     }
     else {
       switch (keyEvent.key) {
         case "space":
           shape_drawing_in_progress = false;
-          const layers = paper.project.layers.filter(l => l.hasChildren());
-          if (layers.length > 0) {
-            current_layer_index = (current_layer_index + 1) % layers.length;
-            layers[current_layer_index].bringToFront();
-          }
           break;
+        case "tab": {
+          keyEvent.preventDefault();
+          const blob_layer = paper.project.layers.find(l => l.name === "blob");
+          const FAMILY_ORDER = ["switch", "slider", "knob", "touchpad", "grid", "path", "polygon"];
+          const all_items = [];
+          for (const type of FAMILY_ORDER) {
+            const layer = paper.project.layers[type];
+            if (!layer) continue;
+            for (const item of layer.children) {
+              if (item.name === type) all_items.push(item);
+            }
+          }
+          if (all_items.length === 0) break;
+          const cur_idx = all_items.findIndex(item => item.id === current_controller.id);
+          const target = all_items[(cur_idx + 1) % all_items.length];
+          target.parent.bringToFront();
+          if (blob_layer) blob_layer.bringToFront();
+          previous_controller = current_controller;
+          if (previous_controller) {
+            const prev_frame = find_mapping_frame(previous_controller);
+            if (prev_frame) prev_frame.selected = false;
+            item_menu_params(previous_controller, "hide");
+          }
+          current_controller = target;
+          e256_draw_mode = target.name;
+          const cur_frame = find_mapping_frame(current_controller);
+          if (cur_frame) cur_frame.selected = true;
+          item_menu_params(current_controller, "show");
+          $(".maping_tool").removeClass("active");
+          $("#" + current_controller.name).addClass("active");
+          touch_selection_locked = false;
+          const first_touch = find_first_touch(current_controller);
+          if (first_touch) show_only_touch(first_touch);
+          break;
+        }
         default:
           break;
       }
@@ -169,6 +216,17 @@ function find_first_touch(item) {
   for (const part of item.children) {
     for (const sub_part of part.children) {
       if (sub_part.msg) return sub_part;
+    }
+  }
+  return null;
+}
+
+// Returns the frame element of a mapping (name contains "frame"), used for hover-style selection.
+function find_mapping_frame(item) {
+  for (const part of item.children) {
+    if (part.name && part.name.includes("frame")) return part;
+    for (const child of part.children) {
+      if (child.name && child.name.includes("frame")) return child;
     }
   }
   return null;
@@ -245,12 +303,12 @@ function blob_update_touch_visual(sysExMsg, touchs_group, move_fn) {
   if (touch_txt) touch_txt.visible = active;
   if (needle)    needle.visible    = active;
   const press_midi = touch_group.msg?.press?.midi;
-  const is_note_on_press = press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.NOTE_ON;
-  if (!is_note_on_press) {
-    const depth = active ? sysExMsg[BLOB_PARAM_CODE.DEPTH] : 0;
-    touch_group.last_press_value = depth;
-    update_touch_arc(touch_group, depth, touch_el ? touch_el.name : undefined);
-  }
+  const is_note_on = press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.NOTE_ON;
+  const depth = active
+    ? (is_note_on ? sysExMsg[BLOB_PARAM_CODE.ATTACK_Z] : sysExMsg[BLOB_PARAM_CODE.DEPTH])
+    : 0;
+  touch_group.last_press_value = depth;
+  update_touch_arc(touch_group, depth, touch_el ? touch_el.name : undefined);
   paper.view.update();
 }
 

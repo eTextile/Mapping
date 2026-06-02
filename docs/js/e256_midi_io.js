@@ -380,12 +380,14 @@ function handle_sysex_ack(ack) {
   if (DEBUG) console.log("ACK: " + MODE_ACK_CODES[ack]);
   switch (ack) {
     case MODE_ACK.MATRIX_RAW:
-      updateMenu(); $("#e256_params").hide(); $("#upload_section").hide(); $("#synth_profile_section").hide(); e256_current_mode = MODE.MATRIX_RAW;
+      updateMenu(); $("#e256_params").hide(); $("#upload_section").hide(); $("#synth_profile_section").hide();
+      e256_blobs.clear(); e256_current_mode = MODE.MATRIX_RAW;
       $("#connection_status").html("CONNECTED / MATRIX_RAW");
       alert_msg("MODE: MATRIX_RAW", "success");
       break;
     case MODE_ACK.MATRIX_INTERP:
-      updateMenu(); $("#e256_params").hide(); $("#upload_section").hide(); $("#synth_profile_section").hide(); e256_current_mode = MODE.MATRIX_INTERP;
+      updateMenu(); $("#e256_params").hide(); $("#upload_section").hide(); $("#synth_profile_section").hide();
+      e256_blobs.clear(); e256_current_mode = MODE.MATRIX_INTERP;
       $("#connection_status").html("CONNECTED / MATRIX_INTERP");
       alert_msg("MODE: MATRIX_INTERP", "success");
       break;

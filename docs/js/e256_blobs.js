@@ -24,9 +24,7 @@ const BLOB_PARAM_CODE = {
   HEIGHT: 8,
   DEPTH: 9,
   VELOCITY_XY: 10,
-  VELOCITY_Z: 11,
-  ATTACK_Z: 12,
-  ATTACK_DONE: 13
+  ATTACK_Z: 11
 };
 
 function blob_factory() {
@@ -136,8 +134,11 @@ function blob_factory() {
       const arc = this.children["blob-group"].children["blob-arc"];
       _rebuild_pressure_arc(arc, centroid.x, centroid.y, TOUCH_RADIUS, (depth / 127) * 2 * Math.PI);
 
-      let blob_width  = Math.round(mapp(sysExMsg[BLOB_PARAM_CODE.WIDTH],  0, NEW_COLS, 0, canvas_width));
-      let blob_height = Math.round(mapp(sysExMsg[BLOB_PARAM_CODE.HEIGHT], 0, NEW_ROWS, 0, canvas_height));
+      const raw_w     = sysExMsg[BLOB_PARAM_CODE.WIDTH];
+      const raw_h     = sysExMsg[BLOB_PARAM_CODE.HEIGHT];
+      const blob_width  = Math.round(mapp(raw_w, 0, NEW_COLS, 0, canvas_width));
+      const blob_height = Math.round(mapp(raw_h, 0, NEW_ROWS, 0, canvas_height));
+      const blob_size   = Math.round(mapp(raw_w * raw_h, 0, BLOB_MAX_SIZE, 0, 127));
 
       this.children["blob-group"].children["blob-box"].position = centroid;
       this.children["blob-group"].children["blob-box"].size = new paper.Size(blob_width, blob_height);
@@ -151,12 +152,9 @@ function blob_factory() {
         "\nX: " + centroid.x.toFixed(2) +
         "\nY: " + centroid.y.toFixed(2) +
         "\nZ: " + depth +
-        "\nW: " + blob_width +
-        "\nH: " + blob_height +
+        "\nS: " + blob_size +
         "\nVxy: " + sysExMsg[BLOB_PARAM_CODE.VELOCITY_XY] +
-        "\nVz: " + sysExMsg[BLOB_PARAM_CODE.VELOCITY_Z] +
-        "\nAz: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_Z] +
-        "\nAd: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_DONE];
+        "\nAz: " + sysExMsg[BLOB_PARAM_CODE.ATTACK_Z];
 
       const VXY_ALPHA = 0.2;
       this.smooth_vxy = this.smooth_vxy !== undefined
