@@ -609,6 +609,12 @@ function update_item_touchs_menu_params(item) {
   }
 };
 
+// Release focus from any select or checkbox in the params panel after a change so
+// keyboard shortcuts (u, e, p…) are not swallowed by the focused element.
+document.getElementById("e256_params").addEventListener("change", function (e) {
+  if (e.target.matches("select, input[type='checkbox']")) e.target.blur();
+});
+
 // Show / Hide item menu params
 function item_menu_params(item, state) {
   if (item) {

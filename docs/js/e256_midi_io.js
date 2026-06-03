@@ -331,8 +331,8 @@ function on_midi_message(midi_msg) {
           break;
         case MODE.EDIT: {
           let blob_data = midi_msg.data.subarray(1, -1);
-          if (blob_data.length < 14) {
-            console.warn("BLOB_SYSEX_TRUNCATED: length=" + blob_data.length + " (expected 14) — UID byte may have exceeded 127, reflash firmware");
+          if (blob_data.length < 12) {
+            console.warn("BLOB_SYSEX_TRUNCATED: length=" + blob_data.length + " (expected 12) — UID byte may have exceeded 127, reflash firmware");
             break;
           }
           e256_blobs.update(blob_data);
@@ -342,12 +342,12 @@ function on_midi_message(midi_msg) {
           break;
         case MODE.THROUGH: {
           let blob_data = midi_msg.data.subarray(1, -1);
-          if (blob_data.length >= 14) midi_play_blob_update_all(blob_data);
+          if (blob_data.length >= 12) midi_play_blob_update_all(blob_data);
           break;
         }
         case MODE.PLAY: {
           let blob_data = midi_msg.data.subarray(1, -1);
-          if (blob_data.length >= 14) midi_play_blob_update_all(blob_data);
+          if (blob_data.length >= 12) midi_play_blob_update_all(blob_data);
           break;
         }
         default:
