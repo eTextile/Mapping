@@ -208,3 +208,36 @@ input[type=number] {
   font-weight: bold;
   margin: 1px;
 }
+
+.touch-params-section .table-bordered {
+  border-collapse: separate !important;
+  border-spacing: 0;
+}
+
+.touch-params-section .table-bordered > :not(caption) > * > * {
+  border-top: 0 !important;
+  border-left: 0 !important;
+  border-right: 0.5px solid var(--bs-gray-400) !important;
+  border-bottom: 0.5px solid var(--bs-gray-400) !important;
+}
+
+.touch-params-section .table-bordered > :not(caption) > * > *:first-child {
+  border-left: 0.5px solid var(--bs-gray-400) !important;
+}
+
+.touch-params-section .table-bordered tbody tr:first-child > * {
+  border-top: 0.5px solid var(--bs-gray-400) !important;
+}
+
+.touch-params-section .table-bordered tbody tr:first-child > *:first-child {
+  border-top-left-radius: var(--bs-border-radius);
+}
+.touch-params-section .table-bordered tbody tr:first-child > *:last-child {
+  border-top-right-radius: var(--bs-border-radius);
+}
+.touch-params-section .table-bordered tbody tr:last-child > *:first-child {
+  border-bottom-left-radius: var(--bs-border-radius);
+}
+.touch-params-section .table-bordered tbody tr:last-child > *:last-child {
+  border-bottom-right-radius: var(--bs-border-radius);
+}

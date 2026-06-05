@@ -126,7 +126,7 @@ function create_item_main_params(item) {
             for (const msg_type in touch_msg) {
               const midi = touch_msg[msg_type]?.midi;
               if (midi?.status !== undefined)
-                midi.status = (midi.status & 0xF0) | ((new_out - 1) & 0x0F);
+                midi.status = (midi.status & MIDI_TYPE_MASK) | ((new_out - 1) & MIDI_CHANNEL_MASK);
             }
           }
           update_item_touchs_menu_params(item.parent);
@@ -150,25 +150,7 @@ function create_item_main_params(item) {
       part_param.appendChild(select);
     }
     else if (param === "press") {
-      const is_switch = item.parent && item.parent.name === "switch";
-      const pressure_source = is_switch
-        ? PRESSURE
-        : Object.fromEntries(Object.entries(PRESSURE).filter(([k]) => k !== String(MIDI_TYPE.CLOCK)));
-      // Force None (key "255") first — integer keys are sorted numerically by JS engines
-      let press_entries = Object.entries(pressure_source);
-      const none_idx = press_entries.findIndex(([k]) => k === "255");
-      if (none_idx > 0) press_entries.unshift(press_entries.splice(none_idx, 1)[0]);
-      const { span, select } = create_select_field({
-        param: "press",
-        source: pressure_source,
-        item,
-        entries: press_entries
-      });
-      select.addEventListener("change", () => {
-        re_create_touch_params(item.parent);
-      });
-      part_param.appendChild(span);
-      part_param.appendChild(select);
+      // press type is now per-touch — no global select in main params
     }
     else if (param === "populate") {
       const { span, select } = create_select_field({
@@ -283,27 +265,85 @@ function create_item_touchs_menu_params(item) {
   sub_part_params.appendChild(touch_label);
 
   let table_params = document.createElement("table");
-  table_params.className = "table table-sm table-striped table-bordered";
+  table_params.className = "table table-sm table-bordered";
 
   let row_params_body = document.createElement("tbody");
 
-  for (const msg_type in item.msg) {
+  let group_idx = 0;
+
+  for (const msg_type of Object.keys(item.msg).sort((a, b) => a === "press" ? -1 : b === "press" ? 1 : 0)) {
     if (msg_type === "pos"   && item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL) continue;
     if (msg_type === "press" && item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL) continue;
 
     const msg_obj = item.msg[msg_type];
+    const row_bg = (group_idx % 2 === 0) ? "rgba(255, 0, 212, 0.15)" : "";
 
-    // Skip press row when press mode is None (no midi, no chord)
-    if (msg_type === "press" && !msg_obj.midi && msg_obj.chord === undefined) continue;
+    // Press type select — shown just above the press params for all types incl. None
+    if (msg_type === "press") {
+      const mapping = item.parent?.parent;
+      const is_switch_mapping = mapping?.name === "switch";
+      const press_options = Object.fromEntries(Object.entries(PRESSURE).filter(([k]) =>
+        k !== String(MIDI_TYPE.NONE) && (is_switch_mapping || k !== String(MIDI_TYPE.CLOCK))
+      ));
+      let press_type_entries = Object.entries(press_options);
+
+      let current_press_type;
+      if (!msg_obj.midi && msg_obj.chord === undefined) current_press_type = MIDI_TYPE.NONE;
+      else if (msg_obj.chord !== undefined) current_press_type = MIDI_TYPE.CHORD;
+      else current_press_type = midi_msg_status_unpack(msg_obj.midi.status).type;
+
+      let pt_val_tr = document.createElement("tr");
+      let pt_lbl = document.createElement("th");
+      pt_lbl.className = "align-middle text-center";
+      pt_lbl.textContent = "press";
+      pt_val_tr.appendChild(pt_lbl);
+      let pt_td = document.createElement("td");
+      pt_td.setAttribute("colspan", "4");
+      let pt_sel = document.createElement("select");
+      pt_sel.className = "form-select";
+      press_type_entries.forEach(([k, v]) => {
+        let opt = document.createElement("option");
+        opt.value = k; opt.textContent = v;
+        if (Number(k) === current_press_type) opt.selected = true;
+        pt_sel.appendChild(opt);
+      });
+      pt_sel.addEventListener("change", function() {
+        const new_type = Number(this.value);
+        const old = item.msg.press;
+        const rebuilt = midi_msg_builder(new_type);
+        if (rebuilt.midi && old?.midi) {
+          rebuilt.midi.data1 = old.midi.data1;
+          rebuilt.midi.status = (rebuilt.midi.status & 0xF0) | (old.midi.status & 0x0F);
+        }
+        item.msg.press = rebuilt;
+        if (mapping) re_create_touch_params(mapping);
+      });
+      pt_td.appendChild(pt_sel);
+      pt_val_tr.appendChild(pt_td);
+      row_params_body.appendChild(pt_val_tr);
+
+      // If None: type select only, no MIDI params below
+      if (!msg_obj.midi && msg_obj.chord === undefined) continue;
+    }
 
     // Chord press: replace MIDI byte inputs with chord-type + root-note selects
     if (msg_type === "press" && msg_obj.chord !== undefined) {
-      // chord + note: each fills exactly 2 of the 4 table columns (no label column)
       let chord_atr_tr = document.createElement("tr");
       let chord_val_tr = document.createElement("tr");
 
-      let empty_th = document.createElement("th");
-      chord_atr_tr.appendChild(empty_th);
+      // Toggle — same pattern as regular MIDI press params
+      let toggle_th = document.createElement("th");
+      toggle_th.className = "align-middle text-center";
+      let toggle_wrap = document.createElement("div");
+      toggle_wrap.className = "form-check form-switch d-flex justify-content-center mb-0";
+      let chord_toggle = document.createElement("input");
+      chord_toggle.type = "checkbox";
+      chord_toggle.className = "form-check-input";
+      chord_toggle.setAttribute("role", "switch");
+      chord_toggle.checked = msg_obj.enabled !== false;
+      toggle_wrap.appendChild(chord_toggle);
+      toggle_th.appendChild(toggle_wrap);
+      chord_atr_tr.appendChild(toggle_th);
 
       let chord_atr = document.createElement("th");
       chord_atr.className = "align-middle text-center";
@@ -373,8 +413,18 @@ function create_item_touchs_menu_params(item) {
       note_td.appendChild(note_wrapper);
       chord_val_tr.appendChild(note_td);
 
+      // Wire toggle: enable/disable chord + note selects
+      const chord_inputs = [chord_select, note_select, octave_select];
+      if (msg_obj.enabled === false) chord_inputs.forEach(inp => { inp.disabled = true; });
+      chord_toggle.addEventListener("change", function () {
+        msg_obj.enabled = this.checked;
+        chord_inputs.forEach(inp => { inp.disabled = !this.checked; });
+      });
+
+      [...chord_atr_tr.children, ...chord_val_tr.children].forEach(c => { c.style.backgroundColor = row_bg; c.style.color = ""; });
       row_params_body.appendChild(chord_atr_tr);
       row_params_body.appendChild(chord_val_tr);
+      group_idx++;
       continue;
     }
 
@@ -386,16 +436,25 @@ function create_item_touchs_menu_params(item) {
     let first_param_atr = document.createElement("th");
     first_param_atr.className = "align-middle text-center";
 
-    // Toggle switch — not shown for press (use None in the press select instead)
     let toggle = null;
-    if (msg_type !== "press") {
+    {
       let toggle_wrap = document.createElement("div");
       toggle_wrap.className = "form-check form-switch d-flex justify-content-center mb-0";
       toggle = document.createElement("input");
       toggle.type = "checkbox";
       toggle.className = "form-check-input";
       toggle.setAttribute("role", "switch");
-      toggle.checked = msg_obj.enabled !== false;
+      if (msg_type === "press") {
+        let touch_press_type;
+        if (!msg_obj.midi && msg_obj.chord === undefined) touch_press_type = MIDI_TYPE.NONE;
+        else if (msg_obj.chord !== undefined) touch_press_type = MIDI_TYPE.CHORD;
+        else touch_press_type = midi_msg_status_unpack(msg_obj.midi.status).type;
+        const press_on = touch_press_type !== MIDI_TYPE.NONE;
+        toggle.checked = press_on;
+        msg_obj.enabled = press_on;
+      } else {
+        toggle.checked = msg_obj.enabled !== false;
+      }
       toggle_wrap.appendChild(toggle);
       first_param_atr.appendChild(toggle_wrap);
     }
@@ -473,7 +532,7 @@ function create_item_touchs_menu_params(item) {
               param_td.appendChild(param_val);
               if (midi_byte === "data1" && status.type === MIDI_TYPE.CONTROL_CHANGE) {
                 const cc_select = document.createElement("select");
-                cc_select.className = "form-select form-select-sm cc-select";
+                cc_select.className = "form-select cc-select";
                 cc_select.dataset.inputId = param_val.id;
                 if (active_synth_profile) {
                   _populate_cc_select(cc_select);
@@ -550,8 +609,10 @@ function create_item_touchs_menu_params(item) {
       });
     }
 
+    [...row_params_atr_tr.children, ...row_params_val_tr.children].forEach(c => { c.style.backgroundColor = row_bg; c.style.color = ""; });
     row_params_body.appendChild(row_params_atr_tr);
     row_params_body.appendChild(row_params_val_tr);
+    group_idx++;
   }
   table_params.appendChild(row_params_body);
   if (!row_params_body.hasChildNodes()) return sub_part_params; // empty in ROL mode — nothing to show
