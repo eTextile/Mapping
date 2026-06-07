@@ -9,6 +9,8 @@ function switch_factory() {
   const DEFAULT = {
     WIDTH:          canvas_width / SCALE_X,
     HEIGHT:         canvas_height / SCALE_X,
+    MIN_WIDTH:      100,
+    MIN_HEIGHT:     100,
     TOUCHS:         1,
     MODE_Z:         MIDI_TYPE.NOTE_ON,
     CHORD:          1,
@@ -31,13 +33,12 @@ function switch_factory() {
       "touchs": null,
       "from": null,
       "to": null,
-      "press": null,
       "chan": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
- 
+
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT.WIDTH / 2),
         mouseEvent.point.y - (DEFAULT.HEIGHT / 2)
@@ -46,15 +47,15 @@ function switch_factory() {
         mouseEvent.point.x + (DEFAULT.WIDTH / 2),
         mouseEvent.point.y + (DEFAULT.HEIGHT / 2)
       );
-      
+
       this.data.touchs = DEFAULT.TOUCHS;
-      this.data.press = DEFAULT.MODE_Z;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
 
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.press = midi_msg_builder(this.data.press);
+        touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
+        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
     },
@@ -69,12 +70,8 @@ function switch_factory() {
         mapp(params.to[1], 0, NEW_ROWS, 0, canvas_height)
       );
       this.data.touchs = params.touchs;
-      this.data.press = params.press ?? MIDI_TYPE.NONE;
       this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
-      if (this.data.press === MIDI_TYPE.NONE) {
-        for (const touch_msg of this.data.msg) touch_msg.press = {};
-      }
     },
 
     save_params: function () {
@@ -87,23 +84,15 @@ function switch_factory() {
 
       this.data.chan = this.children["switch-group"].data.chan;
 
-      let previous_press = this.data.press;
-      this.data.press = this.children["switch-group"].data.press;
-
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        if (this.data.press != previous_press) {
-          touch_msg.press = midi_msg_builder(this.data.press);
+        if (_touch < previous_touch_count) {
+          touch_msg = this.children["touchs-group"].children[_touch].msg;
+        } else {
+          touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
         }
-        else {
-          if (_touch < previous_touch_count) {
-            touch_msg = this.children["touchs-group"].children[_touch].msg;
-          }
-          else {
-            touch_msg.press = midi_msg_builder(this.data.press);
-          }
-        }
+        if (!touch_msg.move) touch_msg.move = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
     },
@@ -116,9 +105,12 @@ function switch_factory() {
         "pos": new paper.Point(this.data.from.x + half_frame_width, this.data.from.y + half_frame_height),
       });
 
+      let _vel_xy = 0;
+      let _last_move_t = 0;
+
       const _disc_radius = switch_radius_step * (touchs_count - _touch_id);
       // Opacity increases toward the center so rings are visually distinct
-      const _disc_alpha = 0.25 + 0.6 * (_touch_id / Math.max(touchs_count - 1, 1));
+      const _disc_alpha = 0.75 + 0.25 * (_touch_id / Math.max(touchs_count - 1, 1));
 
       let _touch_ellipse = new paper.Shape.Circle({
         "name": "touch-ellipse",
@@ -126,8 +118,8 @@ function switch_factory() {
         "radius": _disc_radius,
       });
 
-      const _disc_color       = new paper.Color(1, 0.6, 0, _disc_alpha);
-      const _disc_color_hover = new paper.Color(1, 0.4, 0, Math.min(_disc_alpha + 0.2, 1));
+      const _disc_color       = new paper.Color(1, 140/255, 0, _disc_alpha);
+      const _disc_color_hover = new paper.Color(1, 100/255, 0, Math.min(_disc_alpha + 0.2, 1));
 
       _touch_ellipse.style = {
         "fillColor": _disc_color,
@@ -153,8 +145,10 @@ function switch_factory() {
             touch_selection_locked = true;
             break;
           case MODE.THROUGH:
+            _vel_xy = 0;
+            _last_move_t = performance.now();
             this.style.fillColor = new paper.Color(1, 0, 0, _disc_alpha + 0.2);
-            if (_switch.data.press === MIDI_TYPE.CLOCK) {
+            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CLOCK) {
               const now = performance.now();
               _tap_times.push(now);
               if (_tap_times.length > 4) _tap_times.shift();
@@ -185,13 +179,30 @@ function switch_factory() {
             // N/A
             break;
           case MODE.THROUGH:
-            if (_switch.data.press !== MIDI_TYPE.CLOCK) touch_press_up(_switch, _touch_group);
+            _vel_xy = 0;
+            _last_move_t = 0;
+            if (press_type_from_msg(_touch_group.msg.press) !== MIDI_TYPE.CLOCK) touch_press_up(_switch, _touch_group);
             break;
           case MODE.PLAY:
             // N/A
             break;
         }
       }
+
+      _touch_ellipse.onMouseDrag = function (mouseEvent) {
+        if (e256_current_mode === MODE.THROUGH) {
+          if (!_touch_group.msg.move || !_touch_group.msg.move.enabled) return;
+          const now = performance.now();
+          const dt_s = Math.max(0.001, (now - _last_move_t) / 1000);
+          const dx = mouseEvent.delta.x * NEW_COLS / canvas_width;
+          const dy = mouseEvent.delta.y * NEW_ROWS / canvas_height;
+          _vel_xy = 0.5 * Math.sqrt(dx * dx + dy * dy) / dt_s + 0.5 * _vel_xy;
+          _last_move_t = now;
+          _touch_group.msg.move.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
+          send_midi_msg(_touch_group.msg.move.midi);
+        }
+      };
+
       _touch_group.addChild(_touch_ellipse);
       let _touch_arc = make_touch_arc(_touch_group.pos);
       _touch_group.addChild(_touch_arc);
@@ -216,7 +227,6 @@ function switch_factory() {
           "touchs": this.data.touchs,
           "from": this.data.from,
           "to": this.data.to,
-          "press": this.data.press,
           "chan": this.data.chan
         }
       });
@@ -315,6 +325,7 @@ function switch_factory() {
               }
               switch (current_part.name) {
                 case "top-left":
+                  if (_switch_group.data.to.x - pt.x < DEFAULT.MIN_WIDTH || _switch_group.data.to.y - pt.y < DEFAULT.MIN_HEIGHT) break;
                   this.segments[0].point.x = pt.x;
                   this.segments[1].point = pt;
                   this.segments[2].point.y = pt.y;
@@ -333,6 +344,7 @@ function switch_factory() {
                   }
                   break;
                 case "top-right":
+                  if (pt.x - _switch_group.data.from.x < DEFAULT.MIN_WIDTH || _switch_group.data.to.y - pt.y < DEFAULT.MIN_HEIGHT) break;
                   this.segments[1].point.y = pt.y;
                   this.segments[2].point = pt;
                   this.segments[3].point.x = pt.x;
@@ -352,6 +364,7 @@ function switch_factory() {
                   }
                   break;
                 case "bottom-right":
+                  if (pt.x - _switch_group.data.from.x < DEFAULT.MIN_WIDTH || pt.y - _switch_group.data.from.y < DEFAULT.MIN_HEIGHT) break;
                   this.segments[2].point.x = pt.x;
                   this.segments[3].point = pt;
                   this.segments[0].point.y = pt.y;
@@ -370,6 +383,7 @@ function switch_factory() {
                   }
                   break;
                 case "bottom-left":
+                  if (_switch_group.data.to.x - pt.x < DEFAULT.MIN_WIDTH || pt.y - _switch_group.data.from.y < DEFAULT.MIN_HEIGHT) break;
                   this.segments[3].point.y = pt.y;
                   this.segments[0].point = pt;
                   this.segments[1].point.x = pt.x;
@@ -402,6 +416,28 @@ function switch_factory() {
       }
 
       _switch_group.addChild(_switch_frame);
+
+      _switch_group.fit_to_canvas = function() {
+        this.data.from = new paper.Point(0, 0);
+        this.data.to = new paper.Point(canvas_width, canvas_height);
+        half_frame_width = canvas_width / 2;
+        half_frame_height = canvas_height / 2;
+        switch_radius_step = (Math.min(half_frame_width, half_frame_height) - DEFAULT.BUTTON_PADDING) / this.data.touchs;
+        _switch_frame.segments[0].point = new paper.Point(0, canvas_height);
+        _switch_frame.segments[1].point = new paper.Point(0, 0);
+        _switch_frame.segments[2].point = new paper.Point(canvas_width, 0);
+        _switch_frame.segments[3].point = new paper.Point(canvas_width, canvas_height);
+        const center = new paper.Point(canvas_width / 2, canvas_height / 2);
+        for (const touch of _touchs_group.children) {
+          const tid = Number(touch.name[touch.name.length - 1]);
+          const r = switch_radius_step * (this.data.touchs - tid);
+          touch.children["touch-ellipse"].position = center;
+          touch.children["touch-ellipse"].radius = r;
+          touch.children["touch-txt"].position = new paper.Point(center.x, center.y - r + FONT_SIZE);
+        }
+        update_item_main_params(this.parent);
+      };
+
       this.addChild(_switch_group);
       this.addChild(_touchs_group);
     },
@@ -426,7 +462,8 @@ function switch_factory() {
       const status = midi_msg_status_unpack(msg.status);
       let updated = false;
       for (const touch_group of touchs_group.children) {
-        const press_midi = touch_group.msg?.press?.midi;
+        if (!touch_group.msg?.press || touch_group.msg.press.enabled === false) continue;
+        const press_midi = touch_group.msg.press.midi;
         if (!press_midi) continue;
         const ps = midi_msg_status_unpack(press_midi.status);
         if (ps.channel !== status.channel) continue;

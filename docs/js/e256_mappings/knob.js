@@ -28,14 +28,12 @@ function knob_factory() {
       "from": null,
       "to": null,
       "offset": null,
-      "press": null,
       "chan": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.touchs = DEFAULT.TOUCHS;
-      this.data.press = DEFAULT.MODE_Z;
       this.radius = DEFAULT.RADIUS;
       this.data.from = new paper.Point(
         mouseEvent.point.x - this.radius,
@@ -54,22 +52,9 @@ function knob_factory() {
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         touch_msg = {};
         touch_msg.radius = midi_msg_builder(DEFAULT.MODE_R);
-        touch_msg.theta = midi_msg_builder(DEFAULT.MODE_T);
-        touch_msg.press = midi_msg_builder(this.data.press);
-        /*
-        switch (this.data.press) {
-          case MIDI_TYPE.NOTE_ON:
-            touch_msg.press = midi_msg_builder(MIDI_TYPE.NOTE_ON);
-            break;
-          case MIDI_TYPE.CONTROL_CHANGE:
-            touch_msg.press = midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE);
-            break;
-          case MIDI_TYPE.AFTERTOUCH_POLY:
-            touch_msg.press = midi_msg_builder(MIDI_TYPE.NOTE_ON);
-            touch_msg.press = midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE);
-            break;
-        }
-        */
+        touch_msg.theta  = midi_msg_builder(DEFAULT.MODE_T);
+        touch_msg.move = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.press  = midi_msg_builder(DEFAULT.MODE_Z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -87,11 +72,6 @@ function knob_factory() {
       this.data.offset = params.offset;
       this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
-      this.data.press = params.press ?? MIDI_TYPE.NONE;
-      if (this.data.press === MIDI_TYPE.NONE) {
-        for (const touch_msg of this.data.msg) touch_msg.press = {};
-      }
-
       this.radius = (this.data.to.x - this.data.from.x) / 2;
       this.center = new paper.Point(this.data.from.x + this.radius, this.data.from.y + this.radius);
       this.theta = deg_to_rad(this.data.offset);
@@ -100,9 +80,6 @@ function knob_factory() {
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["knob-group"].data.touchs;
-      let previous_mode_z = this.data.press;
-      this.data.press = this.children["knob-group"].data.press;
-
       this.data.from = this.children["knob-group"].data.from;
       this.data.to = this.children["knob-group"].data.to;
       this.data.offset = this.children["knob-group"].data.offset;
@@ -116,9 +93,8 @@ function knob_factory() {
           : {};
         touch_msg.radius = prev.radius || midi_msg_builder(DEFAULT.MODE_R);
         touch_msg.theta  = prev.theta  || midi_msg_builder(DEFAULT.MODE_T);
-        touch_msg.press  = (this.data.press != previous_mode_z || !prev.press)
-          ? midi_msg_builder(this.data.press)
-          : prev.press;
+        touch_msg.move   = prev.move   || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.press  = prev.press  || midi_msg_builder(DEFAULT.MODE_Z);
         this.data.msg.push(touch_msg);
       }
       // Recompute from data, not from Paper.js visual properties: the knob-group's .center
@@ -135,10 +111,13 @@ function knob_factory() {
         "radius": get_random_int(50, this.radius - 10),
         "theta": deg_to_rad(get_random_int(0, 360)),
         "msg": this.data.msg[_touch_id],
-        "prev_pos_r": null, // radius
-        "prev_pos_t": null, // theta
-        "prev_pos_z": null, // pressure
+        "prev_pos_r": null,
+        "prev_pos_t": null,
+        "prev_pos_z": null,
       });
+
+      let _vel_xy = 0;
+      let _last_move_t = 0;
 
       let _knob_touch_pos = pol_to_cart(_touch_group.radius, _touch_group.theta);
 
@@ -151,8 +130,9 @@ function knob_factory() {
 
       _knob_needle.style = {
         "strokeCap": "round",
-        "strokeColor": "black",
-        "strokeWidth": 1
+        "strokeColor": TOUCH_IDLE_COLOR,
+        "strokeWidth": 1,
+        "dashArray": [2, 4]
       }
 
       let _knob_touch = new paper.Shape.Circle({
@@ -162,7 +142,7 @@ function knob_factory() {
       });
 
       _knob_touch.style = {
-        "fillColor": "orange"
+        "fillColor": TOUCH_IDLE_COLOR
       }
 
       _knob_touch.onMouseEnter = function () {
@@ -171,7 +151,7 @@ function knob_factory() {
       }
 
       _knob_touch.onMouseLeave = function () {
-        if (!(touch_selection_locked && current_touch.id === _touch_group.id)) this.style.fillColor = "orange";
+        if (!(touch_selection_locked && current_touch.id === _touch_group.id)) this.style.fillColor = TOUCH_IDLE_COLOR;
       }
 
       _knob_touch.onMouseDown = function () {
@@ -181,7 +161,13 @@ function knob_factory() {
             touch_selection_locked = true;
             break;
           case MODE.THROUGH:
+            _vel_xy = 0;
+            _last_move_t = performance.now();
             touch_press_down(_knob, _touch_group);
+            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
+              this.style.fillColor = "red";
+              paper.view.update();
+            }
             break;
           case MODE.PLAY:
             // N/A
@@ -194,7 +180,13 @@ function knob_factory() {
           case MODE.EDIT:
             break;
           case MODE.THROUGH:
+            _vel_xy = 0;
+            _last_move_t = 0;
             touch_press_up(_knob, _touch_group);
+            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
+              this.style.fillColor = TOUCH_IDLE_COLOR;
+              paper.view.update();
+            }
             break;
           case MODE.PLAY:
             // N/A
@@ -228,17 +220,29 @@ function knob_factory() {
             _knob_needle.segments[1].point = _knob_touch.position;
             _touch_txt.position = _knob_touch.position;
 
-            if (_touch_group.msg.radius.midi.data2 != _touch_group.prev_pos_r) {
+            if (_touch_group.msg.radius && _touch_group.msg.radius.enabled !== false &&
+                _touch_group.msg.radius.midi.data2 != _touch_group.prev_pos_r) {
               _touch_group.prev_pos_r = _touch_group.msg.radius.midi.data2;
               send_midi_msg(_touch_group.msg.radius.midi);
             }
-            if (_touch_group.msg.theta.midi.data2 != _touch_group.prev_pos_t) {
+            if (_touch_group.msg.theta && _touch_group.msg.theta.enabled !== false &&
+                _touch_group.msg.theta.midi.data2 != _touch_group.prev_pos_t) {
               _touch_group.prev_pos_t = _touch_group.msg.theta.midi.data2;
               send_midi_msg(_touch_group.msg.theta.midi);
             }
+            if (_touch_group.msg.move && _touch_group.msg.move.enabled) {
+              const now = performance.now();
+              const dt_s = Math.max(0.001, (now - _last_move_t) / 1000);
+              const dx = mouseEvent.delta.x * NEW_COLS / canvas_width;
+              const dy = mouseEvent.delta.y * NEW_ROWS / canvas_height;
+              _vel_xy = 0.5 * Math.sqrt(dx * dx + dy * dy) / dt_s + 0.5 * _vel_xy;
+              _last_move_t = now;
+              _touch_group.msg.move.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
+              send_midi_msg(_touch_group.msg.move.midi);
+            }
             break;
           case MODE.PLAY:
-            break;            
+            break;
         }
       }
 
@@ -273,7 +277,6 @@ function knob_factory() {
           "from": this.data.from,
           "to": this.data.to,
           "offset": this.data.offset,
-          "press": this.data.press,
           "chan": this.data.chan
         }
       });
@@ -294,7 +297,7 @@ function knob_factory() {
         let grp = new paper.Group({ "name": "knob-conic" });
         for (let i = 0; i < N; i++) {
           const a1 = start_angle + i * step;
-          const a2 = a1 + step + overlap;
+          const a2 = (i === N - 1) ? a1 + step : a1 + step + overlap;
           const t = i / (N - 1);
           const s = new paper.Path([
             new paper.Point(cx, cy),
@@ -335,6 +338,8 @@ function knob_factory() {
             if (current_part.type === "fill") {
               move_item(_knob_group.parent, mouseEvent);
               _knob_group.center = this.position;
+              _knob_group.data.from = new paper.Point(this.position.x - _knob_group.radius, this.position.y - _knob_group.radius);
+              _knob_group.data.to   = new paper.Point(this.position.x + _knob_group.radius, this.position.y + _knob_group.radius);
               refresh_conic();
               update_item_main_params(_knob_group.parent);
             }
@@ -503,6 +508,38 @@ function knob_factory() {
       _knob_group.addChild(_knob_circle);
       _knob_group.addChild(_knob_offset);
 
+      _knob_group.fit_to_canvas = function() {
+        const old_radius = this.radius;
+        const new_radius = canvas_width / 2;
+        const scale = old_radius > 0 ? new_radius / old_radius : 1;
+        const cx = canvas_width / 2;
+        const cy = canvas_height / 2;
+        this.data.from = new paper.Point(0, 0);
+        this.data.to = new paper.Point(canvas_width, canvas_height);
+        this.radius = new_radius;
+        this.center = new paper.Point(cx, cy);
+        this.children["key-frame"].segments[0].point = new paper.Point(0, canvas_height);
+        this.children["key-frame"].segments[1].point = new paper.Point(0, 0);
+        this.children["key-frame"].segments[2].point = new paper.Point(canvas_width, 0);
+        this.children["key-frame"].segments[3].point = new paper.Point(canvas_width, canvas_height);
+        _knob_circle.radius = new_radius;
+        _knob_circle.position = this.center;
+        refresh_conic();
+        _knob_offset_pos = pol_to_cart(new_radius, deg_to_rad(this.data.offset));
+        _knob_offset.position.x = cx + _knob_offset_pos.x;
+        _knob_offset.position.y = cy + _knob_offset_pos.y;
+        for (const touch of _touchs_group.children) {
+          touch.radius = Math.min(touch.radius * scale, new_radius - 10);
+          const tp = pol_to_cart(touch.radius, touch.theta);
+          const new_pos = new paper.Point(cx + tp.x, cy + tp.y);
+          touch.children["knob-touch"].position = new_pos;
+          touch.children["touch-txt"].position = new_pos;
+          touch.children["knob-needle"].segments[0].point = this.center;
+          touch.children["knob-needle"].segments[1].point = new_pos;
+        }
+        update_item_main_params(this.parent);
+      };
+
       this.addChild(_knob_group);
       this.addChild(_touchs_group);
     },
@@ -538,7 +575,8 @@ function knob_factory() {
       for (const touch_group of touchs_group.children) {
         if (!touch_group.msg) continue;
 
-        const press_midi = touch_group.msg.press ? touch_group.msg.press.midi : null;
+        if (!touch_group.msg.press || touch_group.msg.press.enabled === false) continue;
+        const press_midi = touch_group.msg.press.midi;
         if (!press_midi) continue;
         const ps = midi_msg_status_unpack(press_midi.status);
         if (ps.channel !== status.channel) continue;

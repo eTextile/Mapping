@@ -126,6 +126,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
 }
 
 paper_tool.onKeyDown = function (keyEvent) {
+  if ($(document.activeElement).is("input, select, textarea")) return;
   if (e256_current_mode === MODE.EDIT) {
     if (keyEvent.modifiers.shift) {
       // keyEvent.key with Shift produces shifted chars ("!", "@"…); use event.code instead.
@@ -203,6 +204,25 @@ paper_tool.onKeyDown = function (keyEvent) {
           if (first_touch) show_only_touch(first_touch);
           break;
         }
+        case "up":
+        case "down":
+        case "left":
+        case "right":
+          keyEvent.preventDefault();
+          if (current_controller?.handle_arrow_key) current_controller.handle_arrow_key(keyEvent.key);
+          break;
+        case "a": {
+          if (!current_controller) break;
+          const inner_group_names = ["slider-group", "pad-group", "switch-group", "knob-group", "path-group", "polygon-group", "grid-group"];
+          for (const name of inner_group_names) {
+            const inner = current_controller.children[name];
+            if (inner && inner.fit_to_canvas) {
+              inner.fit_to_canvas();
+              break;
+            }
+          }
+          break;
+        }
         default:
           break;
       }
@@ -241,46 +261,13 @@ function find_mapping_frame(item) {
 function blob_update_touch_visual(sysExMsg, touchs_group, move_fn) {
   if (!touchs_group || !touchs_group.children.length) return;
 
-  const uid         = sysExMsg[BLOB_PARAM_CODE.UID];
   const blob_status = sysExMsg[BLOB_PARAM_CODE.STATUS];
+  const touch_slot  = sysExMsg[BLOB_PARAM_CODE.TOUCH_SLOT];
 
-  // Lazy-init slot tracking, mirroring firmware slot_mask / active_blob_count.
-  if (!touchs_group._uid_map) {
-    touchs_group._uid_map      = new Map(); // uid → slot index
-    touchs_group._slot_mask    = 0;         // bitmask of occupied slots
-    touchs_group._active_count = 0;
-  }
+  if (touch_slot === undefined || touch_slot === TOUCH_SLOT_NONE) return;
 
-  let touch_idx;
+  const touch_idx = touch_slot;
   const releasing = blob_status === BLOB_STATUS.RELEASED || blob_status === BLOB_STATUS.FREE;
-
-  if (blob_status === BLOB_STATUS.NEW) {
-    // Find first free slot (first clear bit), mirroring firmware assign_blob scan
-    const n = touchs_group.children.length;
-    touch_idx = -1;
-    for (let i = 0; i < n; i++) {
-      if (!(touchs_group._slot_mask & (1 << i))) { touch_idx = i; break; }
-    }
-    if (touch_idx < 0) return; // all slots occupied
-    touchs_group._uid_map.set(uid, touch_idx);
-    touchs_group._slot_mask |= (1 << touch_idx);
-    touchs_group._active_count++;
-  } else if (releasing) {
-    touch_idx = touchs_group._uid_map.get(uid);
-    if (touch_idx === undefined) return;
-    touchs_group._uid_map.delete(uid);
-    touchs_group._slot_mask &= ~(1 << touch_idx);
-    touchs_group._active_count--;
-    if (touchs_group._active_count <= 0) {
-      touchs_group._uid_map.clear();
-      touchs_group._slot_mask    = 0;
-      touchs_group._active_count = 0;
-    }
-  } else {
-    // PRESENT / MISSING: blob still tracked, keep existing slot
-    touch_idx = touchs_group._uid_map.get(uid);
-    if (touch_idx === undefined) return;
-  }
 
   const touch_group = touchs_group.children[touch_idx];
   if (!touch_group) return;
@@ -303,7 +290,7 @@ function blob_update_touch_visual(sysExMsg, touchs_group, move_fn) {
   if (touch_txt) touch_txt.visible = active;
   if (needle)    needle.visible    = active;
   const press_midi = touch_group.msg?.press?.midi;
-  const is_note_on = press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.NOTE_ON;
+  const is_note_on = press_midi && midi_msg_status_unpack(press_midi.status).type === MIDI_TYPE.NOTE_ON;
   const depth = active
     ? (is_note_on ? sysExMsg[BLOB_PARAM_CODE.ATTACK_Z] : sysExMsg[BLOB_PARAM_CODE.DEPTH])
     : 0;
@@ -316,7 +303,7 @@ function blob_update_touch_visual(sysExMsg, touchs_group, move_fn) {
 // Only fires when press type is NoteOn and a velocity is active.
 function touch_note_on_arc_update(touch_group, touch_el_name) {
   const press_midi = touch_group.msg?.press?.midi;
-  if (press_midi && (press_midi.status & 0xF0) === MIDI_TYPE.NOTE_ON && touch_group.last_press_value > 0)
+  if (press_midi && midi_msg_status_unpack(press_midi.status).type === MIDI_TYPE.NOTE_ON && touch_group.last_press_value > 0)
     update_touch_arc(touch_group, touch_group.last_press_value, touch_el_name);
 }
 
@@ -338,12 +325,6 @@ function set_all_touch_visuals_visible(visible) {
     for (const item of layer.children) {
       const touchs_group = item.children && item.children["touchs-group"];
       if (!touchs_group) continue;
-      if (!visible) {
-        // Reset slot-tracking state so the next PLAY session starts with no stale assignments.
-        touchs_group._uid_map      = null;
-        touchs_group._slot_mask    = 0;
-        touchs_group._active_count = 0;
-      }
       for (const touch_group of touchs_group.children) {
         touch_group._blob_positioned = false;
         const touch_el   = touch_group.children["knob-touch"] || touch_group.children["touch-circle"];
@@ -352,7 +333,7 @@ function set_all_touch_visuals_visible(visible) {
         const touch_line = touch_group.children["touch-line"];
         const line_x     = touch_group.children["touch-line-x"];
         const line_y     = touch_group.children["touch-line-y"];
-        if (touch_el)   touch_el.visible   = visible;
+        if (touch_el)   { touch_el.visible = visible; if (visible) touch_el.style.fillColor = TOUCH_IDLE_COLOR; }
         if (touch_txt)  touch_txt.visible  = visible;
         if (needle)     needle.visible     = visible;
         if (touch_line) touch_line.visible = visible;
@@ -378,7 +359,7 @@ function show_only_touch(touch_group, select = false) {
     const visual = sibling.children["touch-circle"] || sibling.children["knob-touch"] || sibling.children["key-frame"];
     if (visual) {
       if (active && select)  visual.style.fillColor = "red";
-      else if (!active)      visual.style.fillColor = visual.name === "key-frame" ? "pink" : "orange";
+      else if (!active)      visual.style.fillColor = visual.name === "key-frame" ? "pink" : TOUCH_IDLE_COLOR;
     }
   }
   previous_touch = current_touch;
@@ -505,8 +486,8 @@ function re_create_touch_params(item) {
   }
   update_item_touchs_menu_params(item);
   invalidate_midi_play_cache();
-  const first_touch = find_first_touch(item);
-  if (first_touch) show_only_touch(first_touch);
+  const target = (current_touch && current_touch.parent?.parent === item) ? current_touch : find_first_touch(item);
+  if (target) show_only_touch(target);
   document.activeElement?.blur();
 };
 

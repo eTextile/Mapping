@@ -4,6 +4,8 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
+const TOUCH_SLOT_NONE = 0xFF; // touch_slot sentinel: blob not assigned to any mapping slot
+
 const BLOB_STATUS = {
   FREE: 0,
   NEW: 1,
@@ -24,7 +26,8 @@ const BLOB_PARAM_CODE = {
   HEIGHT: 8,
   DEPTH: 9,
   VELOCITY_XY: 10,
-  ATTACK_Z: 11
+  ATTACK_Z: 11,
+  TOUCH_SLOT: 12
 };
 
 function blob_factory() {
@@ -44,7 +47,13 @@ function blob_factory() {
         "name": "blob-group"
       });
 
-      // Pressure arc — drawn first so the circle outline sits on top.
+      // Trail drawn first — sits behind arc, centroid, and text.
+      let _blob_trail = new paper.Group({
+        "name": "blob-trail"
+      });
+      _blob_group.addChild(_blob_trail);
+
+      // Pressure arc — on top of trail, behind the circle outline.
       let _blob_arc = new paper.Path({
         "name": "blob-arc",
         "closed": false,
@@ -61,11 +70,11 @@ function blob_factory() {
       let _blob_centroid = new paper.Path.Circle({
         "name": "blob-centroid",
         "center": new paper.Point(0, 0),
-        "radius": TOUCH_RADIUS,
+        "radius": TOUCH_RADIUS * 0.8,
         "locked": true
       });
       _blob_centroid.style = {
-        "strokeWidth": 2,
+        "strokeWidth": 0.5,
         "strokeColor": null,
         "fillColor": null
       };
@@ -83,18 +92,13 @@ function blob_factory() {
       };
       _blob_group.addChild(_blob_txt);
 
-      let _blob_trail = new paper.Group({
-        "name": "blob-trail"
-      });
-      _blob_group.addChild(_blob_trail);
-
       let _blob_rect = new paper.Shape.Rectangle({
         "name": "blob-box",
         "center": new paper.Point(0, 0),
         "size": new paper.Size(1, 1)
       });
       _blob_rect.style = {
-        "strokeWidth": 1,
+        "strokeWidth": 0.5,
         "strokeColor": null,
         "fillColor": null
       };
@@ -104,15 +108,19 @@ function blob_factory() {
     },
 
     present: function () {
-      this.children["blob-group"].children["blob-centroid"].style.strokeColor = "green";
-      this.children["blob-group"].children["blob-arc"].style.fillColor = new paper.Color(0, 0.8, 0, 0.65);
-      this.children["blob-group"].children["blob-box"].style.strokeColor = "green";
+      const g = this.children["blob-group"];
+      g.children["blob-centroid"].style.strokeColor = "navy";
+      g.children["blob-centroid"].style.fillColor   = null;
+      g.children["blob-arc"].style.fillColor        = new paper.Color(1, 0.4, 0, 0.9);
+      g.children["blob-box"].style.strokeColor      = "darkblue";
     },
 
     missing: function () {
-      this.children["blob-group"].children["blob-centroid"].style.strokeColor = "orange";
-      this.children["blob-group"].children["blob-arc"].style.fillColor = new paper.Color(1, 0.55, 0, 0.65);
-      this.children["blob-group"].children["blob-box"].style.strokeColor = "orange";
+      const g = this.children["blob-group"];
+      g.children["blob-centroid"].style.strokeColor = "navy";
+      g.children["blob-centroid"].style.fillColor   = null;
+      g.children["blob-arc"].style.fillColor        = new paper.Color(1, 0.4, 0, 0.9);
+      g.children["blob-box"].style.strokeColor      = "darkblue";
     },
 
     released: function () {
@@ -132,7 +140,7 @@ function blob_factory() {
       // Pressure arc: 0–127 → 0°–360°.
       const depth = sysExMsg[BLOB_PARAM_CODE.DEPTH];
       const arc = this.children["blob-group"].children["blob-arc"];
-      _rebuild_pressure_arc(arc, centroid.x, centroid.y, TOUCH_RADIUS, (depth / 127) * 2 * Math.PI);
+      _rebuild_pressure_arc(arc, centroid.x, centroid.y, TOUCH_RADIUS * 0.8, (depth / 127) * 2 * Math.PI);
 
       const raw_w     = sysExMsg[BLOB_PARAM_CODE.WIDTH];
       const raw_h     = sysExMsg[BLOB_PARAM_CODE.HEIGHT];
@@ -144,11 +152,15 @@ function blob_factory() {
       this.children["blob-group"].children["blob-box"].size = new paper.Size(blob_width, blob_height);
 
       this.children["blob-group"].children["blob-txt"].position = new paper.Point(
-        centroid.x + 2 * TOUCH_RADIUS + 15,
+        centroid.x + 2 * TOUCH_RADIUS + 25,
         centroid.y
       );
+      const _slot = sysExMsg[BLOB_PARAM_CODE.TOUCH_SLOT];
+      const _slot_label = (_slot !== undefined && _slot !== TOUCH_SLOT_NONE)
+        ? "slot: " + (_slot + 1)
+        : "UID " + sysExMsg[BLOB_PARAM_CODE.UID];
       this.children["blob-group"].children["blob-txt"].content =
-        "UID: " + sysExMsg[BLOB_PARAM_CODE.UID] +
+        _slot_label +
         "\nX: " + centroid.x.toFixed(2) +
         "\nY: " + centroid.y.toFixed(2) +
         "\nZ: " + depth +
@@ -166,7 +178,7 @@ function blob_factory() {
         let seg = new paper.Path({
           segments: [this.last_centroid, centroid],
           strokeWidth: mapp(this.smooth_vxy, 0, 127, 1, 20),
-          strokeColor: "green",
+          strokeColor: "lightsteelblue",
           strokeCap: "round",
           strokeJoin: "round"
         });

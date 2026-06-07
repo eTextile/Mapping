@@ -27,6 +27,10 @@ const INTERP_NUM_CHUNKS = NEW_FRAME / INTERP_CHUNK_SIZE;
 const BLOB_MAX_SIZE = 500;
 const TOUCH_RADIUS = 25;
 const FONT_SIZE = 20;
+const TOUCH_IDLE_COLOR = "cornflowerblue";
+
+const MIDI_CHANNEL_MASK = 0x0F; // lower 4 bits of a MIDI status byte → channel (0-indexed)
+const MIDI_TYPE_MASK    = 0xF0; // upper 4 bits of a MIDI status byte → message type
 
 const MIDI_DEFAULT = {
   INPUT_CHANNEL: 1,
@@ -42,6 +46,8 @@ const MIDI_DEFAULT = {
 // E256 MIDI TYPES CONSTANTS
 const MIDI_TYPE = {
   NOTE_OFF: 0x80,
+  NOTE_ON_ONLY: 0x91,
+  NOTE_ON_OFF: 0x90,
   NOTE_ON: 0x90,
   AFTERTOUCH_POLY: 0xA0,
   CONTROL_CHANGE: 0xB0,
@@ -118,17 +124,18 @@ const DATA2 = {
   0xF0: null
 };
 
-const PRESSURE = {
-  [MIDI_TYPE.NONE]:            "None",           // NO PRESS MIDI OUTPUT
-  [MIDI_TYPE.NOTE_ON]:         "NoteOn",         // TRIGGER NOTE WITH VELOCITY
-  [MIDI_TYPE.CONTROL_CHANGE]:  "ControlChange",  // PRESSURE ONLY
-  [MIDI_TYPE.AFTERTOUCH_POLY]: "AfterTouchPoly", // TRIGGER NOTE AND MODULATE
-  [MIDI_TYPE.CHORD]:           "Chord",          // SEND A CHORD (switch only)
-  [MIDI_TYPE.CLOCK]:       "TapTempo"        // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
-}
+const PRESSURE = [
+  [MIDI_TYPE.NONE,            "None"],           // NO PRESS MIDI OUTPUT
+  [MIDI_TYPE.NOTE_ON_ONLY,    "Trigger"],        // TRIGGER NOTE — NO RELEASE
+  [MIDI_TYPE.NOTE_ON_OFF,     "Gate"],           // TRIGGER NOTE WITH VELOCITY GATE
+  [MIDI_TYPE.CONTROL_CHANGE,  "ControlChange"],  // PRESSURE ONLY
+  [MIDI_TYPE.AFTERTOUCH_POLY, "AfterTouchPoly"], // TRIGGER NOTE AND MODULATE
+  [MIDI_TYPE.CHORD,           "Chord"],          // SEND A CHORD (switch only)
+  [MIDI_TYPE.CLOCK,           "TapTempo"]        // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
+];
 
 const PRESSURE_CODES = Object.fromEntries(
-  Object.entries(PRESSURE).map(([k, v]) => [v, Number(k)])
+  PRESSURE.map(([k, v]) => [v, k])
 );
 
 const MOVE = {

@@ -7,8 +7,38 @@
 var midi_input = null;
 var midi_output = null;
 var midi_device_connected = false;
+var dev_mode = false;
 var loaded_file = null; // From user desktop
 var fetch_config_file = null; // From e256 flash memory
+
+// Maps MODE.X → MODE_ACK.X so send_sysex_cmd() can simulate firmware responses in dev mode.
+const DEV_MODE_ACK = {
+  [MODE.SYNC]:            MODE_ACK.SYNC,
+  [MODE.CALIBRATE]:       MODE_ACK.CALIBRATE,
+  [MODE.MATRIX_RAW]:      MODE_ACK.MATRIX_RAW,
+  [MODE.MATRIX_INTERP]:   MODE_ACK.MATRIX_INTERP,
+  [MODE.MAPPING]:         MODE_ACK.MAPPING,
+  [MODE.EDIT]:            MODE_ACK.EDIT,
+  [MODE.THROUGH]:         MODE_ACK.THROUGH,
+  [MODE.PLAY]:            MODE_ACK.PLAY,
+  [MODE.ALLOCATE_CONFIG]: MODE_ACK.ALLOCATE_CONFIG,
+  [MODE.UPLOAD_CONFIG]:   MODE_ACK.UPLOAD_CONFIG,
+  [MODE.APPLY_CONFIG]:    MODE_ACK.APPLY_CONFIG,
+  [MODE.LOAD_CONFIG]:     MODE_ACK.LOAD_CONFIG,
+  [MODE.FETCH_CONFIG]:    MODE_ACK.FETCH_CONFIG,
+};
+
+function toggle_dev_mode() {
+  dev_mode = !dev_mode;
+  if (dev_mode) {
+    alert_msg("DEV MODE: ON — hardware not required", "warning");
+    $("#connection_status").html("DEV MODE");
+    handle_sysex_ack(MODE_ACK.MAPPING);
+  } else {
+    alert_msg("DEV MODE: OFF", "info");
+    $("#connection_status").html(midi_device_connected ? "CONNECTED" : "DISCONNECTED");
+  }
+}
 
 var current_controller = { "id": null };
 var previous_controller = { "id": null };
@@ -121,6 +151,16 @@ function midi_msg_builder(midi_msg_type) {
 
   switch (midi_msg_type) {
 
+    case MIDI_TYPE.NOTE_ON_ONLY:
+      msg.midi = new note_on(
+        MIDI_DEFAULT.OUTPUT_CHANNEL,
+        midi_index.next().value,
+        MIDI_DEFAULT.VELOCITY
+      );
+      msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
+      msg.note_on_only = true;
+      break;
+
     case MIDI_TYPE.NOTE_ON:
       msg.midi = new note_on(
         MIDI_DEFAULT.OUTPUT_CHANNEL,
@@ -174,6 +214,7 @@ function midi_msg_builder(midi_msg_type) {
     case MIDI_TYPE.CLOCK:
       msg.midi = new note_on(MIDI_DEFAULT.OUTPUT_CHANNEL, 0, 0);
       msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
+      msg.clock = true;
       break;
     default:
       break;
@@ -331,8 +372,9 @@ function on_midi_message(midi_msg) {
           break;
         case MODE.EDIT: {
           let blob_data = midi_msg.data.subarray(1, -1);
+          if (blob_data.length === 0) break;
           if (blob_data.length < 12) {
-            console.warn("BLOB_SYSEX_TRUNCATED: length=" + blob_data.length + " (expected 12) — UID byte may have exceeded 127, reflash firmware");
+            console.warn("BLOB_SYSEX_TRUNCATED: length=" + blob_data.length + " (expected ≥12)");
             break;
           }
           e256_blobs.update(blob_data);
@@ -430,6 +472,7 @@ function handle_sysex_ack(ack) {
       $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide(); $("#synth_profile_section").hide();
       item_menu_params(current_controller, "hide"); item_menu_params(current_touch, "hide");
       $("#EDIT").removeClass("active"); $("#THROUGH").addClass("active"); $("#PLAY").removeClass("active");
+      set_all_touch_visuals_visible(true);
       e256_blobs.clear(); midi_term_in.clear(); midi_term_out.clear(); e256_current_mode = MODE.THROUGH;
       alert_msg("MODE: THROUGH", "success");
       break;
@@ -475,21 +518,29 @@ function handle_sysex_ack(ack) {
       } else {
         alert_msg("NO CONFIG FILE LOADED IN THE E256 FLASH MEMORY!", "danger");
       }
-      send_sysex_cmd(MODE.EDIT);
-      if (DEBUG) console.log("REQUEST: EDIT MODE");
+      send_sysex_cmd(MODE.MAPPING);
+      if (DEBUG) console.log("REQUEST: MAPPING MODE");
       break;
     case MODE_ACK.ALLOCATE_CONFIG:
       e256_export_params();
-      sysex_alloc(conf_size);
-      alert_msg("ALLOCATE_CONFIG_SIZE: " + conf_size, "success");
+      if (dev_mode) {
+        setTimeout(() => handle_sysex_ack(MODE_ACK.ALLOCATE_DONE), 0);
+      } else {
+        sysex_alloc(conf_size);
+        alert_msg("ALLOCATE_CONFIG_SIZE: " + conf_size, "success");
+      }
       break;
     case MODE_ACK.ALLOCATE_DONE:
       send_sysex_cmd(MODE.UPLOAD_CONFIG);
       if (DEBUG) console.log("REQUEST: UPLOAD CONFIG");
       break;
     case MODE_ACK.UPLOAD_CONFIG:
-      sysex_upload(string_to_bytes(JSON.stringify(e256_config)));
-      if (DEBUG) console.log("UPLOADING_CONFIG: " + JSON.stringify(e256_config));
+      if (dev_mode) {
+        setTimeout(() => handle_sysex_ack(MODE_ACK.UPLOAD_DONE), 0);
+      } else {
+        sysex_upload(string_to_bytes(JSON.stringify(e256_config)));
+        if (DEBUG) console.log("UPLOADING_CONFIG: " + JSON.stringify(e256_config));
+      }
       break;
     case MODE_ACK.UPLOAD_DONE:
       send_sysex_cmd(MODE.APPLY_CONFIG);
@@ -566,7 +617,13 @@ function midi_play_blob_update_all(blob_data) {
 }
 
 // Send a control SysEx packet:  F0  DEVICE_ID  PKT_TYPE  byte  [extra...]  F7
+// In dev mode, the firmware response is simulated by calling handle_sysex_ack() directly.
 function send_sysex_cmd(cmd) {
+  if (dev_mode) {
+    const ack = DEV_MODE_ACK[cmd];
+    if (ack !== undefined) setTimeout(() => handle_sysex_ack(ack), 0);
+    return;
+  }
   if (midi_device_connected) {
     midi_output.send([MIDI_SYSEX.START, MIDI_SYSEX.DEVICE_ID, SYSEX_PKT.CMD, cmd, MIDI_SYSEX.END]);
   } else {
@@ -575,6 +632,11 @@ function send_sysex_cmd(cmd) {
 };
 
 function send_midi_msg(msg) {
+  if (dev_mode) {
+    midi_term_out.push(msg);
+    if (e256_current_mode === MODE.THROUGH) midi_term_in.push(msg);
+    return;
+  }
   if (midi_device_connected) {
     if (msg.data2 === null) {
       midi_output.send([msg.status, msg.data1]);

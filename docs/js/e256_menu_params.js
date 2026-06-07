@@ -15,7 +15,7 @@ function create_item_menu_params(item) {
   div_item_menu_params.style.display = "none";
 
   let card_header = document.createElement("div");                     // div item name
-  card_header.className = "btn btn-outline-primary w-100 fw-bold fs-5 disabled mb-2";
+  card_header.className = "btn btn-primary w-100 fw-bold fs-5 disabled mb-2";
   const mapping_index = item.parent ? item.parent.children.indexOf(item) + 1 : item.id;
   card_header.append(item.name + "-" + mapping_index);
   div_item_menu_params.appendChild(card_header);
@@ -259,7 +259,7 @@ function create_item_touchs_menu_params(item) {
   const is_rol = item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL;
 
   let touch_label = document.createElement("div");
-  touch_label.className = "btn btn-outline-primary w-100 fw-bold fs-5 disabled text-nowrap overflow-hidden my-2";
+  touch_label.className = "btn btn-primary w-100 fw-bold fs-5 disabled text-nowrap overflow-hidden my-2";
   touch_label.textContent = isNaN(_touch_index) ? item.name : item.name.split("-")[0] + "-" + (_touch_index + 1);
   touch_label.style.display = is_rol ? "none" : "";
   sub_part_params.appendChild(touch_label);
@@ -282,14 +282,14 @@ function create_item_touchs_menu_params(item) {
     if (msg_type === "press") {
       const mapping = item.parent?.parent;
       const is_switch_mapping = mapping?.name === "switch";
-      const press_options = Object.fromEntries(Object.entries(PRESSURE).filter(([k]) =>
-        k !== String(MIDI_TYPE.NONE) && (is_switch_mapping || k !== String(MIDI_TYPE.CLOCK))
-      ));
-      let press_type_entries = Object.entries(press_options);
+      const press_type_entries = PRESSURE.filter(([k]) =>
+        is_switch_mapping || k !== MIDI_TYPE.CLOCK
+      );
 
       let current_press_type;
       if (!msg_obj.midi && msg_obj.chord === undefined) current_press_type = MIDI_TYPE.NONE;
       else if (msg_obj.chord !== undefined) current_press_type = MIDI_TYPE.CHORD;
+      else if (msg_obj.note_on_only) current_press_type = MIDI_TYPE.NOTE_ON_ONLY;
       else current_press_type = midi_msg_status_unpack(msg_obj.midi.status).type;
 
       let pt_val_tr = document.createElement("tr");
@@ -314,6 +314,9 @@ function create_item_touchs_menu_params(item) {
         if (rebuilt.midi && old?.midi) {
           rebuilt.midi.data1 = old.midi.data1;
           rebuilt.midi.status = (rebuilt.midi.status & 0xF0) | (old.midi.status & 0x0F);
+        }
+        if (rebuilt.chord !== undefined && old?.midi?.data1 !== undefined) {
+          rebuilt.note = old.midi.data1;
         }
         item.msg.press = rebuilt;
         if (mapping) re_create_touch_params(mapping);

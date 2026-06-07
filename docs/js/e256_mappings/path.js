@@ -21,24 +21,21 @@ function path_factory() {
     "data": {
       "touchs": null,
       "segments": null,
-      "press": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.touchs = DEFAULT.TOUCHS;
-      this.data.press = DEFAULT.MODE_Z;
 
       this.data.segments = [];
       this.data.segments.push(mouseEvent.point);
-      
-      //console.log("path: " + this.data.segments);
 
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.pos = midi_msg_builder(DEFAULT.MODE_POS);
-        touch_msg.press = midi_msg_builder(this.data.press);
+        touch_msg.pos   = midi_msg_builder(DEFAULT.MODE_POS);
+        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -47,16 +44,11 @@ function path_factory() {
       this.data.touchs = params.touchs;
       this.data.segments = params.segments;
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.press = status.type;
     },
 
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["path-group"].data.touchs;
-
-      let previous_mode_z = this.data.press;
-      this.data.press = this.children["path-group"].data.press;
 
       const _path_curve = this.children["path-group"].children["path-curve"];
       this.data.segments = _path_curve.segments.map(s => s.point.clone());
@@ -68,9 +60,8 @@ function path_factory() {
           ? this.children["touchs-group"].children[_touch].msg
           : {};
         touch_msg.pos   = prev.pos   || midi_msg_builder(DEFAULT.MODE_POS);
-        touch_msg.press = (this.data.press != previous_mode_z || !prev.press)
-          ? midi_msg_builder(this.data.press)
-          : prev.press;
+        touch_msg.move  = prev.move  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.press = prev.press || midi_msg_builder(DEFAULT.MODE_Z);
         this.data.msg.push(touch_msg);
       }
     },
@@ -84,7 +75,7 @@ function path_factory() {
         "prev_pos": null,
       });
 
-      let _touch_circle = make_touch_circle(this.data.segments[0], { "fillColor": "orange" });
+      let _touch_circle = make_touch_circle(this.data.segments[0], { "fillColor": TOUCH_IDLE_COLOR });
 
       _touch_circle.on("mouseenter", function () {
         if (e256_current_mode === MODE.EDIT && !touch_selection_locked) show_only_touch(_touch_group);
@@ -98,6 +89,10 @@ function path_factory() {
             break;
           case MODE.THROUGH:
             touch_press_down(_path, _touch_group);
+            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
+              this.style.fillColor = "red";
+              paper.view.update();
+            }
             break;
           case MODE.PLAY:
             // N/A
@@ -108,6 +103,10 @@ function path_factory() {
       _touch_circle.onMouseUp = function () {
         if (e256_current_mode !== MODE.THROUGH) return;
         touch_press_up(_path, _touch_group);
+        if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
+          this.style.fillColor = TOUCH_IDLE_COLOR;
+          paper.view.update();
+        }
       }
 
       _touch_circle.onMouseDrag = function (mouseEvent) {
@@ -159,8 +158,7 @@ function path_factory() {
         "modes_z": this.modes_z,
         "data": {
           "touchs": this.data.touchs,
-          "segments": this.data.segments,
-          "press": this.data.press
+          "segments": this.data.segments
         }
       });
 
@@ -229,6 +227,30 @@ function path_factory() {
       }
 
       _path_group.addChild(_graduations);
+
+      _path_group.fit_to_canvas = function() {
+        const curve = this.children["path-curve"];
+        const grad = this.children["path-graduations"];
+        if (!curve || curve.segments.length < 2) return;
+        const b = curve.bounds;
+        if (b.width === 0 && b.height === 0) return;
+        const scale_x = b.width > 0 ? canvas_width / b.width : 1;
+        const scale_y = b.height > 0 ? canvas_height / b.height : 1;
+        for (let i = 0; i < curve.segments.length; i++) {
+          const pt = curve.segments[i].point;
+          const nx = (pt.x - b.left) * scale_x;
+          const ny = (pt.y - b.top) * scale_y;
+          curve.segments[i].point = new paper.Point(nx, ny);
+          if (grad && i < grad.segments.length) grad.segments[i].point = new paper.Point(nx, ny);
+          if (i < this.data.segments.length) this.data.segments[i] = new paper.Point(nx, ny);
+        }
+        const mid_pt = curve.segments[Math.floor(curve.segments.length / 2)].point;
+        for (const touch of _touchs_group.children) {
+          if (touch.children["touch-circle"]) touch.children["touch-circle"].position = mid_pt;
+          if (touch.children["touch-txt"]) touch.children["touch-txt"].position = mid_pt;
+        }
+        update_item_main_params(this.parent);
+      };
 
       this.addChild(_path_group);
 

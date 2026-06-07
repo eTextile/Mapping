@@ -37,7 +37,7 @@ $(".e256_set_mode").click (
   function (event) {
     const btn_id = event.currentTarget.id;
     let requested_mode = MODE[btn_id];
-    if (midi_device_connected) {
+    if (midi_device_connected || dev_mode) {
       if (requested_mode !== e256_current_mode) {
         e256_previous_mode = e256_current_mode;
         if ((requested_mode === MODE.PLAY || requested_mode === MODE.EDIT || requested_mode === MODE.THROUGH) &&
@@ -81,7 +81,7 @@ $(".maping_tool").click (
 
 $("#upload_config").click (
   function () {
-    if (midi_device_connected) {
+    if (midi_device_connected || dev_mode) {
       $("#upload_config").addClass("active");
       send_sysex_cmd(MODE.ALLOCATE_CONFIG);
       if (DEBUG) console.log("REQUEST: ALLOCATE CONFIG");
@@ -117,7 +117,7 @@ $("#save_config").click(function () {
 
 $("#fetch_config").click (
   function () {
-    if (midi_device_connected) {
+    if (midi_device_connected || dev_mode) {
       $("#fetch_config").addClass("active");
       send_sysex_cmd(MODE.LOAD_CONFIG);
       if (DEBUG) console.log("REQUEST: LOAD CONFIG");
@@ -130,6 +130,7 @@ $("#fetch_config").click (
 $(document).on("keydown", function (event) {
   if ($(event.target).is("input, select, textarea")) return;
   switch (event.key) {
+    case "d":      toggle_dev_mode(); break;
     case "h":      $("#help-overlay").toggleClass("active"); break;
     case "Escape": $("#help-overlay").removeClass("active"); break;
     case "p": $("#EDIT, #THROUGH").removeClass("active"); $("#PLAY").trigger("click");   break;

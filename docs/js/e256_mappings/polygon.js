@@ -23,14 +23,12 @@ function polygon_factory() {
     "data": {
       "touchs": null,
       "segments": null,
-      "press": null,
       "chan": null,
       "msg": null
     },
 
     setup_from_mouse_event: function (mouseEvent) {
 
-      this.data.press = DEFAULT.MODE_Z;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
 
       // Build a regular polygon centered on the click; store segments as [paper.Point] arrays.
@@ -48,7 +46,8 @@ function polygon_factory() {
           src_msg.enabled = true;
           touch_msg[key] = src_msg;
         }
-        touch_msg.press = midi_msg_builder(this.data.press);
+        touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
+        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
     },
@@ -63,16 +62,11 @@ function polygon_factory() {
       ]);
       this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.msg = params.msg;
-      let status = midi_msg_status_unpack(params.msg[0].press.midi.status);
-      this.data.press = status.type;
     },
 
     save_params: function () {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["polygon-group"].data.touchs;
-
-      let previous_mode_z = this.data.press;
-      this.data.press = this.children["polygon-group"].data.press;
 
       this.data.segments = this.children["polygon-group"].data.segments;
       this.data.chan = this.children["polygon-group"].data.chan;
@@ -80,30 +74,17 @@ function polygon_factory() {
 
       for (let touch_index = 0; touch_index < this.data.touchs; touch_index++) {
         let touch_msg = {};
-        if (this.data.press != previous_mode_z) {
-          // Press mode changed: reset all axes to fresh defaults.
+        if (touch_index < previous_touch_count) {
+          touch_msg = this.children["touchs-group"].children[touch_index].msg;
+        } else {
           for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
             const src = midi_msg_builder(DEFAULT.MODE_DIST);
             src.enabled = true;
             touch_msg["source_" + vertex_index] = src;
           }
-          touch_msg.press = midi_msg_builder(this.data.press);
+          touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
         }
-        else {
-          if (touch_index < previous_touch_count) {
-            // Reuse existing MIDI params for touches that already existed.
-            touch_msg = this.children["touchs-group"].children[touch_index].msg;
-          }
-          else {
-            // New touch slot added: initialize with defaults.
-            for (let vertex_index = 0; vertex_index < this.data.segments.length; vertex_index++) {
-              const src = midi_msg_builder(DEFAULT.MODE_DIST);
-              src.enabled = true;
-              touch_msg["source_" + vertex_index] = src;
-            }
-            touch_msg.press = midi_msg_builder(this.data.press);
-          }
-        }
+        if (!touch_msg.move) touch_msg.move = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
     },
@@ -173,7 +154,7 @@ function polygon_factory() {
       _touch_group.addChild(_spokes_group);
 
       // Central touch circle
-      let _touch_circle = make_touch_circle(start_pt, { "fillColor": "orange" });
+      let _touch_circle = make_touch_circle(start_pt, { "fillColor": TOUCH_IDLE_COLOR });
 
       _touch_circle.on("mouseenter", function () {
         if (e256_current_mode === MODE.EDIT && !touch_selection_locked) show_only_touch(_touch_group);
@@ -187,6 +168,10 @@ function polygon_factory() {
             break;
           case MODE.THROUGH:
             touch_press_down(_polygon, _touch_group);
+            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
+              this.style.fillColor = "red";
+              paper.view.update();
+            }
             break;
           case MODE.PLAY:
             break;
@@ -199,6 +184,10 @@ function polygon_factory() {
             break;
           case MODE.THROUGH:
             touch_press_up(_polygon, _touch_group);
+            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
+              this.style.fillColor = TOUCH_IDLE_COLOR;
+              paper.view.update();
+            }
             break;
           case MODE.PLAY:
             break;
@@ -264,7 +253,6 @@ function polygon_factory() {
         "data": {
           "touchs": this.data.touchs,
           "segments": this.data.segments,
-          "press": this.data.press,
           "chan": this.data.chan
         }
       });
@@ -368,6 +356,37 @@ function polygon_factory() {
 
       _polygon_group.addChild(_polygon_curve);
 
+      _polygon_group.fit_to_canvas = function() {
+        const curve = this.children["polygon"];
+        if (!curve || curve.segments.length < 3) return;
+        const b = curve.bounds;
+        if (b.width === 0 && b.height === 0) return;
+        const scale_x = b.width > 0 ? canvas_width / b.width : 1;
+        const scale_y = b.height > 0 ? canvas_height / b.height : 1;
+        for (let i = 0; i < curve.segments.length; i++) {
+          const pt = curve.segments[i].point;
+          const nx = (pt.x - b.left) * scale_x;
+          const ny = (pt.y - b.top) * scale_y;
+          curve.segments[i].point = new paper.Point(nx, ny);
+          if (i < this.data.segments.length) this.data.segments[i] = [nx, ny];
+          if (i < this.parent.data.segments.length) this.parent.data.segments[i] = [nx, ny];
+        }
+        const cx = canvas_width / 2;
+        const cy = canvas_height / 2;
+        for (const touch of _touchs_group.children) {
+          if (touch.children["touch-circle"]) touch.children["touch-circle"].position = new paper.Point(cx, cy);
+          if (touch.children["touch-txt"]) touch.children["touch-txt"].position = new paper.Point(cx, cy);
+          const spokes = touch.children["spokes-group"];
+          if (spokes) {
+            for (let i = 0; i < spokes.children.length && i < curve.segments.length; i++) {
+              spokes.children[i].segments[0].point = new paper.Point(cx, cy);
+              spokes.children[i].segments[1].point = curve.segments[i].point.clone();
+            }
+          }
+        }
+        update_item_main_params(this.parent);
+      };
+
       this.addChild(_polygon_group);
       this.addChild(_touchs_group);
     },
@@ -428,22 +447,24 @@ function polygon_factory() {
             const src = touch_group.msg[key];
             if (!src?.midi || !src.enabled) continue;
             if (src.midi.status === msg.status && src.midi.data1 === msg.data1) {
-              if (_circle) _circle.style.fillColor = msg.data2 > 0 ? "red" : "orange";
+              if (_circle) _circle.style.fillColor = msg.data2 > 0 ? "red" : "#FF8C00";
               found = true;
               break;
             }
           }
           if (!found) {
-            const pm = touch_group.msg.press?.midi;
-            if (pm && (pm.status & 0xF0) === MIDI_TYPE.CONTROL_CHANGE &&
+            const press = touch_group.msg.press;
+            const pm = (press && press.enabled !== false) ? press.midi : null;
+            if (pm && midi_msg_status_unpack(pm.status).type === MIDI_TYPE.CONTROL_CHANGE &&
                 pm.status === msg.status && pm.data1 === msg.data1) {
               update_touch_arc(touch_group, msg.data2);
               found = true;
             }
           }
         } else if (status.type === MIDI_TYPE.NOTE_ON || status.type === MIDI_TYPE.NOTE_OFF) {
-          const pm = touch_group.msg.press?.midi;
-          if (pm && (pm.status & 0x0F) === (msg.status & 0x0F) && pm.data1 === msg.data1) {
+          const press = touch_group.msg.press;
+          const pm = (press && press.enabled !== false) ? press.midi : null;
+          if (pm && (pm.status & MIDI_CHANNEL_MASK) === (msg.status & MIDI_CHANNEL_MASK) && pm.data1 === msg.data1) {
             const value = (status.type === MIDI_TYPE.NOTE_ON && msg.data2 > 0) ? msg.data2 : 0;
             update_touch_arc(touch_group, value);
             found = true;
