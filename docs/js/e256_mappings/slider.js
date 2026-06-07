@@ -391,7 +391,7 @@ function slider_factory() {
 
       _slider_frame.style = {
         "strokeWidth": 1,
-        "strokeColor": "black",
+        "strokeColor": "#4d9aff",
         "fillColor": "azure"
       };
 

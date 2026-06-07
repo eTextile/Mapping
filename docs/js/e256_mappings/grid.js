@@ -244,9 +244,9 @@ function grid_factory() {
 
       const _note = this.data.msg[_key_id]?.press?.midi?.data1 ?? this.data.msg[_key_id]?.press?.note;
       let _key_id_label = make_touch_txt(
-        new paper.Point(_key_group.from.x + 10, _key_group.from.y + FONT_SIZE * 2.1),
+        new paper.Point(_key_group.from.x + 10, _key_group.from.y + FONT_SIZE * 1.5),
         (_note !== undefined) ? midi_note_name(_note) : String(_key_id + 1),
-        { fontSize: FONT_SIZE * 2.1, justification: "left", fillColor: "white" }
+        { fontSize: FONT_SIZE * 1.5, justification: "left", fillColor: "white" }
       );
       _key_id_label.name = "key-id";
       _key_group.addChild(_key_id_label);
@@ -344,7 +344,7 @@ function grid_factory() {
                     _key.children["key-frame"].bounds.width = key_width;
                     _key.children["key-frame"].bounds.height = key_height;
 
-                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 2.1);
+                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 1.5);
                   }
                   _grid_group.data.from = mouseEvent.point;
                   break;
@@ -365,7 +365,7 @@ function grid_factory() {
                     _key.children["key-frame"].bounds.width = key_width;
                     _key.children["key-frame"].bounds.height = key_height;
 
-                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 2.1);
+                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 1.5);
                   }
                   _grid_group.data.from.y = mouseEvent.point.y;
                   _grid_group.data.to.x = mouseEvent.point.x;
@@ -387,7 +387,7 @@ function grid_factory() {
                     _key.children["key-frame"].bounds.width = key_width;
                     _key.children["key-frame"].bounds.height = key_height;
 
-                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 2.1);
+                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 1.5);
                   }
                   _grid_group.data.to = mouseEvent.point;
                   break;
@@ -408,7 +408,7 @@ function grid_factory() {
                     _key.children["key-frame"].bounds.width = key_width;
                     _key.children["key-frame"].bounds.height = key_height;
 
-                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 2.1);
+                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 1.5);
                   }
                   _grid_group.data.from.x = mouseEvent.point.x;
                   _grid_group.data.to.y = mouseEvent.point.y;
@@ -448,7 +448,7 @@ function grid_factory() {
           frame.segments[1].point = new paper.Point(kx, ky);
           frame.segments[2].point = new paper.Point(kx + key_width, ky);
           frame.segments[3].point = new paper.Point(kx + key_width, ky + key_height);
-          key.children["key-id"].point = new paper.Point(kx + 10, ky + FONT_SIZE * 2.1);
+          key.children["key-id"].point = new paper.Point(kx + 10, ky + FONT_SIZE * 1.5);
         }
         update_item_main_params(this.parent);
         paper.view.update();

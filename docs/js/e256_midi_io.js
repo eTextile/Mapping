@@ -152,60 +152,29 @@ function midi_msg_builder(midi_msg_type) {
   switch (midi_msg_type) {
 
     case MIDI_TYPE.NOTE_ON_ONLY:
-      msg.midi = new note_on(
-        MIDI_DEFAULT.OUTPUT_CHANNEL,
-        midi_index.next().value,
-        MIDI_DEFAULT.VELOCITY
-      );
+      msg.midi = new note_on(MIDI_DEFAULT.OUTPUT_CHANNEL, midi_index.next().value, MIDI_DEFAULT.VELOCITY);
       msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
       msg.note_on_only = true;
       break;
 
     case MIDI_TYPE.NOTE_ON:
-      msg.midi = new note_on(
-        MIDI_DEFAULT.OUTPUT_CHANNEL,
-        midi_index.next().value,
-        MIDI_DEFAULT.VELOCITY
-      )
-      msg.limit = new limit(
-        MIDI_DEFAULT.MIN_VAL,
-        MIDI_DEFAULT.MAX_VAL
-      )
+      msg.midi = new note_on(MIDI_DEFAULT.OUTPUT_CHANNEL, midi_index.next().value, MIDI_DEFAULT.VELOCITY);
+      msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
       break;
 
     case MIDI_TYPE.CONTROL_CHANGE:
-      msg.midi = new control_change(
-        MIDI_DEFAULT.OUTPUT_CHANNEL,
-        midi_index.next().value,
-        MIDI_DEFAULT.VELOCITY
-      )
-      msg.limit = new limit(
-        MIDI_DEFAULT.MIN_VAL,
-        MIDI_DEFAULT.MAX_VAL
-      )
+      msg.midi = new control_change(MIDI_DEFAULT.OUTPUT_CHANNEL, midi_index.next().value, MIDI_DEFAULT.VELOCITY);
+      msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
       break;
 
     case MIDI_TYPE.AFTERTOUCH_POLY:
-      msg.midi = new polyphonic_aftertouch(
-        MIDI_DEFAULT.OUTPUT_CHANNEL,
-        midi_index.next().value,
-        midi_index.next().value
-      );
-      msg.limit = new limit(
-        MIDI_DEFAULT.MIN_VAL,
-        MIDI_DEFAULT.MAX_VAL
-      );
+      msg.midi = new polyphonic_aftertouch(MIDI_DEFAULT.OUTPUT_CHANNEL, midi_index.next().value, midi_index.next().value);
+      msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
       break;
 
     case MIDI_TYPE.PITCH_BEND:
-      msg.midi = new pitch_bend(
-        MIDI_DEFAULT.OUTPUT_CHANNEL,
-        MIDI_DEFAULT.VELOCITY
-      )
-      msg.limit = new limit(
-        MIDI_DEFAULT.MIN_VAL,
-        MIDI_DEFAULT.MAX_VAL
-      );
+      msg.midi = new pitch_bend(MIDI_DEFAULT.OUTPUT_CHANNEL, MIDI_DEFAULT.VELOCITY);
+      msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
       break;
     case MIDI_TYPE.CHORD:
       msg.chord = 1;   // default: Major

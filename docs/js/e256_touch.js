@@ -105,6 +105,10 @@ function touch_press_up(mapping, touch_group) {
   if (!press) return;
   switch (press_type_from_msg(press)) {
     case MIDI_TYPE.NOTE_ON:
+      if (press.note_on_only) break;
+      press.midi.data2 = 0;
+      send_midi_msg(press.midi);
+      break;
     case MIDI_TYPE.CONTROL_CHANGE:
     case MIDI_TYPE.AFTERTOUCH_POLY:
       press.midi.data2 = 0;

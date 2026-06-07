@@ -283,7 +283,7 @@ function touchpad_factory() {
 
       let _pad_group = new paper.Group({
         "name": "pad-group",
-        "modes_z": this.modes_z,
+        //"modes_z": this.modes_z,
         "data": {
           "touchs": this.data.touchs,
           "from": this.data.from,

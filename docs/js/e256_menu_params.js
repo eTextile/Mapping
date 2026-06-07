@@ -15,7 +15,7 @@ function create_item_menu_params(item) {
   div_item_menu_params.style.display = "none";
 
   let card_header = document.createElement("div");                     // div item name
-  card_header.className = "btn btn-primary w-100 fw-bold fs-5 disabled mb-2";
+  card_header.className = "btn btn-primary w-100 fw-bold disabled mb-1 mapping-id-label";
   const mapping_index = item.parent ? item.parent.children.indexOf(item) + 1 : item.id;
   card_header.append(item.name + "-" + mapping_index);
   div_item_menu_params.appendChild(card_header);
@@ -44,6 +44,7 @@ function create_item_main_params(item) {
   let part_params = document.createElement("div");
   //console.log("SET_ID_1ST: " + item.name + "_" + item.id); // PROB!
   part_params.setAttribute("id", item.name + "_" + item.id); // Menu UID
+  part_params.className = "main-params";
 
   for (const param in item.data) {
     if (param === "segments") continue; // edited visually on canvas, not via params panel
@@ -259,7 +260,7 @@ function create_item_touchs_menu_params(item) {
   const is_rol = item.parent?.parent?.children["slider-group"]?.data?.move === MOVE_CODES.ROL;
 
   let touch_label = document.createElement("div");
-  touch_label.className = "btn btn-primary w-100 fw-bold fs-5 disabled text-nowrap overflow-hidden my-2";
+  touch_label.className = "btn btn-primary w-100 fw-bold disabled text-nowrap overflow-hidden my-1 touch-id-label";
   touch_label.textContent = isNaN(_touch_index) ? item.name : item.name.split("-")[0] + "-" + (_touch_index + 1);
   touch_label.style.display = is_rol ? "none" : "";
   sub_part_params.appendChild(touch_label);
@@ -292,15 +293,13 @@ function create_item_touchs_menu_params(item) {
       else if (msg_obj.note_on_only) current_press_type = MIDI_TYPE.NOTE_ON_ONLY;
       else current_press_type = midi_msg_status_unpack(msg_obj.midi.status).type;
 
-      let pt_val_tr = document.createElement("tr");
-      let pt_lbl = document.createElement("th");
-      pt_lbl.className = "align-middle text-center";
-      pt_lbl.textContent = "press";
-      pt_val_tr.appendChild(pt_lbl);
-      let pt_td = document.createElement("td");
-      pt_td.setAttribute("colspan", "4");
+      let press_group = document.createElement("div");
+      press_group.className = "input-group mb-1";
+      let press_span = document.createElement("span");
+      press_span.className = "input-group-text";
+      press_span.textContent = "press";
       let pt_sel = document.createElement("select");
-      pt_sel.className = "form-select";
+      pt_sel.className = "form-select press-type-select";
       press_type_entries.forEach(([k, v]) => {
         let opt = document.createElement("option");
         opt.value = k; opt.textContent = v;
@@ -321,9 +320,9 @@ function create_item_touchs_menu_params(item) {
         item.msg.press = rebuilt;
         if (mapping) re_create_touch_params(mapping);
       });
-      pt_td.appendChild(pt_sel);
-      pt_val_tr.appendChild(pt_td);
-      row_params_body.appendChild(pt_val_tr);
+      press_group.appendChild(press_span);
+      press_group.appendChild(pt_sel);
+      sub_part_params.appendChild(press_group);
 
       // If None: type select only, no MIDI params below
       if (!msg_obj.midi && msg_obj.chord === undefined) continue;
@@ -353,6 +352,7 @@ function create_item_touchs_menu_params(item) {
       chord_atr.setAttribute("colspan", "2");
       chord_atr.textContent = "chord";
       chord_atr_tr.appendChild(chord_atr);
+
 
       let press_lbl = document.createElement("th");
       press_lbl.className = "align-middle text-center";

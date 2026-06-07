@@ -204,7 +204,7 @@ function synth_profiles_init() {
   const sel = document.getElementById("synth_profile_select");
   if (!sel) return;
 
-  _add_profile_to_select(sel, "", "— None —");
+  _add_profile_to_select(sel, "", "None");
   for (const key in SYNTH_PROFILES) {
     _add_profile_to_select(sel, key, SYNTH_PROFILES[key].name);
   }
