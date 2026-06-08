@@ -54,7 +54,7 @@ function switch_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
+        touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
@@ -90,7 +90,7 @@ function switch_factory() {
         if (_touch < previous_touch_count) {
           touch_msg = this.children["touchs-group"].children[_touch].msg;
         } else {
-          touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
+          touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_Z), { enabled: true });
         }
         if (!touch_msg.move) touch_msg.move = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);

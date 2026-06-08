@@ -49,11 +49,11 @@ function touchpad_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.pos_x  = midi_msg_builder(DEFAULT.MODE_X);
-        touch_msg.pos_y  = midi_msg_builder(DEFAULT.MODE_Y);
-        touch_msg.size   = Object.assign(midi_msg_builder(DEFAULT.MODE_SIZE), { enabled: false });
-        touch_msg.move   = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
-        touch_msg.press  = midi_msg_builder(DEFAULT.MODE_Z);
+        touch_msg.pos_x = Object.assign(midi_msg_builder(DEFAULT.MODE_X),           { enabled: true });
+        touch_msg.pos_y = Object.assign(midi_msg_builder(DEFAULT.MODE_Y),           { enabled: true });
+        touch_msg.size  = Object.assign(midi_msg_builder(DEFAULT.MODE_SIZE),        { enabled: false });
+        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
     },
@@ -83,14 +83,12 @@ function touchpad_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < this.data.touchs; _touch++) {
         let touch_msg = {};
-        const prev = (_touch < previous_touch_count)
-          ? this.children["touchs-group"].children[_touch].msg
-          : {};
-        touch_msg.pos_x  = prev.pos_x  || midi_msg_builder(DEFAULT.MODE_X);
-        touch_msg.pos_y  = prev.pos_y  || midi_msg_builder(DEFAULT.MODE_Y);
-        touch_msg.size   = prev.size   || Object.assign(midi_msg_builder(DEFAULT.MODE_SIZE), { enabled: false });
-        touch_msg.move   = prev.move   || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
-        touch_msg.press  = prev.press  || midi_msg_builder(DEFAULT.MODE_Z);
+        const prev = (_touch < previous_touch_count) ? this.children["touchs-group"].children[_touch].msg : {};
+        touch_msg.pos_x = prev.pos_x || Object.assign(midi_msg_builder(DEFAULT.MODE_X),           { enabled: true });
+        touch_msg.pos_y = prev.pos_y || Object.assign(midi_msg_builder(DEFAULT.MODE_Y),           { enabled: true });
+        touch_msg.size  = prev.size  || Object.assign(midi_msg_builder(DEFAULT.MODE_SIZE),        { enabled: false });
+        touch_msg.move  = prev.move  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.press = prev.press || Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
     },

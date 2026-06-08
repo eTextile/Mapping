@@ -51,10 +51,10 @@ function knob_factory() {
       let touch_msg;
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         touch_msg = {};
-        touch_msg.radius = midi_msg_builder(DEFAULT.MODE_R);
-        touch_msg.theta  = midi_msg_builder(DEFAULT.MODE_T);
-        touch_msg.move = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
-        touch_msg.press  = midi_msg_builder(DEFAULT.MODE_Z);
+        touch_msg.radius = Object.assign(midi_msg_builder(DEFAULT.MODE_R),           { enabled: true });
+        touch_msg.theta  = Object.assign(midi_msg_builder(DEFAULT.MODE_T),           { enabled: true });
+        touch_msg.move   = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.press  = Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
     },
@@ -91,10 +91,10 @@ function knob_factory() {
         const prev = (_touch < previous_touch_count)
           ? this.children["touchs-group"].children[_touch].msg
           : {};
-        touch_msg.radius = prev.radius || midi_msg_builder(DEFAULT.MODE_R);
-        touch_msg.theta  = prev.theta  || midi_msg_builder(DEFAULT.MODE_T);
+        touch_msg.radius = prev.radius || Object.assign(midi_msg_builder(DEFAULT.MODE_R),           { enabled: true });
+        touch_msg.theta  = prev.theta  || Object.assign(midi_msg_builder(DEFAULT.MODE_T),           { enabled: true });
         touch_msg.move   = prev.move   || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
-        touch_msg.press  = prev.press  || midi_msg_builder(DEFAULT.MODE_Z);
+        touch_msg.press  = prev.press  || Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
       // Recompute from data, not from Paper.js visual properties: the knob-group's .center

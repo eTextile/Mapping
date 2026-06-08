@@ -33,9 +33,9 @@ function path_factory() {
       this.data.msg = [];
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
-        touch_msg.pos   = midi_msg_builder(DEFAULT.MODE_POS);
+        touch_msg.pos   = Object.assign(midi_msg_builder(DEFAULT.MODE_POS),         { enabled: true });
         touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
-        touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
+        touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
     },
@@ -59,9 +59,9 @@ function path_factory() {
         const prev = (_touch < previous_touch_count)
           ? this.children["touchs-group"].children[_touch].msg
           : {};
-        touch_msg.pos   = prev.pos   || midi_msg_builder(DEFAULT.MODE_POS);
+        touch_msg.pos   = prev.pos   || Object.assign(midi_msg_builder(DEFAULT.MODE_POS),         { enabled: true });
         touch_msg.move  = prev.move  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
-        touch_msg.press = prev.press || midi_msg_builder(DEFAULT.MODE_Z);
+        touch_msg.press = prev.press || Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
     },

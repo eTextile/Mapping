@@ -70,7 +70,7 @@ function grid_factory() {
         const col = _key % this.data.cols;
         const row = Math.floor(_key / this.data.cols);
         let key_msg = {};
-        key_msg.press = midi_msg_builder(DEFAULT.MODE_PRESS);
+        key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
         key_msg.press.note = harmonic_note(col, row, this.data.rows);
         this.data.msg.push(key_msg);
       }
@@ -111,7 +111,7 @@ function grid_factory() {
         } else {
           const col = _key % this.data.cols;
           const row = Math.floor(_key / this.data.cols);
-          key_msg.press = midi_msg_builder(DEFAULT.MODE_PRESS);
+          key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
           key_msg.press.note = harmonic_note(col, row, this.data.rows);
         }
         this.data.msg.push(key_msg);
@@ -231,16 +231,7 @@ function grid_factory() {
         this.style.fillColor = "#FF8C00";
       };
 
-      /*
-      _key_frame.onMidiMsg = function (midi_msg) {
-        // TODO
-      };
-      */
-
       _key_group.addChild(_key_frame);
-
-      //paper.project.layers.text.activate();
-
 
       const _note = this.data.msg[_key_id]?.press?.midi?.data1 ?? this.data.msg[_key_id]?.press?.note;
       let _key_id_label = make_touch_txt(
@@ -250,9 +241,6 @@ function grid_factory() {
       );
       _key_id_label.name = "key-id";
       _key_group.addChild(_key_id_label);
-
-      //paper.project.layers.grid.activate();
-      //paper.project.layers.text.bringToFront();
 
       return _key_group;
     },
@@ -315,11 +303,6 @@ function grid_factory() {
             break;
         }
       }
-
-      /*
-      _grid_frame.onMouseDown = function () {
-      }
-      */
 
       _grid_frame.onMouseDrag = function (mouseEvent) {
         switch (e256_current_mode) {
