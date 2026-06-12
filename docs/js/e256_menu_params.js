@@ -4,6 +4,18 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
+function apply_global_press_to_keys(grid_item, press_template) {
+  const keys_group = grid_item.children["keys-group"];
+  if (!keys_group) return;
+  for (const key of keys_group.children) {
+    const current_note = key.msg.press?.note ?? key.msg.press?.midi?.data1 ?? 60;
+    const new_press = JSON.parse(JSON.stringify(press_template));
+    if (new_press.chord !== undefined) new_press.note = current_note;
+    else if (new_press.midi)           new_press.midi.data1 = current_note;
+    key.msg.press = new_press;
+  }
+}
+
 // For details on the html form_control structure refer to
 // https://getbootstrap.com/docs/5.0/forms/form-control/
 function create_item_menu_params(item) {
@@ -151,7 +163,64 @@ function create_item_main_params(item) {
       part_param.appendChild(select);
     }
     else if (param === "press") {
-      // press type is now per-touch — no global select in main params
+      if (item.name !== "grid-group") continue;
+
+      const press_obj = item.data.press;
+      const grid_item = item.parent;
+
+      let current_press_type;
+      if (!press_obj || (!press_obj.midi && press_obj.chord === undefined)) current_press_type = MIDI_TYPE.NONE;
+      else if (press_obj.chord !== undefined) current_press_type = MIDI_TYPE.CHORD;
+      else if (press_obj.note_on_only) current_press_type = MIDI_TYPE.NOTE_ON_ONLY;
+      else current_press_type = midi_msg_status_unpack(press_obj.midi.status).type;
+
+      const GRID_PRESS_ALLOWED = new Set([MIDI_TYPE.NONE, MIDI_TYPE.NOTE_ON_ONLY, MIDI_TYPE.NOTE_ON_OFF, MIDI_TYPE.CHORD]);
+      const press_type_entries = PRESSURE.filter(([k]) => GRID_PRESS_ALLOWED.has(k));
+      let pt_span = document.createElement("span");
+      pt_span.className = "input-group-text";
+      pt_span.textContent = "press";
+      let pt_sel = document.createElement("select");
+      pt_sel.className = "form-select form-select-sm";
+      press_type_entries.forEach(([k, v]) => {
+        let opt = document.createElement("option");
+        opt.value = k; opt.textContent = v;
+        if (Number(k) === current_press_type) opt.selected = true;
+        pt_sel.appendChild(opt);
+      });
+      pt_sel.addEventListener("change", function () {
+        const new_type = Number(this.value);
+        const old = item.data.press;
+        const rebuilt = midi_msg_builder(new_type);
+        if (rebuilt.chord !== undefined && old?.midi?.data1 !== undefined) rebuilt.note = old.midi.data1;
+        if (rebuilt.midi && old?.chord !== undefined) rebuilt.midi.data1 = old.note ?? 60;
+        rebuilt.enabled = old?.enabled !== false;
+        item.data.press = rebuilt;
+        apply_global_press_to_keys(grid_item, rebuilt);
+        re_create_touch_params(grid_item);
+      });
+      part_param.appendChild(pt_span);
+      part_param.appendChild(pt_sel);
+
+      if (current_press_type === MIDI_TYPE.CHORD && press_obj.chord !== undefined) {
+        let chord_span = document.createElement("span");
+        chord_span.className = "input-group-text";
+        chord_span.textContent = "chord";
+        let chord_sel = document.createElement("select");
+        chord_sel.className = "form-select form-select-sm";
+        Object.entries(CHORD_NAMES).forEach(([k, v]) => {
+          let opt = document.createElement("option");
+          opt.value = k; opt.textContent = v;
+          if (String(press_obj.chord) === k) opt.selected = true;
+          chord_sel.appendChild(opt);
+        });
+        chord_sel.addEventListener("change", e => {
+          press_obj.chord = Number(e.target.value);
+          apply_global_press_to_keys(grid_item, press_obj);
+          re_create_touch_params(grid_item);
+        });
+        part_param.appendChild(chord_span);
+        part_param.appendChild(chord_sel);
+      }
     }
     else if (param === "populate") {
       const { span, select } = create_select_field({
@@ -283,9 +352,13 @@ function create_item_touchs_menu_params(item) {
     if (msg_type === "press") {
       const mapping = item.parent?.parent;
       const is_switch_mapping = mapping?.name === "switch";
-      const press_type_entries = PRESSURE.filter(([k]) =>
-        is_switch_mapping || k !== MIDI_TYPE.CLOCK
-      );
+      const is_grid_mapping   = mapping?.name === "grid";
+      const GRID_TOUCH_PRESS_ALLOWED = new Set([MIDI_TYPE.NONE, MIDI_TYPE.NOTE_ON_ONLY, MIDI_TYPE.NOTE_ON_OFF, MIDI_TYPE.CHORD]);
+      const press_type_entries = PRESSURE.filter(([k]) => {
+        if (is_switch_mapping) return true;
+        if (is_grid_mapping)   return GRID_TOUCH_PRESS_ALLOWED.has(k);
+        return k !== MIDI_TYPE.CLOCK;
+      });
 
       let current_press_type;
       if (!msg_obj.midi && msg_obj.chord === undefined) current_press_type = MIDI_TYPE.NONE;

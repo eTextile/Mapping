@@ -11,17 +11,17 @@ function grid_factory() {
   const DEFAULT = {
     WIDTH: 450,
     HEIGHT: 450,
-    COLS: 4,
-    ROWS: 4,
+    COLS: 8,
+    ROWS: 6,
     TOUCHS: 3,
-    MODE_PRESS: MIDI_TYPE.CHORD,
-    MIN_SIZE: 30,
-    HARMONIC_BASE: 48, // C3 — root note of the harmonic layout
-    HARMONIC_X: 2,     // semitones per column (whole tone, right → higher)
-    HARMONIC_Y: 7,     // semitones per row (perfect fifth, up → higher)
+    MODE_PRESS: MIDI_TYPE.NOTE_ON_ONLY,
+    MIN_SIZE: 150,
+    HARMONIC_BASE: 36, // C2 — covers C2→G9 (MIDI 36→127), zero clamping on 14×14
+    HARMONIC_X: 1,     // semitones per column (chromatic, right → higher)
+    HARMONIC_Y: 6,     // semitones per row (tritone, up → higher)
   };
 
-  // Wicki-Hayden harmonic layout: row 0 is top (highest pitch)
+  // Dualo harmonic layout: row 0 is top (highest pitch)
   const harmonic_note = (col, row, rows) =>
     Math.min(127, Math.max(0, DEFAULT.HARMONIC_BASE + col * DEFAULT.HARMONIC_X + (rows - 1 - row) * DEFAULT.HARMONIC_Y));
 
@@ -63,6 +63,7 @@ function grid_factory() {
       this.data.rows = DEFAULT.ROWS;
       this.data.touchs = DEFAULT.TOUCHS;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
+      this.data.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
 
       this.data.msg = [];
       current_key_count = this.data.cols * this.data.rows;
@@ -72,6 +73,7 @@ function grid_factory() {
         let key_msg = {};
         key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
         key_msg.press.note = harmonic_note(col, row, this.data.rows);
+        if (key_msg.press.midi) key_msg.press.midi.data1 = key_msg.press.note;
         this.data.msg.push(key_msg);
       }
     },
@@ -89,6 +91,7 @@ function grid_factory() {
       this.data.rows = params.rows;
       this.data.touchs = params.touchs ?? DEFAULT.TOUCHS;
       this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
+      this.data.press = params.press ?? Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
       this.data.msg = params.msg;
     },
 
@@ -99,6 +102,7 @@ function grid_factory() {
       this.data.rows = this.children["grid-group"].data.rows;
       this.data.touchs = this.children["grid-group"].data.touchs;
       this.data.chan = this.children["grid-group"].data.chan;
+      this.data.press = this.children["grid-group"].data.press;
 
       previous_key_count = current_key_count;
       current_key_count = this.data.cols * this.data.rows;
@@ -113,6 +117,7 @@ function grid_factory() {
           const row = Math.floor(_key / this.data.cols);
           key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
           key_msg.press.note = harmonic_note(col, row, this.data.rows);
+          if (key_msg.press.midi) key_msg.press.midi.data1 = key_msg.press.note;
         }
         this.data.msg.push(key_msg);
       }
@@ -154,31 +159,9 @@ function grid_factory() {
             this.style.fillColor = "#FF8C00";
             if (!touch_selection_locked) show_only_touch(_key_group);
             break;
-          case MODE.THROUGH: {
+          case MODE.THROUGH:
             this.style.fillColor = "#FF8C00";
-            const press = _key_group.msg.press;
-            if (!press || press.enabled === false) break;
-            switch (press_type_from_msg(press)) {
-              case MIDI_TYPE.NOTE_ON_ONLY:
-              case MIDI_TYPE.NOTE_ON:
-                press.midi.data2 = 127;
-                send_midi_msg(press.midi);
-                this.style.fillColor = "red";
-                paper.view.update();
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                press.midi.data2 = get_random_int(64, 127);
-                send_midi_msg(press.midi);
-                break;
-              case MIDI_TYPE.CHORD:
-                touch_press_down(_grid, _key_group);
-                this.style.fillColor = "red";
-                paper.view.update();
-                break;
-            }
             break;
-          }
           case MODE.PLAY:
             break;
         }
@@ -189,55 +172,73 @@ function grid_factory() {
           case MODE.EDIT:
             if (!(touch_selection_locked && current_touch.id === _key_group.id)) this.style.fillColor = "pink";
             break;
-          case MODE.THROUGH: {
-            if (!(touch_selection_locked && current_touch.id === _key_group.id)) this.style.fillColor = "pink";
-            const press = _key_group.msg.press;
-            if (!press || press.enabled === false) break;
-            switch (press_type_from_msg(press)) {
-              case MIDI_TYPE.NOTE_ON:
-                if (!press.note_on_only) {
-                  press.midi.data2 = 0;
-                  send_midi_msg(press.midi);
-                }
-                break;
-              case MIDI_TYPE.CONTROL_CHANGE:
-              case MIDI_TYPE.AFTERTOUCH_POLY:
-                press.midi.data2 = 0;
-                send_midi_msg(press.midi);
-                break;
-              case MIDI_TYPE.CHORD:
-                touch_press_up(_grid, _key_group);
-                break;
-            }
+          case MODE.THROUGH:
+            this.style.fillColor = "pink";
             break;
-          }
           case MODE.PLAY:
             break;
         }
       };
 
       _key_frame.onMouseDown = function () {
-        if (e256_current_mode === MODE.EDIT) {
-          show_only_touch(_key_group, true);
-          touch_selection_locked = true;
-        } else {
-          previous_touch = current_touch;
-          current_touch = _key_group;
-          this.style.fillColor = "red";
+        switch (e256_current_mode) {
+          case MODE.EDIT:
+            show_only_touch(_key_group, true);
+            touch_selection_locked = true;
+            break;
+          case MODE.THROUGH: {
+            this.style.fillColor = "red";
+            const press = _key_group.msg.press;
+            if (!press || press.enabled === false) break;
+            switch (press_type_from_msg(press)) {
+              case MIDI_TYPE.NOTE_ON_ONLY:
+              case MIDI_TYPE.NOTE_ON:
+                press.midi.data2 = 127;
+                send_midi_msg(press.midi);
+                paper.view.update();
+                break;
+              case MIDI_TYPE.CONTROL_CHANGE:
+              case MIDI_TYPE.AFTERTOUCH_POLY:
+                press.midi.data2 = get_random_int(64, 127);
+                send_midi_msg(press.midi);
+                break;
+              case MIDI_TYPE.CHORD:
+                touch_press_down(_grid, _key_group);
+                paper.view.update();
+                break;
+            }
+            break;
+          }
+          default:
+            break;
         }
       };
 
       _key_frame.onMouseUp = function () {
+        if (e256_current_mode !== MODE.THROUGH) return;
         this.style.fillColor = "#FF8C00";
+        const press = _key_group.msg.press;
+        if (!press || press.enabled === false) return;
+        switch (press_type_from_msg(press)) {
+          case MIDI_TYPE.NOTE_ON:
+            if (!press.note_on_only) {
+              press.midi.data2 = 0;
+              send_midi_msg(press.midi);
+            }
+            break;
+          case MIDI_TYPE.CHORD:
+            touch_press_up(_grid, _key_group);
+            break;
+        }
       };
 
       _key_group.addChild(_key_frame);
 
-      const _note = this.data.msg[_key_id]?.press?.midi?.data1 ?? this.data.msg[_key_id]?.press?.note;
+      const cell_font_size = Math.min(key_width, key_height) * 0.4;
       let _key_id_label = make_touch_txt(
-        new paper.Point(_key_group.from.x + 10, _key_group.from.y + FONT_SIZE * 1.5),
-        (_note !== undefined) ? midi_note_name(_note) : String(_key_id + 1),
-        { fontSize: FONT_SIZE * 1.5, justification: "left", fillColor: "white" }
+        new paper.Point(_key_group.from.x + key_width * 0.1, _key_group.from.y + cell_font_size),
+        midi_note_name(harmonic_note(index_x, index_y, this.data.rows)),
+        { fontSize: cell_font_size, justification: "left", fillColor: "white" }
       );
       _key_id_label.name = "key-id";
       _key_group.addChild(_key_id_label);
@@ -259,7 +260,8 @@ function grid_factory() {
           "to": this.data.to,
           "cols": this.data.cols,
           "rows": this.data.rows,
-          "chan": this.data.chan
+          "chan": this.data.chan,
+          "press": this.data.press
         }
       });
 
@@ -274,34 +276,22 @@ function grid_factory() {
       }
 
       let _grid_frame = new paper.Path.Rectangle({
-        //"name": "grid-frame",
+        "name": "grid-frame",
         "from": _grid_group.data.from,
         "to": _grid_group.data.to
       });
 
       _grid_frame.style = {
-        "strokeColor": "lightGray",
+        "strokeColor": new paper.Color(0, 0, 0, 0),
         "strokeWidth": 15
       };
       
       _grid_frame.onMouseEnter = function () {
-        switch (e256_current_mode) {
-          case MODE.EDIT:
-            this.selected = true;
-            break;
-          case MODE.PLAY:
-            break;
-        }
+        // visual hover handled by paper_tool.onMouseMove in e256_paper_script.js
       }
 
       _grid_frame.onMouseLeave = function () {
-        switch (e256_current_mode) {
-          case MODE.EDIT:
-            this.selected = false;
-            break;
-          case MODE.PLAY:
-            break;
-        }
+        // visual hover handled by paper_tool.onMouseMove in e256_paper_script.js
       }
 
       _grid_frame.onMouseDrag = function (mouseEvent) {
@@ -310,92 +300,100 @@ function grid_factory() {
             if (current_part.type === "bounds") {
               let newPos = new paper.Point();
               switch (current_part.name) {
-                case "top-left":
-                  frame_width = Math.max(DEFAULT.MIN_SIZE, this.bounds.right - mouseEvent.point.x);
-                  key_width = frame_width / _grid_group.data.cols;
-                  half_key_width = key_width / 2;
-                  this.segments[0].point.x = mouseEvent.point.x;
-                  this.segments[1].point = mouseEvent.point;
-                  this.segments[2].point.y = mouseEvent.point.y;
+                case "top-left": {
+                  frame_width  = Math.max(DEFAULT.MIN_SIZE, this.bounds.right  - mouseEvent.point.x);
                   frame_height = Math.max(DEFAULT.MIN_SIZE, this.bounds.bottom - mouseEvent.point.y);
-                  key_height = frame_height / _grid_group.data.rows;
-                  half_key_height = key_height / 2;
+                  const cx_tl  = this.bounds.right  - frame_width;
+                  const cy_tl  = this.bounds.bottom - frame_height;
+                  key_width = frame_width / _grid_group.data.cols;   half_key_width  = key_width  / 2;
+                  key_height = frame_height / _grid_group.data.rows; half_key_height = key_height / 2;
+                  this.segments[0].point.x = cx_tl;
+                  this.segments[1].point   = new paper.Point(cx_tl, cy_tl);
+                  this.segments[2].point.y = cy_tl;
+                  const cfs_tl = Math.min(key_width, key_height) * 0.4;
                   for (const _key of _keys_group.children) {
                     newPos.x = this.bounds.right - (_grid_group.data.cols - _key.pos.x) * key_width + half_key_width;
                     newPos.y = this.bounds.bottom - (_grid_group.data.rows - _key.pos.y) * key_height + half_key_height;
                     _key.children["key-frame"].position = newPos;
                     _key.children["key-frame"].bounds.width = key_width;
                     _key.children["key-frame"].bounds.height = key_height;
-
-                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 1.5);
+                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + key_width * 0.1, newPos.y - half_key_height + cfs_tl);
+                    _key.children["key-id"].fontSize = cfs_tl;
                   }
-                  _grid_group.data.from = mouseEvent.point;
+                  _grid_group.data.from = new paper.Point(cx_tl, cy_tl);
                   break;
-                case "top-right":
-                  frame_width = Math.max(DEFAULT.MIN_SIZE, mouseEvent.point.x - this.bounds.left);
-                  key_width = frame_width / _grid_group.data.cols;
-                  half_key_width = key_width / 2;
-                  this.segments[1].point.y = mouseEvent.point.y;
-                  this.segments[2].point = mouseEvent.point;
-                  this.segments[3].point.x = mouseEvent.point.x;
-                  frame_height = Math.max(DEFAULT.MIN_SIZE, this.bounds.bottom - mouseEvent.point.y);
-                  key_height = frame_height / _grid_group.data.rows;
-                  half_key_height = key_height / 2; this.segments[2].point.y = mouseEvent.point.y;
+                }
+                case "top-right": {
+                  frame_width  = Math.max(DEFAULT.MIN_SIZE, mouseEvent.point.x  - this.bounds.left);
+                  frame_height = Math.max(DEFAULT.MIN_SIZE, this.bounds.bottom  - mouseEvent.point.y);
+                  const cx_tr  = this.bounds.left  + frame_width;
+                  const cy_tr  = this.bounds.bottom - frame_height;
+                  key_width = frame_width / _grid_group.data.cols;   half_key_width  = key_width  / 2;
+                  key_height = frame_height / _grid_group.data.rows; half_key_height = key_height / 2;
+                  this.segments[1].point.y = cy_tr;
+                  this.segments[2].point   = new paper.Point(cx_tr, cy_tr);
+                  this.segments[3].point.x = cx_tr;
+                  const cfs_tr = Math.min(key_width, key_height) * 0.4;
                   for (const _key of _keys_group.children) {
                     newPos.x = this.bounds.left + _key.pos.x * key_width + half_key_width;
                     newPos.y = this.bounds.bottom - (_grid_group.data.rows - _key.pos.y) * key_height + half_key_height;
                     _key.children["key-frame"].position = newPos;
                     _key.children["key-frame"].bounds.width = key_width;
                     _key.children["key-frame"].bounds.height = key_height;
-
-                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 1.5);
+                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + key_width * 0.1, newPos.y - half_key_height + cfs_tr);
+                    _key.children["key-id"].fontSize = cfs_tr;
                   }
-                  _grid_group.data.from.y = mouseEvent.point.y;
-                  _grid_group.data.to.x = mouseEvent.point.x;
+                  _grid_group.data.from.y = cy_tr;
+                  _grid_group.data.to.x   = cx_tr;
                   break;
-                case "bottom-right":
-                  frame_width = Math.max(DEFAULT.MIN_SIZE, mouseEvent.point.x - this.bounds.left);
-                  key_width = frame_width / _grid_group.data.cols;
-                  half_key_width = key_width / 2;
-                  this.segments[2].point.x = mouseEvent.point.x;
-                  this.segments[3].point = mouseEvent.point;
-                  this.segments[0].point.y = mouseEvent.point.y;
+                }
+                case "bottom-right": {
+                  frame_width  = Math.max(DEFAULT.MIN_SIZE, mouseEvent.point.x - this.bounds.left);
                   frame_height = Math.max(DEFAULT.MIN_SIZE, mouseEvent.point.y - this.bounds.top);
-                  key_height = frame_height / _grid_group.data.rows;
-                  half_key_height = key_height / 2;
+                  const cx_br  = this.bounds.left + frame_width;
+                  const cy_br  = this.bounds.top  + frame_height;
+                  key_width = frame_width / _grid_group.data.cols;   half_key_width  = key_width  / 2;
+                  key_height = frame_height / _grid_group.data.rows; half_key_height = key_height / 2;
+                  this.segments[2].point.x = cx_br;
+                  this.segments[3].point   = new paper.Point(cx_br, cy_br);
+                  this.segments[0].point.y = cy_br;
+                  const cfs_br = Math.min(key_width, key_height) * 0.4;
                   for (const _key of _keys_group.children) {
                     newPos.x = this.bounds.left + _key.pos.x * key_width + half_key_width;
-                    newPos.y = this.bounds.top + _key.pos.y * key_height + half_key_height;
+                    newPos.y = this.bounds.top  + _key.pos.y * key_height + half_key_height;
                     _key.children["key-frame"].position = newPos;
                     _key.children["key-frame"].bounds.width = key_width;
                     _key.children["key-frame"].bounds.height = key_height;
-
-                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 1.5);
+                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + key_width * 0.1, newPos.y - half_key_height + cfs_br);
+                    _key.children["key-id"].fontSize = cfs_br;
                   }
-                  _grid_group.data.to = mouseEvent.point;
+                  _grid_group.data.to = new paper.Point(cx_br, cy_br);
                   break;
-                case "bottom-left":
-                  frame_width = Math.max(DEFAULT.MIN_SIZE, this.bounds.right - mouseEvent.point.x);
-                  key_width = frame_width / _grid_group.data.cols;
-                  half_key_width = key_width / 2;
-                  this.segments[3].point.y = mouseEvent.point.y;
-                  this.segments[0].point = mouseEvent.point;
-                  this.segments[1].point.x = mouseEvent.point.x;
+                }
+                case "bottom-left": {
+                  frame_width  = Math.max(DEFAULT.MIN_SIZE, this.bounds.right - mouseEvent.point.x);
                   frame_height = Math.max(DEFAULT.MIN_SIZE, mouseEvent.point.y - this.bounds.top);
-                  key_height = frame_height / _grid_group.data.rows;
-                  half_key_height = key_height / 2;
+                  const cx_bl  = this.bounds.right - frame_width;
+                  const cy_bl  = this.bounds.top   + frame_height;
+                  key_width = frame_width / _grid_group.data.cols;   half_key_width  = key_width  / 2;
+                  key_height = frame_height / _grid_group.data.rows; half_key_height = key_height / 2;
+                  this.segments[3].point.y = cy_bl;
+                  this.segments[0].point   = new paper.Point(cx_bl, cy_bl);
+                  this.segments[1].point.x = cx_bl;
+                  const cfs_bl = Math.min(key_width, key_height) * 0.4;
                   for (const _key of _keys_group.children) {
                     newPos.x = this.bounds.right - (_grid_group.data.cols - _key.pos.x) * key_width + half_key_width;
-                    newPos.y = this.bounds.top + _key.pos.y * key_height + half_key_height;
+                    newPos.y = this.bounds.top   + _key.pos.y * key_height + half_key_height;
                     _key.children["key-frame"].position = newPos;
                     _key.children["key-frame"].bounds.width = key_width;
                     _key.children["key-frame"].bounds.height = key_height;
-
-                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + 10, newPos.y - half_key_height + FONT_SIZE * 1.5);
+                    _key.children["key-id"].point = new paper.Point(newPos.x - half_key_width + key_width * 0.1, newPos.y - half_key_height + cfs_bl);
+                    _key.children["key-id"].fontSize = cfs_bl;
                   }
-                  _grid_group.data.from.x = mouseEvent.point.x;
-                  _grid_group.data.to.y = mouseEvent.point.y;
+                  _grid_group.data.from.x = cx_bl;
+                  _grid_group.data.to.y   = cy_bl;
                   break;
+                }
                 default:
                   //console.log("PART_NOT_USE: " + current_part.name);
                   break;
@@ -423,6 +421,7 @@ function grid_factory() {
         _grid_frame.segments[1].point = new paper.Point(0, 0);
         _grid_frame.segments[2].point = new paper.Point(canvas_width, 0);
         _grid_frame.segments[3].point = new paper.Point(canvas_width, canvas_height);
+        const cfs_fit = Math.min(key_width, key_height) * 0.4;
         for (const key of _keys_group.children) {
           const kx = key.pos.x * key_width;
           const ky = key.pos.y * key_height;
@@ -431,7 +430,8 @@ function grid_factory() {
           frame.segments[1].point = new paper.Point(kx, ky);
           frame.segments[2].point = new paper.Point(kx + key_width, ky);
           frame.segments[3].point = new paper.Point(kx + key_width, ky + key_height);
-          key.children["key-id"].point = new paper.Point(kx + 10, ky + FONT_SIZE * 1.5);
+          key.children["key-id"].point = new paper.Point(kx + key_width * 0.1, ky + cfs_fit);
+          key.children["key-id"].fontSize = cfs_fit;
         }
         update_item_main_params(this.parent);
         paper.view.update();

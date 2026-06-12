@@ -65,9 +65,65 @@ const hit_opts_vertex = {
 
 var hit_options = hit_opts_item;
 
+let _hovered_grid_frame = null;
+
+paper_tool.onMouseMove = function (mouseEvent) {
+  if (e256_current_mode !== MODE.EDIT) {
+    if (_hovered_grid_frame) { _hovered_grid_frame.strokeColor = new paper.Color(0, 0, 0, 0); _hovered_grid_frame = null; }
+    return;
+  }
+  const pt = mouseEvent.point;
+  const tol = 10;
+  let found = null;
+  const grid_layer = paper.project.layers["grid"];
+  if (grid_layer) {
+    for (const grid_item of grid_layer.children) {
+      const frame = grid_item.children["grid-group"]?.children["grid-frame"];
+      if (!frame) continue;
+      const b = frame.bounds;
+      const on_h = (Math.abs(pt.y - b.top) < tol || Math.abs(pt.y - b.bottom) < tol) && pt.x >= b.left - tol && pt.x <= b.right + tol;
+      const on_v = (Math.abs(pt.x - b.left) < tol || Math.abs(pt.x - b.right) < tol) && pt.y >= b.top - tol && pt.y <= b.bottom + tol;
+      if (on_h || on_v) { found = frame; break; }
+    }
+  }
+  if (found === _hovered_grid_frame) return;
+  if (_hovered_grid_frame) { _hovered_grid_frame.strokeColor = new paper.Color(0, 0, 0, 0); _hovered_grid_frame.selected = false; }
+  _hovered_grid_frame = found;
+  if (_hovered_grid_frame) { _hovered_grid_frame.strokeColor = "lightGray"; _hovered_grid_frame.selected = true; }
+};
+
+paper_tool.onMouseDrag = function (mouseEvent) {
+  if (e256_current_mode === MODE.EDIT && current_part?.item?.name === "grid-frame") {
+    current_part.item.onMouseDrag(mouseEvent);
+  }
+};
+
+function _grid_frame_border_hit(frame, pt, tol) {
+  const b = frame.bounds;
+  const near_top    = Math.abs(pt.y - b.top)    < tol && pt.x >= b.left - tol && pt.x <= b.right  + tol;
+  const near_bottom = Math.abs(pt.y - b.bottom) < tol && pt.x >= b.left - tol && pt.x <= b.right  + tol;
+  const near_left   = Math.abs(pt.x - b.left)   < tol && pt.y >= b.top  - tol && pt.y <= b.bottom + tol;
+  const near_right  = Math.abs(pt.x - b.right)  < tol && pt.y >= b.top  - tol && pt.y <= b.bottom + tol;
+  let name = null;
+  if      (near_top    && near_left)  name = "top-left";
+  else if (near_top    && near_right) name = "top-right";
+  else if (near_bottom && near_right) name = "bottom-right";
+  else if (near_bottom && near_left)  name = "bottom-left";
+  else if (near_top)                  name = "top-center";
+  else if (near_bottom)               name = "bottom-center";
+  else if (near_left)                 name = "left-center";
+  else if (near_right)                name = "right-center";
+  return name ? { type: "bounds", name, item: frame, point: pt } : null;
+}
+
 paper_tool.onMouseDown = function (mouseEvent) {
 
   current_part = paper.project.hitTest(mouseEvent.point, hit_options);
+
+  if (e256_current_mode === MODE.EDIT && _hovered_grid_frame) {
+    const border_hit = _grid_frame_border_hit(_hovered_grid_frame, mouseEvent.point, 10);
+    if (border_hit) current_part = border_hit;
+  }
 
   if (e256_current_mode === MODE.EDIT) {
     if (current_part) { // Clicking on an existing item — always handled
