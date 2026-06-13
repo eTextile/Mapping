@@ -18,8 +18,8 @@ html, body {
   transition: 0;
 }
 
-.col-sm-3, .col-sm-6 {
-  padding: 3vh;
+.col-sm-2, .col-sm-3, .col-sm-6, .col-sm-7 {
+  padding: 3vh 0.5vh;
 }
 
 h1, h2, h3, h4, h5 {
@@ -41,10 +41,16 @@ h1, h2, h3, h4, h5 {
     margin: auto;
     overflow: hidden;
   }
+  .col-sm-2.sidenav.d-flex > .card,
   .col-sm-3.sidenav.d-flex > .card {
     height: 90vh;
     overflow-y: auto;
   }
+}
+
+#page {
+  padding-left: 0.5vh;
+  padding-right: 0.5vh;
 }
 
 #canvas-2D {
