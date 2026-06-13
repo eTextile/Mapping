@@ -156,7 +156,7 @@ function init() {
   edges = new THREE.Mesh(geometry, wireMaterial);
 
   threshold_plane = new THREE.Mesh(new THREE.PlaneGeometry(22, 22), thresholdMaterial);
-  threshold_plane.position.z = -(5 / 10); // firmware default: val=5
+  threshold_plane.position.z = -(2 / 10); // default: val=2
 
   // --- GROUP (shared rotation) ---
   matrix_group = new THREE.Group();

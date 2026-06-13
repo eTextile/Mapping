@@ -200,6 +200,24 @@ const POPULATE_CODES = Object.fromEntries(
   Object.entries(POPULATE).map(([k, v]) => [v, Number(k)])
 );
 
+const GRID_LAYOUT = {
+  0: "Sequential",
+  1: "Fourths",
+  2: "Thirds",
+  3: "Fifths",
+  4: "Omnichord",
+};
+
+const GRID_LAYOUT_ROW_STEP = { 0: null, 1: 5, 2: 4, 3: 7, 4: 5 };
+
+const GRID_LAYOUT_DIMS = {
+  0: { cols: 8, rows: 6 },
+  1: { cols: 8, rows: 6 },
+  2: { cols: 8, rows: 6 },
+  3: { cols: 8, rows: 6 },
+  4: { cols: 9, rows: 3 },
+};
+
 const MODE = {
   PENDING: 0,
   SYNC: 1,

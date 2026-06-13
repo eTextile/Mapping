@@ -16,17 +16,24 @@ function grid_factory() {
     TOUCHS: 3,
     MODE_PRESS: MIDI_TYPE.NOTE_ON_ONLY,
     MIN_SIZE: 150,
-    HARMONIC_BASE: 36, // C2 — covers C2→G9 (MIDI 36→127), zero clamping on 14×14
+    HARMONIC_BASE: 40, // E2 — bottom-left key; grid covers E2→C5 (MIDI 40→72)
     HARMONIC_X: 1,     // semitones per column (chromatic, right → higher)
-    HARMONIC_Y: 6,     // semitones per row (tritone, up → higher)
+    HARMONIC_Y: 5,     // semitones per row (perfect fourth, up → higher)
+    LAYOUT: 1,         // default layout: Fourths
   };
 
-  // Dualo harmonic layout: row 0 is top (highest pitch)
-  const harmonic_note = (col, row, rows) =>
-    Math.min(127, Math.max(0, DEFAULT.HARMONIC_BASE + col * DEFAULT.HARMONIC_X + (rows - 1 - row) * DEFAULT.HARMONIC_Y));
+  // row 0 is top (highest pitch); layout 0 = sequential (row_step = cols)
+  const harmonic_note = (col, row, rows, cols, layout) => {
+    if (layout === 4) return Math.min(127, 60 + col); // Omnichord: root = C4 + col, same for all rows
+    const row_step = layout === 0 ? cols : (GRID_LAYOUT_ROW_STEP[layout] ?? DEFAULT.HARMONIC_Y);
+    return Math.min(127, Math.max(0, DEFAULT.HARMONIC_BASE + col * DEFAULT.HARMONIC_X + (rows - 1 - row) * row_step));
+  };
 
   const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const midi_note_name = note => NOTE_NAMES[note % 12] + (Math.floor(note / 12) - 1);
+
+  const OMNICHORD_COL_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab'];
+  const OMNICHORD_ROW_CHORD = [1, 2, 7]; // row 0: Major, row 1: Minor, row 2: Dom7
 
   let frame_width = null;
   let frame_height = null;
@@ -47,6 +54,7 @@ function grid_factory() {
       "cols": null,
       "rows": null,
       "chan": null,
+      "layout": null,
       "msg": null
     },
 
@@ -61,6 +69,7 @@ function grid_factory() {
       );
       this.data.cols = DEFAULT.COLS;
       this.data.rows = DEFAULT.ROWS;
+      this.data.layout = DEFAULT.LAYOUT;
       this.data.touchs = DEFAULT.TOUCHS;
       this.data.chan = { in: MIDI_DEFAULT.INPUT_CHANNEL, out: MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
@@ -72,7 +81,7 @@ function grid_factory() {
         const row = Math.floor(_key / this.data.cols);
         let key_msg = {};
         key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
-        key_msg.press.note = harmonic_note(col, row, this.data.rows);
+        key_msg.press.note = harmonic_note(col, row, this.data.rows, this.data.cols, this.data.layout);
         if (key_msg.press.midi) key_msg.press.midi.data1 = key_msg.press.note;
         this.data.msg.push(key_msg);
       }
@@ -89,10 +98,12 @@ function grid_factory() {
       );
       this.data.cols = params.cols;
       this.data.rows = params.rows;
+      this.data.layout = params.layout ?? DEFAULT.LAYOUT;
       this.data.touchs = params.touchs ?? DEFAULT.TOUCHS;
       this.data.chan = { in: params.chan?.in || MIDI_DEFAULT.INPUT_CHANNEL, out: params.chan?.out || MIDI_DEFAULT.OUTPUT_CHANNEL };
       this.data.press = params.press ?? Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
       this.data.msg = params.msg;
+      current_key_count = params.cols * params.rows;
     },
 
     save_params: function () {
@@ -100,6 +111,12 @@ function grid_factory() {
       this.data.to = this.children["grid-group"].data.to;
       this.data.cols = this.children["grid-group"].data.cols;
       this.data.rows = this.children["grid-group"].data.rows;
+      const old_layout = this.data.layout;
+      this.data.layout = this.children["grid-group"].data.layout;
+      if (this.data.layout !== old_layout) {
+        const dims = GRID_LAYOUT_DIMS[this.data.layout];
+        if (dims) { this.data.cols = dims.cols; this.data.rows = dims.rows; }
+      }
       this.data.touchs = this.children["grid-group"].data.touchs;
       this.data.chan = this.children["grid-group"].data.chan;
       this.data.press = this.children["grid-group"].data.press;
@@ -107,17 +124,34 @@ function grid_factory() {
       previous_key_count = current_key_count;
       current_key_count = this.data.cols * this.data.rows;
 
+      const is_omnichord = this.data.layout === 4;
       this.data.msg = [];
       for (let _key = 0; _key < current_key_count; _key++) {
+        const col = _key % this.data.cols;
+        const row = Math.floor(_key / this.data.cols);
+        const note = harmonic_note(col, row, this.data.rows, this.data.cols, this.data.layout);
         let key_msg = {};
         if (_key < previous_key_count) {
-          key_msg.press = this.children["keys-group"].children[_key].msg.press;
+          const old_press = this.children["keys-group"].children[_key].msg.press;
+          if (is_omnichord && old_press.chord === undefined) {
+            key_msg.press = Object.assign(midi_msg_builder(MIDI_TYPE.CHORD), { enabled: true, note, chord: OMNICHORD_ROW_CHORD[row] ?? 1 });
+          } else if (!is_omnichord && old_press.chord !== undefined) {
+            key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
+            key_msg.press.note = note;
+            if (key_msg.press.midi) key_msg.press.midi.data1 = note;
+          } else {
+            key_msg.press = old_press;
+            key_msg.press.note = note;
+            if (key_msg.press.midi) key_msg.press.midi.data1 = note;
+          }
         } else {
-          const col = _key % this.data.cols;
-          const row = Math.floor(_key / this.data.cols);
-          key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
-          key_msg.press.note = harmonic_note(col, row, this.data.rows);
-          if (key_msg.press.midi) key_msg.press.midi.data1 = key_msg.press.note;
+          if (is_omnichord) {
+            key_msg.press = Object.assign(midi_msg_builder(MIDI_TYPE.CHORD), { enabled: true, note, chord: OMNICHORD_ROW_CHORD[row] ?? 1 });
+          } else {
+            key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
+            key_msg.press.note = note;
+            if (key_msg.press.midi) key_msg.press.midi.data1 = note;
+          }
         }
         this.data.msg.push(key_msg);
       }
@@ -125,6 +159,12 @@ function grid_factory() {
 
     new_key: function (index_x, index_y) {
       let _key_id = index_y * this.data.cols + index_x;
+      const _hn = harmonic_note(index_x, index_y, this.data.rows, this.data.cols, this.data.layout);
+      const _press = this.data.msg[_key_id]?.press;
+      if (_press) {
+        _press.note = _hn;
+        if (_press.midi) _press.midi.data1 = _hn;
+      }
 
       let _key_group = new paper.Group({
         "name": "key-" + _key_id,
@@ -235,9 +275,12 @@ function grid_factory() {
       _key_group.addChild(_key_frame);
 
       const cell_font_size = Math.min(key_width, key_height) * 0.4;
+      const _label_text = this.data.layout === 4
+        ? (OMNICHORD_COL_NAMES[index_x] ?? NOTE_NAMES[index_x % 12]) + (["", "m", "7"][index_y] ?? "")
+        : midi_note_name(harmonic_note(index_x, index_y, this.data.rows, this.data.cols, this.data.layout));
       let _key_id_label = make_touch_txt(
         new paper.Point(_key_group.from.x + key_width * 0.1, _key_group.from.y + cell_font_size),
-        midi_note_name(harmonic_note(index_x, index_y, this.data.rows)),
+        _label_text,
         { fontSize: cell_font_size, justification: "left", fillColor: "white" }
       );
       _key_id_label.name = "key-id";
@@ -261,6 +304,7 @@ function grid_factory() {
           "cols": this.data.cols,
           "rows": this.data.rows,
           "chan": this.data.chan,
+          "layout": this.data.layout,
           "press": this.data.press
         }
       });
