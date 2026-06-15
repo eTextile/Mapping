@@ -126,8 +126,8 @@ const DATA2 = {
 
 const PRESSURE = [
   [MIDI_TYPE.NONE,            "None"],           // NO PRESS MIDI OUTPUT
-  [MIDI_TYPE.NOTE_ON_ONLY,    "Trigger"],        // TRIGGER NOTE — NO RELEASE
-  [MIDI_TYPE.NOTE_ON_OFF,     "Gate"],           // TRIGGER NOTE WITH VELOCITY GATE
+  [MIDI_TYPE.NOTE_ON_ONLY,    "Note - Trigger"], // TRIGGER NOTE — NO RELEASE
+  [MIDI_TYPE.NOTE_ON_OFF,     "Note - Gate"],    // TRIGGER NOTE WITH VELOCITY GATE
   [MIDI_TYPE.CONTROL_CHANGE,  "ControlChange"],  // PRESSURE ONLY
   [MIDI_TYPE.AFTERTOUCH_POLY, "AfterTouchPoly"], // TRIGGER NOTE AND MODULATE
   [MIDI_TYPE.CHORD,           "Chord"],          // SEND A CHORD (switch only)

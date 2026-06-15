@@ -4,7 +4,7 @@
   This work is licensed under Creative Commons Attribution-ShareAlike 4.0 International license, see the LICENSE file for details.
 */
 
-var canvas_height = $("#loading_canvas").height();
+var canvas_height = Math.min(window.innerHeight * 0.96, window.innerWidth * 0.5 - window.innerHeight * 0.02);
 var canvas_width = canvas_height;
 
 var conf_size = 0;
@@ -27,6 +27,15 @@ paper.view.setZoom(canvas_width / canvas_height);
 paper.view.center = new paper.Point(canvas_width / 2, canvas_height / 2);
 
 paper.settings.handleSize = 20;
+paper.project.currentStyle.fontFamily = 'Poppins, sans-serif';
+
+Promise.all([
+  new FontFace('Poppins', "url('./assets/fonts/poppins-500-latin.woff2')", { weight: '500', style: 'normal' }).load(),
+  new FontFace('Poppins', "url('./assets/fonts/poppins-600-latin.woff2')", { weight: '600', style: 'normal' }).load()
+]).then(fonts => {
+  fonts.forEach(f => document.fonts.add(f));
+  paper.view.update();
+});
 //paper.settings.hitTolerance = 20;
 
 new paper.Layer({ project: paper.project, name: "blob", insert: true });
@@ -182,7 +191,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
 }
 
 paper_tool.onKeyDown = function (keyEvent) {
-  if ($(document.activeElement).is("input, select, textarea")) return;
+  if ($(document.activeElement).is("input, select, textarea")) document.activeElement.blur();
   if (e256_current_mode === MODE.EDIT) {
     if (keyEvent.modifiers.shift) {
       // keyEvent.key with Shift produces shifted chars ("!", "@"…); use event.code instead.
@@ -572,7 +581,7 @@ function mapping_factory(item_type) {
 };
 
 paper.view.onResize = function () {
-  canvas_height = $("#loading_canvas").height();
+  canvas_height = Math.min(window.innerHeight * 0.96, window.innerWidth * 0.5 - window.innerHeight * 0.02);
   canvas_width = canvas_height;
   console.log("WIDTH: " + canvas_width + " HEIGHT: " + canvas_height);
   paper.view.viewSize.width = canvas_width;

@@ -1,3 +1,18 @@
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../assets/fonts/poppins-500-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/poppins-600-latin.woff2') format('woff2');
+}
+
 html, body {
   height: inherit;
   width: inherit;
@@ -18,9 +33,15 @@ html, body {
   transition: 0;
 }
 
-.col-sm-2, .col-sm-3, .col-sm-6, .col-sm-7 {
-  padding: 3vh 0.5vh;
+.col-sm-3, .col-sm-6 {
+  padding: 1vh;
 }
+
+.col-sm-3.sidenav               { padding-top: 2vh; padding-bottom: 2vh; }
+.col-sm-3.sidenav:not(.d-flex) { padding-left: 3vh; }
+.col-sm-3.sidenav.d-flex       { padding-right: 3vh; }
+
+#page { padding-top: 2vh; padding-bottom: 2vh; }
 
 h1, h2, h3, h4, h5 {
 	font-family: 'Poppins', sans-serif;
@@ -30,27 +51,36 @@ h1, h2, h3, h4, h5 {
 }
 
 @media (orientation: landscape) {
+  :root {
+    --canvas-size: min(calc(50vw - 2vh), calc(100vh - 4vh));
+  }
   .container {
-    width: 100%;
-    height: 90vh;
+    width: var(--canvas-size);
+    height: auto;
+    aspect-ratio: 1;
+    margin: 0 auto;
+    padding: 0;
     display: block;
   }
-  .sensor{
-    width: inherit;
-    height: inherit;
+  .sensor {
+    width: 100%;
+    height: 100%;
     margin: auto;
     overflow: hidden;
   }
-  .col-sm-2.sidenav.d-flex > .card,
   .col-sm-3.sidenav.d-flex > .card {
-    height: 90vh;
+    height: var(--canvas-size);
     overflow-y: auto;
   }
 }
 
-#page {
-  padding-left: 0.5vh;
-  padding-right: 0.5vh;
+#loading_canvas,
+#mapping_canvas,
+#matrix_canvas {
+  background: white;
+  border-radius: var(--bs-border-radius);
+  outline: 1px solid rgb(255, 0, 212);
+  overflow: hidden;
 }
 
 #canvas-2D {

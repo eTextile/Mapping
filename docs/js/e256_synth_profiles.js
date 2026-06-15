@@ -103,6 +103,36 @@ const SYNTH_PROFILES = {
       "83": "Amp Release"
     }
   },
+  "moog_mother_32": {
+    name: "Moog Mother-32",
+    cc: {
+      "1":  "Modulation",
+      "5":  "Glide",
+      "7":  "Volume",
+      "10": "Pan",
+      "12": "VCO Freq",
+      "13": "VCO Fine",
+      "14": "Pulse Width",
+      "15": "VCO Wave",
+      "16": "VCO Mix",
+      "17": "Noise Level",
+      "19": "LFO Rate",
+      "20": "LFO Wave",
+      "21": "VCF Cutoff",
+      "22": "VCF Emphasis",
+      "23": "VCF Env Amt",
+      "24": "VCF Attack",
+      "25": "VCF Decay",
+      "26": "VCF Sustain",
+      "27": "VCF Release",
+      "28": "VCA Attack",
+      "29": "VCA Decay",
+      "30": "VCA Sustain",
+      "31": "VCA Release",
+      "64": "Sustain",
+      "65": "Glide On/Off"
+    }
+  },
   "arturia_minibrute_2": {
     name: "Arturia MiniBrute 2",
     cc: {

@@ -66,8 +66,6 @@ $(".maping_tool").click (
     
     switch (e256_draw_mode) {
       case "path":
-        hit_options = hit_opts_vertex;
-        break;
       case "polygon":
         hit_options = hit_opts_vertex;
         break;
@@ -128,7 +126,7 @@ $("#fetch_config").click (
 );
 
 $(document).on("keydown", function (event) {
-  if ($(event.target).is("input, select, textarea")) return;
+  if ($(event.target).is("input, select, textarea")) event.target.blur();
   switch (event.key) {
     case "d":      toggle_dev_mode(); break;
     case "h":      $("#help-overlay").toggleClass("active"); break;
