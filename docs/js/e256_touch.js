@@ -161,7 +161,7 @@ function make_touch_txt(point, content, opts) {
     "fillColor": opts.fillColor || "black",
     "fontSize": opts.fontSize || FONT_SIZE,
     "fontWeight": opts.fontWeight || "normal",
-    "fontFamily": opts.fontFamily || "Jua"
+    "fontFamily": opts.fontFamily || "Poppins, sans-serif"
   };
   return txt;
 }
