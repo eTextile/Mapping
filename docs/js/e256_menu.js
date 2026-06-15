@@ -125,8 +125,13 @@ $("#fetch_config").click (
   }
 );
 
+const MENU_SHORTCUTS = new Set(["d","h","Escape","p","e","t","r","i","m","c","u","s","f"]);
+
 $(document).on("keydown", function (event) {
-  if ($(event.target).is("input, select, textarea")) event.target.blur();
+  if ($(event.target).is("input, select, textarea")) {
+    if (!MENU_SHORTCUTS.has(event.key)) return;
+    event.target.blur();
+  }
   switch (event.key) {
     case "d":      toggle_dev_mode(); break;
     case "h":      $("#help-overlay").toggleClass("active"); break;
