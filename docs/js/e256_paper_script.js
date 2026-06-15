@@ -191,7 +191,7 @@ paper_tool.onMouseDown = function (mouseEvent) {
 }
 
 paper_tool.onKeyDown = function (keyEvent) {
-  const PAPER_SHORTCUTS = new Set(["a", "tab", "space", "backspace", "enter", "up", "down", "left", "right"]);
+  const PAPER_SHORTCUTS = new Set(["a", "tab", "space", "enter", "up", "down", "left", "right"]);
   if ($(document.activeElement).is("input, select, textarea")) {
     if (!PAPER_SHORTCUTS.has(keyEvent.key)) return;
     document.activeElement.blur();
