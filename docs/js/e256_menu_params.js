@@ -353,6 +353,7 @@ function create_item_touchs_menu_params(item) {
       if (!msg_obj.midi && msg_obj.chord === undefined) current_press_type = MIDI_TYPE.NONE;
       else if (msg_obj.chord !== undefined) current_press_type = MIDI_TYPE.CHORD;
       else if (msg_obj.note_on_only) current_press_type = MIDI_TYPE.NOTE_ON_ONLY;
+      else if (msg_obj.clock) current_press_type = MIDI_TYPE.CLOCK;
       else current_press_type = midi_msg_status_unpack(msg_obj.midi.status).type;
 
       if (!is_omnichord && !is_grid_mapping) {

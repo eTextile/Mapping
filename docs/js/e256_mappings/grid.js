@@ -32,7 +32,7 @@ function grid_factory() {
   const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const midi_note_name = note => NOTE_NAMES[note % 12] + (Math.floor(note / 12) - 1);
 
-  const OMNICHORD_COL_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab'];
+  const OMNICHORD_COL_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
   const OMNICHORD_ROW_CHORD = [1, 2, 7]; // row 0: Major, row 1: Minor, row 2: Dom7
 
   let frame_width = null;
@@ -274,7 +274,7 @@ function grid_factory() {
 
       _key_group.addChild(_key_frame);
 
-      const cell_font_size = Math.min(key_width, key_height) * 0.4;
+      const cell_font_size = Math.min(key_width, key_height) * 0.264;
       const _label_text = this.data.layout === 4
         ? (OMNICHORD_COL_NAMES[index_x] ?? NOTE_NAMES[index_x % 12]) + (["", "m", "7"][index_y] ?? "")
         : midi_note_name(harmonic_note(index_x, index_y, this.data.rows, this.data.cols, this.data.layout));
@@ -354,7 +354,7 @@ function grid_factory() {
                   this.segments[0].point.x = cx_tl;
                   this.segments[1].point   = new paper.Point(cx_tl, cy_tl);
                   this.segments[2].point.y = cy_tl;
-                  const cfs_tl = Math.min(key_width, key_height) * 0.4;
+                  const cfs_tl = Math.min(key_width, key_height) * 0.264;
                   for (const _key of _keys_group.children) {
                     newPos.x = this.bounds.right - (_grid_group.data.cols - _key.pos.x) * key_width + half_key_width;
                     newPos.y = this.bounds.bottom - (_grid_group.data.rows - _key.pos.y) * key_height + half_key_height;
@@ -377,7 +377,7 @@ function grid_factory() {
                   this.segments[1].point.y = cy_tr;
                   this.segments[2].point   = new paper.Point(cx_tr, cy_tr);
                   this.segments[3].point.x = cx_tr;
-                  const cfs_tr = Math.min(key_width, key_height) * 0.4;
+                  const cfs_tr = Math.min(key_width, key_height) * 0.264;
                   for (const _key of _keys_group.children) {
                     newPos.x = this.bounds.left + _key.pos.x * key_width + half_key_width;
                     newPos.y = this.bounds.bottom - (_grid_group.data.rows - _key.pos.y) * key_height + half_key_height;
@@ -401,7 +401,7 @@ function grid_factory() {
                   this.segments[2].point.x = cx_br;
                   this.segments[3].point   = new paper.Point(cx_br, cy_br);
                   this.segments[0].point.y = cy_br;
-                  const cfs_br = Math.min(key_width, key_height) * 0.4;
+                  const cfs_br = Math.min(key_width, key_height) * 0.264;
                   for (const _key of _keys_group.children) {
                     newPos.x = this.bounds.left + _key.pos.x * key_width + half_key_width;
                     newPos.y = this.bounds.top  + _key.pos.y * key_height + half_key_height;
@@ -424,7 +424,7 @@ function grid_factory() {
                   this.segments[3].point.y = cy_bl;
                   this.segments[0].point   = new paper.Point(cx_bl, cy_bl);
                   this.segments[1].point.x = cx_bl;
-                  const cfs_bl = Math.min(key_width, key_height) * 0.4;
+                  const cfs_bl = Math.min(key_width, key_height) * 0.264;
                   for (const _key of _keys_group.children) {
                     newPos.x = this.bounds.right - (_grid_group.data.cols - _key.pos.x) * key_width + half_key_width;
                     newPos.y = this.bounds.top   + _key.pos.y * key_height + half_key_height;
@@ -465,7 +465,7 @@ function grid_factory() {
         _grid_frame.segments[1].point = new paper.Point(0, 0);
         _grid_frame.segments[2].point = new paper.Point(canvas_width, 0);
         _grid_frame.segments[3].point = new paper.Point(canvas_width, canvas_height);
-        const cfs_fit = Math.min(key_width, key_height) * 0.4;
+        const cfs_fit = Math.min(key_width, key_height) * 0.264;
         for (const key of _keys_group.children) {
           const kx = key.pos.x * key_width;
           const ky = key.pos.y * key_height;
