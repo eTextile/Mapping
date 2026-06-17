@@ -161,6 +161,24 @@ const SYNTH_PROFILES = {
       "93": "Brute Factor"
     }
   },
+  "bela_granular": {
+    name: "Bela Granular",
+    cc: {
+      "1":  "Grain Duration",
+      "2":  "Grain Density",
+      "3":  "Pitch / Rate",
+      "4":  "Buffer Position",
+      "5":  "Position Scatter",
+      "6":  "Rate Scatter",
+      "7":  "Pan Spread",
+      "8":  "Amplitude",
+      "11": "Dry / Wet",
+      "12": "Feedback",
+      "64": "Freeze Record",
+      "71": "Filter Resonance",
+      "74": "Filter Cutoff"
+    }
+  },
   "roland_jx3p": {
     name: "Roland JX-3P",
     cc: {
