@@ -235,7 +235,8 @@ const MODE = {
   LOAD_CONFIG: 13,
   FETCH_CONFIG: 14,
   STANDALONE: 15,
-  ERROR: 16
+  USB_INTERFACE: 16,
+  ERROR: 17
 };
 
 const MODE_CODES = Object.fromEntries(
@@ -262,7 +263,7 @@ const MODE_ACK = {
   LOAD_CONFIG: 15,
   FETCH_CONFIG: 16,
   STANDALONE: 17,
-  DONE_ACTION: 18
+  USB_INTERFACE: 18
 };
 
 const MODE_ACK_CODES = Object.fromEntries(
