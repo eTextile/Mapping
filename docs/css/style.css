@@ -252,6 +252,8 @@ input[type=number] {
 
 #e256_params .form-select.press-type-select,
 #e256_params .input-group:has(.press-type-select) .input-group-text,
+#e256_params .form-select.pos-type-select,
+#e256_params .input-group:has(.pos-type-select) .input-group-text,
 #synth_profile_select {
   font-size: 0.8rem;
   padding: 0.25rem 0.5rem;
@@ -338,6 +340,7 @@ input[type=number] {
   font-weight: bold;
   margin: 1px;
 }
+
 
 .touch-params-section .table-bordered {
   border-collapse: separate !important;

@@ -257,6 +257,25 @@ function slider_factory() {
                 paper.view.update();
               }
             }
+            if (_touch_group.msg.pos && _touch_group.msg.pos.enabled !== false &&
+                midi_msg_status_unpack(_touch_group.msg.pos.midi.status).type === MIDI_TYPE.PITCH_BEND) {
+              const frame = _slider.children["slider-frame"];
+              if (_slider.dir === "V_SLIDER") {
+                const cy = (frame.bounds.top + frame.bounds.bottom) / 2;
+                _touch_line.position.y = cy;
+                _touch_circle.position.y = cy;
+                _touch_txt.position.y = cy;
+              } else {
+                const cx = (frame.bounds.left + frame.bounds.right) / 2;
+                _touch_line.position.x = cx;
+                _touch_circle.position.x = cx;
+                _touch_txt.position.x = cx;
+              }
+              update_touch_arc(_touch_group, 0);
+              _touch_group.msg.pos.midi.data2 = 64;
+              send_midi_msg(_touch_group.msg.pos.midi);
+              paper.view.update();
+            }
             _vel_xy = 0;
             _last_move_t = 0;
             break;

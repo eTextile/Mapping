@@ -196,6 +196,50 @@ paper_tool.onKeyDown = function (keyEvent) {
     if (!PAPER_SHORTCUTS.has(keyEvent.key)) return;
     document.activeElement.blur();
   }
+  // TAB: cycle through mappings — available in EDIT, THROUGH and PLAY
+  if (!keyEvent.modifiers.shift && keyEvent.key === "tab" &&
+      (e256_current_mode === MODE.EDIT || e256_current_mode === MODE.THROUGH || e256_current_mode === MODE.PLAY)) {
+    keyEvent.preventDefault();
+    const blob_layer = paper.project.layers.find(l => l.name === "blob");
+    const FAMILY_ORDER = ["switch", "slider", "knob", "touchpad", "grid", "path", "polygon"];
+    const all_items = [];
+    for (const type of FAMILY_ORDER) {
+      const layer = paper.project.layers[type];
+      if (!layer) continue;
+      const type_items = [];
+      for (const item of layer.children) {
+        if (item.name === type) type_items.push(item);
+      }
+      type_items.sort((a, b) => a.id - b.id);
+      all_items.push(...type_items);
+    }
+    if (all_items.length > 0) {
+      const cur_idx = all_items.findIndex(item => item.id === current_controller?.id);
+      const target = all_items[(cur_idx + 1) % all_items.length];
+      target.parent.bringToFront();
+      previous_controller = current_controller;
+      if (previous_controller?.children) {
+        const prev_frame = find_mapping_frame(previous_controller);
+        if (prev_frame) prev_frame.selected = false;
+        item_menu_params(previous_controller, "hide");
+      }
+      current_controller = target;
+      current_controller.bringToFront();
+      if (blob_layer) blob_layer.bringToFront();
+      e256_draw_mode = target.name;
+      const cur_frame = find_mapping_frame(current_controller);
+      if (cur_frame) cur_frame.selected = true;
+      item_menu_params(current_controller, "show");
+      $(".maping_tool").removeClass("active");
+      $("#" + current_controller.name).addClass("active");
+      touch_selection_locked = false;
+      document.activeElement?.blur();
+      const first_touch = find_first_touch(current_controller);
+      if (first_touch) show_only_touch(first_touch);
+    }
+    return;
+  }
+
   if (e256_current_mode === MODE.EDIT) {
     if (keyEvent.modifiers.shift) {
       // keyEvent.key with Shift produces shifted chars ("!", "@"…); use event.code instead.
@@ -238,46 +282,6 @@ paper_tool.onKeyDown = function (keyEvent) {
         case "space":
           shape_drawing_in_progress = false;
           break;
-        case "tab": {
-          keyEvent.preventDefault();
-          const blob_layer = paper.project.layers.find(l => l.name === "blob");
-          const FAMILY_ORDER = ["switch", "slider", "knob", "touchpad", "grid", "path", "polygon"];
-          const all_items = [];
-          for (const type of FAMILY_ORDER) {
-            const layer = paper.project.layers[type];
-            if (!layer) continue;
-            const type_items = [];
-            for (const item of layer.children) {
-              if (item.name === type) type_items.push(item);
-            }
-            type_items.sort((a, b) => a.id - b.id);
-            all_items.push(...type_items);
-          }
-          if (all_items.length === 0) break;
-          const cur_idx = all_items.findIndex(item => item.id === current_controller.id);
-          const target = all_items[(cur_idx + 1) % all_items.length];
-          target.parent.bringToFront();
-          previous_controller = current_controller;
-          if (previous_controller?.children) {
-            const prev_frame = find_mapping_frame(previous_controller);
-            if (prev_frame) prev_frame.selected = false;
-            item_menu_params(previous_controller, "hide");
-          }
-          current_controller = target;
-          current_controller.bringToFront();
-          if (blob_layer) blob_layer.bringToFront();
-          e256_draw_mode = target.name;
-          const cur_frame = find_mapping_frame(current_controller);
-          if (cur_frame) cur_frame.selected = true;
-          item_menu_params(current_controller, "show");
-          $(".maping_tool").removeClass("active");
-          $("#" + current_controller.name).addClass("active");
-          touch_selection_locked = false;
-          document.activeElement?.blur();
-          const first_touch = find_first_touch(current_controller);
-          if (first_touch) show_only_touch(first_touch);
-          break;
-        }
         case "up":
         case "down":
         case "left":
