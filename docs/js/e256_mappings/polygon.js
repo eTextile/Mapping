@@ -47,7 +47,7 @@ function polygon_factory() {
           touch_msg[key] = src_msg;
         }
         touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
-        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
     },
@@ -84,7 +84,7 @@ function polygon_factory() {
           }
           touch_msg.press = midi_msg_builder(DEFAULT.MODE_Z);
         }
-        if (!touch_msg.move) touch_msg.move = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        if (!touch_msg.speed) touch_msg.speed = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
     },
@@ -168,10 +168,7 @@ function polygon_factory() {
             break;
           case MODE.THROUGH:
             touch_press_down(_polygon, _touch_group);
-            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-              this.style.fillColor = "red";
-              paper.view.update();
-            }
+            touch_color_update(this, _touch_group.msg.press, true);
             break;
           case MODE.PLAY:
             break;
@@ -184,10 +181,7 @@ function polygon_factory() {
             break;
           case MODE.THROUGH:
             touch_press_up(_polygon, _touch_group);
-            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-              this.style.fillColor = TOUCH_IDLE_COLOR;
-              paper.view.update();
-            }
+            touch_color_update(this, _touch_group.msg.press, false);
             break;
           case MODE.PLAY:
             break;

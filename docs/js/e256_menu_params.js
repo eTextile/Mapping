@@ -16,6 +16,34 @@ function apply_global_press_to_keys(grid_item, press_template) {
   }
 }
 
+function get_press_type(msg_obj) {
+  if (!msg_obj || (!msg_obj.midi && msg_obj.chord === undefined)) return MIDI_TYPE.NONE;
+  if (msg_obj.chord !== undefined) return msg_obj.gate ? MIDI_TYPE.CHORD_GATE : MIDI_TYPE.CHORD;
+  if (msg_obj.note_on_only) return MIDI_TYPE.NOTE_ON_ONLY;
+  if (msg_obj.clock) return MIDI_TYPE.CLOCK;
+  return midi_msg_status_unpack(msg_obj.midi.status).type;
+}
+
+function bind_midi_number_input(input, validate, update) {
+  const highlight = () => { input.style.backgroundColor = validate(input.value) ? "lightGreen" : "pink"; };
+  const commit    = () => { if (validate(input.value)) update(Number(input.value)); };
+  input.addEventListener("input",   highlight);
+  input.addEventListener("change",  commit);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { commit(); input.blur(); } });
+}
+
+function attach_toggle_fold(toggle, msg_obj, inputs, rows) {
+  if (msg_obj.enabled === false) {
+    inputs.forEach(inp => { inp.disabled = true; });
+    rows.forEach(r => { r.style.display = "none"; });
+  }
+  toggle.addEventListener("change", function () {
+    msg_obj.enabled = this.checked;
+    inputs.forEach(inp => { inp.disabled = !this.checked; });
+    rows.forEach(r => { r.style.display = this.checked ? "" : "none"; });
+  });
+}
+
 // For details on the html form_control structure refer to
 // https://getbootstrap.com/docs/5.0/forms/form-control/
 function create_item_menu_params(item) {
@@ -150,9 +178,9 @@ function create_item_main_params(item) {
       part_param.appendChild(span_out);
       part_param.appendChild(sel_out);
     }
-    else if (param === "move") {
+    else if (param === "speed") {
       const { span, select } = create_select_field({
-        param: "move",
+        param: "speed",
         source: MOVE,
         item
       });
@@ -168,11 +196,7 @@ function create_item_main_params(item) {
 
       const press_obj = item.data.press;
       const grid_item = item.parent;
-
-      let current_press_type;
-      if (!press_obj || (!press_obj.midi && press_obj.chord === undefined)) current_press_type = MIDI_TYPE.NONE;
-      else if (press_obj.note_on_only) current_press_type = MIDI_TYPE.NOTE_ON_ONLY;
-      else current_press_type = midi_msg_status_unpack(press_obj.midi.status).type;
+      const current_press_type = get_press_type(press_obj);
 
       const GRID_PRESS_ALLOWED = new Set([MIDI_TYPE.NOTE_ON_ONLY, MIDI_TYPE.NOTE_ON_OFF]);
       const press_type_entries = PRESSURE.filter(([k]) => GRID_PRESS_ALLOWED.has(k));
@@ -354,10 +378,7 @@ function create_item_touchs_menu_params(item) {
       toggle.className = "form-check-input";
       toggle.setAttribute("role", "switch");
       if (msg_type === "press") {
-        let current_press_type;
-        if (!msg_obj.midi && msg_obj.chord === undefined) current_press_type = MIDI_TYPE.NONE;
-        else if (msg_obj.chord !== undefined) current_press_type = MIDI_TYPE.CHORD;
-        else current_press_type = midi_msg_status_unpack(msg_obj.midi.status).type;
+        const current_press_type = get_press_type(msg_obj);
         const press_on = current_press_type !== MIDI_TYPE.NONE;
         toggle.checked = press_on;
         msg_obj.enabled = press_on;
@@ -371,7 +392,7 @@ function create_item_touchs_menu_params(item) {
     let label_span = document.createElement("span");
     label_span.className = "fw-bold flex-grow-1";
     label_span.style.fontSize = "0.75rem";
-    label_span.textContent = msg_type === "move" ? "speed" : msg_type;
+    label_span.textContent = msg_type;
     header_inner.appendChild(label_span);
 
     if (msg_type === "press") {
@@ -385,12 +406,7 @@ function create_item_touchs_menu_params(item) {
         if (is_grid_mapping)   return GRID_TOUCH_PRESS_ALLOWED.has(k);
         return k !== MIDI_TYPE.CLOCK;
       });
-      let current_press_type;
-      if (!msg_obj.midi && msg_obj.chord === undefined) current_press_type = MIDI_TYPE.NONE;
-      else if (msg_obj.chord !== undefined) current_press_type = MIDI_TYPE.CHORD;
-      else if (msg_obj.note_on_only) current_press_type = MIDI_TYPE.NOTE_ON_ONLY;
-      else if (msg_obj.clock) current_press_type = MIDI_TYPE.CLOCK;
-      else current_press_type = midi_msg_status_unpack(msg_obj.midi.status).type;
+      const current_press_type = get_press_type(msg_obj);
       if (!is_omnichord && !is_grid_mapping) {
         let pt_sel = document.createElement("select");
         pt_sel.className = "form-select press-type-select";
@@ -407,6 +423,10 @@ function create_item_touchs_menu_params(item) {
           if (rebuilt.midi && old?.midi) {
             rebuilt.midi.data1 = old.midi.data1;
             rebuilt.midi.status = (rebuilt.midi.status & 0xF0) | (old.midi.status & 0x0F);
+          }
+          if (rebuilt.chord !== undefined && old?.chord !== undefined) {
+            rebuilt.chord = old.chord;
+            rebuilt.note  = old.note ?? 60;
           }
           item.msg.press = rebuilt;
           if (mapping) re_create_touch_params(mapping);
@@ -510,12 +530,10 @@ function create_item_touchs_menu_params(item) {
       chord_val_tr.appendChild(note_td);
       param_tbody.appendChild(chord_val_tr);
 
-      const chord_inputs = [chord_select, note_select, octave_select];
-      if (msg_obj.enabled === false) chord_inputs.forEach(inp => { inp.disabled = true; });
-      toggle.addEventListener("change", function () {
-        msg_obj.enabled = this.checked;
-        chord_inputs.forEach(inp => { inp.disabled = !this.checked; });
-      });
+      attach_toggle_fold(toggle, msg_obj,
+        [chord_select, note_select, octave_select],
+        [chord_atr_tr, chord_val_tr]
+      );
 
       group_idx++;
       continue;
@@ -557,35 +575,17 @@ function create_item_touchs_menu_params(item) {
               param_val.setAttribute("aria-describedby", atr_id);
               row_inputs.push(param_val);
 
-              param_val.addEventListener("input", function (event) {
-                if (event.target.type !== "number") return;
-                if (midi_byte === "status") {
-                  $("#" + event.target.id).css("background-color",
-                    (event.target.value > 0 && event.target.value <= 16) ? "lightGreen" : "pink");
-                } else {
-                  $("#" + event.target.id).css("background-color",
-                    (event.target.value > -1 && event.target.value < 128) ? "lightGreen" : "pink");
-                }
-              });
-              param_val.addEventListener("keydown", function (event) {
-                if (event.key !== "Enter" || event.target.type !== "number") return;
-                if (midi_byte === "status") {
-                  if (event.target.value > 0 && event.target.value <= 16)
-                    msg_obj[param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
-                } else if (event.target.value > -1 && event.target.value < 128) {
-                  msg_obj[param][midi_byte] = Number(event.target.value);
-                }
-                event.target.blur();
-              });
-              param_val.addEventListener("change", function (event) {
-                if (event.target.type !== "number") return;
-                if (midi_byte === "status") {
-                  if (event.target.value > 0 && event.target.value <= 16)
-                    msg_obj[param][midi_byte] = midi_msg_status_pack(event.target.value, status.type);
-                } else if (event.target.value > -1 && event.target.value < 128) {
-                  msg_obj[param][midi_byte] = Number(event.target.value);
-                }
-              });
+              if (midi_byte === "status") {
+                bind_midi_number_input(param_val,
+                  v => v > 0 && v <= 16,
+                  v => { msg_obj[param][midi_byte] = midi_msg_status_pack(v, status.type); }
+                );
+              } else {
+                bind_midi_number_input(param_val,
+                  v => v > -1 && v < 128,
+                  v => { msg_obj[param][midi_byte] = v; }
+                );
+              }
 
               let param_td = document.createElement("td");
               if (midi_byte === "status") param_td.className = "midi-col-chan";
@@ -632,24 +632,10 @@ function create_item_touchs_menu_params(item) {
             if (msg_type === "press" && status.type === MIDI_TYPE.NOTE_ON) {
               limit_val.disabled = true;
             } else {
-              limit_val.addEventListener("input", function (event) {
-                if (event.target.type !== "number") return;
-                $("#" + event.target.id).css("background-color",
-                  (event.target.value > -1 && event.target.value < 128) ? "lightGreen" : "pink");
-              });
-              limit_val.addEventListener("keydown", function (event) {
-                if (event.key !== "Enter" || event.target.type !== "number") return;
-                if (event.target.value > -1 && event.target.value < 128) {
-                  msg_obj[param][limit] = Number(event.target.value);
-                }
-                event.target.blur();
-              });
-              limit_val.addEventListener("change", function (event) {
-                if (event.target.type !== "number") return;
-                if (event.target.value > -1 && event.target.value < 128) {
-                  msg_obj[param][limit] = Number(event.target.value);
-                }
-              });
+              bind_midi_number_input(limit_val,
+                v => v > -1 && v < 128,
+                v => { msg_obj[param][limit] = v; }
+              );
             }
             let limit_td = document.createElement("td");
             limit_td.className = "midi-col-limit";
@@ -663,16 +649,11 @@ function create_item_touchs_menu_params(item) {
     param_tbody.appendChild(atr_tr);
     param_tbody.appendChild(val_tr);
 
-    if (msg_obj.enabled === false) row_inputs.forEach(inp => { inp.disabled = true; });
-    toggle.addEventListener("change", function () {
-      msg_obj.enabled = this.checked;
-      row_inputs.forEach(inp => { inp.disabled = !this.checked; });
-    });
+    attach_toggle_fold(toggle, msg_obj, row_inputs, [atr_tr, val_tr]);
 
     group_idx++;
   }
 
-  if (!has_params) return sub_part_params;
   return sub_part_params;
 };
 
@@ -726,11 +707,16 @@ function update_item_touchs_menu_params(item) {
   }
 };
 
+function _debounce(fn, ms) {
+  let t;
+  return function (...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+}
+
 // Release focus from any select or checkbox in the params panel after a change so
 // keyboard shortcuts (u, e, p…) are not swallowed by the focused element.
-document.getElementById("e256_params").addEventListener("change", function (e) {
+function _on_params_change(e) {
   if (e.target.matches("select, input[type='checkbox']")) e.target.blur();
-});
+}
 
 // Show / Hide item menu params
 function item_menu_params(item, state) {
@@ -754,13 +740,18 @@ function update_midi_term_capacity() {
   });
 };
 
-document.getElementById("midi_term").addEventListener("shown.bs.collapse", update_midi_term_capacity);
-
-window.addEventListener("resize", function () {
+function _on_midi_term_resize() {
   if (document.getElementById("midi_term").classList.contains("show")) {
     update_midi_term_capacity();
   }
-});
+}
+
+if (!window._e256_menu_params_listeners) {
+  window._e256_menu_params_listeners = true;
+  document.getElementById("e256_params").addEventListener("change", _on_params_change);
+  document.getElementById("midi_term").addEventListener("shown.bs.collapse", update_midi_term_capacity);
+  window.addEventListener("resize", _debounce(_on_midi_term_resize, 150));
+}
 
 function circular_buffer(container_id, max_length) {
   this._container_id = container_id;

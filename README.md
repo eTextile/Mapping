@@ -68,17 +68,23 @@ Press **`h`** at any time to display the help overlay.
 
 | Key | Action |
 |-----|--------|
+| `h` | Toggle this help |
+| `d` | Toggle DEV MODE (no hardware needed) |
 | `p` | PLAY mode |
 | `e` | EDIT mode |
 | `t` | THROUGH mode |
-| `m` | MATRIX mode |
-| `shift` + `m` | MAPPING mode |
+| `r` | MATRIX RAW mode |
+| `i` | MATRIX INTERP mode |
+| `m` | Toggle MAPPING / MATRIX mode |
 | `c` | CALIBRATE |
 | `u` | UPLOAD config |
 | `s` | SAVE config |
 | `f` | FETCH config |
-| `h` | Toggle help overlay |
-| `Esc` | Close help overlay |
+| `Space` | Finish path/polygon drawing (EDIT mode) |
+| `Tab` | Cycle through mappings one by one (EDIT, THROUGH, PLAY) |
+| `a` | Fit selected mapping to full canvas (EDIT mode) |
+| `Shift` + `1…N` | Select touch N of current mapping (EDIT mode) |
+| `Esc` | Close this help |
 
 Shortcuts are ignored when an input field is focused.
 

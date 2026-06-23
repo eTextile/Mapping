@@ -11,11 +11,11 @@ function touchpad_factory() {
     WIDTH: 450,
     HEIGHT: 450,
     TOUCH_MARGIN: 35,
-    MIN_WIDTH: 100,
-    MIN_HEIGHT: 100,
+    MIN_WIDTH: 300,
+    MIN_HEIGHT: 300,
     MODE_X: MIDI_TYPE.CONTROL_CHANGE,
     MODE_Y: MIDI_TYPE.CONTROL_CHANGE,
-    MODE_Z: MIDI_TYPE.NOTE_ON,
+    MODE_Z: MIDI_TYPE.NOTE_ON_ONLY,
     MODE_SIZE: MIDI_TYPE.CONTROL_CHANGE,
     TOUCHS: 1
   };
@@ -37,6 +37,7 @@ function touchpad_factory() {
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.touchs = DEFAULT.TOUCHS;
+      this.data.min = new paper.Point(DEFAULT.MIN_WIDTH, DEFAULT.MIN_HEIGHT);
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT.WIDTH / 2),
         mouseEvent.point.y - (DEFAULT.HEIGHT / 2)
@@ -52,7 +53,7 @@ function touchpad_factory() {
         touch_msg.pos_x = Object.assign(midi_msg_builder(DEFAULT.MODE_X),           { enabled: true });
         touch_msg.pos_y = Object.assign(midi_msg_builder(DEFAULT.MODE_Y),           { enabled: true });
         touch_msg.size  = Object.assign(midi_msg_builder(DEFAULT.MODE_SIZE),        { enabled: false });
-        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
@@ -60,6 +61,12 @@ function touchpad_factory() {
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs;
+      this.data.min = params.min
+        ? new paper.Point(
+            mapp(params.min[0], 0, NEW_COLS, 0, canvas_width),
+            mapp(params.min[1], 0, NEW_ROWS, 0, canvas_height)
+          )
+        : new paper.Point(DEFAULT.MIN_WIDTH, DEFAULT.MIN_HEIGHT);
       this.data.from = new paper.Point(
         mapp(params.from[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.from[1], 0, NEW_ROWS, 0, canvas_height)
@@ -76,6 +83,7 @@ function touchpad_factory() {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["pad-group"].data.touchs;
 
+      this.data.min = this.children["pad-group"].data.min;
       this.data.from = this.children["pad-group"].data.from;
       this.data.to = this.children["pad-group"].data.to;
       this.data.chan = this.children["pad-group"].data.chan;
@@ -87,7 +95,7 @@ function touchpad_factory() {
         touch_msg.pos_x = prev.pos_x || Object.assign(midi_msg_builder(DEFAULT.MODE_X),           { enabled: true });
         touch_msg.pos_y = prev.pos_y || Object.assign(midi_msg_builder(DEFAULT.MODE_Y),           { enabled: true });
         touch_msg.size  = prev.size  || Object.assign(midi_msg_builder(DEFAULT.MODE_SIZE),        { enabled: false });
-        touch_msg.move  = prev.move  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed  = prev.speed  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         touch_msg.press = prev.press || Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
@@ -155,10 +163,7 @@ function touchpad_factory() {
             _vel_xy = 0;
             _last_move_t = performance.now();
             touch_press_down(_touchpad, _touch_group);
-            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-              this.style.fillColor = "red";
-              paper.view.update();
-            }
+            touch_color_update(this, _touch_group.msg.press, true);
             break;
           case MODE.PLAY:
             // N/A
@@ -175,10 +180,7 @@ function touchpad_factory() {
             _vel_xy = 0;
             _last_move_t = 0;
             touch_press_up(_touchpad, _touch_group);
-            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-              this.style.fillColor = TOUCH_IDLE_COLOR;
-              paper.view.update();
-            }
+            touch_color_update(this, _touch_group.msg.press, false);
             break;
           case MODE.PLAY:
             // N/A
@@ -227,15 +229,15 @@ function touchpad_factory() {
                   send_midi_msg(_touch_group.msg.pos_y.midi);
                 }
               }
-              if (_touch_group.msg.move && _touch_group.msg.move.enabled) {
+              if (_touch_group.msg.speed && _touch_group.msg.speed.enabled) {
                 const now = performance.now();
                 const dt_s = Math.max(0.001, (now - _last_move_t) / 1000);
                 const dx = mouseEvent.delta.x * NEW_COLS / canvas_width;
                 const dy = mouseEvent.delta.y * NEW_ROWS / canvas_height;
                 _vel_xy = 0.5 * Math.sqrt(dx * dx + dy * dy) / dt_s + 0.5 * _vel_xy;
                 _last_move_t = now;
-                _touch_group.msg.move.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
-                send_midi_msg(_touch_group.msg.move.midi);
+                _touch_group.msg.speed.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
+                send_midi_msg(_touch_group.msg.speed.midi);
               }
             }
             break;
@@ -281,9 +283,9 @@ function touchpad_factory() {
 
       let _pad_group = new paper.Group({
         "name": "pad-group",
-        //"modes_z": this.modes_z,
         "data": {
           "touchs": this.data.touchs,
+          "min": this.data.min || new paper.Point(DEFAULT.MIN_WIDTH, DEFAULT.MIN_HEIGHT),
           "from": this.data.from,
           "to": this.data.to,
           "chan": this.data.chan
@@ -344,104 +346,114 @@ function touchpad_factory() {
               let new_size = new paper.Point();
               let new_pos = new paper.Point();
               switch (current_part.name) {
-                case "top-left":
+                case "top-left": {
+                  const cx = Math.min(mouseEvent.point.x, this.bounds.right - _pad_group.data.min.x);
+                  const cy = Math.min(mouseEvent.point.y, this.bounds.bottom - _pad_group.data.min.y);
                   previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT.MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
+                  current_frame_width = this.bounds.right - cx;
                   previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT.MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
-                  if (current_frame_width >= DEFAULT.MIN_WIDTH && current_frame_height >= DEFAULT.MIN_HEIGHT) {
-                    this.segments[0].point.x = mouseEvent.point.x;
-                    this.segments[1].point = mouseEvent.point;
-                    this.segments[2].point.y = mouseEvent.point.y;
-                    for (const _touch of _touchs_group.children) {
-                      _touch.children["touch-line-x"].segments[0].point.x = mouseEvent.point.x;
-                      _touch.children["touch-line-y"].segments[0].point.y = mouseEvent.point.y;
-                      new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
-                      new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
-                      new_pos.x = this.bounds.right - new_size.x;
-                      new_pos.y = this.bounds.bottom - new_size.y;
-                      _touch.children["touch-circle"].position = new_pos;
-                      _touch.children["touch-txt"].position = new_pos;
-                      _touch.children["touch-line-x"].position.y = new_pos.y;
-                      _touch.children["touch-line-y"].position.x = new_pos.x;
-                    }
-                    _pad_group.data.from = mouseEvent.point;
+                  current_frame_height = this.bounds.bottom - cy;
+                  this.segments[0].point.x = cx;
+                  this.segments[1].point.x = cx;
+                  this.segments[1].point.y = cy;
+                  this.segments[2].point.y = cy;
+                  for (const _touch of _touchs_group.children) {
+                    _touch.children["touch-line-x"].segments[0].point.x = cx;
+                    _touch.children["touch-line-y"].segments[0].point.y = cy;
+                    new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
+                    new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
+                    new_pos.x = this.bounds.right - new_size.x;
+                    new_pos.y = this.bounds.bottom - new_size.y;
+                    _touch.children["touch-circle"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
+                    _touch.children["touch-line-x"].position.y = new_pos.y;
+                    _touch.children["touch-line-y"].position.x = new_pos.x;
                   }
+                  _pad_group.data.from.x = cx;
+                  _pad_group.data.from.y = cy;
                   break;
-                case "top-right":
+                }
+                case "top-right": {
+                  const cx = Math.max(mouseEvent.point.x, this.bounds.left + _pad_group.data.min.x);
+                  const cy = Math.min(mouseEvent.point.y, this.bounds.bottom - _pad_group.data.min.y);
                   previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT.MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
+                  current_frame_width = cx - this.bounds.left;
                   previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT.MIN_HEIGHT, this.bounds.bottom - mouseEvent.point.y);
-                  if (current_frame_width >= DEFAULT.MIN_WIDTH && current_frame_height >= DEFAULT.MIN_HEIGHT) {
-                    this.segments[1].point.y = mouseEvent.point.y;
-                    this.segments[2].point = mouseEvent.point;
-                    this.segments[3].point.x = mouseEvent.point.x;
-                    for (const _touch of _touchs_group.children) {
-                      _touch.children["touch-line-x"].segments[1].point.x = mouseEvent.point.x;
-                      _touch.children["touch-line-y"].segments[0].point.y = mouseEvent.point.y;
-                      new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
-                      new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
-                      new_pos.x = this.bounds.left + new_size.x;
-                      new_pos.y = this.bounds.bottom - new_size.y;
-                      _touch.children["touch-circle"].position = new_pos;
-                      _touch.children["touch-txt"].position = new_pos;
-                      _touch.children["touch-line-x"].position.y = new_pos.y;
-                      _touch.children["touch-line-y"].position.x = new_pos.x;
-                    }
-                    _pad_group.data.from.y = mouseEvent.point.y;
-                    _pad_group.data.to.x = mouseEvent.point.x;
+                  current_frame_height = this.bounds.bottom - cy;
+                  this.segments[1].point.y = cy;
+                  this.segments[2].point.x = cx;
+                  this.segments[2].point.y = cy;
+                  this.segments[3].point.x = cx;
+                  for (const _touch of _touchs_group.children) {
+                    _touch.children["touch-line-x"].segments[1].point.x = cx;
+                    _touch.children["touch-line-y"].segments[0].point.y = cy;
+                    new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
+                    new_size.y = ((this.bounds.bottom - _touch.children["touch-circle"].position.y) * current_frame_height) / previous_frame_height;
+                    new_pos.x = this.bounds.left + new_size.x;
+                    new_pos.y = this.bounds.bottom - new_size.y;
+                    _touch.children["touch-circle"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
+                    _touch.children["touch-line-x"].position.y = new_pos.y;
+                    _touch.children["touch-line-y"].position.x = new_pos.x;
                   }
+                  _pad_group.data.from.y = cy;
+                  _pad_group.data.to.x = cx;
                   break;
-                case "bottom-right":
+                }
+                case "bottom-right": {
+                  const cx = Math.max(mouseEvent.point.x, this.bounds.left + _pad_group.data.min.x);
+                  const cy = Math.max(mouseEvent.point.y, this.bounds.top + _pad_group.data.min.y);
                   previous_frame_width = current_frame_width;
+                  current_frame_width = cx - this.bounds.left;
                   previous_frame_height = current_frame_height;
-                  current_frame_width = Math.max(DEFAULT.MIN_WIDTH, mouseEvent.point.x - this.bounds.left);
-                  current_frame_height = Math.max(DEFAULT.MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
-                  if (current_frame_width >= DEFAULT.MIN_WIDTH && current_frame_height >= DEFAULT.MIN_HEIGHT) {
-                    this.segments[2].point.x = mouseEvent.point.x;
-                    this.segments[3].point = mouseEvent.point;
-                    this.segments[0].point.y = mouseEvent.point.y;
-                    for (const _touch of _touchs_group.children) {
-                      _touch.children["touch-line-x"].segments[1].point.x = mouseEvent.point.x;
-                      _touch.children["touch-line-y"].segments[1].point.y = mouseEvent.point.y;
-                      new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
-                      new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
-                      new_pos.x = this.bounds.left + new_size.x;
-                      new_pos.y = this.bounds.top + new_size.y;
-                      _touch.children["touch-circle"].position = new_pos;
-                      _touch.children["touch-txt"].position = new_pos;
-                      _touch.children["touch-line-x"].position.y = new_pos.y;
-                      _touch.children["touch-line-y"].position.x = new_pos.x;
-                    }
-                    _pad_group.data.to = mouseEvent.point;
+                  current_frame_height = cy - this.bounds.top;
+                  this.segments[2].point.x = cx;
+                  this.segments[3].point.x = cx;
+                  this.segments[3].point.y = cy;
+                  this.segments[0].point.y = cy;
+                  for (const _touch of _touchs_group.children) {
+                    _touch.children["touch-line-x"].segments[1].point.x = cx;
+                    _touch.children["touch-line-y"].segments[1].point.y = cy;
+                    new_size.x = ((_touch.children["touch-circle"].position.x - this.bounds.left) * current_frame_width) / previous_frame_width;
+                    new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
+                    new_pos.x = this.bounds.left + new_size.x;
+                    new_pos.y = this.bounds.top + new_size.y;
+                    _touch.children["touch-circle"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
+                    _touch.children["touch-line-x"].position.y = new_pos.y;
+                    _touch.children["touch-line-y"].position.x = new_pos.x;
                   }
+                  _pad_group.data.to.x = cx;
+                  _pad_group.data.to.y = cy;
                   break;
-                case "bottom-left":
+                }
+                case "bottom-left": {
+                  const cx = Math.min(mouseEvent.point.x, this.bounds.right - _pad_group.data.min.x);
+                  const cy = Math.max(mouseEvent.point.y, this.bounds.top + _pad_group.data.min.y);
                   previous_frame_width = current_frame_width;
-                  current_frame_width = Math.max(DEFAULT.MIN_WIDTH, this.bounds.right - mouseEvent.point.x);
+                  current_frame_width = this.bounds.right - cx;
                   previous_frame_height = current_frame_height;
-                  current_frame_height = Math.max(DEFAULT.MIN_HEIGHT, mouseEvent.point.y - this.bounds.top);
-                  if (current_frame_width >= DEFAULT.MIN_WIDTH && current_frame_height >= DEFAULT.MIN_HEIGHT) {
-                    this.segments[3].point.y = mouseEvent.point.y;
-                    this.segments[0].point = mouseEvent.point;
-                    this.segments[1].point.x = mouseEvent.point.x;
-                    for (const _touch of _touchs_group.children) {
-                      _touch.children["touch-line-x"].segments[0].point.x = mouseEvent.point.x;
-                      _touch.children["touch-line-y"].segments[1].point.y = mouseEvent.point.y;
-                      new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
-                      new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
-                      new_pos.x = this.bounds.right - new_size.x;
-                      new_pos.y = this.bounds.top + new_size.y;
-                      _touch.children["touch-circle"].position = new_pos;
-                      _touch.children["touch-txt"].position = new_pos;
-                      _touch.children["touch-line-x"].position.y = new_pos.y;
-                      _touch.children["touch-line-y"].position.x = new_pos.x;
-                    }
-                    _pad_group.data.from.x = mouseEvent.point.x;
-                    _pad_group.data.to.y = mouseEvent.point.y;
+                  current_frame_height = cy - this.bounds.top;
+                  this.segments[3].point.y = cy;
+                  this.segments[0].point.x = cx;
+                  this.segments[0].point.y = cy;
+                  this.segments[1].point.x = cx;
+                  for (const _touch of _touchs_group.children) {
+                    _touch.children["touch-line-x"].segments[0].point.x = cx;
+                    _touch.children["touch-line-y"].segments[1].point.y = cy;
+                    new_size.x = ((this.bounds.right - _touch.children["touch-circle"].position.x) * current_frame_width) / previous_frame_width;
+                    new_size.y = ((_touch.children["touch-circle"].position.y - this.bounds.top) * current_frame_height) / previous_frame_height;
+                    new_pos.x = this.bounds.right - new_size.x;
+                    new_pos.y = this.bounds.top + new_size.y;
+                    _touch.children["touch-circle"].position = new_pos;
+                    _touch.children["touch-txt"].position = new_pos;
+                    _touch.children["touch-line-x"].position.y = new_pos.y;
+                    _touch.children["touch-line-y"].position.x = new_pos.x;
                   }
+                  _pad_group.data.from.x = cx;
+                  _pad_group.data.to.y = cy;
                   break;
+                }
                 default:
                   //console.log("PART_NOT_USE: " + current_part.name);
                   break;

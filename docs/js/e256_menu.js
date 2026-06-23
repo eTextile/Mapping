@@ -127,7 +127,7 @@ $("#fetch_config").click (
 
 const MENU_SHORTCUTS = new Set(["d","h","Escape","p","e","t","r","i","m","c","u","s","f"]);
 
-$(document).on("keydown", function (event) {
+function _on_menu_keydown(event) {
   if ($(event.target).is("input, select, textarea")) {
     if (!MENU_SHORTCUTS.has(event.key)) return;
     event.target.blur();
@@ -152,7 +152,12 @@ $(document).on("keydown", function (event) {
     case "s": $("#save_config").trigger("click");   break;
     case "f": $("#fetch_config").trigger("click");  break;
   }
-});
+}
+
+if (!window._e256_menu_listeners) {
+  window._e256_menu_listeners = true;
+  $(document).on("keydown", _on_menu_keydown);
+}
 
 $("#help-overlay").on("click", function (event) {
   if (event.target === this) $(this).removeClass("active");

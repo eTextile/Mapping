@@ -106,31 +106,13 @@ const SYNTH_PROFILES = {
   "moog_mother_32": {
     name: "Moog Mother-32",
     cc: {
-      "1":  "Modulation",
-      "5":  "Glide",
-      "7":  "Volume",
-      "10": "Pan",
-      "12": "VCO Freq",
-      "13": "VCO Fine",
-      "14": "Pulse Width",
-      "15": "VCO Wave",
-      "16": "VCO Mix",
-      "17": "Noise Level",
-      "19": "LFO Rate",
-      "20": "LFO Wave",
-      "21": "VCF Cutoff",
-      "22": "VCF Emphasis",
-      "23": "VCF Env Amt",
-      "24": "VCF Attack",
-      "25": "VCF Decay",
-      "26": "VCF Sustain",
-      "27": "VCF Release",
-      "28": "VCA Attack",
-      "29": "VCA Decay",
-      "30": "VCA Sustain",
-      "31": "VCA Release",
+      "1":  "Assign CV 1",
+      "2":  "Assign CV 2",
+      "4":  "Assign CV 4",
+      "5":  "Portamento Time",
+      "7":  "Assign CV 7",
       "64": "Sustain",
-      "65": "Glide On/Off"
+      "65": "Portamento On/Off"
     }
   },
   "arturia_minibrute_2": {
@@ -162,19 +144,18 @@ const SYNTH_PROFILES = {
     }
   },
   "bela_granular": {
-    name: "Bela Granular",
+    name: "Bela Live Granular",
     cc: {
-      "1":  "Grain Duration",
-      "2":  "Grain Density",
-      "3":  "Pitch / Rate",
-      "4":  "Buffer Position",
-      "5":  "Position Scatter",
-      "6":  "Rate Scatter",
+      "1":  "Grain Window",
+      "2":  "Pitch Ratio",
+      "3":  "Pitch Dispersion",
+      "4":  "Time Dispersion",
+      "5":  "Reverb Room",
+      "6":  "Reverb Damping",
       "7":  "Pan Spread",
       "8":  "Amplitude",
       "11": "Dry / Wet",
-      "12": "Feedback",
-      "64": "Freeze Record",
+      "12": "Reverb Mix",
       "71": "Filter Resonance",
       "74": "Filter Cutoff"
     }

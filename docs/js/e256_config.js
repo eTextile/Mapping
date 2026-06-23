@@ -56,6 +56,7 @@ const MIDI_TYPE = {
   PITCH_BEND: 0xE0,
   CLOCK: 0xF8,
   CHORD: 0xFE,
+  CHORD_GATE: 0xFD,
   NONE: 0xFF
 };
 
@@ -130,7 +131,8 @@ const PRESSURE = [
   [MIDI_TYPE.NOTE_ON_OFF,     "Note - Gate"],    // TRIGGER NOTE WITH VELOCITY GATE
   [MIDI_TYPE.CONTROL_CHANGE,  "ControlChange"],  // PRESSURE ONLY
   [MIDI_TYPE.AFTERTOUCH_POLY, "AfterTouchPoly"], // TRIGGER NOTE AND MODULATE
-  [MIDI_TYPE.CHORD,           "Chord"],          // SEND A CHORD (switch only)
+  [MIDI_TYPE.CHORD,           "Chord - trigger"], // SEND A CHORD — no release
+  [MIDI_TYPE.CHORD_GATE,      "Chord - gate"],   // SEND A CHORD — with note-off on release
   [MIDI_TYPE.CLOCK,           "TapTempo"]        // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
 ];
 
@@ -143,6 +145,11 @@ const MOVE = {
   1: "LOG",
   2: "ROL"
 };
+
+const MOVE_MSG_TYPES = [
+  [MIDI_TYPE.CONTROL_CHANGE, "ControlChange"],
+  [MIDI_TYPE.PITCH_BEND,     "PitchBend"]
+];
 
 const MOVE_CODES = Object.fromEntries(
   Object.entries(MOVE).map(([k, v]) => [v, Number(k)])

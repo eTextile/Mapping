@@ -79,7 +79,7 @@ h1, h2, h3, h4, h5 {
 #matrix_canvas {
   background: white;
   border-radius: var(--bs-border-radius);
-  outline: 1px solid rgb(255, 0, 212);
+
   overflow: hidden;
 }
 
@@ -259,6 +259,13 @@ input[type=number] {
   padding: 0.25rem 0.5rem;
 }
 
+#e256_params .form-select.press-type-select,
+#e256_params .form-select.pos-type-select {
+  width: 50%;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .midi-col-chan {
   width: 3rem;
   min-width: 3rem;
@@ -340,6 +347,7 @@ input[type=number] {
   font-weight: bold;
   margin: 1px;
 }
+
 
 
 .touch-params-section .table-bordered {

@@ -34,7 +34,7 @@ function path_factory() {
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
         touch_msg.pos   = Object.assign(midi_msg_builder(DEFAULT.MODE_POS),         { enabled: true });
-        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
@@ -60,7 +60,7 @@ function path_factory() {
           ? this.children["touchs-group"].children[_touch].msg
           : {};
         touch_msg.pos   = prev.pos   || Object.assign(midi_msg_builder(DEFAULT.MODE_POS),         { enabled: true });
-        touch_msg.move  = prev.move  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed  = prev.speed  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         touch_msg.press = prev.press || Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
@@ -89,10 +89,7 @@ function path_factory() {
             break;
           case MODE.THROUGH:
             touch_press_down(_path, _touch_group);
-            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-              this.style.fillColor = "red";
-              paper.view.update();
-            }
+            touch_color_update(this, _touch_group.msg.press, true);
             break;
           case MODE.PLAY:
             // N/A
@@ -103,10 +100,7 @@ function path_factory() {
       _touch_circle.onMouseUp = function () {
         if (e256_current_mode !== MODE.THROUGH) return;
         touch_press_up(_path, _touch_group);
-        if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-          this.style.fillColor = TOUCH_IDLE_COLOR;
-          paper.view.update();
-        }
+        touch_color_update(this, _touch_group.msg.press, false);
       }
 
       _touch_circle.onMouseDrag = function (mouseEvent) {

@@ -61,7 +61,7 @@ function slider_factory() {
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
         touch_msg.pos   = Object.assign(midi_msg_builder(DEFAULT.MODE_POS),         { enabled: true });
-        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS),       { enabled: true });
         this.data.msg.push(touch_msg);
       }
@@ -121,7 +121,7 @@ function slider_factory() {
           : {};
         if (!is_rol) touch_msg.pos = prev.pos || Object.assign(midi_msg_builder(DEFAULT.MODE_POS), { enabled: true });
         else delete touch_msg.pos;
-        touch_msg.move  = prev.move  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed  = prev.speed  || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         touch_msg.press = prev.press || Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS),       { enabled: true });
         this.data.msg.push(touch_msg);
       }
@@ -215,11 +215,7 @@ function slider_factory() {
               }
             } else {
               touch_press_down(_slider, _touch_group);
-              if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON ||
-                  press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-                _touch_circle.style.fillColor = "red";
-                paper.view.update();
-              }
+              touch_color_update(_touch_circle, _touch_group.msg.press, true);
             }
             break;
           case MODE.PLAY:
@@ -251,11 +247,7 @@ function slider_factory() {
               }
             } else {
               touch_press_up(_slider, _touch_group);
-              if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON ||
-                  press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-                _touch_circle.style.fillColor = TOUCH_IDLE_COLOR;
-                paper.view.update();
-              }
+              touch_color_update(_touch_circle, _touch_group.msg.press, false);
             }
             if (_touch_group.msg.pos && _touch_group.msg.pos.enabled !== false &&
                 midi_msg_status_unpack(_touch_group.msg.pos.midi.status).type === MIDI_TYPE.PITCH_BEND) {
@@ -272,6 +264,7 @@ function slider_factory() {
                 _touch_txt.position.x = cx;
               }
               update_touch_arc(_touch_group, 0);
+              _touch_group.msg.pos.midi.data1 = 0;  // LSB=0, MSB=64 → PitchBend center (8192)
               _touch_group.msg.pos.midi.data2 = 64;
               send_midi_msg(_touch_group.msg.pos.midi);
               paper.view.update();
@@ -293,14 +286,20 @@ function slider_factory() {
               _touch_circle.position.y = mouseEvent.point.y;
               _touch_txt.position.y = mouseEvent.point.y;
               if (_touch_group.msg.pos) {
-                _touch_group.msg.pos.midi.data2 =
-                  _touch_group.msg.pos.limit.min + _touch_group.msg.pos.limit.max -
+                const _raw7 = _touch_group.msg.pos.limit.min + _touch_group.msg.pos.limit.max -
                   Math.round(mapp(mouseEvent.point.y,
                     _slider.children["slider-frame"].bounds.top,
                     _slider.children["slider-frame"].bounds.bottom,
                     _touch_group.msg.pos.limit.min,
                     _touch_group.msg.pos.limit.max
                   ));
+                if (midi_msg_status_unpack(_touch_group.msg.pos.midi.status).type === MIDI_TYPE.PITCH_BEND) {
+                  const _pb14 = _raw7 * 129;
+                  _touch_group.msg.pos.midi.data1 = _pb14 & 0x7F;
+                  _touch_group.msg.pos.midi.data2 = (_pb14 >> 7) & 0x7F;
+                } else {
+                  _touch_group.msg.pos.midi.data2 = _raw7;
+                }
               }
             }
             else { // "H_SLIDER":
@@ -308,14 +307,19 @@ function slider_factory() {
               _touch_circle.position.x = mouseEvent.point.x;
               _touch_txt.position.x = mouseEvent.point.x;
               if (_touch_group.msg.pos) {
-                _touch_group.msg.pos.midi.data2 = Math.round(
-                  mapp(mouseEvent.point.x,
-                    _slider.children["slider-frame"].bounds.left,
-                    _slider.children["slider-frame"].bounds.right,
-                    _touch_group.msg.pos.limit.min,
-                    _touch_group.msg.pos.limit.max
-                  )
-                );
+                const _raw7 = Math.round(mapp(mouseEvent.point.x,
+                  _slider.children["slider-frame"].bounds.left,
+                  _slider.children["slider-frame"].bounds.right,
+                  _touch_group.msg.pos.limit.min,
+                  _touch_group.msg.pos.limit.max
+                ));
+                if (midi_msg_status_unpack(_touch_group.msg.pos.midi.status).type === MIDI_TYPE.PITCH_BEND) {
+                  const _pb14 = _raw7 * 129;
+                  _touch_group.msg.pos.midi.data1 = _pb14 & 0x7F;
+                  _touch_group.msg.pos.midi.data2 = (_pb14 >> 7) & 0x7F;
+                } else {
+                  _touch_group.msg.pos.midi.data2 = _raw7;
+                }
               }
             }
             if (_slider.data.move === MOVE_CODES.ROL && _slider.data.steps > 0) {
@@ -346,15 +350,15 @@ function slider_factory() {
               }
               if (_touch_group.msg.pos) update_touch_arc(_touch_group, _touch_group.msg.pos.midi.data2);
             }
-            if (_touch_group.msg.move && _touch_group.msg.move.enabled) {
+            if (_touch_group.msg.speed && _touch_group.msg.speed.enabled) {
               const now = performance.now();
               const dt_s = Math.max(0.001, (now - _last_move_t) / 1000);
               const dx = mouseEvent.delta.x * NEW_COLS / canvas_width;
               const dy = mouseEvent.delta.y * NEW_ROWS / canvas_height;
               _vel_xy = 0.5 * Math.sqrt(dx * dx + dy * dy) / dt_s + 0.5 * _vel_xy;
               _last_move_t = now;
-              _touch_group.msg.move.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
-              send_midi_msg(_touch_group.msg.move.midi);
+              _touch_group.msg.speed.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
+              send_midi_msg(_touch_group.msg.speed.midi);
             }
           }
         }

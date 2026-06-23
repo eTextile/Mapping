@@ -53,7 +53,7 @@ function knob_factory() {
         touch_msg = {};
         touch_msg.radius = Object.assign(midi_msg_builder(DEFAULT.MODE_R),           { enabled: true });
         touch_msg.theta  = Object.assign(midi_msg_builder(DEFAULT.MODE_T),           { enabled: true });
-        touch_msg.move   = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed   = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         touch_msg.press  = Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
@@ -93,7 +93,7 @@ function knob_factory() {
           : {};
         touch_msg.radius = prev.radius || Object.assign(midi_msg_builder(DEFAULT.MODE_R),           { enabled: true });
         touch_msg.theta  = prev.theta  || Object.assign(midi_msg_builder(DEFAULT.MODE_T),           { enabled: true });
-        touch_msg.move   = prev.move   || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed   = prev.speed   || Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         touch_msg.press  = prev.press  || Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
         this.data.msg.push(touch_msg);
       }
@@ -164,10 +164,7 @@ function knob_factory() {
             _vel_xy = 0;
             _last_move_t = performance.now();
             touch_press_down(_knob, _touch_group);
-            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-              this.style.fillColor = "red";
-              paper.view.update();
-            }
+            touch_color_update(this, _touch_group.msg.press, true);
             break;
           case MODE.PLAY:
             // N/A
@@ -183,10 +180,7 @@ function knob_factory() {
             _vel_xy = 0;
             _last_move_t = 0;
             touch_press_up(_knob, _touch_group);
-            if (press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.NOTE_ON || press_type_from_msg(_touch_group.msg.press) === MIDI_TYPE.CHORD) {
-              this.style.fillColor = TOUCH_IDLE_COLOR;
-              paper.view.update();
-            }
+            touch_color_update(this, _touch_group.msg.press, false);
             break;
           case MODE.PLAY:
             // N/A
@@ -230,15 +224,15 @@ function knob_factory() {
               _touch_group.prev_pos_t = _touch_group.msg.theta.midi.data2;
               send_midi_msg(_touch_group.msg.theta.midi);
             }
-            if (_touch_group.msg.move && _touch_group.msg.move.enabled) {
+            if (_touch_group.msg.speed && _touch_group.msg.speed.enabled) {
               const now = performance.now();
               const dt_s = Math.max(0.001, (now - _last_move_t) / 1000);
               const dx = mouseEvent.delta.x * NEW_COLS / canvas_width;
               const dy = mouseEvent.delta.y * NEW_ROWS / canvas_height;
               _vel_xy = 0.5 * Math.sqrt(dx * dx + dy * dy) / dt_s + 0.5 * _vel_xy;
               _last_move_t = now;
-              _touch_group.msg.move.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
-              send_midi_msg(_touch_group.msg.move.midi);
+              _touch_group.msg.speed.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
+              send_midi_msg(_touch_group.msg.speed.midi);
             }
             break;
           case MODE.PLAY:

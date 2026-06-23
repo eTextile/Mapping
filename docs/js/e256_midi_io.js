@@ -138,14 +138,6 @@ function limit(min, max) {
 };
 
 // MIDI MESSAGE BUILDER
-//    -> MIDI_TYPE.NOTE_OFF - N/A
-//    -> MIDI_TYPE.NOTE_ON
-//    -> MIDI_TYPE.AFTERTOUCH_POLY
-//    -> MIDI_TYPE.CONTROL_CHANGE
-//    MIDI_TYPE.PROGRAM_CHANGE
-//    MIDI_TYPE.C_AFTERTOUCH
-//    MIDI_TYPE.PITCH_BEND
-
 function midi_msg_builder(midi_msg_type) {
   let msg = {};
 
@@ -179,6 +171,11 @@ function midi_msg_builder(midi_msg_type) {
     case MIDI_TYPE.CHORD:
       msg.chord = 1;   // default: Major
       msg.note = 60;   // default: C4 (middle C)
+      break;
+    case MIDI_TYPE.CHORD_GATE:
+      msg.chord = 1;
+      msg.note = 60;
+      msg.gate = true;
       break;
     case MIDI_TYPE.CLOCK:
       msg.midi = new note_on(MIDI_DEFAULT.OUTPUT_CHANNEL, 0, 0);

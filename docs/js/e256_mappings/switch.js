@@ -55,7 +55,7 @@ function switch_factory() {
       for (let _touch = 0; _touch < DEFAULT.TOUCHS; _touch++) {
         let touch_msg = {};
         touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_Z),           { enabled: true });
-        touch_msg.move  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        touch_msg.speed  = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
     },
@@ -92,7 +92,7 @@ function switch_factory() {
         } else {
           touch_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_Z), { enabled: true });
         }
-        if (!touch_msg.move) touch_msg.move = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
+        if (!touch_msg.speed) touch_msg.speed = Object.assign(midi_msg_builder(MIDI_TYPE.CONTROL_CHANGE), { enabled: false });
         this.data.msg.push(touch_msg);
       }
     },
@@ -191,15 +191,15 @@ function switch_factory() {
 
       _touch_ellipse.onMouseDrag = function (mouseEvent) {
         if (e256_current_mode === MODE.THROUGH) {
-          if (!_touch_group.msg.move || !_touch_group.msg.move.enabled) return;
+          if (!_touch_group.msg.speed || !_touch_group.msg.speed.enabled) return;
           const now = performance.now();
           const dt_s = Math.max(0.001, (now - _last_move_t) / 1000);
           const dx = mouseEvent.delta.x * NEW_COLS / canvas_width;
           const dy = mouseEvent.delta.y * NEW_ROWS / canvas_height;
           _vel_xy = 0.5 * Math.sqrt(dx * dx + dy * dy) / dt_s + 0.5 * _vel_xy;
           _last_move_t = now;
-          _touch_group.msg.move.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
-          send_midi_msg(_touch_group.msg.move.midi);
+          _touch_group.msg.speed.midi.data2 = Math.max(0, Math.min(127, Math.round(_vel_xy * 127 / 120)));
+          send_midi_msg(_touch_group.msg.speed.midi);
         }
       };
 
