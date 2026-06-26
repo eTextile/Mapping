@@ -8,17 +8,22 @@ function apply_global_press_to_keys(grid_item, press_template) {
   const keys_group = grid_item.children["keys-group"];
   if (!keys_group) return;
   for (const key of keys_group.children) {
-    const current_note = key.msg.press?.note ?? key.msg.press?.midi?.data1 ?? 60;
+    const current_note  = key.msg.press?.note ?? key.msg.press?.midi?.data1 ?? 60;
+    const current_chord = key.msg.press?.chord; // preserve per-key chord (Omnichord rows)
     const new_press = JSON.parse(JSON.stringify(press_template));
-    if (new_press.chord !== undefined) new_press.note = current_note;
-    else if (new_press.midi)           new_press.midi.data1 = current_note;
+    if (new_press.chord !== undefined) {
+      new_press.note = current_note;
+      if (current_chord !== undefined) new_press.chord = current_chord;
+    } else if (new_press.midi) {
+      new_press.midi.data1 = current_note;
+    }
     key.msg.press = new_press;
   }
 }
 
 function get_press_type(msg_obj) {
   if (!msg_obj || (!msg_obj.midi && msg_obj.chord === undefined)) return MIDI_TYPE.NONE;
-  if (msg_obj.chord !== undefined) return msg_obj.gate ? MIDI_TYPE.CHORD_GATE : MIDI_TYPE.CHORD;
+  if (msg_obj.chord !== undefined) return msg_obj.gate ? MIDI_TYPE.CHORD_GATE : MIDI_TYPE.CHORD_TRIGGER;
   if (msg_obj.note_on_only) return MIDI_TYPE.NOTE_ON_ONLY;
   if (msg_obj.clock) return MIDI_TYPE.CLOCK;
   return midi_msg_status_unpack(msg_obj.midi.status).type;
@@ -178,9 +183,9 @@ function create_item_main_params(item) {
       part_param.appendChild(span_out);
       part_param.appendChild(sel_out);
     }
-    else if (param === "speed") {
+    else if (param === "move") {
       const { span, select } = create_select_field({
-        param: "speed",
+        param: "move",
         source: MOVE,
         item
       });
@@ -192,13 +197,15 @@ function create_item_main_params(item) {
     }
     else if (param === "press") {
       if (item.name !== "grid-group") continue;
-      if (item.data.layout === 4) continue; // Omnichord: press type determined by layout
 
       const press_obj = item.data.press;
       const grid_item = item.parent;
       const current_press_type = get_press_type(press_obj);
+      const is_omnichord = item.data.layout === 4;
 
-      const GRID_PRESS_ALLOWED = new Set([MIDI_TYPE.NOTE_ON_ONLY, MIDI_TYPE.NOTE_ON_OFF]);
+      const GRID_PRESS_ALLOWED = is_omnichord
+        ? new Set([MIDI_TYPE.CHORD_TRIGGER, MIDI_TYPE.CHORD_GATE])
+        : new Set([MIDI_TYPE.NOTE_ON_ONLY, MIDI_TYPE.NOTE_ON_OFF]);
       const press_type_entries = PRESSURE.filter(([k]) => GRID_PRESS_ALLOWED.has(k));
       let pt_span = document.createElement("span");
       pt_span.className = "input-group-text";

@@ -27,6 +27,7 @@ function touchpad_factory() {
 
   var _touchpad = new paper.Group({
     "name": "touchpad",
+    min: new paper.Point(DEFAULT.MIN_WIDTH, DEFAULT.MIN_HEIGHT),
     "data": {
       "touchs": null,
       "from": null,
@@ -37,7 +38,6 @@ function touchpad_factory() {
 
     setup_from_mouse_event: function (mouseEvent) {
       this.data.touchs = DEFAULT.TOUCHS;
-      this.data.min = new paper.Point(DEFAULT.MIN_WIDTH, DEFAULT.MIN_HEIGHT);
       this.data.from = new paper.Point(
         mouseEvent.point.x - (DEFAULT.WIDTH / 2),
         mouseEvent.point.y - (DEFAULT.HEIGHT / 2)
@@ -61,12 +61,6 @@ function touchpad_factory() {
 
     setup_from_config: function (params) {
       this.data.touchs = params.touchs;
-      this.data.min = params.min
-        ? new paper.Point(
-            mapp(params.min[0], 0, NEW_COLS, 0, canvas_width),
-            mapp(params.min[1], 0, NEW_ROWS, 0, canvas_height)
-          )
-        : new paper.Point(DEFAULT.MIN_WIDTH, DEFAULT.MIN_HEIGHT);
       this.data.from = new paper.Point(
         mapp(params.from[0], 0, NEW_COLS, 0, canvas_width),
         mapp(params.from[1], 0, NEW_ROWS, 0, canvas_height)
@@ -83,7 +77,6 @@ function touchpad_factory() {
       let previous_touch_count = this.data.touchs;
       this.data.touchs = this.children["pad-group"].data.touchs;
 
-      this.data.min = this.children["pad-group"].data.min;
       this.data.from = this.children["pad-group"].data.from;
       this.data.to = this.children["pad-group"].data.to;
       this.data.chan = this.children["pad-group"].data.chan;
@@ -283,9 +276,9 @@ function touchpad_factory() {
 
       let _pad_group = new paper.Group({
         "name": "pad-group",
+        "min": this.min,
         "data": {
           "touchs": this.data.touchs,
-          "min": this.data.min || new paper.Point(DEFAULT.MIN_WIDTH, DEFAULT.MIN_HEIGHT),
           "from": this.data.from,
           "to": this.data.to,
           "chan": this.data.chan

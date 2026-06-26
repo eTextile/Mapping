@@ -125,6 +125,11 @@ function grid_factory() {
       current_key_count = this.data.cols * this.data.rows;
 
       const is_omnichord = this.data.layout === 4;
+      if (is_omnichord && this.data.press?.chord === undefined) {
+        this.data.press = Object.assign(midi_msg_builder(MIDI_TYPE.CHORD_TRIGGER), { enabled: this.data.press?.enabled !== false });
+        this.children["grid-group"].data.press = this.data.press;
+      }
+      const omni_press_type = this.data.press?.gate ? MIDI_TYPE.CHORD_GATE : MIDI_TYPE.CHORD_TRIGGER;
       this.data.msg = [];
       for (let _key = 0; _key < current_key_count; _key++) {
         const col = _key % this.data.cols;
@@ -134,7 +139,7 @@ function grid_factory() {
         if (_key < previous_key_count) {
           const old_press = this.children["keys-group"].children[_key].msg.press;
           if (is_omnichord && old_press.chord === undefined) {
-            key_msg.press = Object.assign(midi_msg_builder(MIDI_TYPE.CHORD), { enabled: true, note, chord: OMNICHORD_ROW_CHORD[row] ?? 1 });
+            key_msg.press = Object.assign(midi_msg_builder(omni_press_type), { enabled: true, note, chord: OMNICHORD_ROW_CHORD[row] ?? 1 });
           } else if (!is_omnichord && old_press.chord !== undefined) {
             key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
             key_msg.press.note = note;
@@ -146,7 +151,7 @@ function grid_factory() {
           }
         } else {
           if (is_omnichord) {
-            key_msg.press = Object.assign(midi_msg_builder(MIDI_TYPE.CHORD), { enabled: true, note, chord: OMNICHORD_ROW_CHORD[row] ?? 1 });
+            key_msg.press = Object.assign(midi_msg_builder(omni_press_type), { enabled: true, note, chord: OMNICHORD_ROW_CHORD[row] ?? 1 });
           } else {
             key_msg.press = Object.assign(midi_msg_builder(DEFAULT.MODE_PRESS), { enabled: true });
             key_msg.press.note = note;
@@ -242,7 +247,7 @@ function grid_factory() {
                 press.midi.data2 = get_random_int(64, 127);
                 send_midi_msg(press.midi);
                 break;
-              case MIDI_TYPE.CHORD:
+              case MIDI_TYPE.CHORD_TRIGGER:
                 touch_press_down(_grid, _key_group);
                 paper.view.update();
                 break;
@@ -266,7 +271,7 @@ function grid_factory() {
               send_midi_msg(press.midi);
             }
             break;
-          case MIDI_TYPE.CHORD:
+          case MIDI_TYPE.CHORD_TRIGGER:
             touch_press_up(_grid, _key_group);
             break;
         }

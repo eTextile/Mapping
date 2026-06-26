@@ -69,7 +69,7 @@ function update_touch_arc(touch_group, value, circle_name) {
 function press_type_from_msg(press) {
   if (!press) return MIDI_TYPE.NONE;
   if (press.clock) return MIDI_TYPE.CLOCK;
-  if (press.chord !== undefined) return press.gate ? MIDI_TYPE.CHORD_GATE : MIDI_TYPE.CHORD;
+  if (press.chord !== undefined) return press.gate ? MIDI_TYPE.CHORD_GATE : MIDI_TYPE.CHORD_TRIGGER;
   if (press.midi) return midi_msg_status_unpack(press.midi.status).type;
   return MIDI_TYPE.NONE;
 }
@@ -88,7 +88,7 @@ function touch_press_down(mapping, touch_group) {
       press.midi.data2 = get_random_int(64, 127);
       send_midi_msg(press.midi);
       break;
-    case MIDI_TYPE.CHORD:
+    case MIDI_TYPE.CHORD_TRIGGER:
     case MIDI_TYPE.CHORD_GATE: {
       const intervals = CHORD_INTERVALS[press.chord] || CHORD_INTERVALS[1];
       const note_on_status = ((mapping.data.chan.out - 1) & MIDI_CHANNEL_MASK) | MIDI_TYPE.NOTE_ON;
@@ -115,7 +115,7 @@ function touch_press_up(mapping, touch_group) {
       press.midi.data2 = 0;
       send_midi_msg(press.midi);
       break;
-    case MIDI_TYPE.CHORD:
+    case MIDI_TYPE.CHORD_TRIGGER:
       break; // trigger only — no note-off on release
     case MIDI_TYPE.CHORD_GATE: {
       const intervals = CHORD_INTERVALS[press.chord] || CHORD_INTERVALS[1];
@@ -130,7 +130,7 @@ function touch_press_up(mapping, touch_group) {
 
 function touch_color_update(touch_item, press_msg, is_down) {
   const pt = press_type_from_msg(press_msg);
-  if (pt === MIDI_TYPE.NOTE_ON || pt === MIDI_TYPE.CHORD || pt === MIDI_TYPE.CHORD_GATE) {
+  if (pt === MIDI_TYPE.NOTE_ON || pt === MIDI_TYPE.CHORD_TRIGGER || pt === MIDI_TYPE.CHORD_GATE) {
     touch_item.style.fillColor = is_down ? "red" : TOUCH_IDLE_COLOR;
     paper.view.update();
   }

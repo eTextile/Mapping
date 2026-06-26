@@ -28,11 +28,14 @@ const DEV_MODE_ACK = {
   [MODE.FETCH_CONFIG]:    MODE_ACK.FETCH_CONFIG,
 };
 
+function set_connection_status(label) {
+  $("#connection_status").html(dev_mode ? "DISCONNECTED / DEV_MODE" : label);
+}
+
 function toggle_dev_mode() {
   dev_mode = !dev_mode;
   if (dev_mode) {
     alert_msg("DEV MODE: ON — hardware not required", "warning");
-    $("#connection_status").html("DEV MODE");
     handle_sysex_ack(MODE_ACK.MAPPING);
   } else {
     alert_msg("DEV MODE: OFF", "info");
@@ -168,7 +171,7 @@ function midi_msg_builder(midi_msg_type) {
       msg.midi = new pitch_bend(MIDI_DEFAULT.OUTPUT_CHANNEL, MIDI_DEFAULT.VELOCITY);
       msg.limit = new limit(MIDI_DEFAULT.MIN_VAL, MIDI_DEFAULT.MAX_VAL);
       break;
-    case MIDI_TYPE.CHORD:
+    case MIDI_TYPE.CHORD_TRIGGER:
       msg.chord = 1;   // default: Major
       msg.note = 60;   // default: C4 (middle C)
       break;
@@ -390,20 +393,20 @@ function handle_sysex_ack(ack) {
     case MODE_ACK.MATRIX_RAW:
       updateMenu(); $("#e256_params").hide(); $("#upload_section").hide(); $("#synth_profile_section").hide();
       e256_blobs.clear(); e256_current_mode = MODE.MATRIX_RAW;
-      $("#connection_status").html("CONNECTED / MATRIX_RAW");
+      set_connection_status("CONNECTED / MATRIX_RAW");
       alert_msg("MODE: MATRIX_RAW", "success");
       break;
     case MODE_ACK.MATRIX_INTERP:
       updateMenu(); $("#e256_params").hide(); $("#upload_section").hide(); $("#synth_profile_section").hide();
       e256_blobs.clear(); e256_current_mode = MODE.MATRIX_INTERP;
-      $("#connection_status").html("CONNECTED / MATRIX_INTERP");
+      set_connection_status("CONNECTED / MATRIX_INTERP");
       alert_msg("MODE: MATRIX_INTERP", "success");
       break;
     case MODE_ACK.MAPPING:
       $("#calibrate_menu").collapse("show"); $("#matrix_menu").collapse("hide");
       $("#mapping_menu").collapse("show"); $("#loading_canvas").collapse("hide");
       $("#matrix_canvas").collapse("hide"); $("#mapping_canvas").collapse("show");
-      $("#connection_status").html("CONNECTED / MAPPING");
+      set_connection_status("CONNECTED / MAPPING");
       $("#mode_explanation").html("Define your custom MIDI interface onto the eTextile device");
       $("#MATRIX_RAW").removeClass("active"); $("#MAPPING").addClass("active");
       e256_current_mode = MODE.MAPPING;
@@ -418,7 +421,7 @@ function handle_sysex_ack(ack) {
       break;
     case MODE_ACK.EDIT:
       $("#edit_menu").collapse("show"); $("#load_menu").collapse("show");
-      $("#connection_status").html("CONNECTED / EDIT");
+      set_connection_status("CONNECTED / EDIT");
       $("#mode_explanation").html("Add tactile commands to the eTextile device");
       $("#midi_term").collapse("hide"); $("#e256_params").show(); $("#upload_section").show(); $("#synth_profile_section").show();
       item_menu_params(current_controller, "show");
@@ -433,7 +436,7 @@ function handle_sysex_ack(ack) {
       $("#mapping_menu").collapse("show"); $("#loading_canvas").collapse("hide");
       $("#matrix_canvas").collapse("hide"); $("#mapping_canvas").collapse("show");
       $("#edit_menu").collapse("hide"); $("#load_menu").collapse("hide");
-      $("#connection_status").html("CONNECTED / THROUGH");
+      set_connection_status("CONNECTED / THROUGH");
       $("#mode_explanation").html("Send Midi msg to the external synth");
       $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide(); $("#synth_profile_section").hide();
       item_menu_params(current_controller, "hide"); item_menu_params(current_touch, "hide");
@@ -447,7 +450,7 @@ function handle_sysex_ack(ack) {
       $("#mapping_menu").collapse("show"); $("#loading_canvas").collapse("hide");
       $("#matrix_canvas").collapse("hide"); $("#mapping_canvas").collapse("show");
       $("#edit_menu").collapse("hide"); $("#load_menu").collapse("hide");
-      $("#connection_status").html("CONNECTED / PLAY");
+      set_connection_status("CONNECTED / PLAY");
       $("#mode_explanation").html("Evaluate what you have made");
       $("#e256_params").hide(); $("#midi_term").collapse("show"); $("#upload_section").hide(); $("#synth_profile_section").hide();
       item_menu_params(current_controller, "hide"); item_menu_params(current_touch, "hide");

@@ -55,7 +55,7 @@ const MIDI_TYPE = {
   AFTERTOUCH_CHANNEL: 0xD0,
   PITCH_BEND: 0xE0,
   CLOCK: 0xF8,
-  CHORD: 0xFE,
+  CHORD_TRIGGER: 0xFE,
   CHORD_GATE: 0xFD,
   NONE: 0xFF
 };
@@ -126,14 +126,14 @@ const DATA2 = {
 };
 
 const PRESSURE = [
-  [MIDI_TYPE.NONE,            "None"],           // NO PRESS MIDI OUTPUT
-  [MIDI_TYPE.NOTE_ON_ONLY,    "Note - Trigger"], // TRIGGER NOTE — NO RELEASE
-  [MIDI_TYPE.NOTE_ON_OFF,     "Note - Gate"],    // TRIGGER NOTE WITH VELOCITY GATE
-  [MIDI_TYPE.CONTROL_CHANGE,  "ControlChange"],  // PRESSURE ONLY
-  [MIDI_TYPE.AFTERTOUCH_POLY, "AfterTouchPoly"], // TRIGGER NOTE AND MODULATE
-  [MIDI_TYPE.CHORD,           "Chord - trigger"], // SEND A CHORD — no release
-  [MIDI_TYPE.CHORD_GATE,      "Chord - gate"],   // SEND A CHORD — with note-off on release
-  [MIDI_TYPE.CLOCK,           "TapTempo"]        // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
+  [MIDI_TYPE.NONE,            "None"],            // NO PRESS MIDI OUTPUT
+  [MIDI_TYPE.NOTE_ON_ONLY,    "Note - Trigger"],  // TRIGGER NOTE — NO RELEASE
+  [MIDI_TYPE.NOTE_ON_OFF,     "Note - Gate"],     // TRIGGER NOTE WITH VELOCITY GATE
+  [MIDI_TYPE.CONTROL_CHANGE,  "ControlChange"],   // PRESSURE ONLY
+  [MIDI_TYPE.AFTERTOUCH_POLY, "AfterTouchPoly"],  // TRIGGER NOTE AND MODULATE
+  [MIDI_TYPE.CHORD_TRIGGER,   "Chord - trigger"], // SEND A CHORD — no release
+  [MIDI_TYPE.CHORD_GATE,      "Chord - gate"],    // SEND A CHORD — with note-off on release
+  [MIDI_TYPE.CLOCK,           "TapTempo"]         // TAP TEMPO — firmware sends MIDI Clock, no MIDI msg
 ];
 
 const PRESSURE_CODES = Object.fromEntries(
