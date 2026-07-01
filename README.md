@@ -3,7 +3,7 @@
 A browser-based application to configure tactile mapping on the **e256** matrix sensor. It lets you draw control zones directly over the sensor's pressure field, assign MIDI messages to each zone, and upload the configuration to the device — all over USB MIDI.
 
 **Live app:** https://mapping.etextile.org/ *(requires Chrome)*  
-**Version:** 1.0.27  
+**Version:** 1.0.28  
 **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ---
@@ -108,6 +108,81 @@ Shortcuts are ignored when an input field is focused.
    This requires a physical **long-press on the LEFT BUTTON** on the device.
    Without this step the mapping is lost on power-off.
 9. Use **FETCH CONFIG** (or press `f`) to retrieve the current configuration stored on the device.
+
+---
+
+## Firmware update
+
+The web app and the e256 firmware are versioned together (currently **1.0.28**).
+The app checks the firmware version automatically on every connection — no manual action required.
+
+### How version checking works
+
+On every successful USB connection the firmware sends its version string as a SysEx packet (`SYSEX_PKT_VERSION = 0x06`) immediately after the SYNC handshake:
+
+```
+F0  7D  06  '1' '.' '0' '.' '2' '8'  F7
+```
+
+The app compares this string against its own `VERSION` constant (`docs/js/e256_config.js`).  
+If they differ **and** a bundled firmware file exists at `docs/firmware/e256_firmware.hex`, the update dialog appears.  
+If the versions match, or no HEX file is present, nothing happens.
+
+### Automatic update (recommended)
+
+When the firmware version does not match the app, a **Firmware Update Available** dialog appears automatically.  
+It shows the device version and the app version, then offers two choices: **Skip** or **Update Firmware**.
+
+Clicking **Update Firmware**:
+
+1. The app sends a `BOOTLOADER_MODE` reboot command over USB MIDI.
+2. The Teensy reboots immediately into the HalfKay USB HID bootloader (VID `0x16C0` / PID `0x0478`).
+3. After ~1.5 s, Chrome opens a WebHID device-picker — select **HalfKay** and confirm.
+4. The app flashes `docs/firmware/e256_firmware.hex` block by block (1024-byte blocks, 64-byte HID reports).
+5. The device reboots automatically and reconnects as a MIDI device.
+
+> Requires **Chrome** (or any Chromium-based browser). Firefox does not support WebHID.
+
+### Symptoms of a version mismatch
+
+If you dismiss the dialog or flashing fails, you may observe:
+
+- `UNKNOWN_SYSEX` errors in the MIDI terminal
+- Config upload silently rejected (ALLOCATE/UPLOAD/APPLY handshake fails)
+- Controls not responding despite a successful-looking upload
+
+### Manual update (fallback)
+
+If the automatic path fails, flash with PlatformIO directly:
+
+```bash
+git clone https://github.com/eTextile/Synth
+cd Synth/Firmware
+pio run -e USB_MIDI -t upload   # builds and flashes in one step
+```
+
+The Teensy enters bootloader automatically when the upload starts; no button press needed.
+
+### Bundling a new firmware release
+
+When the firmware source changes, regenerate the bundled HEX and update both repos:
+
+```bash
+# 1. Bump VERSION in both files to the same string (e.g. "1.0.29"):
+#    Firmware/include/config.h  →  #define VERSION "1.0.29"
+#    Synth_web/docs/js/e256_config.js  →  const VERSION = "1.0.29";
+
+# 2. Build
+cd Synth/Firmware
+pio run -e USB_MIDI
+
+# 3. Copy HEX into the web app
+cp .pio/build/USB_MIDI/firmware.hex ../Synth_web/docs/firmware/e256_firmware.hex
+
+# 4. Commit and push both repos
+```
+
+The web app will now automatically propose the update to any device running an older version.
 
 ---
 
