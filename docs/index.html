@@ -255,6 +255,29 @@
   <script src="./js/lib/FileSaver.js" defer></script>
   <script src="./js/e256_export_config.js" defer></script>
 
+  <script src="./js/e256_firmware_update.js"></script>
+
+  <!-- Firmware update modal — shown automatically when firmware version mismatches -->
+  <div class="modal fade" id="firmware_update_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title">Firmware Update Available</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Device version: <strong id="fw_device_version">—</strong></p>
+          <p>App version: <strong id="fw_app_version">—</strong></p>
+          <p class="mb-0">Update the device firmware to match this app?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Skip</button>
+          <button type="button" class="btn btn-warning" id="firmware_update_btn">Update Firmware</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>

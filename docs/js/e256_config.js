@@ -92,7 +92,8 @@ const SYSEX_PKT = {
   ACK:     0x02,  // firmware → web: mode acknowledgment
   ERR:     0x03,  // firmware → web: error
   PARAM:   0x04,  // firmware → web: level parameter value
-  MIDI_IN: 0x05   // firmware → web: hardware MIDI IN forwarded message
+  MIDI_IN: 0x05,  // firmware → web: hardware MIDI IN forwarded message
+  VERSION: 0x06   // firmware → web: firmware version string (ASCII)
 };
 
 // SysEx PARAM IDs (mirrors MIDI_CC / level_code_t in firmware)
@@ -243,7 +244,8 @@ const MODE = {
   FETCH_CONFIG: 14,
   STANDALONE: 15,
   USB_INTERFACE: 16,
-  ERROR: 17
+  ERROR: 17,
+  BOOTLOADER: 18
 };
 
 const MODE_CODES = Object.fromEntries(
